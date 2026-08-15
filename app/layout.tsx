@@ -3,19 +3,30 @@ import './globals.css';
 import SmoothScrollProvider from '@/components/providers/SmoothScrollProvider';
 
 export const metadata: Metadata = {
-  title: 'Sparovia Client Edition V1 | Home Interiors & uPVC Windows',
-  description: 'Sparovia Digital Showroom — Custom Modular Kitchens, Wardrobes, Living Systems, and uPVC Window Solutions.',
+  title: 'KVN Interiors | Home Interiors & uPVC Windows',
+  description: 'KVN Interiors — Custom Modular Kitchens, Wardrobes, Living Systems, and uPVC Window Solutions.',
   keywords: [
-    'Sparovia Interiors',
+    'KVN Interiors',
     'Modular Kitchens',
     'uPVC Windows',
     'Wardrobes',
     'Living TV Units',
     'Home Interior Design',
   ],
-  authors: [{ name: 'Sparovia Client Edition V1' }],
+  authors: [{ name: 'KVN Interiors' }],
+  icons: {
+    icon: [
+      { url: '/icon.png?v=kvn', type: 'image/png' },
+      { url: '/icon.svg?v=kvn', type: 'image/svg+xml' },
+      { url: '/favicon.ico?v=kvn', sizes: 'any' },
+    ],
+    shortcut: '/favicon.ico?v=kvn',
+    apple: [
+      { url: '/apple-icon.svg?v=kvn', type: 'image/svg+xml' },
+    ],
+  },
   openGraph: {
-    title: 'Sparovia Client Edition V1 | Home Interiors & uPVC Windows',
+    title: 'KVN Interiors | Home Interiors & uPVC Windows',
     description: 'Custom Home Interiors, Modular Kitchens, Wardrobes, Living Units & uPVC Window Solutions.',
     type: 'website',
   },

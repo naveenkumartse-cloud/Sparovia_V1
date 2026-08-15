@@ -32,8 +32,7 @@ function ArchitecturalHero() {
     <FadeIn direction="up" delay={0.2} duration={0.8}>
       <div
         ref={imageRef}
-        className="relative w-full rounded-2xl overflow-hidden bg-surface border border-gray-100 shadow-soft-sm"
-        style={{ aspectRatio: '21/9' }}
+        className="relative w-full rounded-2xl overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9]"
       >
         <motion.div
           className="absolute inset-0"
@@ -90,7 +89,7 @@ function DesktopHorizontalGallery() {
   });
 
   // Move the gallery strip leftward as user scrolls through the section
-  const x = useTransform(scrollYProgress, [0, 1], ['5%', '-25%']);
+  const x = useTransform(scrollYProgress, [0, 1], ['0%', '-20%']);
 
   return (
     <div ref={trackRef} className="hidden md:block overflow-hidden py-4">
@@ -114,7 +113,7 @@ function DesktopHorizontalGallery() {
                 loading="lazy"
               />
             </div>
-            <span className="block mt-3 text-[11px] uppercase tracking-[0.12em] text-charcoal-500 font-semibold">
+            <span className="block mt-3 text-[11px] uppercase tracking-[0.12em] text-muted-500 font-semibold">
               {item.label}
             </span>
           </div>
@@ -152,7 +151,7 @@ function MobileSwipeGallery() {
                 loading="lazy"
               />
             </div>
-            <span className="block mt-2.5 text-[10px] uppercase tracking-[0.12em] text-charcoal-500 font-semibold">
+            <span className="block mt-2.5 text-[10px] uppercase tracking-[0.12em] text-muted-500 font-semibold">
               {item.label}
             </span>
           </div>
@@ -202,7 +201,7 @@ export default function UpvcSection() {
       <Container size="wide">
         <FadeIn direction="up" delay={0.1}>
           <div className="mb-8">
-            <span className="text-[11px] uppercase tracking-[0.15em] text-charcoal-500 font-semibold">
+            <span className="text-[11px] uppercase tracking-[0.15em] text-muted-500 font-semibold">
               Window &amp; Door Installations
             </span>
           </div>

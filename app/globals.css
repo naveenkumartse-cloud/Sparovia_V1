@@ -9,7 +9,8 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* scroll-behavior is intentionally omitted — Lenis handles smooth scrolling */
+  scroll-padding-top: 80px; /* clears the fixed navbar on anchor-link scroll */
   color-scheme: light;
   background-color: #ffffff;
   color: #0f172a;
@@ -38,6 +39,12 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Form placeholder color — visible but clearly secondary */
+::placeholder {
+  color: #94a3b8; /* muted-400 */
+  opacity: 1; /* Firefox normalisation */
 }
 
 /* Custom Scrollbar */

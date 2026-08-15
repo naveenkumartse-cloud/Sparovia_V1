@@ -18,7 +18,7 @@ export function Eyebrow({ children, className, icon = true }: TypographyProps & 
 
 export function HeroHeading({ children, className }: TypographyProps) {
   return (
-    <h1 className={cn('font-sans text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-charcoal-900 leading-[1.1] mb-6', className)}>
+    <h1 className={cn('font-sans text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-charcoal-900 leading-[1.1] mb-6', className)}>
       {children}
     </h1>
   );
@@ -26,7 +26,7 @@ export function HeroHeading({ children, className }: TypographyProps) {
 
 export function SectionHeading({ children, className }: TypographyProps) {
   return (
-    <h2 className={cn('font-sans text-3xl sm:text-5xl font-bold text-charcoal-900 tracking-tight mb-4', className)}>
+    <h2 className={cn('font-sans text-3xl sm:text-4xl lg:text-5xl font-bold text-charcoal-900 tracking-tight mb-4', className)}>
       {children}
     </h2>
   );

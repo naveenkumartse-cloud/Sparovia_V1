@@ -8,8 +8,8 @@ export const contentConfig = {
   },
   brandIntro: {
     badge: 'Craftsmanship & Quality',
-    title: 'Transforming Spaces into Digital Showrooms',
-    description: 'At Sparovia, we focus on delivering real residential projects with pristine craftsmanship, clean ergonomics, and reliable project execution.',
+    title: 'Crafting Spaces That Reflect You',
+    description: 'At KVN Interiors, we focus on delivering real residential projects with pristine craftsmanship, clean ergonomics, and reliable project execution.',
     pillars: [
       'Tailored Modular Kitchen & Wardrobe Layouts',
       'Engineered uPVC Window & Door Systems',
@@ -111,7 +111,7 @@ export const contentConfig = {
     heading: 'Clear answers to common questions.',
     list: [
       {
-        question: 'What solutions does Sparovia provide?',
+        question: 'What solutions does KVN Interiors provide?',
         answer: 'We specialize in Home Interiors (Modular Kitchens, Wardrobes, Living/TV Units) and engineered uPVC Window and Door installations.',
       },
       {

@@ -1,57 +1,44 @@
-# Sparovia — Client Edition V1
+# Sparovia
 
-Premium digital landing page and lightweight content management platform for a home interiors and uPVC windows business.
+> A multi-tenant business experience and intelligence platform for modern businesses.
 
----
+Sparovia helps businesses establish, manage, and improve their digital presence, customer interactions, business information, leads, and workflows through one controlled platform.
 
-## Project Overview
-
-Sparovia Client Edition V1 is a premium, image-first website experience designed specifically for a home interiors and uPVC windows business.
-
-The primary goal of V1 is simple:
-
-> Build a premium landing page that showcases the client's real work and provide a basic admin panel to manage the website content and images.
-
-The project is intentionally lightweight.
-
-We are NOT building the complete Sparovia platform in this version.
+Sparovia is designed to combine a premium business website experience, business management capabilities, digital presence management, customer communication, intelligence, and future agentic workflows into a single multi-tenant platform.
 
 ---
 
-# V1 Scope
+## 1. Product Definition
 
-The current client delivery focuses on:
+Sparovia is a **business experience and intelligence platform**.
 
-- Premium Landing Page
-- Basic Admin Panel
-- Content Management
-- Image Management
-- AI Suggest
-- AI Content Improve
-- AI Image Enhance
-- Basic Theme Management
-- Preview
-- Publish
-- QA
-- Production Deployment
+The platform is designed to understand the core business of each client and provide the appropriate digital capabilities based on that business.
 
----
+Sparovia is not simply an Admin Panel.
 
-# Product Flow
+It is also not an AI website generator.
+
+The long-term platform connects:
 
 ```text
-Premium Landing Page
-        ↓
-Landing Page Review / Approval
-        ↓
-Basic Admin Panel
-        ↓
-Content + Image Management
-        ↓
-AI Suggest / Improve / Image Enhance
-        ↓
-Theme + Preview + Publish
-        ↓
-QA
-        ↓
-Production Deployment
+Business
+   ↓
+Business Knowledge
+   ↓
+Digital Presence
+   ↓
+Website
+   ↓
+Leads & Customers
+   ↓
+Communication
+   ↓
+Sparovia Intelligence
+   ↓
+Recommendations
+   ↓
+Agents
+   ↓
+Controlled Actions
+   ↓
+Business Outcomes

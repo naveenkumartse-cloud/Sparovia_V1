@@ -125,7 +125,7 @@ export default function ContactSection() {
                       Inquiry Received
                     </h3>
                     <p className="text-sm text-charcoal-600 font-normal mb-8 max-w-sm mx-auto">
-                      Thank you for contacting Sparovia. We have received your request and will get back to you shortly.
+                      Thank you for contacting KVN Interiors. We have received your request and will get back to you shortly.
                     </p>
                     <Button onClick={() => setSubmitted(false)} variant="primary" size="md">
                       Send Another Request

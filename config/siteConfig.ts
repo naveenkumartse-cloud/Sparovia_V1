@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: 'Sparovia Client Edition V1',
+  name: 'KVN Interiors',
   tagline: 'Premium Home Interiors & uPVC Window Systems',
   description: 'Transforming residential spaces with custom modular kitchens, wardrobes, living units, and engineered uPVC window solutions.',
   

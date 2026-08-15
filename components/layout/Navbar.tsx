@@ -42,25 +42,25 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
 
-        {/* Brand Logo — Minimal */}
+        {/* Brand Logo — KVN Badge + Interiors */}
         <a
           href="#hero"
           className="flex items-center gap-2.5 group focus-ring rounded-lg py-1"
-          aria-label="Sparovia — return to top"
+          aria-label="KVN Interiors — return to top"
         >
           <div
-            className={`w-8 h-8 rounded-lg flex items-center justify-center font-sans font-bold text-base transition-all duration-500 ${
+            className={`px-2.5 h-8 rounded-lg flex items-center justify-center font-sans font-extrabold text-xs tracking-wider transition-all duration-500 ${
               scrolled
                 ? 'bg-brand-600 text-white shadow-purple-glow'
                 : 'bg-brand-600 text-white'
             }`}
           >
-            S
+            KVN
           </div>
           <span className={`font-sans text-[15px] font-bold tracking-[0.12em] uppercase transition-colors duration-500 ${
             scrolled ? 'text-charcoal-900' : 'text-charcoal-900'
           }`}>
-            Sparovia
+            Interiors
           </span>
         </a>
 
@@ -106,7 +106,7 @@ export default function Navbar() {
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
-          className="lg:hidden fixed inset-x-0 top-[56px] bottom-0 bg-white/98 backdrop-blur-sm flex flex-col"
+          className="lg:hidden fixed inset-x-0 top-0 bottom-0 bg-white/98 backdrop-blur-sm flex flex-col pt-[60px]"
         >
           <nav className="flex flex-col px-6 pt-8 pb-6 gap-1 flex-1 overflow-y-auto" aria-label="Mobile Navigation">
             {siteConfig.navLinks.map((link) => (

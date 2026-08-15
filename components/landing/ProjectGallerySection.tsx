@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { contentConfig } from '@/config/contentConfig';
 import { mediaConfig, MediaItem } from '@/config/mediaConfig';
@@ -16,6 +16,9 @@ export default function ProjectGallerySection() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const shouldReduceMotion = useReducedMotion();
+  // Focus management refs for lightbox accessibility
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
   const categories = contentConfig.gallery.categories;
 
@@ -34,6 +37,21 @@ export default function ProjectGallerySection() {
     if (selectedIndex === null) return;
     setSelectedIndex((selectedIndex - 1 + filteredItems.length) % filteredItems.length);
   }, [selectedIndex, filteredItems.length]);
+
+  // Move focus to close button when lightbox opens; restore on close
+  useEffect(() => {
+    if (selectedIndex !== null) {
+      // Small delay lets the DOM render before focusing
+      const timer = setTimeout(() => closeButtonRef.current?.focus(), 50);
+      return () => clearTimeout(timer);
+    } else {
+      // Restore focus to the gallery item that opened the lightbox
+      if (triggerRef.current) {
+        triggerRef.current.focus();
+        triggerRef.current = null;
+      }
+    }
+  }, [selectedIndex]);
 
   // Lock body scroll when lightbox is open
   useEffect(() => {
@@ -147,7 +165,10 @@ export default function ProjectGallerySection() {
                 className={getGridSpanClass(item.span)}
               >
                 <div
-                  onClick={() => setSelectedIndex(index)}
+                  onClick={(e) => {
+                    triggerRef.current = e.currentTarget as HTMLElement;
+                    setSelectedIndex(index);
+                  }}
                   className="relative w-full h-full rounded-2xl overflow-hidden bg-surface border border-gray-100 shadow-soft-sm group cursor-pointer"
                   tabIndex={0}
                   role="button"
@@ -155,6 +176,7 @@ export default function ProjectGallerySection() {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
+                      triggerRef.current = e.currentTarget as HTMLElement;
                       setSelectedIndex(index);
                     }
                   }}
@@ -186,7 +208,7 @@ export default function ProjectGallerySection() {
                   {/* Content (Bottom Left) */}
                   <div className="absolute bottom-5 left-5 right-5 z-10 text-white pointer-events-none">
                     <span className="block text-[10px] uppercase tracking-[0.2em] text-brand-300 font-bold mb-1">
-                      Sparovia Project
+                      KVN Interiors Project
                     </span>
                     <h3 className="font-sans text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
                       {item.label}
@@ -218,6 +240,7 @@ export default function ProjectGallerySection() {
 
             {/* Close Button */}
             <button
+              ref={closeButtonRef}
               onClick={() => setSelectedIndex(null)}
               className="absolute top-5 right-5 z-20 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors focus-ring cursor-pointer"
               aria-label="Close image lightbox"
@@ -253,10 +276,10 @@ export default function ProjectGallerySection() {
               animate={{ opacity: 1, scale: 1 }}
               exit={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
-              className="relative z-10 max-w-4xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl border border-gray-100 flex flex-col md:flex-row max-h-[85vh]"
+              className="relative z-10 max-w-4xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl border border-gray-100 flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]"
             >
               {/* Image View */}
-              <div className="relative flex-1 min-h-[300px] sm:min-h-[400px] md:min-h-[500px] bg-charcoal-900">
+              <div className="relative h-[220px] sm:h-[300px] md:h-auto md:flex-1 md:min-h-[500px] bg-charcoal-900 flex-shrink-0">
                 <Image
                   src={selectedItem.src}
                   alt={selectedItem.alt}
@@ -268,7 +291,7 @@ export default function ProjectGallerySection() {
               </div>
 
               {/* Sidebar Info */}
-              <div className="w-full md:w-80 p-6 sm:p-8 flex flex-col justify-between bg-white border-t md:border-t-0 md:border-l border-gray-100">
+              <div className="w-full md:w-80 p-5 sm:p-6 md:p-8 flex flex-col justify-between bg-white border-t md:border-t-0 md:border-l border-gray-100 overflow-y-auto">
                 <div>
                   <span className="text-[11px] uppercase tracking-[0.2em] text-brand-600 font-bold block mb-2">
                     {selectedItem.category}

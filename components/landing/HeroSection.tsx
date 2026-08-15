@@ -57,8 +57,12 @@ export default function HeroSection() {
         />
       </motion.div>
 
-      {/* Controlled Contrast Overlay — Subtle, Not Heavy */}
-      <div className="absolute inset-0 z-[1] bg-gradient-to-r from-white via-white/80 to-white/25 pointer-events-none" />
+      {/* Contrast Overlay — Adaptive for viewport size */}
+      {/* Desktop (lg+): left-to-right — editorial layout, text on white left, image on right */}
+      <div className="hidden lg:block absolute inset-0 z-[1] bg-gradient-to-r from-white via-white/80 to-white/25 pointer-events-none" />
+      {/* Mobile/Tablet: uniform semi-white tint — image visible as backdrop, text readable */}
+      <div className="lg:hidden absolute inset-0 z-[1] bg-white/55 pointer-events-none" />
+      {/* Bottom fade (universal) — smooth visual transition into next section */}
       <div className="absolute inset-0 z-[1] bg-gradient-to-t from-white via-transparent to-transparent pointer-events-none" />
 
       {/* Scroll-Driven Darkening Overlay (cinematic exit) */}
@@ -69,7 +73,7 @@ export default function HeroSection() {
 
       {/* Hero Editorial Content */}
       <motion.div
-        className="relative z-10 w-full pt-28 pb-16"
+        className="relative z-10 w-full pt-20 sm:pt-24 lg:pt-28 pb-16"
         style={shouldReduceMotion ? {} : {
           opacity: contentOpacity,
           y: contentY,

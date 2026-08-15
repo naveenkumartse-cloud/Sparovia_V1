@@ -72,7 +72,7 @@ function DesktopStorytelling() {
 
         {/* LEFT: Sticky Image (8 columns — ~70% visual) */}
         <div className="col-span-7 relative">
-          <div className="sticky top-28" style={{ height: 'calc(100vh - 10rem)' }}>
+          <div className="sticky top-24" style={{ height: 'calc(100vh - 8rem)' }}>
             <div className="relative w-full h-full rounded-2xl overflow-hidden bg-surface border border-gray-100 shadow-soft-sm">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -117,7 +117,7 @@ function DesktopStorytelling() {
                 </h3>
 
                 {/* Tagline */}
-                <p className="text-base text-charcoal-500 font-medium italic mb-5">
+                <p className="text-base text-muted-500 font-medium italic mb-5">
                   {cat.tagline}
                 </p>
 
@@ -161,10 +161,10 @@ function DesktopStorytelling() {
 
 function MobileStorytelling() {
   return (
-    <div className="lg:hidden flex flex-col gap-16">
+    <div className="lg:hidden flex flex-col gap-12 md:gap-16">
       {categories.map((cat, i) => (
         <FadeIn key={cat.id} direction="up" delay={0.05}>
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-6">
             {/* Large Image */}
             <div className="relative rounded-2xl overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3]">
               <Image
@@ -190,7 +190,7 @@ function MobileStorytelling() {
               </h3>
 
               {/* Tagline */}
-              <p className="text-sm text-charcoal-500 font-medium italic mb-3">
+              <p className="text-sm text-muted-500 font-medium italic mb-3">
                 {cat.tagline}
               </p>
 
@@ -198,20 +198,6 @@ function MobileStorytelling() {
               <p className="text-sm text-charcoal-700 leading-relaxed mb-5">
                 {cat.description}
               </p>
-
-              {/* Progress */}
-              <div className="flex items-center gap-2 mb-5">
-                {categories.map((_, dotIndex) => (
-                  <div
-                    key={dotIndex}
-                    className={`rounded-full transition-all duration-300 ${
-                      dotIndex === i
-                        ? 'w-5 h-1.5 bg-brand-600'
-                        : 'w-1.5 h-1.5 bg-gray-300'
-                    }`}
-                  />
-                ))}
-              </div>
 
               {/* CTA */}
               <Button href="#contact" variant="outline" size="sm" icon>

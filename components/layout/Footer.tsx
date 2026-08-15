@@ -22,11 +22,11 @@ export default function Footer() {
           {/* Brand Info */}
           <div className={hasContactInfo ? 'md:col-span-5 space-y-4' : 'space-y-4'}>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center font-sans font-bold text-white text-base shadow-purple-glow">
-                S
+              <div className="px-2.5 h-8 rounded-lg bg-brand-600 flex items-center justify-center font-sans font-extrabold text-white text-xs tracking-wider shadow-purple-glow">
+                KVN
               </div>
               <span className="font-sans text-xl font-bold tracking-wider uppercase text-white">
-                Sparovia
+                Interiors
               </span>
             </div>
 

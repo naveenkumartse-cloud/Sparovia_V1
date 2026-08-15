@@ -34,7 +34,7 @@ export const HERO_SLIDES = [
   {
     id: 1,
     title: 'Architectural Excellence & Turnkey Interiors',
-    subtitle: 'SPAROVIA CLIENT EDITION',
+    subtitle: 'KVN INTERIORS',
     description: 'Transforming luxury residences with precision modular kitchens, bespoke wardrobes, customized living units, and engineered uPVC window systems.',
     image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop',
     tag: 'Living & Interior Architecture',

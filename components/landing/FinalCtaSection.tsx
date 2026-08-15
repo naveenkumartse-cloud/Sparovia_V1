@@ -17,7 +17,7 @@ export default function FinalCtaSection() {
           <div className="absolute inset-0 z-0 opacity-20">
             <Image
               src={mediaConfig.hero.primaryImage}
-              alt="Sparovia Residential Interior Project"
+              alt="KVN Interiors Residential Interior Project"
               fill
               sizes="100vw"
               className="object-cover object-center"
@@ -28,10 +28,10 @@ export default function FinalCtaSection() {
           <div className="relative z-10 max-w-2xl mx-auto text-center">
             <FadeIn direction="up">
               <span className="text-[11px] uppercase tracking-[0.25em] text-brand-300 font-bold block mb-4">
-                SPAROVIA DIGITAL SHOWROOM
+                KVN INTERIORS
               </span>
 
-              <h2 className="font-sans text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-6 uppercase leading-[1.1]">
+              <h2 className="font-sans text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white mb-6 uppercase leading-[1.1]">
                 LET&apos;S CREATE YOUR SPACE.
               </h2>
 

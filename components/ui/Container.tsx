@@ -32,7 +32,7 @@ export function EditorialContainer({ children, className }: { children: ReactNod
 
 export function FullBleed({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('w-full relative left-1/2 right-1/2 -mx-[50vw] w-vw', className)}>
+    <div className={cn('w-full relative left-1/2 right-1/2 -mx-[50vw]', className)}>
       {children}
     </div>
   );

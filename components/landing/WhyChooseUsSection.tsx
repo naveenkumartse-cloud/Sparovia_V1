@@ -12,7 +12,7 @@ export default function WhyChooseUsSection() {
       <Container>
 
         {/* Section Intro */}
-        <div className="max-w-2xl mb-16 lg:mb-20">
+        <div className="max-w-2xl mb-12 lg:mb-20">
           <FadeIn direction="up">
             <Eyebrow icon={false}>
               {contentConfig.whyUs.eyebrow}
@@ -31,7 +31,7 @@ export default function WhyChooseUsSection() {
         </div>
 
         {/* Editorial Value Points (4 Columns desktop, 2 columns tablet, 1 column mobile) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 border-t border-gray-100 pt-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 border-t border-gray-100 pt-10 lg:pt-12">
           {contentConfig.whyUs.items.map((item, index) => (
             <FadeIn key={item.index || index} direction="up" delay={0.1 * index}>
               <div className="flex flex-col justify-between h-full group">

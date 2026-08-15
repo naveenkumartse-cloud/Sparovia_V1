@@ -10,7 +10,7 @@ export interface MediaItem {
 export const mediaConfig = {
   hero: {
     primaryImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop',
-    alt: 'Sparovia Client Project Hero View',
+    alt: 'KVN Interiors Project Hero View',
   },
   brandIntro: {
     primaryImage: 'https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?q=80&w=2070&auto=format&fit=crop',
