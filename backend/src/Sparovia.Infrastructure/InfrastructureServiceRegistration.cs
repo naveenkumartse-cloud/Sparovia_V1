@@ -29,11 +29,15 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IBusinessRepository, BusinessRepository>();
         services.AddScoped<IMembershipRepository, MembershipRepository>();
+        services.AddScoped<ILeadRepository, LeadRepository>();
+        services.AddScoped<IMediaRepository, MediaRepository>();
+        services.AddScoped<IWebsiteContentRepository, WebsiteContentRepository>();
 
         // Services
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
+        services.AddScoped<IStorageService, LocalStorageService>();
 
         return services;
     }

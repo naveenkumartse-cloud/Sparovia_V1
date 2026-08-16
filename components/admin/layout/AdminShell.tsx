@@ -10,19 +10,20 @@ import { MobileNav } from './MobileNav';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { Building2 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { BusinessOnboardingWizard } from '../onboarding/BusinessOnboardingWizard';
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const { user, isLoading: authLoading } = useAuth();
-  const { businesses, isLoading: bizLoading, reloadBusinesses } = useBusiness();
+  const { businesses, isLoading: bizLoading, reloadBusinesses, activeBusiness } = useBusiness();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const isPublicAuthRoute = pathname === '/login' || pathname === '/register';
+  const isPublicAuthRoute = pathname === '/admin/login' || pathname === '/admin/register';
 
   useEffect(() => {
     if (!authLoading && !user && !isPublicAuthRoute) {
-      router.replace('/login');
+      router.replace('/admin/login');
     }
   }, [authLoading, user, isPublicAuthRoute, router]);
 
@@ -60,6 +61,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <CreateFirstBusinessForm onCreated={() => reloadBusinesses()} />
         </div>
       </div>
+    );
+  }
+
+  // Handle Business Understanding Phase
+  if (activeBusiness && !activeBusiness.isOnboardingComplete) {
+    return (
+      <BusinessOnboardingWizard 
+        business={activeBusiness} 
+        onComplete={() => reloadBusinesses()} 
+      />
     );
   }
 

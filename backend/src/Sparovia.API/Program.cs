@@ -123,13 +123,15 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("SparoviaFrontend");
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/api/health");
+app.MapGet("/", () => "Sparovia API is running. Visit /swagger for documentation.");
 
 // ─── Auto-migrate on startup (development only) ───────────────────────────────
 if (app.Environment.IsDevelopment())

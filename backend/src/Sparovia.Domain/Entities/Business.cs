@@ -10,6 +10,21 @@ public class Business
     public string Slug { get; private set; } = string.Empty;
     public string Industry { get; private set; } = string.Empty;
     public string? Description { get; private set; }
+    
+    // Onboarding & Business Understanding Context
+    public bool IsOnboardingComplete { get; private set; }
+    public string? TargetAudience { get; private set; }
+    public string? ValueProposition { get; private set; }
+    
+    // Business Profile Contact
+    public string? ContactEmail { get; private set; }
+    public string? ContactPhone { get; private set; }
+    public string? Address { get; private set; }
+    
+    // Digital Presence
+    public bool? HasGoogleBusinessProfile { get; private set; }
+    public string? GoogleBusinessProfileStatus { get; private set; }
+
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
@@ -37,13 +52,25 @@ public class Business
             Slug = slug.Trim().ToLowerInvariant(),
             Industry = industry.Trim(),
             Description = description?.Trim(),
+            IsOnboardingComplete = false,
             IsActive = true,
             CreatedAt = now,
             UpdatedAt = now
         };
     }
 
-    public void UpdateInfo(string name, string industry, string? description = null)
+    public void UpdateInfo(
+        string name, 
+        string industry, 
+        string? description = null,
+        bool? isOnboardingComplete = null,
+        string? targetAudience = null,
+        string? valueProposition = null,
+        string? contactEmail = null,
+        string? contactPhone = null,
+        string? address = null,
+        bool? hasGoogleBusinessProfile = null,
+        string? googleBusinessProfileStatus = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException("Business name is required.");
@@ -53,6 +80,22 @@ public class Business
         Name = name.Trim();
         Industry = industry.Trim();
         Description = description?.Trim();
+        
+        if (isOnboardingComplete.HasValue)
+            IsOnboardingComplete = isOnboardingComplete.Value;
+            
+        if (targetAudience != null) TargetAudience = targetAudience.Trim();
+        if (valueProposition != null) ValueProposition = valueProposition.Trim();
+        if (contactEmail != null) ContactEmail = contactEmail.Trim();
+        if (contactPhone != null) ContactPhone = contactPhone.Trim();
+        if (address != null) Address = address.Trim();
+        
+        if (hasGoogleBusinessProfile.HasValue) 
+            HasGoogleBusinessProfile = hasGoogleBusinessProfile.Value;
+            
+        if (googleBusinessProfileStatus != null) 
+            GoogleBusinessProfileStatus = googleBusinessProfileStatus.Trim();
+
         UpdatedAt = DateTime.UtcNow;
     }
 

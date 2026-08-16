@@ -25,8 +25,8 @@ export async function apiFetch<T>(
 
   if (response.status === 401) {
     clearStoredSession();
-    if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-      window.location.href = '/login';
+    if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin/login')) {
+      window.location.href = '/admin/login';
     }
   }
 
@@ -49,3 +49,18 @@ export async function apiFetch<T>(
 
   return response.json();
 }
+
+export const apiClient = {
+  get: <T>(endpoint: string, options?: RequestInit) => apiFetch<T>(endpoint, { ...options, method: 'GET' }),
+  post: <T>(endpoint: string, data?: any, options?: RequestInit) => apiFetch<T>(endpoint, {
+    ...options,
+    method: 'POST',
+    body: data ? JSON.stringify(data) : undefined,
+  }),
+  put: <T>(endpoint: string, data?: any, options?: RequestInit) => apiFetch<T>(endpoint, {
+    ...options,
+    method: 'PUT',
+    body: data ? JSON.stringify(data) : undefined,
+  }),
+  delete: <T>(endpoint: string, options?: RequestInit) => apiFetch<T>(endpoint, { ...options, method: 'DELETE' }),
+};

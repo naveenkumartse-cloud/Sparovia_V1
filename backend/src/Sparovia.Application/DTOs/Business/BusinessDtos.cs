@@ -13,6 +13,14 @@ public record BusinessResponse(
     string Slug,
     string Industry,
     string? Description,
+    bool IsOnboardingComplete,
+    string? TargetAudience,
+    string? ValueProposition,
+    string? ContactEmail,
+    string? ContactPhone,
+    string? Address,
+    bool? HasGoogleBusinessProfile,
+    string? GoogleBusinessProfileStatus,
     bool IsActive,
     DateTime CreatedAt
 );
@@ -20,5 +28,13 @@ public record BusinessResponse(
 public record UpdateBusinessRequest(
     string? Name,
     string? Industry,
-    string? Description
+    string? Description,
+    bool? IsOnboardingComplete,
+    string? TargetAudience,
+    string? ValueProposition,
+    string? ContactEmail,
+    string? ContactPhone,
+    string? Address,
+    bool? HasGoogleBusinessProfile,
+    string? GoogleBusinessProfileStatus
 );

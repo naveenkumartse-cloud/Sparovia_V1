@@ -18,12 +18,12 @@ import { useBusiness } from '../providers/BusinessProvider';
 import { cn } from '@/lib/utils';
 
 export const ADMIN_NAV_ITEMS = [
-  { name: 'Dashboard', href: '/workspace', icon: LayoutDashboard },
-  { name: 'Business', href: '/workspace/business', icon: Building2 },
-  { name: 'Website', href: '/workspace/website', icon: Globe },
-  { name: 'Media', href: '/workspace/media', icon: ImageIcon },
-  { name: 'Leads', href: '/workspace/leads', icon: Users },
-  { name: 'Settings', href: '/workspace/settings', icon: Settings },
+  { name: 'Dashboard', href: '/admin/workspace', icon: LayoutDashboard },
+  { name: 'Business', href: '/admin/workspace/business', icon: Building2 },
+  { name: 'Website', href: '/admin/workspace/website', icon: Globe },
+  { name: 'Media', href: '/admin/workspace/media', icon: ImageIcon },
+  { name: 'Leads', href: '/admin/workspace/leads', icon: Users },
+  { name: 'Settings', href: '/admin/workspace/settings', icon: Settings },
 ];
 
 export function AdminSidebar({ onItemClick }: { onItemClick?: () => void }) {
@@ -35,7 +35,7 @@ export function AdminSidebar({ onItemClick }: { onItemClick?: () => void }) {
     <aside className="w-64 bg-slate-900 text-white flex flex-col h-full border-r border-slate-800">
       {/* Brand Header */}
       <div className="p-6 border-b border-slate-800 flex items-center justify-between">
-        <Link href="/workspace" className="flex items-center space-x-2.5">
+        <Link href="/admin/workspace" className="flex items-center space-x-2.5">
           <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center font-bold text-white text-lg">
             S
           </div>

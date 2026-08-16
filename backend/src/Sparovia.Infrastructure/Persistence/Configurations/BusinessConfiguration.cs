@@ -42,6 +42,45 @@ public class BusinessConfiguration : IEntityTypeConfiguration<Business>
             .IsRequired()
             .HasDefaultValue(true);
 
+        builder.Property(b => b.IsOnboardingComplete)
+            .HasColumnName("is_onboarding_complete")
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(b => b.TargetAudience)
+            .HasColumnName("target_audience")
+            .HasMaxLength(500)
+            .IsRequired(false);
+
+        builder.Property(b => b.ValueProposition)
+            .HasColumnName("value_proposition")
+            .HasMaxLength(500)
+            .IsRequired(false);
+
+        builder.Property(b => b.ContactEmail)
+            .HasColumnName("contact_email")
+            .HasMaxLength(255)
+            .IsRequired(false);
+
+        builder.Property(b => b.ContactPhone)
+            .HasColumnName("contact_phone")
+            .HasMaxLength(50)
+            .IsRequired(false);
+
+        builder.Property(b => b.Address)
+            .HasColumnName("address")
+            .HasMaxLength(500)
+            .IsRequired(false);
+
+        builder.Property(b => b.HasGoogleBusinessProfile)
+            .HasColumnName("has_google_business_profile")
+            .IsRequired(false);
+
+        builder.Property(b => b.GoogleBusinessProfileStatus)
+            .HasColumnName("google_business_profile_status")
+            .HasMaxLength(50)
+            .IsRequired(false);
+
         builder.Property(b => b.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();

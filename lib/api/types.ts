@@ -29,6 +29,14 @@ export interface BusinessResponse {
   slug: string;
   industry: string;
   description?: string | null;
+  isOnboardingComplete: boolean;
+  targetAudience?: string | null;
+  valueProposition?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  address?: string | null;
+  hasGoogleBusinessProfile?: boolean | null;
+  googleBusinessProfileStatus?: string | null;
   isActive: boolean;
   createdAt: string;
 }
@@ -44,6 +52,14 @@ export interface UpdateBusinessRequest {
   name?: string;
   industry?: string;
   description?: string | null;
+  isOnboardingComplete?: boolean;
+  targetAudience?: string | null;
+  valueProposition?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  address?: string | null;
+  hasGoogleBusinessProfile?: boolean | null;
+  googleBusinessProfileStatus?: string | null;
 }
 
 export interface ApiError {

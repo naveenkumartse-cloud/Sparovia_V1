@@ -103,7 +103,19 @@ public class BusinessService
         var industry = request.Industry ?? business.Industry;
         var description = request.Description ?? business.Description;
 
-        business.UpdateInfo(name, industry, description);
+        business.UpdateInfo(
+            name, 
+            industry, 
+            description,
+            request.IsOnboardingComplete,
+            request.TargetAudience,
+            request.ValueProposition,
+            request.ContactEmail,
+            request.ContactPhone,
+            request.Address,
+            request.HasGoogleBusinessProfile,
+            request.GoogleBusinessProfileStatus
+        );
         await _businessRepository.UpdateAsync(business, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -112,5 +124,9 @@ public class BusinessService
     }
 
     private static BusinessResponse MapToResponse(Business b) =>
-        new(b.Id, b.Name, b.Slug, b.Industry, b.Description, b.IsActive, b.CreatedAt);
+        new(b.Id, b.Name, b.Slug, b.Industry, b.Description, 
+            b.IsOnboardingComplete, b.TargetAudience, b.ValueProposition,
+            b.ContactEmail, b.ContactPhone, b.Address,
+            b.HasGoogleBusinessProfile, b.GoogleBusinessProfileStatus,
+            b.IsActive, b.CreatedAt);
 }
