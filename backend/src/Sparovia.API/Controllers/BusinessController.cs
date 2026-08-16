@@ -66,4 +66,16 @@ public class BusinessController : BaseApiController
         var result = await _businessService.GetBusinessAsync(userId, id, ct);
         return Ok(result);
     }
+
+    /// <summary>Update a specific business. Access is verified through Membership.</summary>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(BusinessResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateBusinessRequest request, CancellationToken ct)
+    {
+        var userId = GetCurrentUserId();
+        var result = await _businessService.UpdateBusinessAsync(userId, id, request, ct);
+        return Ok(result);
+    }
 }

@@ -85,6 +85,32 @@ public class BusinessService
         return MapToResponse(business);
     }
 
+    public async Task<BusinessResponse> UpdateBusinessAsync(
+        Guid userId,
+        Guid businessId,
+        UpdateBusinessRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var hasAccess = await _membershipRepository.UserHasAccessToBusinessAsync(userId, businessId, cancellationToken);
+        if (!hasAccess)
+            throw new ForbiddenException("You do not have access to this business.");
+
+        var business = await _businessRepository.GetByIdAsync(businessId, cancellationToken);
+        if (business is null)
+            throw new NotFoundException("Business not found.");
+
+        var name = request.Name ?? business.Name;
+        var industry = request.Industry ?? business.Industry;
+        var description = request.Description ?? business.Description;
+
+        business.UpdateInfo(name, industry, description);
+        await _businessRepository.UpdateAsync(business, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Business updated. BusinessId={BusinessId}, UserId={UserId}", businessId, userId);
+        return MapToResponse(business);
+    }
+
     private static BusinessResponse MapToResponse(Business b) =>
         new(b.Id, b.Name, b.Slug, b.Industry, b.Description, b.IsActive, b.CreatedAt);
 }

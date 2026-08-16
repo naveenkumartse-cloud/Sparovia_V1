@@ -43,6 +43,19 @@ public class Business
         };
     }
 
+    public void UpdateInfo(string name, string industry, string? description = null)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Business name is required.");
+        if (string.IsNullOrWhiteSpace(industry))
+            throw new DomainException("Industry is required.");
+
+        Name = name.Trim();
+        Industry = industry.Trim();
+        Description = description?.Trim();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void Deactivate()
     {
         IsActive = false;

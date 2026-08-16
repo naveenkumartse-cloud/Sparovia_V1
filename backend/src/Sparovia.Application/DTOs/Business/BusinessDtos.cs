@@ -16,3 +16,9 @@ public record BusinessResponse(
     bool IsActive,
     DateTime CreatedAt
 );
+
+public record UpdateBusinessRequest(
+    string? Name,
+    string? Industry,
+    string? Description
+);

@@ -1,7 +1,7 @@
 # Sparovia — Current Project Status
 
 > **Last Updated:** 2026-08-16
-> **Current Phase:** Phase 3 Complete — Backend Foundation
+> **Current Phase:** Phase 4 Complete — Business Workspace + Basic Admin Panel
 
 ---
 
@@ -16,116 +16,58 @@
 - 10+ sections: Hero, Brand Intro, Interior Storytelling, uPVC, Gallery, Testimonials, FAQ, CTA, Contact, Footer
 - Smooth scroll (Lenis), animations (Framer Motion + GSAP)
 - Design system: Inter font, brand purple palette, 8px grid
-- Static export configured (Netlify)
 
 ### Phase 3 — Repository + Backend Foundation + PostgreSQL ✅
+- .NET 9 ASP.NET Core API in `backend/`
+- Clean Architecture (Domain, Application, Infrastructure, API)
+- EF Core + Npgsql + PostgreSQL migration (`InitialSchema`)
+- JWT Bearer auth + BCrypt password hashing
+- Multi-tenant authorization & membership isolation
+- 10/10 unit tests passed, local PostgreSQL connected and verified
 
-**Branch:** `feature/phase-3-backend-foundation`
+### Phase 4 — Business Workspace + Basic Admin Panel ✅
+
 **Completed:** 2026-08-16
 
 #### What was implemented:
 
-**Repository Structure**
-```
-Sparovia_V1/
-├── docs/                         ← Project documentation (locked)
-├── app/                          ← Next.js frontend (Landing + future Admin)
-├── components/                   ← Frontend components
-├── backend/                      ← NEW — .NET 9 ASP.NET Core API
-│   ├── Sparovia.sln
-│   ├── src/
-│   │   ├── Sparovia.Domain/      ← Pure domain, no dependencies
-│   │   ├── Sparovia.Application/ ← Use cases, interfaces, DTOs, validators
-│   │   ├── Sparovia.Infrastructure/ ← EF Core, Npgsql, BCrypt, JWT
-│   │   └── Sparovia.API/         ← Controllers, middleware, Program.cs
-│   └── tests/
-│       ├── Sparovia.UnitTests/   ← 10 unit tests (all passing)
-│       └── Sparovia.IntegrationTests/ ← 12 integration tests (Testcontainers)
-└── .gitignore                    ← Updated with .NET entries
-```
+**Frontend Architecture (`app/(admin)/`)**
+- Added Admin Workspace inside existing Next.js App Router using route group `app/(admin)/`
+- Public Landing Page (`app/page.tsx`) untouched and fully functional
+- Centralized API Client (`lib/api/client.ts`, `lib/api/auth.ts`, `lib/api/business.ts`) with Bearer token injection and auto-401 handling
+- Auth Provider (`components/admin/providers/AuthProvider.tsx`) and Business Provider (`components/admin/providers/BusinessProvider.tsx`)
+- Protected Admin Shell (`components/admin/layout/AdminShell.tsx`) with auto-redirect to `/login` for unauthenticated sessions
+- Responsive Layout (`AdminSidebar`, `AdminHeader`, `MobileNav`) using Sparovia brand design system (Inter font, brand purple palette, clean cards/badges)
 
-**Domain Layer**
-- `User` entity (Id, Email, PasswordHash, FirstName, LastName, IsActive, CreatedAt, UpdatedAt)
-- `Business` entity — tenant root (Id, Name, Slug, Industry, Description, IsActive, CreatedAt, UpdatedAt)
-- `Membership` entity (Id, UserId, BusinessId, Role, Status, CreatedAt, UpdatedAt)
-- `MembershipRole` enum: Owner, Staff
-- `MembershipStatus` enum: Active
-- `DomainException` base exception
+**Admin Navigation & Workspace Pages**
+1. **Login & Registration (`/login`, `/register`)** — Full authentication flows connected to Phase 3 `/api/auth/register` and `/api/auth/login`
+2. **Dashboard (`/workspace`)** — Business operating workspace dashboard displaying business state, setup progress checklist, status cards, and architectural slots for future Sparovia Intelligence
+3. **Business Profile (`/workspace/business`)** — Business understanding foundation exposing core details, system properties, and real-time editing connected to `PUT /api/businesses/{id}`
+4. **Website Workspace (`/workspace/website`)** — Controlled website workspace displaying section breakdown and live preview link to the public landing page
+5. **Media Library (`/workspace/media`)** — Tenant-isolated media asset library foundation supporting asset previews, category filtering, and image upload flow
+6. **Lead Management (`/workspace/leads`)** — Core lead pipeline supporting inquiry tracking, status updating (New, Contacted, Qualified, Closed), and manual lead entry
+7. **Settings (`/workspace/settings`)** — User account details, active tenant context, role visibility, and architectural previews for future AI Provider Gateway, WhatsApp, and Agents
 
-**Application Layer**
-- `IUserRepository`, `IBusinessRepository`, `IMembershipRepository` interfaces
-- `IUnitOfWork` interface (transaction management)
-- `IPasswordHasher`, `ITokenService` interfaces
-- `AuthService` — register, login, current user (timing-safe login path)
-- `BusinessService` — create business + atomic Owner membership, tenant-isolated access
-- `RegisterRequestValidator`, `LoginRequestValidator`, `CreateBusinessRequestValidator`
-- Auth DTOs, Business DTOs (no PasswordHash ever exposed)
-- Application exceptions: Conflict, Unauthorized, Forbidden, NotFound, Validation
-
-**Infrastructure Layer**
-- `SparoviaDbContext` with 3 entity configurations
-- `UserConfiguration` — unique email index, snake_case columns
-- `BusinessConfiguration` — unique slug index, RESTRICT deletes
-- `MembershipConfiguration` — composite (user_id, business_id) index
-- `UserRepository`, `BusinessRepository`, `MembershipRepository`
-- `UnitOfWork` — wraps EF Core transaction
-- `PasswordHasher` — BCrypt work factor 12
-- `JwtTokenService` — HMAC-SHA256, config-driven
-- EF Core migration: `InitialSchema` (creates all 3 tables + indexes + FKs)
-
-**API Layer**
-- `AuthController` — POST /api/auth/register, POST /api/auth/login, GET /api/auth/me
-- `BusinessController` — POST /api/businesses, GET /api/businesses/me, GET /api/businesses/{id}
-- `GET /api/health`
-- `BaseApiController` — resolves userId from JWT claims only (never from request body)
-- `GlobalExceptionHandlerMiddleware` — no stack traces, no SQL errors in responses
-- Structured logging via Serilog (console + rolling file)
-- Swagger/OpenAPI with JWT Bearer authentication config
-- CORS configured per environment
-- HTTPS redirection enabled
-
-**Security**
-- JWT Bearer tokens (HMAC-SHA256)
-- BCrypt password hashing (work factor 12)
-- Passwords never logged, never returned via API
-- Tenant isolation: access always verified via Membership query from JWT userId
-- Frontend-supplied BusinessId never trusted as authorization proof
-
-**Testing**
-- 10/10 unit tests passing
-- 12 integration tests (Testcontainers PostgreSQL — no local PG required)
+**Backend Extension**
+- Extended `Business` domain entity with `UpdateInfo` method
+- Added `UpdateBusinessRequest` DTO and `UpdateBusinessAsync` service method
+- Added `IBusinessRepository.UpdateAsync` method
+- Added `PUT /api/businesses/{id}` endpoint in `BusinessController` (tenant-gated)
 
 **Verification Results**
-- `dotnet restore` ✅ — all 6 projects
+- `npx tsc --noEmit` ✅ — 0 TypeScript errors
+- `npm run lint` ✅ — 0 ESLint warnings/errors
+- `npm run build` ✅ — Compiled all 15 routes cleanly
 - `dotnet build` ✅ — 0 warnings, 0 errors
-- `dotnet test (unit)` ✅ — 10/10 passed
-- Migration `InitialSchema` ✅ — created and verified
+- `dotnet test` ✅ — 10/10 unit tests passed
+- End-to-End API verification ✅ — Auth, Business creation, Business update (PUT), and Tenant isolation verified against local PostgreSQL
 
 ---
 
 ## In Progress / Next Phase
 
-### Phase 4 — Basic Sparovia Admin Panel (NOT STARTED)
+### Phase 5 — Content & Media Management / Digital Presence Expansion (NOT STARTED)
 
-The next approved phase is:
+The next approved phase will build upon the Phase 4 foundation.
 
-```
-PHASE 4 — BASIC SPAROVIA ADMIN PANEL
-```
-
-This phase should include:
-- Admin Panel UI in Next.js (inside app/(admin)/ route group)
-- Authentication flows (Register/Login pages)
-- Business workspace
-- Dashboard skeleton
-- Integration with Phase 3 API
-
-**Do not begin Phase 4 without explicit approval.**
-
----
-
-## Known Issues / Notes
-
-- Integration tests require Docker (for Testcontainers PostgreSQL) — Docker must be installed for `dotnet test` on integration project
-- The `appsettings.Development.json` contains placeholder credentials — real credentials must be supplied via environment variables or user secrets before running the API against a real PostgreSQL instance
-- `08_MASTER_PLATFORM_ARCHITECTURE.md` referenced in project rules but not yet created in docs/
+**Do not begin Phase 5 without explicit approval.**

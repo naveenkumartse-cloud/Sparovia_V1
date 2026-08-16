@@ -29,6 +29,12 @@ public class BusinessRepository : IBusinessRepository
     public async Task AddAsync(Business business, CancellationToken cancellationToken = default)
         => await _context.Businesses.AddAsync(business, cancellationToken);
 
+    public Task UpdateAsync(Business business, CancellationToken cancellationToken = default)
+    {
+        _context.Businesses.Update(business);
+        return Task.CompletedTask;
+    }
+
     public async Task<IReadOnlyList<Business>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
         => await _context.Businesses
             .AsNoTracking()
