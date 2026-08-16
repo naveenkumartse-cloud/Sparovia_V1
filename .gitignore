@@ -62,7 +62,8 @@ backend/**/.DS_Store
 # EF Core migration snapshots are committed, but not the generated SQL scripts
 backend/**/*.sql
 
-# Never commit real credentials
+# Never commit real credentials or local dev appsettings with passwords
+backend/src/Sparovia.API/appsettings.Development.json
 backend/src/Sparovia.API/appsettings.*.local.json
 backend/**/*.pfx
 backend/**/*.p12

@@ -22,13 +22,7 @@ public static class InfrastructureServiceRegistration
 
         services.AddDbContext<SparoviaDbContext>(options =>
         {
-            options.UseNpgsql(connectionString, npgsqlOptions =>
-            {
-                npgsqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 3,
-                    maxRetryDelay: TimeSpan.FromSeconds(5),
-                    errorCodesToAdd: null);
-            });
+            options.UseNpgsql(connectionString);
         });
 
         // Repositories
