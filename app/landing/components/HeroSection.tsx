@@ -60,8 +60,8 @@ export default function HeroSection() {
       {/* Contrast Overlay — Adaptive for viewport size */}
       {/* Desktop (lg+): left-to-right — editorial layout, text on white left, image on right */}
       <div className="hidden lg:block absolute inset-0 z-[1] bg-gradient-to-r from-white via-white/80 to-white/25 pointer-events-none" />
-      {/* Mobile/Tablet: uniform semi-white tint — image visible as backdrop, text readable */}
-      <div className="lg:hidden absolute inset-0 z-[1] bg-white/55 pointer-events-none" />
+      {/* Mobile/Tablet: Darker tint so image colors stay rich and white text pops (if changed) or just a very subtle tint */}
+      <div className="lg:hidden absolute inset-0 z-[1] bg-gradient-to-t from-white/90 via-white/40 to-transparent pointer-events-none" />
       {/* Bottom fade (universal) — smooth visual transition into next section */}
       <div className="absolute inset-0 z-[1] bg-gradient-to-t from-white via-transparent to-transparent pointer-events-none" />
 
