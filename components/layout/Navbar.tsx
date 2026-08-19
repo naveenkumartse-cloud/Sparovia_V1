@@ -27,6 +27,17 @@ export default function Navbar() {
     return () => { document.body.style.overflow = ''; };
   }, [mobileMenuOpen]);
 
+  // Close mobile menu on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen]);
+
   const closeMobileMenu = useCallback(() => {
     setMobileMenuOpen(false);
   }, []);
@@ -40,13 +51,14 @@ export default function Navbar() {
           : 'py-5 bg-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between relative z-20">
 
         {/* Brand Logo — KVN Badge + Interiors */}
         <a
           href="#hero"
           className="flex items-center gap-2.5 group focus-ring rounded-lg py-1"
           aria-label="KVN Interiors — return to top"
+          onClick={closeMobileMenu}
         >
           <div
             className={`px-2.5 h-8 rounded-lg flex items-center justify-center font-sans font-extrabold text-xs tracking-wider transition-all duration-500 ${
@@ -90,12 +102,12 @@ export default function Navbar() {
         {/* Mobile Menu Trigger */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden p-2 text-charcoal-900 hover:text-brand-600 focus-ring rounded-lg transition-colors"
+          className="lg:hidden p-2 text-charcoal-900 hover:text-brand-600 focus-ring rounded-lg transition-colors relative z-20"
           aria-expanded={mobileMenuOpen}
           aria-controls="mobile-nav"
           aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
         >
-          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
 
@@ -106,9 +118,9 @@ export default function Navbar() {
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
-          className="lg:hidden fixed inset-x-0 top-0 bottom-0 bg-white/98 backdrop-blur-sm flex flex-col pt-[60px]"
+          className="lg:hidden fixed inset-0 z-10 bg-white/98 backdrop-blur-md flex flex-col pt-[72px]"
         >
-          <nav className="flex flex-col px-6 pt-8 pb-6 gap-1 flex-1 overflow-y-auto" aria-label="Mobile Navigation">
+          <nav className="flex flex-col px-6 pt-6 pb-6 gap-1 flex-1 overflow-y-auto" aria-label="Mobile Navigation">
             {siteConfig.navLinks.map((link) => (
               <a
                 key={link.name}

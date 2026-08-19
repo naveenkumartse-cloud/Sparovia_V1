@@ -39,7 +39,7 @@ export function SocialControl() {
     { name: 'WhatsApp', icon: MessageCircle, url: siteConfig.social.whatsapp },
     { name: 'Instagram', icon: Instagram, url: siteConfig.social.instagram },
     { name: 'Facebook', icon: Facebook, url: siteConfig.social.facebook },
-  ].filter(link => link.url && link.url !== '');
+  ].filter(link => Boolean(link.url && link.url.trim() !== '' && link.url !== '#'));
 
   if (socialLinks.length === 0) return null;
 
