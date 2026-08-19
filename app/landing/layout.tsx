@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import '../globals.css';
 import SmoothScrollProvider from '@/components/providers/SmoothScrollProvider';
+import { SocialControl } from '@/components/ui/SocialControl';
 
 export const metadata: Metadata = {
   title: 'KVN Interiors | Home Interiors & uPVC Windows',
@@ -30,7 +31,10 @@ export const metadata: Metadata = {
     description: 'Custom Home Interiors, Modular Kitchens, Wardrobes, Living Units & uPVC Window Solutions.',
     type: 'website',
   },
-  colorScheme: 'light only',
+};
+
+export const viewport = {
+  colorScheme: 'light',
 };
 
 export default function RootLayout({
@@ -44,6 +48,7 @@ export default function RootLayout({
         <SmoothScrollProvider>
           {children}
         </SmoothScrollProvider>
+        <SocialControl />
       </body>
     </html>
   );

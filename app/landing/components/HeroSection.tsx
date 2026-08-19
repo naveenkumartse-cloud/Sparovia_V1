@@ -53,15 +53,15 @@ export default function HeroSection() {
           fill
           priority
           sizes="100vw"
-          className="object-cover object-center"
+          className="object-cover object-[center_35%] md:object-center"
         />
       </motion.div>
 
       {/* Contrast Overlay — Adaptive for viewport size */}
       {/* Desktop (lg+): left-to-right — editorial layout, text on white left, image on right */}
-      <div className="hidden lg:block absolute inset-0 z-[1] bg-gradient-to-r from-white via-white/80 to-white/25 pointer-events-none" />
-      {/* Mobile/Tablet: Darker tint so image colors stay rich and white text pops (if changed) or just a very subtle tint */}
-      <div className="lg:hidden absolute inset-0 z-[1] bg-gradient-to-t from-white/90 via-white/40 to-transparent pointer-events-none" />
+      <div className="hidden lg:block absolute inset-0 z-[1] bg-gradient-to-r from-white/95 via-white/80 to-transparent pointer-events-none" />
+      {/* Mobile/Tablet: White gradient from top down to ensure dark text at top is fully readable */}
+      <div className="lg:hidden absolute inset-0 z-[1] bg-gradient-to-b from-white/95 via-white/80 to-black/10 pointer-events-none" />
       {/* Bottom fade (universal) — smooth visual transition into next section */}
       <div className="absolute inset-0 z-[1] bg-gradient-to-t from-white via-transparent to-transparent pointer-events-none" />
 
@@ -105,12 +105,12 @@ export default function HeroSection() {
 
             {/* CTAs */}
             <FadeIn direction="up" delay={0.6} duration={0.7}>
-              <div className="flex flex-wrap items-center gap-4">
-                <Button href="#contact" variant="primary" size="lg" icon>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <Button href="#contact" variant="primary" size="lg" icon className="w-full sm:w-auto justify-center">
                   {contentConfig.hero.primaryCta}
                 </Button>
 
-                <Button href="#gallery" variant="outline" size="lg">
+                <Button href="#gallery" variant="outline" size="lg" className="w-full sm:w-auto justify-center">
                   <span>{contentConfig.hero.secondaryCta}</span>
                   <ArrowDown className="w-4 h-4 ml-2 text-brand-600" />
                 </Button>

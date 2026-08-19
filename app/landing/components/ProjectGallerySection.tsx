@@ -191,7 +191,7 @@ export default function ProjectGallerySection() {
                   />
 
                   {/* Gradient Overlay for Legibility */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal-900/80 via-charcoal-900/10 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300" />
 
                   {/* Category Pill Badge (Top Left) */}
                   <div className="absolute top-4 left-4 z-10">
