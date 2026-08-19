@@ -11,9 +11,9 @@ export const siteConfig = {
   },
   
   social: {
-    whatsapp: '', // Add actual WhatsApp URL/number here (e.g. 'https://wa.me/1234567890')
-    instagram: '', // Add actual Instagram URL here
-    facebook: '', // Add actual Facebook URL here
+    whatsapp: 'https://wa.me/917603922493',
+    instagram: 'https://instagram.com', // Keep existing placeholders for others
+    facebook: 'https://facebook.com',
   },
   
   cta: {

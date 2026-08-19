@@ -45,7 +45,7 @@ export default function Navbar() {
   return (
     <header
       role="banner"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ease-out ${
         scrolled
           ? 'py-3 bg-white/95 backdrop-blur-sm shadow-[0_1px_0_rgba(0,0,0,0.06)]'
           : 'py-5 bg-transparent'
@@ -102,7 +102,7 @@ export default function Navbar() {
         {/* Mobile Menu Trigger */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden p-2 text-charcoal-900 hover:text-brand-600 focus-ring rounded-lg transition-colors relative z-20"
+          className="lg:hidden p-3 -mr-3 text-charcoal-900 hover:text-brand-600 focus-ring rounded-lg transition-colors relative z-20"
           aria-expanded={mobileMenuOpen}
           aria-controls="mobile-nav"
           aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
@@ -118,7 +118,7 @@ export default function Navbar() {
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
-          className="lg:hidden fixed inset-0 z-10 bg-white/98 backdrop-blur-md flex flex-col pt-[72px]"
+          className="lg:hidden fixed top-0 left-0 right-0 h-[100dvh] z-10 bg-white/98 backdrop-blur-md flex flex-col pt-[72px] overscroll-contain"
         >
           <nav className="flex flex-col px-6 pt-6 pb-6 gap-1 flex-1 overflow-y-auto" aria-label="Mobile Navigation">
             {siteConfig.navLinks.map((link) => (
