@@ -73,7 +73,7 @@ export default function HeroSection() {
 
       {/* Hero Editorial Content */}
       <motion.div
-        className="relative z-10 w-full pt-20 sm:pt-24 lg:pt-28 pb-16"
+        className="relative z-10 w-full pt-20 sm:pt-24 lg:pt-28 pb-16 force-visible-mobile"
         style={shouldReduceMotion ? {} : {
           opacity: contentOpacity,
           y: contentY,
