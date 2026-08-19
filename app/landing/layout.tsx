@@ -30,6 +30,7 @@ export const metadata: Metadata = {
     description: 'Custom Home Interiors, Modular Kitchens, Wardrobes, Living Units & uPVC Window Solutions.',
     type: 'website',
   },
+  colorScheme: 'light only',
 };
 
 export default function RootLayout({
