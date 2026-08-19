@@ -10,6 +10,12 @@ export const siteConfig = {
     workingHours: '',
   },
   
+  social: {
+    whatsapp: '#', // Add actual WhatsApp URL here
+    instagram: '#', // Add actual Instagram URL here
+    facebook: '#', // Add actual Facebook URL here
+  },
+  
   cta: {
     primary: 'Get a Quote',
     secondary: 'Explore Our Work',
