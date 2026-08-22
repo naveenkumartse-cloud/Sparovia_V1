@@ -38,13 +38,13 @@ export function FadeIn({
     <motion.div
       initial={{ opacity: 0, x: initialOffset.x, y: initialOffset.y }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
+      viewport={{ once: true, margin: '0px' }}
       transition={{
         duration,
         delay,
         ease: [0.25, 0.1, 0.25, 1.0], // Smooth cubic-bezier
       }}
-      className={`force-visible-mobile ${className || ''}`}
+      className={className}
     >
       {children}
     </motion.div>
@@ -70,7 +70,7 @@ export function FadeInStagger({
     <motion.div
       initial="hidden"
       whileInView="show"
-      viewport={{ once: true, margin: '-50px' }}
+      viewport={{ once: true, margin: '0px' }}
       variants={{
         hidden: {},
         show: {
@@ -79,7 +79,7 @@ export function FadeInStagger({
           },
         },
       }}
-      className={`force-visible-mobile ${className || ''}`}
+      className={className}
     >
       {children}
     </motion.div>
@@ -99,7 +99,7 @@ export function FadeInStaggerItem({ children, className }: { children: ReactNode
         hidden: { opacity: 0, y: 20 },
         show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1.0] } },
       }}
-      className={`force-visible-mobile ${className || ''}`}
+      className={className}
     >
       {children}
     </motion.div>

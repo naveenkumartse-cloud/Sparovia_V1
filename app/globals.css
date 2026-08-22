@@ -46,12 +46,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-@media (max-width: 768px) {
-  .force-visible-mobile {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-}
+
 
 /* Reduced Motion Overrides */
 @media (prefers-reduced-motion: reduce) {
