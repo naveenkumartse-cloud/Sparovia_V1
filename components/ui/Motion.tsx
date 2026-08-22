@@ -38,7 +38,7 @@ export function FadeIn({
     <motion.div
       initial={{ opacity: 0, x: initialOffset.x, y: initialOffset.y }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
-      viewport={{ once: true, margin: '0px' }}
+      viewport={{ once: false, margin: '0px' }}
       transition={{
         duration,
         delay,
@@ -70,7 +70,7 @@ export function FadeInStagger({
     <motion.div
       initial="hidden"
       whileInView="show"
-      viewport={{ once: true, margin: '0px' }}
+      viewport={{ once: false, margin: '0px' }}
       variants={{
         hidden: {},
         show: {
