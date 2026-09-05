@@ -8,7 +8,6 @@ import { Eyebrow, SectionHeading, BodyText } from '@/components/ui/Typography';
 import { Button } from '@/components/ui/Button';
 import { FadeIn } from '@/components/ui/Motion';
 import { Phone, Mail, MapPin, Clock, CheckCircle2 } from 'lucide-react';
-import { apiClient } from '@/lib/api/client';
 
 export default function ContactSection() {
   const [submitted, setSubmitted] = useState(false);
@@ -29,13 +28,9 @@ export default function ContactSection() {
     setError(null);
     
     try {
-      await apiClient.post(`/api/public/businesses/kvn-interiors/leads`, {
-        fullName: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        source: 'Website Contact Form',
-        notes: `Service: ${formData.service}\nMessage: ${formData.message}`
-      });
+      // Simulate API call for the landing page demonstration
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Lead submitted:', formData);
       setSubmitted(true);
     } catch (err: any) {
       setError(err.message || 'Failed to submit request. Please try again.');
