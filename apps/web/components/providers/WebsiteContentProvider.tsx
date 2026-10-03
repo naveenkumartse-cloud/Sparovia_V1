@@ -417,7 +417,12 @@ export function WebsiteContentProvider({ children }: { children: React.ReactNode
   const [error, setError] = useState<string | null>(null);
 
   const apiUrl = useMemo(() => {
-    return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5043/api/v1';
+    let url = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5043/api/v1';
+    url = url.replace(/\/+$/, '');
+    if (!url.endsWith('/api/v1')) {
+      url = `${url}/api/v1`;
+    }
+    return url;
   }, []);
 
   const loadPublishedContent = useCallback(async () => {

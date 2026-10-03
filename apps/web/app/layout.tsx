@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import SmoothScrollProvider from '@/components/providers/SmoothScrollProvider';
 import { WebsiteContentProvider } from '@/components/providers/WebsiteContentProvider';
+import { DynamicFavicon } from '@/components/providers/DynamicFavicon';
 import { SocialControl } from '@/components/ui/SocialControl';
 
 const inter = Inter({
@@ -55,6 +56,7 @@ export default function RootLayout({
       <body className="bg-white text-charcoal-900 antialiased selection:bg-brand-200 selection:text-brand-900">
         <SmoothScrollProvider>
           <WebsiteContentProvider>
+            <DynamicFavicon />
             {children}
           </WebsiteContentProvider>
         </SmoothScrollProvider>

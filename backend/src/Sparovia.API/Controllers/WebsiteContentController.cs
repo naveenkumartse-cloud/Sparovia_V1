@@ -11,6 +11,7 @@ namespace Sparovia.API.Controllers;
 
 [ApiController]
 [Route("api/v1/website")]
+[Route("website")]
 public class WebsiteContentController : ControllerBase
 {
     private readonly IWebsiteContentService _contentService;
