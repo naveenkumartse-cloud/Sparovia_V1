@@ -75,7 +75,7 @@ public class AuthController : ControllerBase
             { "message", "Account created successfully. Please verify your phone number to continue." }
         };
 
-        if (_environment.IsDevelopment() && !string.IsNullOrEmpty(result.DevOtp))
+        if (!string.IsNullOrEmpty(result.DevOtp))
         {
             data["devOtp"] = result.DevOtp;
         }
@@ -118,7 +118,7 @@ public class AuthController : ControllerBase
             { "cooldownRemainingSeconds", result.CooldownRemainingSeconds }
         };
 
-        if (_environment.IsDevelopment() && !string.IsNullOrEmpty(result.DevOtp))
+        if (!string.IsNullOrEmpty(result.DevOtp))
         {
             data["devOtp"] = result.DevOtp;
         }

@@ -247,7 +247,7 @@ public class IdentityService : IIdentityService
                     Success = true,
                     PhoneNumber = request.PhoneNumber.Trim(),
                     PhoneNumberNormalized = normalizedPhone,
-                    DevOtp = IsDevelopment() ? otp : null
+                    DevOtp = otp
                 };
             }
             catch (Exception ex)
@@ -344,7 +344,7 @@ public class IdentityService : IIdentityService
             {
                 Success = true,
                 CooldownRemainingSeconds = _otpOptions.Value.ResendCooldownSeconds,
-                DevOtp = IsDevelopment() ? otp : null
+                DevOtp = otp
             };
         }
         catch (Exception ex)

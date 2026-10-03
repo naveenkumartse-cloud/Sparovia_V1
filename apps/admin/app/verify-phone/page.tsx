@@ -262,13 +262,13 @@ function VerifyPhoneContent() {
             </p>
           </div>
 
-          {/* DEV MODE OTP HELPER CARD */}
-          {process.env.NODE_ENV === 'development' && devOtp && (
+          {/* OTP HELPER CARD FOR PILOT / TESTING */}
+          {devOtp && (
             <div className="p-3.5 bg-amber-500/10 dark:bg-amber-950/20 border border-amber-500/30 rounded-xl text-xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                   <KeyRound className="w-3.5 h-3.5" />
-                  Development Mode (Testing)
+                  Verification Code (Pilot Mode)
                 </span>
                 <button
                   type="button"

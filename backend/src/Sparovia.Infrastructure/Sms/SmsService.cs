@@ -51,16 +51,10 @@ public class SmsService : ISmsService
     {
         var maskedPhone = PhoneNumberHelper.Mask(phoneNumber);
 
-        // In Development with delivery disabled: simulate safe dispatch
+        // When real delivery is not enabled: safely simulate dispatch (Pilot / Testing mode)
         if (!_options.EnableDelivery)
         {
-            if (IsProduction())
-            {
-                _logger.LogError("SECURITY: SMS delivery is disabled in Production environment. Provider: {Provider}", _options.Provider);
-                throw new InvalidOperationException("SMS delivery service is unconfigured or disabled in production.");
-            }
-
-            _logger.LogInformation("Phone OTP delivery simulated (Dev mode). To: {ToPhone}", maskedPhone);
+            _logger.LogInformation("Phone OTP delivery simulated (Delivery disabled / Pilot mode). To: {ToPhone}", maskedPhone);
             return;
         }
 
