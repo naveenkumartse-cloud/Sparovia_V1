@@ -219,12 +219,49 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        var origins = builder.Configuration["CORS_ALLOWED_ORIGINS"]?
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            ?? Array.Empty<string>();
+        var configuredOrigins = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "https://sparovia-v1.vercel.app",
+            "https://sparoviapublicsite.vercel.app",
+            "http://localhost:3000",
+            "http://localhost:3001"
+        };
+
+        var envOrigins = builder.Configuration["CORS_ALLOWED_ORIGINS"]?
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (envOrigins != null)
+        {
+            foreach (var o in envOrigins) configuredOrigins.Add(o);
+        }
+
+        var configArray = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+        if (configArray != null)
+        {
+            foreach (var o in configArray)
+            {
+                if (!string.IsNullOrWhiteSpace(o)) configuredOrigins.Add(o.Trim());
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(builder.Configuration["AdminUrl"]))
+            configuredOrigins.Add(builder.Configuration["AdminUrl"]!.Trim());
+        if (!string.IsNullOrWhiteSpace(builder.Configuration["PublicUrl"]))
+            configuredOrigins.Add(builder.Configuration["PublicUrl"]!.Trim());
 
         policy
-            .WithOrigins(origins)
+            .SetIsOriginAllowed(origin =>
+            {
+                if (string.IsNullOrWhiteSpace(origin)) return false;
+                if (configuredOrigins.Contains(origin)) return true;
+
+                if (Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                {
+                    if (uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)) return true;
+                    if (uri.Host.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase)) return true;
+                }
+
+                return false;
+            })
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
