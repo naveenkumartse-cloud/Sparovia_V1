@@ -16,14 +16,14 @@ export const metadata: Metadata = {
   description: 'Sparovia Client Platform',
   icons: {
     icon: [
-      { url: '/icon.svg?v=s1', type: 'image/svg+xml' },
-      { url: '/favicon.png?v=s1', type: 'image/png', sizes: '32x32' },
-      { url: '/favicon.ico?v=s1', sizes: 'any' },
+      { url: '/icon.svg?v=v2', type: 'image/svg+xml' },
+      { url: '/favicon.png?v=v2', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon.ico?v=v2', sizes: 'any' },
     ],
-    shortcut: '/favicon.ico?v=s1',
+    shortcut: '/favicon.ico?v=v2',
     apple: [
-      { url: '/apple-icon.png?v=s1', sizes: '180x180', type: 'image/png' },
-      { url: '/apple-icon.svg?v=s1', type: 'image/svg+xml' },
+      { url: '/apple-icon.png?v=v2', sizes: '180x180', type: 'image/png' },
+      { url: '/icon.svg?v=v2', type: 'image/svg+xml' },
     ],
   },
 };
@@ -36,10 +36,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
-        <link rel="icon" type="image/svg+xml" href="/icon.svg?v=s1" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=s1" />
-        <link rel="shortcut icon" href="/favicon.ico?v=s1" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon.png?v=s1" />
+        <link rel="icon" type="image/svg+xml" href="/icon.svg?v=v2" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=v2" />
+        <link rel="shortcut icon" href="/favicon.ico?v=v2" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon.png?v=v2" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
