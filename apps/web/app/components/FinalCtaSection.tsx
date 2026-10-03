@@ -18,7 +18,7 @@ export default function FinalCtaSection() {
   return (
     <Section background="white" padding="spacious" className="relative overflow-hidden">
       <Container>
-        <div className="relative rounded-3xl overflow-hidden bg-charcoal-900 text-white p-10 sm:p-16 lg:p-20 shadow-2xl">
+        <div className="relative rounded-3xl overflow-hidden bg-charcoal-900 text-white p-6 sm:p-12 lg:p-20 shadow-2xl">
           {/* Subtle Background Image Overlay */}
           <div className="absolute inset-0 z-0 opacity-20">
             <Image

@@ -17,6 +17,7 @@ This document defines the domain entities, fields, relationships, ownership, lif
 The model covers only the Pilot V1 scope:
 
 - Tenant and user identity
+- Tenant AI Configuration / Connection
 - Business Context
 - Services
 - Connected website
@@ -42,6 +43,7 @@ Tenant ownership is a mandatory security boundary.
 ```text
 Tenant
  ├── Users
+ ├── TenantAIConfiguration
  ├── BusinessContext
  ├── Website
  ├── Images
@@ -837,7 +839,80 @@ A user from Tenant A must never be able to:
 
 ---
 
-# 30. AIRequest
+---
+
+# 30. TenantAIConfiguration (Tenant AI Connection & Model Selection)
+
+## Purpose
+
+Stores the tenant-owned external AI provider connection and selected model. 
+
+Sparovia does NOT create or present fictional AI models (e.g., "Sparovia Fast" or "Sparovia Quality"). The client connects a supported external provider (e.g., OpenAI, Google Gemini, Anthropic Claude) using their own API credentials and selects an approved model from that provider.
+
+## Fields
+
+| Field               | Type     | Required | Description |
+| ------------------- | -------- | -------: | ----------- |
+| Id                  | UUID     |      Yes | Unique record identifier |
+| TenantId            | UUID     |      Yes | Foreign key to Tenant (1-to-1 relationship, mandatory) |
+| ProviderKey         | String   |      Yes | Identifier of approved provider (`openai`, `gemini`, `claude`) |
+| EncryptedApiKey     | String   |      Yes | API key / credential encrypted at rest (never stored plaintext) |
+| MaskedApiKey        | String   |       No | Safe masked display representation (e.g. `••••••••••••••••`) |
+| SelectedModelKey    | String   |      Yes | Approved model key from Sparovia's provider model registry |
+| SupportedCapability | String   |      Yes | Primary capability (`Content`, `Image`, `General`) |
+| Status              | Enum     |      Yes | `Connected`, `NotConnected`, `Invalid`, `Expired` |
+| LastValidatedAt     | DateTime |       No | Timestamp of last successful connection test |
+| CreatedAt           | DateTime |      Yes | Creation timestamp (UTC) |
+| UpdatedAt           | DateTime |      Yes | Last update timestamp (UTC) |
+| UpdatedByUserId     | UUID     |       No | Foreign key to User who performed the update |
+
+## Model & Provider Registry (Reference Architecture)
+
+The system maintains an authoritative server-side registry. Clients select from these approved definitions rather than entering arbitrary endpoints or raw identifiers:
+
+### ApprovedAIProvider
+- `Key`: Unique provider key (`openai`, `gemini`, `claude`)
+- `DisplayName`: Client-facing name ("OpenAI", "Google Gemini", "Anthropic Claude")
+- `Description`: Overview of provider characteristics
+- `SupportedCapabilities`: Supported capabilities (`Content`, `Image`, `General`)
+- `IsActive`: Whether connections for this provider are currently allowed
+
+### ApprovedAIModel
+- `Key`: Approved model identifier
+- `ProviderKey`: Associated provider key
+- `DisplayName`: Client-facing model name
+- `Description`: Strengths, typical use-case, and latency characteristics
+- `Capability`: Supported capability (`Content`, `Image`, `General`)
+- `Status`: `Available`, `Unavailable`, `Deprecated`
+- `IsDefault`: Default model suggested upon provider connection
+
+## Shared Model Architecture & Capability Classification
+
+Every tenant has exactly one active `TenantAIConfiguration` serving both Content AI and Image Enhancement workflows.
+
+The selected model is evaluated against the required operation capability:
+
+* `Content`: The model supports text generation, rewriting, and structured content refinement.
+* `Image`: The model supports visual processing, upscaling, and photo restoration.
+* `Both`: The model possesses multimodal capabilities supporting both content and image enhancement workflows.
+
+### Execution Capability Rules
+
+1. **Content AI Workflow**: Verifies that the tenant's selected model supports `Content` or `Both`. If the model only supports `Image`, the content request is rejected with `MODEL_CAPABILITY_MISMATCH`.
+2. **Image Enhancement Workflow**: Verifies that the tenant's selected model supports `Image` or `Both`. If the model only supports `Content`, the image request is rejected with `MODEL_CAPABILITY_MISMATCH`.
+3. **No Silent Switching**: The server never silently switches to an alternative provider or model. Incompatibility must be signaled cleanly to the caller.
+
+## Credential Security Rules
+
+1. **Encrypted at Rest**: Provider API credentials must be encrypted using platform-grade encryption (e.g., AES-256-GCM) before persistence.
+2. **Decrypted Server-Side Only**: Credentials are decrypted strictly in memory on the backend when dispatching provider requests.
+3. **Never Exposed**: API keys must never be returned in plaintext over the API, never rendered in frontend HTML/JS, never stored in browser storage, never logged, and never included in error messages or prompts.
+4. **Masked UI Representation**: Responses and UI only expose masked strings (e.g. `••••••••••••••••`).
+5. **Safe Credential Rotation**: Clients can update or rotate keys at any time via authenticated endpoints.
+
+---
+
+# 31. AIRequest
 
 ## Purpose
 
@@ -863,7 +938,7 @@ AIRequest is an operational domain record, not a standalone AI product/module.
 | CompletedAt       | DateTime          |       No |
 | ErrorCode         | String            |       No |
 
-Provider/model fields are internal implementation metadata and must not be exposed as client configuration.
+`ProviderReference` and `ModelReference` record the audit trail of which provider and model was used for execution, resolved server-side from the tenant's `TenantAIConfiguration`.
 
 ---
 

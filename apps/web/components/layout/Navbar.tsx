@@ -64,7 +64,7 @@ export default function Navbar() {
         <a
           href="#hero"
           className="flex items-center gap-2.5 group focus-ring rounded-lg py-1"
-          aria-label="KVN Interiors — return to top"
+          aria-label={`${displayName} — return to top`}
           onClick={closeMobileMenu}
         >
           <div

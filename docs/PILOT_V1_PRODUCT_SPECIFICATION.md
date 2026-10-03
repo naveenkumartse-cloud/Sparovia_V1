@@ -19,8 +19,9 @@ The pilot allows a client to:
 3. Improve website content with contextual AI assistance.
 4. Upload and replace website images.
 5. Enhance existing images with AI while preserving the original.
-6. Receive and manage leads from the website and, when configured, WhatsApp.
-7. Perform these workflows securely within their own tenant.
+6. Connect a supported external AI provider (e.g. OpenAI, Google Gemini, Anthropic Claude) using their own API credentials and select an approved model.
+7. Receive and manage leads from the website and, when configured, WhatsApp.
+8. Perform these workflows securely within their own tenant.
 
 The pilot is intentionally small. It validates the core Sparovia product model before broader platform development.
 
@@ -136,6 +137,8 @@ AI receives only the context required for the current operation:
 - Client's requested improvement
 - Sparovia AI rules
 
+Content AI executes using the tenant's single configured AI provider and model. The selected model must possess the Content AI capability; otherwise, the operation is safely rejected with an explanation that a content-capable model is required.
+
 AI suggestions are untrusted until the client approves them.
 
 The client can:
@@ -211,6 +214,8 @@ User-facing operations:
 - Modern Look
 - Web Optimize
 
+Image Enhancement executes using the tenant's single configured AI provider and model. The selected model must possess the Image Enhancement capability. If the model supports only Content AI, image enhancement is unavailable with that model, and the client is guided to select an image-capable model under AI Connections.
+
 The enhancement must improve the photograph without materially changing what it represents.
 
 AI must not:
@@ -256,7 +261,52 @@ Website update remains a separate explicit action.
 
 ---
 
-### 3.8 Lead Management
+### 3.8 AI Provider Connection and Model Selection
+
+Sparovia allows a tenant to connect supported external AI providers using the client's own API credentials and select an approved model from that provider.
+
+Sparovia does NOT create or present fictional AI models (e.g., "Sparovia Fast" or "Sparovia Quality").
+
+Supported provider families include:
+
+- OpenAI / ChatGPT
+- Google Gemini
+- Anthropic Claude
+
+The architecture is provider-neutral, allowing additional providers to be supported without altering core Sparovia workflows.
+
+#### Core Capabilities:
+
+- **Connect Provider**: Choose from Sparovia-approved providers and supply the tenant's API key/credential.
+- **Connection Validation**: Test credentials securely before saving to verify active status and quota.
+- **Model Selection**: Select an approved model from the provider's allowlist based on capability (Content AI, Image Enhancement AI, or Both).
+- **Manage Connection**: Rotate or update API credentials, switch selected models, or disconnect.
+
+#### Shared Model Configuration for Content & Images
+
+In Pilot V1, the client does NOT configure two separate AI accounts, systems, or screens for content and images.
+The client connects AI once:
+- Provider
+- API Credential
+- Selected Model
+
+This single active configuration powers both workflows when the model supports the required capability:
+- **Model supports Both**: Content AI and Image Enhancement AI both use that single selected model.
+- **Model supports Content only**: Content AI is available; Image Enhancement AI is unavailable with this model, and the UI clearly guides the client to select an image-capable model.
+- **Model supports Image Enhancement only**: Image Enhancement AI is available; Content AI is unavailable with this model.
+
+Sparovia never silently switches models or providers. Capability compatibility is verified server-side before executing any AI workflow.
+
+#### Security & Boundaries:
+
+- Provider API credentials are sensitive secrets belonging to the tenant.
+- Credentials are encrypted at rest, never exposed in client source code, never returned in plaintext, never logged, and masked in the UI (`••••••••••••••••`).
+- The client cannot add arbitrary provider endpoints, upload custom SDKs, or configure internal infrastructure.
+- Downstream AI workflows (Content AI and Image Enhancement) automatically use the tenant's single configured, validated provider and model.
+
+---
+
+### 3.9 Lead Management
 
 Leads may originate from:
 
@@ -367,14 +417,38 @@ Update Website
 
 ---
 
-### 4.4 AI Image Enhancement
+---
+
+### 4.4 AI Provider Connection & Model Selection
+
+```text
+Settings / AI Connections
+          ↓
+Choose Supported Provider (OpenAI, Gemini, Claude)
+          ↓
+Enter Provider API Key / Credential
+          ↓
+Securely Validate Connection (Test Connection)
+          ↓
+Choose Supported Model (from Allowlist)
+          ↓
+Save AI Configuration (Encrypted at Rest)
+          ↓
+Active Tenant AI Configuration
+          ↓
+Used by Content AI & Image Enhancement
+```
+
+---
+
+### 4.5 AI Image Enhancement
 
 ```text
 Select Image
   ↓
 AI Enhance
   ↓
-Select Enhancement
+Select Enhancement (Compatible Model)
   ↓
 Process
   ↓
@@ -387,7 +461,7 @@ Update Website
 
 ---
 
-### 4.5 Leads
+### 4.6 Leads
 
 ```text
 Website / WhatsApp
@@ -813,12 +887,14 @@ Track important events including:
 * Image upload/replacement
 * AI enhancement request
 * AI approval/rejection
+* AI provider connection created/updated/tested/removed
+* AI model selection changed
 * Website update
 * Lead creation
 * Lead status changes
 * Important security events
 
-Do not store passwords, secrets, or unnecessary customer data in audit records.
+Do not store passwords, secrets, API keys, or unnecessary customer data in audit records.
 
 ---
 
@@ -839,6 +915,7 @@ Core workflows must remain usable on smaller screens:
 * Image upload
 * AI image enhancement
 * Before/After review
+* AI provider connection & model selection
 * Lead management
 
 Avoid unnecessary horizontal scrolling.
@@ -869,15 +946,16 @@ Sparovia
 ├── Leads
 │
 └── Settings
-    └── Account
+    ├── Account
+    └── AI Connections (or /admin/ai-models)
 ```
 
-AI does not appear as a standalone navigation module.
+AI configuration (connecting supported providers with tenant credentials and selecting approved models) is managed under Settings / AI Connections.
 
-AI appears inside:
+AI generation workflows do not appear as a standalone freeform prompt playground. AI workflows remain embedded contextually inside:
 
-* Content editing
-* Image enhancement
+* Content editing (Content AI suggestions)
+* Image enhancement (Image Enhancement AI)
 
 ---
 
@@ -887,6 +965,7 @@ Core entities:
 
 * Tenant
 * User
+* TenantAIConfiguration (AI Connection & Model Selection)
 * BusinessContext
 * Service
 * Website
@@ -921,7 +1000,10 @@ The following are outside Pilot V1:
 
 ### AI
 
-* Standalone AI module
+* Arbitrary external provider registration or custom endpoint overrides (only Sparovia-approved providers supported)
+* Custom provider SDK uploads or internal provider adapter modifications
+* Provider infrastructure administration / billing / token resale management
+* Standalone AI prompt playground / chat interface
 * Autonomous AI
 * AI agents
 * AI publishing
@@ -929,7 +1011,6 @@ The following are outside Pilot V1:
 * AI-generated project history
 * Generative project image creation
 * Material image alteration
-* Client-facing model/provider controls
 
 ### Images
 

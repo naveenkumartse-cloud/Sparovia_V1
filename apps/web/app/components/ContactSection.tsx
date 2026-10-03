@@ -50,7 +50,7 @@ export default function ContactSection() {
       <Container>
         <div className="max-w-2xl mx-auto w-full">
           <FadeIn direction="up">
-            <div className="bg-surface p-8 sm:p-12 rounded-3xl border border-gray-200 shadow-soft-sm">
+            <div className="bg-surface p-5 sm:p-8 md:p-12 rounded-3xl border border-gray-200 shadow-soft-sm">
               {submitted ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-full bg-brand-100 border border-brand-200 flex items-center justify-center mx-auto mb-6 text-brand-600">

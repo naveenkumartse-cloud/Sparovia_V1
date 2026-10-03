@@ -26,21 +26,28 @@ export default function ProjectGallerySection() {
   // Support dynamic items from CMS if provided, or fallback to mediaConfig.gallery
   const rawGalleryItems: MediaItem[] = useMemo(() => {
     if (Array.isArray(ourWork.items) && ourWork.items.length > 0) {
-      return ourWork.items.map((item: any, idx: number) => ({
-        id: item.id || `cms-gallery-${idx}`,
-        src: item.image || item.src || mediaConfig.gallery[idx % mediaConfig.gallery.length].src,
-        alt: item.title || item.alt || item.label || 'Project Gallery Item',
-        category: item.category || 'All',
-        label: item.title || item.label || 'Project View',
-        span: item.span || (idx === 0 ? 'large' : 'standard'),
-      }));
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/v1\/?$/, '') || 'http://localhost:5043';
+      return ourWork.items.map((item: any, idx: number) => {
+        let src = item.image || item.src || '';
+        if (src.startsWith('/api/')) {
+          src = `${apiBase}${src}`;
+        }
+        return {
+          id: item.id || `cms-gallery-${idx}`,
+          src: src || mediaConfig.gallery[idx % mediaConfig.gallery.length].src,
+          alt: item.title || item.alt || item.label || 'Project Gallery Item',
+          category: item.category || 'All',
+          label: item.title || item.label || 'Project View',
+          span: item.span || (idx === 0 ? 'large' : 'standard'),
+        };
+      });
     }
     return mediaConfig.gallery;
   }, [ourWork]);
 
   const filteredItems = activeFilter === 'All'
     ? rawGalleryItems
-    : rawGalleryItems.filter((item) => item.category === activeFilter);
+    : rawGalleryItems.filter((item) => (item.category || '').toLowerCase() === activeFilter.toLowerCase());
 
   const selectedItem: MediaItem | null = selectedIndex !== null ? filteredItems[selectedIndex] ?? null : null;
 
@@ -224,7 +231,7 @@ export default function ProjectGallerySection() {
                   {/* Content (Bottom Left) */}
                   <div className="absolute bottom-5 left-5 right-5 z-10 text-white pointer-events-none">
                     <span className="block text-[10px] uppercase tracking-[0.2em] text-brand-300 font-bold mb-1">
-                      KVN Interiors Project
+                      Project Showcase
                     </span>
                     <h3 className="font-sans text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
                       {item.label}

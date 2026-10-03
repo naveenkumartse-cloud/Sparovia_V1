@@ -1,0 +1,127 @@
+'use client';
+
+import React, { useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+export interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  description?: string;
+  children?: React.ReactNode;
+  footer?: React.ReactNode;
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  className?: string;
+  bodyClassName?: string;
+}
+
+const maxWidthMap: Record<string, string> = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
+  '2xl': 'max-w-[720px]',
+};
+
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  description,
+  children,
+  footer,
+  maxWidth = 'md',
+  className,
+  bodyClassName,
+}: ModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Close on Escape key and lock background scroll
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden animate-in fade-in duration-150"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      aria-describedby={description ? 'modal-description' : undefined}
+    >
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Modal Card */}
+      <div
+        ref={modalRef}
+        className={cn(
+          'relative w-full flex flex-col max-h-[calc(100vh-32px)] sm:max-h-[calc(100vh-48px)] bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl shadow-2xl z-10 overflow-hidden transform transition-all',
+          maxWidthMap[maxWidth] || maxWidthMap.md,
+          className
+        )}
+      >
+        {/* Header - Fixed at Top */}
+        <div className="px-5 py-4 sm:px-6 sm:py-5 border-b border-slate-100 dark:border-[#1E293B] flex items-start justify-between gap-4 shrink-0 bg-white dark:bg-[#0F172A]">
+          <div className="min-w-0 pr-2">
+            <h3
+              id="modal-title"
+              className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight"
+            >
+              {title}
+            </h3>
+            {description && (
+              <p
+                id="modal-description"
+                className="text-xs sm:text-sm text-slate-500 dark:text-[#94A3B8] mt-1 leading-relaxed"
+              >
+                {description}
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors shrink-0 -mr-1 -mt-0.5 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            aria-label="Close dialog"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Body - Clean Internal Scrolling */}
+        {children && (
+          <div className={cn('p-5 sm:p-6 overflow-y-auto flex-1 min-h-0', bodyClassName)}>
+            {children}
+          </div>
+        )}
+
+        {/* Footer - Fixed at Bottom */}
+        {footer && (
+          <div className="px-5 py-3.5 sm:px-6 sm:py-4 bg-slate-50/90 dark:bg-[#0B1120]/80 border-t border-slate-100 dark:border-[#1E293B] flex flex-wrap items-center justify-end gap-2.5 sm:gap-3 shrink-0">
+            {footer}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

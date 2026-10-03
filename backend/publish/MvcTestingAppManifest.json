@@ -1,0 +1,6 @@
+{
+  "Sparovia.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
+  "Sparovia.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
+  "Sparovia.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
+  "Sparovia.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~"
+}

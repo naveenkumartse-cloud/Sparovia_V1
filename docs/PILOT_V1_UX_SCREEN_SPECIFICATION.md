@@ -89,15 +89,16 @@ Website
 Leads
 
 Settings
-└── Account
+├── Account
+└── AI Connections (or AI Models)
 ````
 
-AI does not appear as a primary navigation item.
+AI provider connection and model configuration are managed under Settings / AI Connections.
 
-AI is accessed contextually from:
+AI generation workflows do not appear as a standalone freeform prompt playground. AI assistance is accessed contextually from:
 
-* Content fields
-* Image workflows
+* Content fields (Content AI suggestions)
+* Image workflows (Image Enhancement AI)
 
 ---
 
@@ -1416,7 +1417,51 @@ Display:
 
 Do not expose technical tenant identifiers.
 
-Settings should remain intentionally small in V1.
+---
+
+## 49.2 AI Connections & Model Selection
+
+### Purpose
+
+Allow the client to connect supported external AI providers (e.g., OpenAI, Google Gemini, Anthropic Claude) using their own API credentials, securely test the connection, and select an approved model for their business workflows.
+
+Sparovia does NOT create or present fictional AI models (e.g. "Sparovia Fast" or "Sparovia Quality"). The client connects a real supported provider and selects an approved model from that provider's allowlist.
+
+### Screen Layout & States
+
+#### 1. Current Connection Card (when connected)
+* **Provider**: Display Name (e.g. "OpenAI")
+* **Model**: Selected Model (e.g. "GPT-4o Mini")
+* **Status**: `Connected` (green badge)
+* **API Credential**: Masked presentation (`••••••••••••••••`)
+* **Capability**: Primary capability (e.g., "Content AI")
+* **Last Validated**: Date/time of last successful verification
+* **Actions**:
+  * `Change Model`: Allows switching to another approved model from the connected provider.
+  * `Rotate API Key`: Allows replacing the stored API credential safely.
+  * `Disconnect`: Disconnects provider connection with confirmation dialog.
+
+#### 2. Connect Provider Form (when not connected or updating)
+* **Provider Selector**:
+  * Dropdown/Cards of Sparovia-approved providers (OpenAI, Google Gemini, Anthropic Claude).
+* **API Credential Input**:
+  * Masked password-style field (`type="password"`).
+  * Accompanied by Sparovia reusable `ⓘ` Information Guidance:
+    > "Enter your API secret key from your provider console (e.g., OpenAI, Google, Anthropic). Sparovia uses your key solely to execute your approved content and image requests. Credentials are encrypted at rest using strong AES-256 encryption, never logged, and never displayed back in plaintext."
+* **Test Connection Action**:
+  * `[Test Connection]` button. Validates authentication against provider API before persistence.
+  * Displays inline connection status indicator (Validating... / Connection Verified / Authentication Failed).
+* **Model Selector**:
+  * Dropdown showing approved models for the selected provider.
+  * Each model displays: Display Name, Description, Capability (Content, Image), and Recommended/Default tags.
+* **Save Connection Action**:
+  * `[Save AI Configuration]` button.
+
+### UX Security Rules:
+* Provider API keys must never be rendered in plaintext in the DOM.
+* Form clears credential inputs after successful encryption and persistence.
+* Unapproved, unavailable, or deprecated models cannot be selected.
+* Changing providers or disconnecting shows a clear confirmation modal.
 
 ---
 
@@ -1914,7 +1959,31 @@ Update Website
 
 ---
 
-## 67.4 Website Images
+---
+
+## 67.4 AI Provider Connection & Model Selection
+
+```text
+Settings
+  ↓
+AI Connections
+  ↓
+Select Provider (OpenAI, Gemini, Claude)
+  ↓
+Enter API Key / Credential
+  ↓
+Test Connection
+  ↓
+Select Supported Model
+  ↓
+Save Configuration
+  ↓
+Active for Content AI & Image Enhancement
+```
+
+---
+
+## 67.5 Website Images
 
 ```text
 Images
@@ -1934,14 +2003,14 @@ Update Website
 
 ---
 
-## 67.5 AI Image Enhancement
+## 67.6 AI Image Enhancement
 
 ```text
 Image
   ↓
 AI Enhance
   ↓
-Choose Enhancement
+Choose Enhancement (Compatible Model)
   ↓
 Processing
   ↓
@@ -1954,7 +2023,7 @@ Update Website
 
 ---
 
-## 67.6 Leads
+## 67.7 Leads
 
 ```text
 Website / WhatsApp
@@ -1985,6 +2054,7 @@ The UX must never allow a client to:
 * View another client's leads.
 * Attach another tenant's image.
 * use another tenant's Business Context for AI.
+* view another tenant's AI provider connection or credentials.
 * manually supply a tenant identifier to control ownership.
 * access internal provider configuration.
 
@@ -2026,6 +2096,9 @@ Pilot V1 UX is complete when:
 * [ ] Save Draft works.
 * [ ] Preview works where supported.
 * [ ] Update Website requires explicit client action.
+* [ ] AI Provider Connection & Model Selection screen is implemented.
+* [ ] Connection test feedback works before saving.
+* [ ] Stored credentials display in masked format (`••••••••••••••••`).
 * [ ] Embedded AI Improve flow works.
 * [ ] AI Accept/Edit/Reject works.
 * [ ] AI suggestions remain drafts until published.
@@ -2050,7 +2123,7 @@ Pilot V1 UX is complete when:
 * [ ] Responsive desktop/tablet/mobile layouts work.
 * [ ] Keyboard/accessibility basics are implemented.
 * [ ] No unsupported website-design controls are exposed.
-* [ ] No standalone AI module is introduced.
+* [ ] No standalone AI prompt playground/chatbot is introduced (AI remains contextual assistance).
 
 ---
 

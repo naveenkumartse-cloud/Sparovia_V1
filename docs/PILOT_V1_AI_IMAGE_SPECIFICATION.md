@@ -356,7 +356,7 @@ Web Optimize
 
 The underlying provider may implement these operations differently.
 
-The client should not need to know which AI model or provider is used.
+The operations execute through the tenant's configured external AI provider using an approved model that supports Image Enhancement capabilities. Sparovia validates capability compatibility server-side before execution.
 
 ---
 
@@ -821,9 +821,9 @@ AI Service
         ↓
 Provider Abstraction
         ↓
-Provider Adapter
+Provider Adapter (OpenAI, Gemini, Claude, etc.)
         ↓
-AI Provider
+External AI Provider
 ```
 
 For images:
@@ -833,10 +833,28 @@ Image Workflow
         ↓
 Image Enhancement Service
         ↓
+Capability Validation (Verify Image Enhancement capability)
+        ↓
+Tenant's Configured AI Provider & Model
+        ↓
 Enhancement Engine Abstraction
         ↓
-Provider / Self-hosted Engine
+Provider Adapter
+        ↓
+External AI Provider API
 ```
+
+### Capability Validation Rules
+
+Before an image enhancement workflow executes:
+
+1. The system resolves the tenant's configured provider and selected model from `TenantAIConfiguration`.
+2. The system validates whether the selected model supports the `Image` or `General` capability.
+3. If the model does not support image enhancement:
+   - The operation is immediately rejected before contacting external services.
+   - Return a clear, safe error: `MODEL_CAPABILITY_MISMATCH`.
+   - The client is informed that an image-capable model must be selected under AI Connections.
+   - Never silently switch providers or models.
 
 ---
 
@@ -1641,8 +1659,9 @@ The following are explicitly excluded:
 * Architecture modification
 * AI-generated business facts
 * Automatic Business Context updates
-* Client-facing model selection
-* Client-facing provider selection
+* Arbitrary external provider endpoint overrides
+* Custom provider SDK uploads or internal adapter modifications
+* Provider infrastructure administration / billing / token resale management
 * Provider marketplace
 * Advanced image editing
 * Advanced DAM
@@ -1699,6 +1718,12 @@ AI and image functionality is complete when:
              ▼                             ▼
      AI Content Service          Image Enhancement Service
              │                             │
+             └──────────────┬──────────────┘
+                            ▼
+              Tenant AI Configuration
+              (Configured Provider & Model)
+                            │
+             ┌──────────────┴──────────────┐
              ▼                             ▼
       Provider Abstraction         Provider Abstraction
              │                             │
@@ -1706,8 +1731,8 @@ AI and image functionality is complete when:
        Provider Adapter             Provider Adapter
              │                             │
              ▼                             ▼
-        AI Provider /               AI Provider /
-        Model Engine                Image Engine
+        External AI Provider        External AI Provider
+        (OpenAI, Gemini, Claude)    (OpenAI, Gemini, Claude)
 ```
 
 Content:

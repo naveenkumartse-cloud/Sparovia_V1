@@ -531,7 +531,54 @@ Publish
 
 ---
 
-# 11. Phase 6 — AI Content Assistance
+# 11. Phase 6 — AI Provider Connection & Model Selection Foundation
+
+## Objective
+
+Establish the provider-neutral AI foundation, approved provider/model registries, and secure tenant-owned provider connection management.
+Sparovia does not create fictional AI models. The client connects a supported external provider (OpenAI, Google Gemini, Anthropic Claude) using their own API credentials and selects an approved model.
+
+## User Flow
+
+```text
+AI Provider Abstraction
+      ↓
+Provider Registry / Allowlist (OpenAI, Gemini, Claude)
+      ↓
+Secure Tenant AI Connection (Encrypted API Key at Rest)
+      ↓
+Model Selection (from approved allowlist)
+      ↓
+Connection Validation (Test Connection)
+      ↓
+AI Service Foundation
+      ↓
+Active for Content AI & Image Enhancement
+```
+
+## Modules
+
+* AI Provider Abstraction (`IAIProvider`)
+* Provider Adapters (`OpenAIAdapter`, `GeminiAdapter`, `ClaudeAdapter`, `StubAdapter`)
+* Provider & Model Registry (`AIModelRegistry`)
+* Tenant AI Configuration Service
+* Secure Credential Storage & Encryption at Rest
+* Connection Validator (`TestConnection`)
+* AI Service Orchestrator (`IAIService`)
+* AI Configuration Audit
+
+## Exit Criteria
+
+* Provider-neutral abstraction decouples domain from external SDKs
+* Tenant can connect supported provider with own API key
+* API key is encrypted at rest and never exposed in plaintext
+* Connection can be tested before persistence
+* Tenant can select from approved models only (unapproved/unavailable rejected)
+* Multi-tenant isolation verified (Tenant A cannot see/modify Tenant B connection)
+
+---
+
+# 12. Phase 7 — AI Content Assistance
 
 ## Objective
 
@@ -898,19 +945,22 @@ Use this sequence:
 9. Website connection
 10. Image storage
 11. Image management
-12. AI provider abstraction
-13. AI content workflow
-14. AI image enhancement
-15. Lead domain
-16. Website lead intake
-17. WhatsApp lead intake
-18. Audit
-19. Observability
-20. Security hardening
-21. Automated testing
-22. UAT
-23. Production deployment
-24. Pilot stabilization
+12. AI provider abstraction & registry
+13. Tenant AI connection & credential storage
+14. AI model selection & connection validation
+15. AI service foundation
+16. AI content workflow
+17. AI image enhancement
+18. Lead domain
+19. Website lead intake
+20. WhatsApp lead intake
+21. Audit
+22. Observability
+23. Security hardening
+24. Automated testing
+25. UAT
+26. Production deployment
+27. Pilot stabilization
 ```
 
 ---
@@ -924,6 +974,7 @@ Recommended order:
 ```text
 Tenant
 User / Identity Reference
+TenantAIConfiguration
 BusinessContext
 BusinessType
 Service
@@ -954,6 +1005,8 @@ Website Content
       ↓
 Images
       ↓
+AI Provider Connection & Model Selection
+      ↓
 AI Content
       ↓
 AI Image Enhancement
@@ -979,12 +1032,13 @@ Recommended screen order:
 3. Dashboard
 4. Business Context
 5. Website Content
-6. Content AI
-7. Images
-8. Image Enhancement
-9. Explore Our Work
-10. Leads
-11. Settings
+6. Images
+7. AI Provider Connection & Model Selection (/admin/ai-models)
+8. Content AI (Embedded)
+9. Image Enhancement (Embedded)
+10. Explore Our Work
+11. Leads
+12. Settings
 ```
 
 Every screen must implement:

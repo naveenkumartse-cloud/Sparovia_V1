@@ -53,7 +53,7 @@ export default function TestimonialsSection() {
         </div>
 
         {/* Editorial Quote Presentation */}
-        <div className="relative bg-white rounded-3xl p-8 sm:p-12 border border-gray-100 shadow-soft-sm">
+        <div className="relative bg-white rounded-3xl p-5 sm:p-8 md:p-12 border border-gray-100 shadow-soft-sm">
           <Quote className="w-10 h-10 text-brand-200 mb-6" />
 
           <AnimatePresence mode="wait">

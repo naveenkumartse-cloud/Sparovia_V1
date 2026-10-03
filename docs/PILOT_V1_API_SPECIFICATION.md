@@ -855,9 +855,275 @@ The currently live version must remain unchanged.
 
 ---
 
-# 30. AI Content Endpoints
+# 30. AI Provider Connection & Model Selection Endpoints
 
-## 30.1 Improve Content
+These endpoints manage the tenant's external AI provider connection and model selection.
+Sparovia does not create fictional AI models. The client connects a supported external provider using their own credentials and selects an approved model.
+
+API keys are **never** returned in plaintext (only masked representation like `••••••••••••••••`).
+
+## 30.1 List Supported Providers
+
+```http
+GET /api/v1/ai/providers
+```
+
+### Response (200 OK)
+
+```json
+{
+  "data": [
+    {
+      "key": "openai",
+      "displayName": "OpenAI",
+      "description": "Industry-leading reasoning and conversational nuance.",
+      "supportedCapabilities": ["Content", "Image", "General"]
+    },
+    {
+      "key": "gemini",
+      "displayName": "Google Gemini",
+      "description": "High-throughput multimodal understanding and content generation.",
+      "supportedCapabilities": ["Content", "General"]
+    },
+    {
+      "key": "claude",
+      "displayName": "Anthropic Claude",
+      "description": "Advanced editorial refinement, nuance, and structural clarity.",
+      "supportedCapabilities": ["Content", "General"]
+    }
+  ],
+  "requestId": "..."
+}
+```
+
+---
+
+## 30.2 List Approved Models
+
+```http
+GET /api/v1/ai/models?providerKey=openai&capability=Content
+```
+
+### Query Parameters (Optional)
+
+* `providerKey`: Filter by provider (`openai`, `gemini`, `claude`)
+* `capability`: Filter by capability (`Content`, `Image`, `General`)
+
+### Response (200 OK)
+
+```json
+{
+  "data": [
+    {
+      "key": "gpt-4o-mini",
+      "providerKey": "openai",
+      "displayName": "GPT-4o Mini",
+      "description": "Fast, cost-efficient model for quick wording improvements.",
+      "capability": "Content",
+      "status": "Available",
+      "isDefault": true
+    },
+    {
+      "key": "gpt-4o",
+      "providerKey": "openai",
+      "displayName": "GPT-4o",
+      "description": "Advanced flagship reasoning for nuanced brand storytelling.",
+      "capability": "Content",
+      "status": "Available",
+      "isDefault": false
+    }
+  ],
+  "requestId": "..."
+}
+```
+
+---
+
+## 30.3 Get Current Connection
+
+```http
+GET /api/v1/ai/connection
+```
+
+### Response (200 OK)
+
+```json
+{
+  "data": {
+    "status": "Connected",
+    "providerKey": "openai",
+    "providerDisplayName": "OpenAI",
+    "selectedModelKey": "gpt-4o-mini",
+    "selectedModelDisplayName": "GPT-4o Mini",
+    "maskedApiKey": "sk-...••••1234",
+    "supportedCapability": "Content",
+    "lastValidatedAt": "2026-09-27T10:00:00Z",
+    "updatedAt": "2026-09-27T10:00:00Z"
+  },
+  "requestId": "..."
+}
+```
+
+If not connected:
+```json
+{
+  "data": {
+    "status": "NotConnected",
+    "providerKey": null,
+    "selectedModelKey": null
+  },
+  "requestId": "..."
+}
+```
+
+---
+
+## 30.4 Test Provider Connection
+
+```http
+POST /api/v1/ai/connection/test
+```
+
+Tests whether the supplied credentials (or currently stored credentials) can authenticate successfully with the provider.
+
+### Request
+
+```json
+{
+  "providerKey": "openai",
+  "apiKey": "sk-proj-..."
+}
+```
+
+*(If `apiKey` is omitted, tests using the currently stored credential for the tenant).*
+
+### Success (200 OK)
+
+```json
+{
+  "data": {
+    "success": true,
+    "providerKey": "openai",
+    "message": "Connection to OpenAI verified successfully."
+  },
+  "requestId": "..."
+}
+```
+
+### Failure (400 Bad Request)
+
+```json
+{
+  "error": {
+    "code": "CONNECTION_TEST_FAILED",
+    "message": "Could not authenticate with OpenAI. Please verify your API key."
+  },
+  "requestId": "..."
+}
+```
+
+---
+
+## 30.5 Create / Connect Provider
+
+```http
+POST /api/v1/ai/connection
+```
+
+### Request
+
+```json
+{
+  "providerKey": "openai",
+  "apiKey": "sk-proj-...",
+  "selectedModelKey": "gpt-4o-mini"
+}
+```
+
+### Processing
+
+1. Authorize user and resolve tenant.
+2. Validate provider is in approved registry.
+3. Validate selected model belongs to provider and is `Available`.
+4. Perform server-side connection test against external provider API.
+5. Encrypt API key using platform encryption key.
+6. Persist `TenantAIConfiguration` with status `Connected`.
+7. Audit event: `AIProviderConnectionCreated`.
+
+### Response (200 OK / 201 Created)
+
+```json
+{
+  "data": {
+    "status": "Connected",
+    "providerKey": "openai",
+    "selectedModelKey": "gpt-4o-mini",
+    "maskedApiKey": "sk-...••••1234",
+    "lastValidatedAt": "2026-09-27T10:05:00Z"
+  },
+  "requestId": "..."
+}
+```
+
+---
+
+## 30.6 Update Connection / Model Selection
+
+```http
+PUT /api/v1/ai/connection
+```
+
+### Request (Changing Model or Rotating Key)
+
+```json
+{
+  "selectedModelKey": "gpt-4o",
+  "apiKey": "sk-proj-new-key..." 
+}
+```
+
+*(Note: `apiKey` is optional when only changing the selected model).*
+
+### Response (200 OK)
+
+```json
+{
+  "data": {
+    "status": "Connected",
+    "providerKey": "openai",
+    "selectedModelKey": "gpt-4o",
+    "maskedApiKey": "sk-...••••9876",
+    "updatedAt": "2026-09-27T10:10:00Z"
+  },
+  "requestId": "..."
+}
+```
+
+---
+
+## 30.7 Disconnect Provider
+
+```http
+DELETE /api/v1/ai/connection
+```
+
+### Response (200 OK)
+
+```json
+{
+  "data": {
+    "status": "NotConnected",
+    "message": "AI provider disconnected successfully."
+  },
+  "requestId": "..."
+}
+```
+
+---
+
+# 31. AI Content Endpoints
+
+## 31.1 Improve Content
 
 ```http
 POST /api/v1/ai/content/improve
@@ -2148,6 +2414,7 @@ Connected Website
 Website Content
 Website Images
 Explore Our Work
+AI Provider Connection & Model Selection
 AI Content Assistance
 AI Image Enhancement
 Website Publishing
@@ -2172,9 +2439,10 @@ Animation Editor
 
 AI Website Generation
 AI Agents
-Standalone AI Dashboard
-AI Model Selection
-AI Provider Management
+Standalone AI Prompt Playground / Chat Interface
+Arbitrary Provider Endpoints
+Custom Provider SDK Uploads
+Provider Infrastructure Administration
 
 CRM
 Lead Scoring
