@@ -62,7 +62,8 @@ public class SmtpEmailService : IEmailService
         {
             EnableSsl = _options.EnableSsl,
             DeliveryMethod = SmtpDeliveryMethod.Network,
-            UseDefaultCredentials = false
+            UseDefaultCredentials = false,
+            Timeout = 15000
         };
 
         if (!string.IsNullOrWhiteSpace(_options.Username) && !string.IsNullOrWhiteSpace(_options.Password))
@@ -78,9 +79,9 @@ public class SmtpEmailService : IEmailService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Email dispatch failed. Type: {EmailType}, To: {ToEmail}, Host: {Host}, Port: {Port}",
-                emailType, MaskEmail(toEmail), _options.Host, _options.Port);
-            throw new InvalidOperationException("Failed to deliver email through configured SMTP provider.", ex);
+            _logger.LogError(ex, "Email dispatch failed. Type: {EmailType}, To: {ToEmail}, Host: {Host}, Port: {Port}, Error: {ErrorMessage}",
+                emailType, MaskEmail(toEmail), _options.Host, _options.Port, ex.Message);
+            throw new InvalidOperationException($"Failed to deliver email through configured SMTP provider: {ex.Message}", ex);
         }
     }
 
