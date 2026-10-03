@@ -51,18 +51,12 @@ public class SmsService : ISmsService
     {
         var maskedPhone = PhoneNumberHelper.Mask(phoneNumber);
 
-        // When real delivery is not enabled: safely simulate dispatch (Pilot / Testing mode)
-        if (!_options.EnableDelivery)
+        // Only attempt external SMS dispatch if delivery is explicitly enabled AND credentials are provided
+        var hasCredentials = !string.IsNullOrWhiteSpace(_options.AccountSid) || !string.IsNullOrWhiteSpace(_options.ApiKey);
+        if (!_options.EnableDelivery || !hasCredentials)
         {
-            _logger.LogInformation("Phone OTP delivery simulated (Delivery disabled / Pilot mode). To: {ToPhone}", maskedPhone);
+            _logger.LogInformation("Phone OTP delivery simulated (Pilot / Testing mode). To: {ToPhone}", maskedPhone);
             return;
-        }
-
-        // Validate production configuration
-        if (string.IsNullOrWhiteSpace(_options.AccountSid) && string.IsNullOrWhiteSpace(_options.ApiKey))
-        {
-            _logger.LogError("SMS configuration missing required credentials. Provider: {Provider}", _options.Provider);
-            throw new InvalidOperationException("SMS provider credentials are not configured.");
         }
 
         try

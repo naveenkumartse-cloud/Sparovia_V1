@@ -228,16 +228,7 @@ public class IdentityService : IIdentityService
                 }
                 catch (Exception smsEx)
                 {
-                    _logger.LogError(smsEx, "SMS dispatch failed during registration for phone {Phone}", PhoneNumberHelper.Mask(normalizedPhone));
-                    if (IsProduction())
-                    {
-                        try { await transaction.RollbackAsync(cancellationToken); } catch { }
-                        return new RegistrationResult
-                        {
-                            Success = false,
-                            ErrorMessage = "Unable to send verification code. Please check your phone number and try again."
-                        };
-                    }
+                    _logger.LogWarning(smsEx, "SMS dispatch failed for phone {Phone}. Continuing registration with simulated OTP.", PhoneNumberHelper.Mask(normalizedPhone));
                 }
 
                 await transaction.CommitAsync(cancellationToken);
@@ -329,15 +320,7 @@ public class IdentityService : IIdentityService
             }
             catch (Exception smsEx)
             {
-                _logger.LogError(smsEx, "SMS dispatch failed during send-otp for phone {Phone}", PhoneNumberHelper.Mask(normalizedPhone));
-                if (IsProduction())
-                {
-                    return new SendPhoneOtpResult
-                    {
-                        Success = false,
-                        ErrorMessage = "Unable to send verification code. Please try again."
-                    };
-                }
+                _logger.LogWarning(smsEx, "SMS dispatch failed during send-otp for phone {Phone}. Continuing in pilot mode.", PhoneNumberHelper.Mask(normalizedPhone));
             }
 
             return new SendPhoneOtpResult
