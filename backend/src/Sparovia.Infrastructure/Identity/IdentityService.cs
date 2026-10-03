@@ -60,74 +60,82 @@ public class IdentityService : IIdentityService
         if (request.Password != request.ConfirmPassword)
             return new RegistrationResult { Success = false, ErrorMessage = "Passwords do not match." };
 
-        var normalizedEmail = request.Email.Trim().ToUpperInvariant();
-        var exists = await _dbContext.Users.AnyAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
-        if (exists)
-            return new RegistrationResult { Success = false, ErrorMessage = "An account with this email already exists." };
-
-        var passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.Password);
-        
-        var rawToken = GenerateToken();
-        var tokenHash = HashToken(rawToken);
-        var tokenExpiry = DateTime.UtcNow.AddHours(24);
-
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            var user = new User
+            var normalizedEmail = request.Email.Trim().ToUpperInvariant();
+            var exists = await _dbContext.Users.AnyAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
+            if (exists)
+                return new RegistrationResult { Success = false, ErrorMessage = "An account with this email already exists." };
+
+            var passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.Password);
+            
+            var rawToken = GenerateToken();
+            var tokenHash = HashToken(rawToken);
+            var tokenExpiry = DateTime.UtcNow.AddHours(24);
+
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
             {
-                FullName = request.FullName,
-                Email = request.Email.Trim(),
-                NormalizedEmail = normalizedEmail,
-                PasswordHash = passwordHash,
-                EmailVerified = false,
-                VerificationTokenHash = tokenHash,
-                VerificationTokenExpiresAt = tokenExpiry
-            };
-            _dbContext.Users.Add(user);
+                var user = new User
+                {
+                    FullName = request.FullName,
+                    Email = request.Email.Trim(),
+                    NormalizedEmail = normalizedEmail,
+                    PasswordHash = passwordHash,
+                    EmailVerified = false,
+                    VerificationTokenHash = tokenHash,
+                    VerificationTokenExpiresAt = tokenExpiry
+                };
+                _dbContext.Users.Add(user);
 
-            var tenant = new Tenant
+                var tenant = new Tenant
+                {
+                    Name = $"{request.FullName}'s Workspace"
+                };
+                _dbContext.Tenants.Add(tenant);
+
+                var membership = new Membership
+                {
+                    UserId = user.Id,
+                    User = user,
+                    TenantId = tenant.Id,
+                    Tenant = tenant,
+                    Role = "Owner"
+                };
+                _dbContext.Memberships.Add(membership);
+
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
+                var adminBaseUrl = GetAdminBaseUrl();
+                var link = $"{adminBaseUrl}/verify-email?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(rawToken)}";
+                await _emailService.SendVerificationEmailAsync(user.Email, link, cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken);
+
+                return new RegistrationResult 
+                { 
+                    Success = true,
+                    VerificationLink = link
+                };
+            }
+            catch (Exception ex)
             {
-                Name = $"{request.FullName}'s Workspace"
-            };
-            _dbContext.Tenants.Add(tenant);
-
-            var membership = new Membership
-            {
-                UserId = user.Id,
-                User = user,
-                TenantId = tenant.Id,
-                Tenant = tenant,
-                Role = "Owner"
-            };
-            _dbContext.Memberships.Add(membership);
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-
-            var adminBaseUrl = GetAdminBaseUrl();
-            var link = $"{adminBaseUrl}/verify-email?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(rawToken)}";
-            await _emailService.SendVerificationEmailAsync(user.Email, link, cancellationToken);
-
-            await transaction.CommitAsync(cancellationToken);
-
-            return new RegistrationResult 
-            { 
-                Success = true,
-                VerificationLink = link
-            };
+                _logger.LogError(ex, "Registration failed during account creation or email dispatch for email {Email}", request.Email);
+                try
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                }
+                catch
+                {
+                    // Transaction may already be closed
+                }
+                return new RegistrationResult { Success = false, ErrorMessage = "An unexpected error occurred during registration. Please try again." };
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Registration failed during account creation or email dispatch for email {Email}", request.Email);
-            try
-            {
-                await transaction.RollbackAsync(cancellationToken);
-            }
-            catch
-            {
-                // Transaction may already be closed
-            }
-            return new RegistrationResult { Success = false, ErrorMessage = "An unexpected error occurred during registration. Please try again." };
+            _logger.LogError(ex, "Database connection failed or error occurred during registration check for email {Email}", request.Email);
+            return new RegistrationResult { Success = false, ErrorMessage = "Database service is currently unavailable. Please try again shortly." };
         }
     }
 
