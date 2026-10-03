@@ -6,6 +6,8 @@ using Sparovia.Application.Identity;
 using Sparovia.Domain.Entities;
 using Sparovia.Infrastructure.Data;
 
+using Microsoft.Extensions.Logging;
+
 namespace Sparovia.Infrastructure.Identity;
 
 public class IdentityService : IIdentityService
@@ -13,17 +15,26 @@ public class IdentityService : IIdentityService
     private readonly SparoviaDbContext _dbContext;
     private readonly IEmailService _emailService;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<IdentityService> _logger;
 
-    public IdentityService(SparoviaDbContext dbContext, IEmailService emailService, IConfiguration configuration)
+    public IdentityService(
+        SparoviaDbContext dbContext, 
+        IEmailService emailService, 
+        IConfiguration configuration,
+        ILogger<IdentityService> logger)
     {
         _dbContext = dbContext;
         _emailService = emailService;
         _configuration = configuration;
+        _logger = logger;
     }
 
     private string GetAdminBaseUrl()
     {
-        var adminUrl = _configuration["AdminUrl"] ?? "http://localhost:3001";
+        var adminUrl = _configuration["FRONTEND_BASE_URL"]
+            ?? _configuration["Frontend:BaseUrl"]
+            ?? _configuration["AdminUrl"]
+            ?? "http://localhost:3001";
         return adminUrl.TrimEnd('/');
     }
 
@@ -92,11 +103,12 @@ public class IdentityService : IIdentityService
             _dbContext.Memberships.Add(membership);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
 
             var adminBaseUrl = GetAdminBaseUrl();
             var link = $"{adminBaseUrl}/verify-email?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(rawToken)}";
             await _emailService.SendVerificationEmailAsync(user.Email, link, cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
 
             return new RegistrationResult 
             { 
@@ -104,10 +116,18 @@ public class IdentityService : IIdentityService
                 VerificationLink = link
             };
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            await transaction.RollbackAsync(cancellationToken);
-            return new RegistrationResult { Success = false, ErrorMessage = "An unexpected error occurred during registration." };
+            _logger.LogError(ex, "Registration failed during account creation or email dispatch for email {Email}", request.Email);
+            try
+            {
+                await transaction.RollbackAsync(cancellationToken);
+            }
+            catch
+            {
+                // Transaction may already be closed
+            }
+            return new RegistrationResult { Success = false, ErrorMessage = "An unexpected error occurred during registration. Please try again." };
         }
     }
 
@@ -162,7 +182,14 @@ public class IdentityService : IIdentityService
 
         var adminBaseUrl = GetAdminBaseUrl();
         var link = $"{adminBaseUrl}/verify-email?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(rawToken)}";
-        await _emailService.SendVerificationEmailAsync(user.Email, link, cancellationToken);
+        try
+        {
+            await _emailService.SendVerificationEmailAsync(user.Email, link, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to dispatch verification email during resend request for email {Email}", user.Email);
+        }
 
         return new VerificationResult 
         { 
@@ -261,7 +288,14 @@ public class IdentityService : IIdentityService
         // Send email
         var adminBaseUrl = GetAdminBaseUrl();
         var link = $"{adminBaseUrl}/reset-password?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(rawToken)}";
-        await _emailService.SendPasswordResetEmailAsync(user.Email, link, cancellationToken);
+        try
+        {
+            await _emailService.SendPasswordResetEmailAsync(user.Email, link, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to dispatch password reset email for email {Email}", user.Email);
+        }
 
         return new ForgotPasswordResult();
     }

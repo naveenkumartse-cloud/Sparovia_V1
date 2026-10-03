@@ -110,7 +110,28 @@ else
 
 // Storage & Email
 builder.Services.AddSingleton<IStorageProvider, StubStorageProvider>();
-builder.Services.AddSingleton<IEmailService, StubEmailService>();
+
+var smtpOptions = Sparovia.Infrastructure.Email.SmtpOptions.FromConfiguration(builder.Configuration);
+builder.Services.AddSingleton(Microsoft.Extensions.Options.Options.Create(smtpOptions));
+
+if (!string.IsNullOrWhiteSpace(smtpOptions.Host) && smtpOptions.EnableDelivery)
+{
+    if (string.IsNullOrWhiteSpace(smtpOptions.Username) ||
+        string.IsNullOrWhiteSpace(smtpOptions.Password) ||
+        string.IsNullOrWhiteSpace(smtpOptions.FromEmail))
+    {
+        Log.Warning("SMTP configuration is incomplete. SmtpEmailService will require valid credentials for delivery.");
+    }
+    builder.Services.AddScoped<IEmailService, Sparovia.Infrastructure.Email.SmtpEmailService>();
+}
+else
+{
+    if (builder.Environment.IsProduction())
+    {
+        Log.Warning("Production environment detected without SMTP_HOST configured. Using StubEmailService until SMTP is configured in hosting environment.");
+    }
+    builder.Services.AddSingleton<IEmailService, StubEmailService>();
+}
 
 // Identity
 builder.Services.AddScoped<IIdentityService, IdentityService>();

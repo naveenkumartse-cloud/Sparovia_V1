@@ -195,28 +195,6 @@ function VerifyEmailContent() {
             </div>
           )}
 
-          {/* Development-only helper when SMTP is not configured */}
-          {process.env.NODE_ENV === 'development' && devLink && (
-            <div className="p-3.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-500/30 rounded-xl text-left text-xs text-blue-900 dark:text-blue-200">
-              <div className="flex items-center justify-between font-semibold text-blue-600 dark:text-blue-400 mb-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                  Development Mode (No SMTP)
-                </span>
-                <span className="text-[10px] bg-blue-500/20 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-mono">LOCAL ONLY</span>
-              </div>
-              <p className="text-slate-600 dark:text-[#94A3B8] leading-relaxed mb-2.5">
-                Since local SMTP delivery is unconfigured, you can complete verification using the real generated token link below:
-              </p>
-              <a
-                href={devLink}
-                className="inline-flex items-center gap-1 font-medium text-[#FF7043] hover:text-[#F4511E] underline transition-colors"
-              >
-                Simulate clicking email verification link &rarr;
-              </a>
-            </div>
-          )}
-
           <p className="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed">
             Click the link in the email to activate your account. If you don&apos;t see it, please check your spam folder.
           </p>
@@ -257,6 +235,25 @@ function VerifyEmailContent() {
               )}
             </button>
           </form>
+
+          {/* Skip Option */}
+          {(process.env.NODE_ENV === 'development' || devLink) && (
+            <div className="pt-1 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  if (devLink) {
+                    window.location.href = devLink;
+                  } else {
+                    router.push('/admin/onboarding/business-basics');
+                  }
+                }}
+                className="text-xs font-medium text-slate-400 hover:text-slate-600 dark:text-[#64748B] dark:hover:text-[#94A3B8] transition-colors underline underline-offset-4"
+              >
+                Skip verification &amp; continue to onboarding &rarr;
+              </button>
+            </div>
+          )}
 
           <div className="pt-4 border-t border-slate-100 dark:border-[#1E293B] flex justify-between items-center text-xs">
             <Link href="/login" className="text-[#3B82F6] hover:text-[#60A5FA] transition-colors font-medium">
