@@ -45,20 +45,11 @@ function VerifyEmailContent() {
   }, [checkAuth]);
 
   useEffect(() => {
-    if (token && emailParam && !hasVerifiedRef.current) {
-      hasVerifiedRef.current = true;
-      verifyToken(emailParam, token);
-    }
-  }, [token, emailParam, verifyToken]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-      const stored = sessionStorage.getItem('sparovia_dev_verify_link');
-      if (stored && (!emailParam || stored.includes(encodeURIComponent(emailParam)))) {
-        setDevLink(stored);
-      }
-    }
-  }, [emailParam]);
+    // Sparovia V1 now uses Phone OTP verification
+    const storedPhone = typeof window !== 'undefined' ? sessionStorage.getItem('sparovia_verify_phone') : null;
+    const phoneQuery = storedPhone ? `?phone=${encodeURIComponent(storedPhone)}` : '';
+    router.replace(`/verify-phone${phoneQuery}`);
+  }, [router]);
 
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault();

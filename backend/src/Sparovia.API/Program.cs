@@ -91,6 +91,16 @@ builder.Services.AddRateLimiter(options =>
         limiterOptions.PermitLimit = 100;
         limiterOptions.Window = TimeSpan.FromMinutes(1);
     });
+    options.AddFixedWindowLimiter("PhoneOtpSend", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 5;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+    });
+    options.AddFixedWindowLimiter("PhoneOtpVerify", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 10;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+    });
 });
 
 // Database
@@ -108,8 +118,16 @@ else
     });
 }
 
-// Storage & Email
+// Storage, Email & SMS
 builder.Services.AddSingleton<IStorageProvider, StubStorageProvider>();
+
+// Phone OTP & SMS Services
+builder.Services.Configure<PhoneOtpOptions>(builder.Configuration.GetSection(PhoneOtpOptions.SectionName));
+builder.Services.AddSingleton<IOtpService, OtpService>();
+
+var smsOptions = Sparovia.Infrastructure.Sms.SmsOptions.FromConfiguration(builder.Configuration);
+builder.Services.AddSingleton(Microsoft.Extensions.Options.Options.Create(smsOptions));
+builder.Services.AddHttpClient<ISmsService, Sparovia.Infrastructure.Sms.SmsService>();
 
 var smtpOptions = Sparovia.Infrastructure.Email.SmtpOptions.FromConfiguration(builder.Configuration);
 builder.Services.AddSingleton(Microsoft.Extensions.Options.Options.Create(smtpOptions));

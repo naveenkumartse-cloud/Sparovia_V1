@@ -67,13 +67,13 @@ export default function LoginPage() {
             {error && (
               <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 dark:text-red-300 text-sm space-y-2" role="alert">
                 <p>{error}</p>
-                {error.toLowerCase().includes("verify your email") && (
+                {error.toLowerCase().includes("verify") && (
                   <div>
                     <Link
-                      href={`/verify-email?email=${encodeURIComponent(email)}`}
+                      href={`/verify-phone?phone=${encodeURIComponent(email)}`}
                       className="text-[#3B82F6] hover:text-[#60A5FA] underline text-xs font-semibold inline-flex items-center"
                     >
-                      Go to email verification
+                      Go to verification
                       <ArrowRight className="ml-1 h-3 w-3" />
                     </Link>
                   </div>
@@ -84,9 +84,9 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center gap-1.5">
                 <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
-                  Work Email
+                  Work Email or Phone Number
                 </label>
-                <InfoTooltip content="Enter the email address associated with your Sparovia account." />
+                <InfoTooltip content="Enter the email address or phone number associated with your Sparovia account." />
               </div>
               <div className="mt-1.5 relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-[#64748B]">
@@ -95,12 +95,12 @@ export default function LoginPage() {
                 <input
                   id="email"
                   name="email"
-                  type="email"
-                  autoComplete="email"
+                  type="text"
+                  autoComplete="username"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
+                  placeholder="name@example.com or +91 98765 43210"
                   className="block w-full pl-10 pr-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
                 />
               </div>

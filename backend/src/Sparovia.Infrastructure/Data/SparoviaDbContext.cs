@@ -23,6 +23,7 @@ public class SparoviaDbContext : DbContext
     public DbSet<Image> Images => Set<Image>();
     public DbSet<ImageVariant> ImageVariants => Set<ImageVariant>();
     public DbSet<WebsiteWorkCategory> WebsiteWorkCategories => Set<WebsiteWorkCategory>();
+    public DbSet<PhoneVerification> PhoneVerifications => Set<PhoneVerification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,10 +33,24 @@ public class SparoviaDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.NormalizedEmail).IsUnique();
+            entity.HasIndex(e => e.PhoneNumberNormalized);
             entity.Property(e => e.Email).IsRequired().HasMaxLength(256);
             entity.Property(e => e.NormalizedEmail).IsRequired().HasMaxLength(256);
             entity.Property(e => e.FullName).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(32);
+            entity.Property(e => e.PhoneNumberNormalized).HasMaxLength(32);
             entity.Property(e => e.PasswordHash).IsRequired();
+        });
+
+        modelBuilder.Entity<PhoneVerification>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.PhoneNumberNormalized);
+            entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(32);
+            entity.Property(e => e.PhoneNumberNormalized).IsRequired().HasMaxLength(32);
+            entity.Property(e => e.OtpHash).IsRequired().HasMaxLength(128);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.RequestId).HasMaxLength(128);
         });
 
         modelBuilder.Entity<Tenant>(entity =>

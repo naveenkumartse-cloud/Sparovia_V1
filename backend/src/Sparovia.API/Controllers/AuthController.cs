@@ -32,36 +32,169 @@ public class AuthController : ControllerBase
     {
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState);
+            return BadRequest(new
+            {
+                error = new { code = "VALIDATION_ERROR", message = "One or more fields are invalid.", fields = ModelState },
+                requestId = HttpContext.TraceIdentifier
+            });
         }
 
         if (!request.AcceptedTerms)
         {
-            return BadRequest(new { Error = "You must accept the terms and conditions." });
+            return BadRequest(new
+            {
+                error = new { code = "VALIDATION_ERROR", message = "You must accept the terms and conditions.", fields = new { } },
+                requestId = HttpContext.TraceIdentifier
+            });
         }
 
         if (request.Password.Length < 8)
         {
-            return BadRequest(new { Error = "Password must be at least 8 characters long." });
+            return BadRequest(new
+            {
+                error = new { code = "VALIDATION_ERROR", message = "Password must be at least 8 characters long.", fields = new { } },
+                requestId = HttpContext.TraceIdentifier
+            });
         }
 
         var result = await _identityService.RegisterUserAsync(request, cancellationToken);
         
         if (!result.Success)
         {
-            return BadRequest(new { Error = result.ErrorMessage });
-        }
-
-        if (_environment.IsDevelopment() && !string.IsNullOrEmpty(result.VerificationLink))
-        {
-            return Ok(new 
-            { 
-                Message = "Account created successfully. Please verify your email to continue.",
-                DevVerificationUrl = result.VerificationLink 
+            return BadRequest(new
+            {
+                error = new { code = "VALIDATION_ERROR", message = result.ErrorMessage, fields = new { } },
+                requestId = HttpContext.TraceIdentifier
             });
         }
 
-        return Ok(new { Message = "Account created successfully. Please verify your email to continue." });
+        var data = new Dictionary<string, object?>
+        {
+            { "verificationRequired", true },
+            { "phoneNumber", result.PhoneNumber },
+            { "message", "Account created successfully. Please verify your phone number to continue." }
+        };
+
+        if (_environment.IsDevelopment() && !string.IsNullOrEmpty(result.DevOtp))
+        {
+            data["devOtp"] = result.DevOtp;
+        }
+
+        return Ok(new
+        {
+            data,
+            requestId = HttpContext.TraceIdentifier
+        });
+    }
+
+    [HttpPost("phone/send-otp")]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("PhoneOtpSend")]
+    public async Task<IActionResult> SendPhoneOtp([FromBody] SendPhoneOtpRequest request, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request?.PhoneNumber))
+        {
+            return BadRequest(new 
+            { 
+                error = new { code = "VALIDATION_ERROR", message = "Phone number is required.", fields = new { } },
+                requestId = HttpContext.TraceIdentifier 
+            });
+        }
+
+        var result = await _identityService.SendPhoneOtpAsync(request, cancellationToken);
+        if (!result.Success)
+        {
+            return BadRequest(new 
+            { 
+                error = new { code = "VALIDATION_ERROR", message = result.ErrorMessage, fields = new { } },
+                cooldownRemainingSeconds = result.CooldownRemainingSeconds,
+                requestId = HttpContext.TraceIdentifier 
+            });
+        }
+
+        var data = new Dictionary<string, object?>
+        {
+            { "verificationRequired", true },
+            { "message", "Verification code sent successfully." },
+            { "cooldownRemainingSeconds", result.CooldownRemainingSeconds }
+        };
+
+        if (_environment.IsDevelopment() && !string.IsNullOrEmpty(result.DevOtp))
+        {
+            data["devOtp"] = result.DevOtp;
+        }
+
+        return Ok(new 
+        { 
+            data,
+            requestId = HttpContext.TraceIdentifier 
+        });
+    }
+
+    [HttpPost("phone/verify-otp")]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("PhoneOtpVerify")]
+    public async Task<IActionResult> VerifyPhoneOtp([FromBody] VerifyPhoneOtpRequest request, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request?.PhoneNumber) || string.IsNullOrWhiteSpace(request?.Otp))
+        {
+            return BadRequest(new 
+            { 
+                error = new { code = "VALIDATION_ERROR", message = "Phone number and 6-digit code are required.", fields = new { } },
+                requestId = HttpContext.TraceIdentifier 
+            });
+        }
+
+        var result = await _identityService.VerifyPhoneOtpAsync(request, cancellationToken);
+        if (!result.Success)
+        {
+            return BadRequest(new 
+            { 
+                error = new { code = "VALIDATION_ERROR", message = result.ErrorMessage, fields = new { } },
+                requestId = HttpContext.TraceIdentifier 
+            });
+        }
+
+        // Establish authenticated session for the verified user so they immediately enter onboarding
+        var normalizedPhone = Sparovia.Application.Common.PhoneNumberHelper.Normalize(request.PhoneNumber);
+        var user = await _dbContext.Users
+            .Include(u => u.Memberships)
+            .FirstOrDefaultAsync(u => (result.UserId.HasValue && u.Id == result.UserId.Value) || 
+                                      (normalizedPhone != null && u.PhoneNumberNormalized == normalizedPhone), cancellationToken);
+
+        if (user != null && user.Memberships.Any())
+        {
+            var primaryMembership = user.Memberships.First();
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, primaryMembership.Role),
+                new Claim("TenantId", primaryMembership.TenantId.ToString()),
+                new Claim("FullName", user.FullName ?? "")
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+            };
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
+        }
+
+        return Ok(new 
+        { 
+            data = new
+            {
+                message = "Phone number verified successfully.",
+                requiresOnboarding = true,
+                onboardingStep = "/admin/onboarding/business-basics"
+            },
+            requestId = HttpContext.TraceIdentifier 
+        });
     }
 
     [HttpPost("verify-email")]

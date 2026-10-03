@@ -30,6 +30,8 @@ export class ApiClient {
         const errorData = await response.json();
         if (typeof errorData?.error === 'string' && errorData.error.trim()) {
           errorMsg = errorData.error.trim();
+        } else if (typeof errorData?.error?.message === 'string' && errorData.error.message.trim()) {
+          errorMsg = errorData.error.message.trim();
         } else if (typeof errorData?.message === 'string' && errorData.message.trim()) {
           errorMsg = errorData.message.trim();
         } else if (errorData?.errors && typeof errorData.errors === 'object') {

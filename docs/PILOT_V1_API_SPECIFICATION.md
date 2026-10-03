@@ -312,6 +312,7 @@ POST /api/v1/auth/register
 ```json
 {
   "fullName": "John Doe",
+  "phoneNumber": "+91 98765 43210",
   "email": "john@example.com",
   "password": "********",
   "confirmPassword": "********"
@@ -321,11 +322,12 @@ POST /api/v1/auth/register
 ### Validation
 
 * `fullName` required.
-* `email` required and valid.
-* `password` required.
+* `phoneNumber` required and normalized to E.164 format (`+919876543210`).
+* `email` optional; if provided must be valid email format.
+* `password` required (minimum 8 characters).
 * Password must satisfy configured security requirements.
 * `confirmPassword` must match.
-* Email uniqueness rules must be enforced.
+* Phone number and email uniqueness rules must be enforced.
 
 ### Success
 
@@ -337,28 +339,32 @@ POST /api/v1/auth/register
 {
   "data": {
     "userId": "uuid",
-    "email": "john@example.com",
-    "emailVerificationRequired": true
+    "phoneNumber": "+919876543210",
+    "verificationRequired": true,
+    "devOtp": "123456"
   },
   "requestId": "..."
 }
 ```
 
-The response must never contain the password or password hash.
+* Note: `devOtp` is only included in local Development environment responses for seamless testing. It is strictly excluded in Production.
+* The response must never contain the password or password hash.
 
 ---
 
-# 14. Verify Email
+# 14. Phone OTP Verification
+
+## 14.1 Send Phone OTP
 
 ```http
-POST /api/v1/auth/verify-email
+POST /api/v1/auth/phone/send-otp
 ```
 
 ### Request
 
 ```json
 {
-  "token": "verification-token"
+  "phoneNumber": "+91 98765 43210"
 }
 ```
 
@@ -368,21 +374,65 @@ POST /api/v1/auth/verify-email
 200 OK
 ```
 
+```json
+{
+  "data": {
+    "message": "OTP sent successfully.",
+    "cooldownSeconds": 60,
+    "expiresInMinutes": 5,
+    "devOtp": "123456"
+  },
+  "requestId": "..."
+}
+```
+
+## 14.2 Verify Phone OTP
+
+```http
+POST /api/v1/auth/phone/verify-otp
+```
+
+### Request
+
+```json
+{
+  "phoneNumber": "+91 98765 43210",
+  "otp": "123456"
+}
+```
+
+### Success
+
+```http
+200 OK
+```
+
+```json
+{
+  "data": {
+    "message": "Phone number verified successfully.",
+    "isVerified": true,
+    "nextUrl": "/admin/onboarding/business-basics"
+  },
+  "requestId": "..."
+}
+```
+
+Upon successful verification, the backend issues the authenticated session cookie (`SparoviaAuth`).
+
 ### Failure
 
-Use:
+Returns structured error envelope:
 
-```text
-VALIDATION_ERROR
+```json
+{
+  "error": {
+    "code": "INVALID_OTP",
+    "message": "Invalid verification code. 4 attempt(s) remaining."
+  },
+  "requestId": "..."
+}
 ```
-
-or:
-
-```text
-UNAUTHORIZED
-```
-
-depending on the authentication implementation.
 
 ---
 
@@ -2480,7 +2530,8 @@ Gallery Management
 | Area         | Method | Endpoint                                   |
 | ------------ | ------ | ------------------------------------------ |
 | Auth         | POST   | `/auth/register`                           |
-| Auth         | POST   | `/auth/verify-email`                       |
+| Auth         | POST   | `/auth/phone/send-otp`                     |
+| Auth         | POST   | `/auth/phone/verify-otp`                   |
 | Auth         | POST   | `/auth/login`                              |
 | Auth         | GET    | `/auth/me`                                 |
 | Business     | GET    | `/business-context`                        |

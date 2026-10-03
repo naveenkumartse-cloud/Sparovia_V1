@@ -10,11 +10,12 @@ import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api/client';
-import { ArrowRight, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Lock, Mail, Phone, User } from 'lucide-react';
 
 const registerSchema = z.object({
   fullName: z.string().min(2, 'Full Name is required'),
-  email: z.string().email('Please enter a valid email address'),
+  phoneNumber: z.string().min(8, 'Please enter a valid phone number (e.g. +91 98765 43210)'),
+  email: z.string().email('Please enter a valid email address').optional().or(z.literal('')),
   password: z.string().min(8, 'Password must be at least 8 characters long'),
   confirmPassword: z.string(),
   acceptedTerms: z.boolean().refine(val => val === true, "You must accept the terms and conditions"),
@@ -42,16 +43,36 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormValues) => {
     try {
       setGlobalError(null);
-      const response: any = await apiClient.post('/auth/register', data);
+      const payload = {
+        fullName: data.fullName,
+        phoneNumber: data.phoneNumber,
+        email: data.email || undefined,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        acceptedTerms: data.acceptedTerms,
+      };
+
+      const response: any = await apiClient.post('/auth/register', payload);
+      const resData = response?.data || response;
+      const targetPhone = resData?.phoneNumber || data.phoneNumber;
       
-      // Store dev verification link in session if returned by backend in Development mode
-      if (response?.devVerificationUrl && typeof window !== 'undefined') {
-        sessionStorage.setItem('sparovia_dev_verify_link', response.devVerificationUrl);
+      // Store dev verification OTP in session if returned by backend in Development mode
+      if (resData?.devOtp && typeof window !== 'undefined') {
+        sessionStorage.setItem('sparovia_dev_otp', resData.devOtp);
+      }
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('sparovia_verify_phone', targetPhone);
       }
 
-      toast.success('Registration successful! Please verify your email.');
-      // Authoritative Admin flow: navigate to Admin verify-email with email parameter
-      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+      toast.success('Registration successful! Please verify your phone number.');
+      router.push(`/verify-phone?phone=${encodeURIComponent(targetPhone)}`);
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          if (!window.location.pathname.includes('/verify-phone')) {
+            window.location.href = `/verify-phone?phone=${encodeURIComponent(targetPhone)}`;
+          }
+        }, 150);
+      }
     } catch (error: any) {
       const msg = error.message || 'An unexpected error occurred. Please try again.';
       setGlobalError(msg);
@@ -116,10 +137,39 @@ export default function RegisterPage() {
 
             <div>
               <div className="flex items-center gap-1.5 mb-1">
-                <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
-                  Work Email
+                <label htmlFor="phoneNumber" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
+                  Phone Number
                 </label>
-                <InfoTooltip content="A verification link will be sent here to activate your workspace." />
+                <InfoTooltip content="A 6-digit verification code will be sent to this number via SMS." />
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-[#64748B]">
+                  <Phone className="h-4 w-4" />
+                </div>
+                <input
+                  id="phoneNumber"
+                  type="tel"
+                  autoComplete="tel"
+                  placeholder="+91 98765 43210"
+                  {...register('phoneNumber')}
+                  className="block w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
+                  aria-invalid={errors.phoneNumber ? "true" : "false"}
+                />
+              </div>
+              {errors.phoneNumber && (
+                <p className="mt-1 text-xs text-red-500 dark:text-red-400" role="alert">{errors.phoneNumber.message}</p>
+              )}
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
+                    Work Email
+                  </label>
+                  <InfoTooltip content="Optional. Used for business receipts and workspace updates." />
+                </div>
+                <span className="text-[11px] text-slate-400 dark:text-[#64748B]">Optional</span>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-[#64748B]">

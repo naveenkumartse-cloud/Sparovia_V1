@@ -748,7 +748,7 @@ Both are required for protected operations.
 V1 must support:
 
 * Secure account registration
-* Email verification
+* Phone OTP verification
 * Secure login
 * Secure password handling
 * Session/token management
