@@ -234,7 +234,9 @@ app.UseExceptionHandler(errorApp =>
 app.MapControllers();
 
 // Health Check Endpoint
-app.MapHealthChecks("/api/v1/health");
+app.MapHealthChecks("/api/v1/health")
+    .WithTags("Health")
+    .WithOpenApi();
 
 // Apply pending database migrations on startup if database is configured
 using (var scope = app.Services.CreateScope())
