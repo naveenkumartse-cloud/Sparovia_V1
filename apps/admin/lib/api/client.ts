@@ -81,11 +81,11 @@ export class ApiClient {
     return this.fetch<T>(endpoint, { ...options, method: 'GET' });
   }
 
-  async post<T>(endpoint: string, body: any, options?: RequestInit): Promise<T> {
+  async post<T>(endpoint: string, body?: any, options?: RequestInit): Promise<T> {
     return this.fetch<T>(endpoint, {
       ...options,
       method: 'POST',
-      body: JSON.stringify(body),
+      body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   }
 

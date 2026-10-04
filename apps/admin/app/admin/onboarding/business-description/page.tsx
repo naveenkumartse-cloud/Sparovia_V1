@@ -8,7 +8,8 @@ import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { OnboardingFormSkeleton } from '@/components/ui/Skeleton';
 import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
-import { ArrowLeft, ArrowRight, FileText, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FileText, RefreshCw, Sparkles } from 'lucide-react';
+import { AIContentModal } from '@/components/ai/AIContentModal';
 
 export default function BusinessDescriptionPage() {
   const router = useRouter();
@@ -20,6 +21,12 @@ export default function BusinessDescriptionPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const [aiModal, setAiModal] = useState<{
+    fieldKey: string;
+    fieldLabel: string;
+    currentText: string;
+  } | null>(null);
 
   const isDirty = useMemo(() => {
     if (!data) return false;
@@ -44,6 +51,10 @@ export default function BusinessDescriptionPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleOpenAi = (fieldKey: string, fieldLabel: string, currentText: string) => {
+    setAiModal({ fieldKey, fieldLabel, currentText });
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -92,38 +103,64 @@ export default function BusinessDescriptionPage() {
 
       <form onSubmit={handleSave} className="space-y-6">
         <div>
-          <div className="flex items-center gap-1.5">
-            <label htmlFor="businessDescription" className="block text-xs font-medium text-slate-700 dark:text-[#E2E8F0]">
-              Business Description <span className="text-[#FF7043]">*</span>
-            </label>
-            <InfoTooltip content="A comprehensive summary of your company, mission, and the core problems you solve for clients." />
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <label htmlFor="businessDescription" className="block text-xs font-medium text-slate-700 dark:text-[#E2E8F0]">
+                Business Description <span className="text-[#FF7043]">*</span>
+              </label>
+              <InfoTooltip content="A comprehensive summary of your company, mission, and the core problems you solve for clients." />
+            </div>
+            <button
+              type="button"
+              onClick={() => handleOpenAi('businessDescription', 'Business Description', formData.businessDescription || '')}
+              disabled={!formData.businessDescription?.trim()}
+              title={formData.businessDescription?.trim() ? 'Improve with AI' : 'Enter some text first to improve with AI'}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+              <span>Improve with AI</span>
+            </button>
           </div>
           <textarea
             id="businessDescription"
             rows={4}
             required
+            spellCheck={true}
             value={formData.businessDescription || ''}
             onChange={e => setFormData({ ...formData, businessDescription: e.target.value })}
             placeholder="Tell your story: what your company specializes in, who you serve, and your commitment to excellence..."
-            className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+            className="w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
           />
         </div>
 
         <div>
-          <div className="flex items-center gap-1.5">
-            <label htmlFor="differentiators" className="block text-xs font-medium text-slate-700 dark:text-[#E2E8F0]">
-              Key Differentiators <span className="text-[#FF7043]">*</span>
-            </label>
-            <InfoTooltip content="Highlight unique strengths, proprietary methods, warranties, certified craftsmen, or superior materials." />
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <label htmlFor="differentiators" className="block text-xs font-medium text-slate-700 dark:text-[#E2E8F0]">
+                Key Differentiators <span className="text-[#FF7043]">*</span>
+              </label>
+              <InfoTooltip content="Highlight unique strengths, proprietary methods, warranties, certified craftsmen, or superior materials." />
+            </div>
+            <button
+              type="button"
+              onClick={() => handleOpenAi('differentiators', 'Key Differentiators', formData.differentiators || '')}
+              disabled={!formData.differentiators?.trim()}
+              title={formData.differentiators?.trim() ? 'Improve with AI' : 'Enter some text first to improve with AI'}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+              <span>Improve with AI</span>
+            </button>
           </div>
           <textarea
             id="differentiators"
             rows={3}
             required
+            spellCheck={true}
             value={formData.differentiators || ''}
             onChange={e => setFormData({ ...formData, differentiators: e.target.value })}
             placeholder="e.g. 10-year comprehensive warranty, certified in-house master installers, precision German hardware..."
-            className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+            className="w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
           />
         </div>
 
@@ -150,6 +187,21 @@ export default function BusinessDescriptionPage() {
           </Button>
         </div>
       </form>
+
+      {aiModal && (
+        <AIContentModal
+          isOpen={!!aiModal}
+          onClose={() => setAiModal(null)}
+          fieldKey={aiModal.fieldKey}
+          fieldLabel={aiModal.fieldLabel}
+          sectionKey="business-context"
+          sectionTitle="Business Context"
+          currentText={aiModal.currentText}
+          onApply={(improved) => {
+            setFormData({ ...formData, [aiModal.fieldKey]: improved });
+          }}
+        />
+      )}
     </div>
   );
 }

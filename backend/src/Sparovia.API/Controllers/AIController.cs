@@ -751,8 +751,15 @@ public class AIController : ControllerBase
         }
 
         // 3. Verify confirmed Business Context (Onboarding check)
+        // Website content generation requires full confirmed business context.
+        // Self-refining business description, differentiators, or services allows in-progress onboarding context.
+        var isBusinessContextRefinement =
+            string.Equals(request.SectionKey, "business-context", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(request.SectionKey, "services", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(request.SectionKey, "onboarding", StringComparison.OrdinalIgnoreCase);
+
         var isConfirmed = await IsOnboardingCompleteAsync(tenantId, cancellationToken);
-        if (!isConfirmed)
+        if (!isConfirmed && !isBusinessContextRefinement)
         {
             return StatusCode(StatusCodes.Status403Forbidden, new
             {
@@ -826,7 +833,7 @@ public class AIController : ControllerBase
             TenantId = tenantId,
             UserId = TryGetUserId(),
             OperationType = request.Operation,
-            ResourceType = AIResourceTypes.WebsiteContent,
+            ResourceType = isBusinessContextRefinement ? AIResourceTypes.General : AIResourceTypes.WebsiteContent,
             ResourceId = resourceId,
             InputText = request.CurrentText,
             Instruction = request.Instruction,

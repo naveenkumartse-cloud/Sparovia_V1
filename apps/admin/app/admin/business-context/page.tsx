@@ -21,8 +21,10 @@ import {
   AlertCircle, 
   Edit3, 
   ArrowRight,
-  ShieldAlert
+  ShieldAlert,
+  Sparkles
 } from 'lucide-react';
+import { AIContentModal } from '@/components/ai/AIContentModal';
 
 interface ServiceDto {
   id: string;
@@ -66,6 +68,11 @@ export default function BusinessContextManagementPage() {
   const [isConfirming, setIsConfirming] = useState(false);
   const [hasConfirmedCheckbox, setHasConfirmedCheckbox] = useState(false);
   const [error, setError] = useState('');
+  const [aiModal, setAiModal] = useState<{
+    fieldKey: string;
+    fieldLabel: string;
+    currentText: string;
+  } | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -411,17 +418,53 @@ export default function BusinessContextManagementPage() {
 
         <div className="p-6 space-y-6">
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-2">
-              Company Overview
-            </h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
+                Company Overview
+              </h3>
+              {data.businessDescription && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAiModal({
+                      fieldKey: 'businessDescription',
+                      fieldLabel: 'Business Description',
+                      currentText: data.businessDescription || '',
+                    })
+                  }
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <span>Improve with AI</span>
+                </button>
+              )}
+            </div>
             <p className="text-sm font-medium text-slate-800 dark:text-white whitespace-pre-line leading-relaxed">
               {data.businessDescription || <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>}
             </p>
           </div>
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-2">
-              Key Differentiators &amp; Value Proposition
-            </h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
+                Key Differentiators &amp; Value Proposition
+              </h3>
+              {data.differentiators && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAiModal({
+                      fieldKey: 'differentiators',
+                      fieldLabel: 'Key Differentiators',
+                      currentText: data.differentiators || '',
+                    })
+                  }
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <span>Improve with AI</span>
+                </button>
+              )}
+            </div>
             <p className="text-sm font-medium text-slate-800 dark:text-white whitespace-pre-line leading-relaxed">
               {data.differentiators || <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>}
             </p>
@@ -573,6 +616,36 @@ export default function BusinessContextManagementPage() {
             </Button>
           </div>
         </section>
+      )}
+
+      {aiModal && (
+        <AIContentModal
+          isOpen={!!aiModal}
+          onClose={() => setAiModal(null)}
+          fieldKey={aiModal.fieldKey}
+          fieldLabel={aiModal.fieldLabel}
+          sectionKey="business-context"
+          sectionTitle="Business Context"
+          currentText={aiModal.currentText}
+          onApply={async (improved) => {
+            try {
+              await apiClient.put('/onboarding/business-description', {
+                businessDescription:
+                  aiModal.fieldKey === 'businessDescription'
+                    ? improved
+                    : data?.businessDescription || '',
+                differentiators:
+                  aiModal.fieldKey === 'differentiators'
+                    ? improved
+                    : data?.differentiators || '',
+              });
+              toast.success('Business context updated successfully.');
+              fetchData();
+            } catch (err: any) {
+              toast.error(err.message || 'Failed to update business description.');
+            }
+          }}
+        />
       )}
     </div>
   );

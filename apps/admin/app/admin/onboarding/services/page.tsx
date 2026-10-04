@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { FormField } from '@/components/ui/FormField';
-import { ArrowLeft, ArrowRight, Plus, Trash2, Layers, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, Trash2, Layers, RefreshCw, Sparkles } from 'lucide-react';
+import { AIContentModal } from '@/components/ai/AIContentModal';
 
 interface ServiceItem {
   id: string;
@@ -31,6 +32,11 @@ export default function ServicesPage() {
   const [newServiceName, setNewServiceName] = useState('');
   const [newServiceDesc, setNewServiceDesc] = useState('');
   const [error, setError] = useState('');
+  const [aiModal, setAiModal] = useState<{
+    fieldKey: string;
+    fieldLabel: string;
+    currentText: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchServices();
@@ -206,6 +212,7 @@ export default function ServicesPage() {
               id="serviceName"
               type="text"
               required
+              spellCheck={true}
               disabled={isAdding}
               value={newServiceName}
               onChange={e => setNewServiceName(e.target.value)}
@@ -218,10 +225,29 @@ export default function ServicesPage() {
             id="serviceDesc"
             label="Description"
             tooltip="A concise summary of what this service entails and what makes it appealing to clients."
+            action={
+              <button
+                type="button"
+                onClick={() =>
+                  setAiModal({
+                    fieldKey: 'serviceDescription',
+                    fieldLabel: 'Service Description',
+                    currentText: newServiceDesc,
+                  })
+                }
+                disabled={!newServiceDesc.trim()}
+                title={newServiceDesc.trim() ? 'Improve with AI' : 'Enter some text first to improve with AI'}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                <span>Improve with AI</span>
+              </button>
+            }
           >
             <textarea
               id="serviceDesc"
               rows={2}
+              spellCheck={true}
               disabled={isAdding}
               value={newServiceDesc}
               onChange={e => setNewServiceDesc(e.target.value)}
@@ -266,6 +292,21 @@ export default function ServicesPage() {
           {fromAdmin ? 'Save & Return' : 'Save & Continue'}
         </Button>
       </div>
+
+      {aiModal && (
+        <AIContentModal
+          isOpen={!!aiModal}
+          onClose={() => setAiModal(null)}
+          fieldKey={aiModal.fieldKey}
+          fieldLabel={aiModal.fieldLabel}
+          sectionKey="services"
+          sectionTitle="Services"
+          currentText={aiModal.currentText}
+          onApply={(improved) => {
+            setNewServiceDesc(improved);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -1071,20 +1071,19 @@ export default function ContentPage() {
             if (aiSuggestion) {
               return (
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 w-full">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      disabled={isAcceptingAi || isRejectingAi}
-                      onClick={handleResetAiSuggestion}
-                      leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
-                    >
-                      Try Another Operation
-                    </Button>
-                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={isAcceptingAi || isRejectingAi}
+                    onClick={handleResetAiSuggestion}
+                    leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+                    className="w-full sm:w-auto justify-center"
+                  >
+                    Try Another Operation
+                  </Button>
 
-                  <div className="flex items-center gap-2 sm:gap-2.5 justify-end">
+                  <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
                     <Button
                       type="button"
                       variant="outline"
@@ -1093,6 +1092,7 @@ export default function ContentPage() {
                       isLoading={isRejectingAi}
                       loadingText="Discarding..."
                       onClick={handleRejectAiSuggestion}
+                      className="w-full sm:w-auto justify-center"
                     >
                       Discard / Reject
                     </Button>
@@ -1106,7 +1106,7 @@ export default function ContentPage() {
                       loadingText="Accepting..."
                       disabled={!aiEditableSuggestion.trim() || isAcceptingAi || isRejectingAi}
                       leftIcon={<Check className="w-3.5 h-3.5" />}
-                      className="bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 focus:ring-emerald-500 whitespace-nowrap"
+                      className="w-full sm:w-auto justify-center bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 focus:ring-emerald-500 whitespace-nowrap"
                     >
                       Accept Suggestion
                     </Button>
@@ -1117,13 +1117,14 @@ export default function ContentPage() {
 
             // Step 1: Operation Selection & Generate Actions
             return (
-              <div className="flex items-center justify-end gap-2.5 sm:gap-3 w-full">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 w-full">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setIsAiModalOpen(false)}
                   disabled={isGeneratingAi}
+                  className="w-full sm:w-auto justify-center"
                 >
                   Cancel
                 </Button>
@@ -1136,7 +1137,7 @@ export default function ContentPage() {
                   loadingText="Refining content..."
                   disabled={isGeneratingAi || (aiOperation === 'CustomInstruction' && !aiInstruction.trim())}
                   leftIcon={<Sparkles className="w-3.5 h-3.5 text-white" />}
-                  className="bg-purple-600 hover:bg-purple-700 shadow-purple-600/20 focus:ring-purple-500 whitespace-nowrap"
+                  className="w-full sm:w-auto justify-center bg-purple-600 hover:bg-purple-700 shadow-purple-600/20 focus:ring-purple-500 whitespace-nowrap"
                 >
                   Generate Suggestion
                 </Button>
@@ -1566,6 +1567,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
             >
               <input
                 type="text"
+                spellCheck={!field.key.toLowerCase().includes('url') && !field.key.toLowerCase().includes('image') && !field.key.toLowerCase().includes('icon') && !field.key.toLowerCase().includes('id')}
                 maxLength={field.maxLength}
                 value={value[field.key] ?? ''}
                 onChange={(e) => onChange(field.key, e.target.value)}
@@ -1608,6 +1610,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
               <textarea
                 rows={field.maxLength && field.maxLength > 400 ? 4 : 3}
                 maxLength={field.maxLength}
+                spellCheck={true}
                 value={value[field.key] ?? ''}
                 onChange={(e) => onChange(field.key, e.target.value)}
                 placeholder={field.placeholder}
@@ -1640,6 +1643,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                     <div key={idx} className="flex items-center gap-2">
                       <input
                         type="text"
+                        spellCheck={true}
                         value={itemVal ?? ''}
                         onChange={(e) => {
                           const updated = [...list];
@@ -1774,6 +1778,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                                 <textarea
                                   rows={2}
                                   maxLength={subField.maxLength}
+                                  spellCheck={true}
                                   value={item[subField.key] ?? ''}
                                   onChange={(e) => {
                                     const updated = [...items];
@@ -1786,6 +1791,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                               ) : (
                                 <input
                                   type="text"
+                                  spellCheck={!subField.key.toLowerCase().includes('url') && !subField.key.toLowerCase().includes('image') && !subField.key.toLowerCase().includes('icon')}
                                   maxLength={subField.maxLength}
                                   value={item[subField.key] ?? ''}
                                   onChange={(e) => {
