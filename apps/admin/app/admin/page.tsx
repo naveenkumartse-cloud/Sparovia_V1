@@ -84,14 +84,14 @@ export default function AdminDashboard() {
                 <Building2 className="w-5 h-5" />
               </div>
               {isConfirmed ? (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                  Approved
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                  <span>Approved</span>
                 </span>
               ) : (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                  <Clock className="w-3.5 h-3.5 mr-1" />
-                  Pending
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap shrink-0">
+                  <Clock className="w-3.5 h-3.5 shrink-0" />
+                  <span>Pending</span>
                 </span>
               )}
             </div>

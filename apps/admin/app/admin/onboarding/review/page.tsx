@@ -144,8 +144,9 @@ export default function OnboardingReviewPage() {
             </p>
           </div>
           {data.isConfirmed && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Confirmed
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shrink-0 w-fit max-w-max leading-normal self-start sm:self-center">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+              <span>Confirmed</span>
             </span>
           )}
         </div>

@@ -140,25 +140,25 @@ export default function BusinessContextManagementPage() {
   return (
     <div className="max-w-4xl mx-auto pb-24 space-y-8 animate-in fade-in duration-150">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
             Business Context
           </h1>
-          <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
+          <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1 max-w-2xl leading-relaxed">
             Maintain your trusted business identity and approved facts. Edits to factual information require re-confirmation.
           </p>
         </div>
-        <div>
+        <div className="shrink-0 self-start sm:self-center w-fit">
           {data.isConfirmed ? (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-              Confirmed &amp; Approved
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shrink-0 w-fit max-w-max leading-normal">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+              <span>Confirmed &amp; Approved</span>
             </span>
           ) : (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-              <AlertCircle className="w-3.5 h-3.5 mr-1" />
-              Pending Re-confirmation
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap shrink-0 w-fit max-w-max leading-normal">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>Pending Re-confirmation</span>
             </span>
           )}
         </div>
