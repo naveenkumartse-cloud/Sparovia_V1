@@ -544,27 +544,31 @@ export default function LeadsPage() {
                           <option value="Qualified">Qualified</option>
                           <option value="Closed">Closed</option>
                         </select>
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon-xs"
                           onClick={() => {
                             setSelectedLead(lead);
                             openEditModal(lead);
                           }}
-                          className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                           title="Edit lead"
                           aria-label={`Edit ${lead.name}`}
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                         >
                           <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon-xs"
                           onClick={() => setLeadToDelete(lead)}
-                          className="p-1.5 text-red-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                           title="Delete lead"
                           aria-label={`Delete ${lead.name}`}
+                          className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -690,13 +694,12 @@ export default function LeadsPage() {
                   <span>Edit</span>
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="destructive-outline"
                   size="sm"
                   onClick={() => setLeadToDelete(selectedLead)}
-                  className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 border-red-200 hover:border-red-300 dark:border-red-900/50"
+                  leftIcon={<Trash2 className="w-3.5 h-3.5" />}
                 >
-                  <Trash2 className="w-3 h-3" />
-                  <span>Delete</span>
+                  Delete
                 </Button>
               </div>
 
@@ -1076,13 +1079,14 @@ export default function LeadsPage() {
             </Button>
             <Button
               type="button"
-              variant="primary"
+              variant="destructive"
               size="sm"
               onClick={handleDeleteLead}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              isLoading={isDeleting}
+              loadingText="Deleting..."
             >
-              {isDeleting ? 'Deleting...' : 'Delete Lead'}
+              Delete Lead
             </Button>
           </div>
         </div>

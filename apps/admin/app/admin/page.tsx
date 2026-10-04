@@ -76,7 +76,7 @@ export default function AdminDashboard() {
           <div className="shrink-0">
             <Link
               href={isConfirmed ? "/admin/business-context" : "/admin/onboarding/business-basics"}
-              className="inline-flex items-center justify-center py-2.5 px-5 rounded-xl text-sm font-semibold text-white bg-[#FF7043] hover:bg-[#F4511E] active:scale-[0.99] transition-all shadow-lg shadow-[#FF7043]/20"
+              className="inline-flex items-center justify-center h-10 min-h-[40px] px-5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition-all shadow-xs"
             >
               {isConfirmed ? 'Manage Business Context' : 'Complete Onboarding'}
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
               <div>
                 <p className="text-xs font-medium text-slate-900 dark:text-white">Step 3: Manage Website &amp; Portfolio Images</p>
                 <p className="text-[11px] text-slate-500 dark:text-[#94A3B8] mt-0.5">
-                  Upload genuine hero and showcase work photos with optional AI enhancement.
+                  Upload genuine hero and showcase work photos with image enhancement and web optimization.
                 </p>
               </div>
             </div>

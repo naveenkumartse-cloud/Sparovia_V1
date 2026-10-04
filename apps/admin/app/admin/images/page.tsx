@@ -666,10 +666,11 @@ export default function ImagesPage() {
           </div>
           <Button
             type="button"
+            variant="primary"
+            size="md"
             onClick={fetchImages}
-            className="inline-flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+            leftIcon={<RefreshCw className="w-4 h-4" />}
           >
-            <RefreshCw className="w-4 h-4" />
             Retry
           </Button>
         </div>
@@ -762,54 +763,64 @@ export default function ImagesPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="pt-4 mt-4 border-t border-slate-100 dark:border-[#1E293B] flex items-center justify-between gap-2">
+                  <div className="pt-4 mt-auto border-t border-slate-100 dark:border-[#1E293B] flex items-center justify-between gap-2">
                     {assignedImage ? (
                       <>
                         <div className="flex items-center gap-2">
                           <Button
                             type="button"
-                            onClick={() => openUploadModal(slot.key, assignedImage)}
-                            className="text-xs font-medium bg-slate-100 dark:bg-[#1E293B] hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 px-3 py-1.5"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => openEnhanceModal(assignedImage)}
+                            leftIcon={<SlidersHorizontal className="w-3.5 h-3.5" />}
                           >
-                            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-                            Replace
+                            Enhance
                           </Button>
                           <Button
                             type="button"
-                            onClick={() => openEnhanceModal(assignedImage)}
-                            className="text-xs font-medium bg-slate-100 dark:bg-[#1E293B] hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3 py-1.5"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => openUploadModal(slot.key, assignedImage)}
+                            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
                           >
-                            <SlidersHorizontal className="w-3.5 h-3.5 mr-1.5" />
-                            Enhance
+                            Replace
                           </Button>
                         </div>
 
-                        {assignedImage.status !== 'Published' ? (
-                          <Button
-                            type="button"
-                            onClick={() => handlePublishImage(assignedImage)}
-                            className="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5"
-                          >
-                            Publish
-                          </Button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => openRemoveModal(assignedImage)}
-                            className="text-xs text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors p-1"
-                            title="Remove from website usage"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {assignedImage.status !== 'Published' ? (
+                            <Button
+                              type="button"
+                              variant="success"
+                              size="sm"
+                              onClick={() => handlePublishImage(assignedImage)}
+                            >
+                              Publish
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => openRemoveModal(assignedImage)}
+                              aria-label="Remove from website usage"
+                              title="Remove from website usage"
+                              className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
                       </>
                     ) : (
                       <Button
                         type="button"
+                        variant="primary"
+                        size="sm"
                         onClick={() => openUploadModal(slot.key)}
-                        className="w-full text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white py-2 flex items-center justify-center gap-1.5"
+                        leftIcon={<Upload className="w-3.5 h-3.5" />}
+                        className="w-full"
                       >
-                        <Upload className="w-3.5 h-3.5" />
                         Upload {slot.title}
                       </Button>
                     )}
@@ -880,11 +891,12 @@ export default function ImagesPage() {
 
                 <Button
                   type="button"
+                  variant="primary"
+                  size="sm"
                   onClick={() => openUploadModal()}
-                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 shrink-0 shadow-sm"
+                  leftIcon={<Upload className="w-4 h-4" />}
                 >
-                  <Upload className="w-4 h-4" />
-                  + Add Project Image
+                  Add Project Image
                 </Button>
               </div>
 
@@ -966,31 +978,35 @@ export default function ImagesPage() {
                       </div>
 
                       {/* Card Actions */}
-                      <div className="p-4 pt-0 flex items-center justify-between gap-2 border-t border-slate-100 dark:border-[#1E293B]/60 mt-auto pt-3">
-                        <div className="flex items-center gap-1.5">
+                      <div className="p-4 pt-3 flex items-center justify-between gap-2 border-t border-slate-100 dark:border-[#1E293B]/60 mt-auto">
+                        <div className="flex items-center gap-2">
                           <Button
                             type="button"
+                            variant="secondary"
+                            size="sm"
                             onClick={() => openEnhanceModal(image)}
-                            className="text-xs font-medium bg-slate-100 dark:bg-[#1E293B] hover:bg-slate-200 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2.5 py-1"
+                            leftIcon={<SlidersHorizontal className="w-3.5 h-3.5" />}
                           >
-                            <SlidersHorizontal className="w-3 h-3 mr-1" />
                             Enhance
                           </Button>
                           <Button
                             type="button"
+                            variant="secondary"
+                            size="sm"
                             onClick={() => openUploadModal(undefined, image)}
-                            className="text-xs font-medium bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300 px-2.5 py-1"
+                            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
                           >
                             Replace
                           </Button>
                         </div>
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           {image.status === 'Uploaded' && (
                             <Button
                               type="button"
+                              variant="primary"
+                              size="sm"
                               onClick={() => handleApproveImage(image)}
-                              className="text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1"
                             >
                               Approve
                             </Button>
@@ -998,20 +1014,24 @@ export default function ImagesPage() {
                           {(image.status === 'Approved' || (image.status !== 'Published' && image.status !== 'Uploaded')) && (
                             <Button
                               type="button"
+                              variant="success"
+                              size="sm"
                               onClick={() => handlePublishImage(image)}
-                              className="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1"
                             >
                               Publish
                             </Button>
                           )}
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon-sm"
                             onClick={() => openRemoveModal(image)}
-                            className="p-1 text-slate-400 hover:text-rose-500"
+                            aria-label="Delete image"
                             title="Delete image"
+                            className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -1041,25 +1061,24 @@ export default function ImagesPage() {
             <Button
               type="button"
               variant="outline"
+              size="md"
               disabled={uploading}
               onClick={closeUploadModal}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="button"
+              variant="primary"
+              size="md"
               disabled={uploading || !selectedFile}
+              isLoading={uploading}
+              loadingText="Uploading image..."
               onClick={handleUploadSubmit}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              className="w-full sm:w-auto"
             >
-              {uploading ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Uploading image...
-                </>
-              ) : (
-                'Upload & Validate'
-              )}
+              {replacingImage ? 'Replace Image' : 'Upload & Validate'}
             </Button>
           </>
         }
@@ -1256,14 +1275,22 @@ export default function ImagesPage() {
         maxWidth="xl"
         footer={
           <>
-            <Button type="button" variant="outline" onClick={() => setPreviewModalOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => setPreviewModalOpen(false)}
+              className="w-full sm:w-auto"
+            >
               Close
             </Button>
             {previewImage && previewImage.status === 'Uploaded' && (
               <Button
                 type="button"
+                variant="primary"
+                size="md"
                 onClick={() => handleApproveImage(previewImage)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                className="w-full sm:w-auto"
               >
                 Approve Image
               </Button>
@@ -1271,11 +1298,15 @@ export default function ImagesPage() {
             {previewImage && previewImage.status === 'Approved' && (
               <Button
                 type="button"
+                variant="success"
+                size="md"
                 disabled={publishing}
+                isLoading={publishing}
+                loadingText="Publishing..."
                 onClick={() => handlePublishImage(previewImage)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
+                className="w-full sm:w-auto"
               >
-                {publishing ? 'Publishing...' : 'Publish to Website'}
+                Publish to Website
               </Button>
             )}
           </>
@@ -1370,18 +1401,24 @@ export default function ImagesPage() {
             <Button
               type="button"
               variant="outline"
+              size="md"
               disabled={savingMetadata}
               onClick={() => setEditModalOpen(false)}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="button"
+              variant="primary"
+              size="md"
               disabled={savingMetadata}
+              isLoading={savingMetadata}
+              loadingText="Saving..."
               onClick={handleSaveMetadata}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              className="w-full sm:w-auto"
             >
-              {savingMetadata ? 'Saving...' : 'Save Changes'}
+              Save Changes
             </Button>
           </>
         }
@@ -1480,82 +1517,72 @@ export default function ImagesPage() {
         description="Improve image quality and optimize images for fast website delivery while preserving the original image."
         maxWidth="3xl"
         footer={
-          <div className="w-full">
+          <>
             {!enhancementResult ? (
-              <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 sm:gap-3.5 w-full">
+              <>
                 <Button
                   type="button"
                   variant="outline"
+                  size="md"
                   disabled={enhancing}
                   onClick={() => setEnhanceModalOpen(false)}
-                  className="w-full sm:w-auto h-11 min-h-[44px] px-5 text-sm font-medium border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="button"
+                  variant="primary"
+                  size="md"
                   disabled={enhancing}
+                  isLoading={enhancing}
+                  loadingText="Improving Image..."
                   onClick={handleStartEnhancement}
-                  className="w-full sm:w-auto h-11 min-h-[44px] px-6 text-sm font-semibold bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-xs"
+                  leftIcon={<SlidersHorizontal className="w-4 h-4" />}
+                  className="w-full sm:w-auto"
                 >
-                  {enhancing ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Improving Image...
-                    </>
-                  ) : (
-                    <>
-                      <SlidersHorizontal className="w-4 h-4 mr-2" />
-                      Apply Enhancement
-                    </>
-                  )}
+                  Apply Enhancement
                 </Button>
-              </div>
+              </>
             ) : (
-              <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 sm:gap-3.5 w-full">
+              <>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="destructive-outline"
+                  size="md"
                   disabled={approving || publishing}
                   onClick={handleRejectVariant}
-                  className="w-full sm:w-auto h-11 min-h-[44px] px-5 text-sm font-medium border-slate-300 dark:border-slate-700 text-slate-600 hover:text-rose-600 hover:border-rose-300 dark:text-slate-400 dark:hover:text-rose-400"
+                  className="w-full sm:w-auto"
                 >
                   Discard / Reject
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
+                  size="md"
                   disabled={approving || publishing}
+                  isLoading={approving}
+                  loadingText="Approving..."
                   onClick={handleApproveVariant}
-                  className="w-full sm:w-auto h-11 min-h-[44px] px-5 text-sm font-medium border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="w-full sm:w-auto"
                 >
-                  {approving ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Approving...
-                    </>
-                  ) : (
-                    'Approve Variant'
-                  )}
+                  Approve Variant
                 </Button>
                 <Button
                   type="button"
+                  variant="success"
+                  size="md"
                   disabled={approving || publishing}
+                  isLoading={publishing}
+                  loadingText="Publishing..."
                   onClick={() => setConfirmPublishOpen(true)}
-                  className="w-full sm:w-auto h-11 min-h-[44px] px-6 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                  className="w-full sm:w-auto"
                 >
-                  {publishing ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Publishing...
-                    </>
-                  ) : (
-                    'Approve & Publish to Live Site'
-                  )}
+                  Approve &amp; Publish to Live Site
                 </Button>
-              </div>
+              </>
             )}
-          </div>
+          </>
         }
       >
         <div className="space-y-4">
@@ -1673,19 +1700,18 @@ export default function ImagesPage() {
                   <div className="flex items-center gap-2 pt-1 pl-6">
                     <Button
                       type="button"
+                      variant="primary"
                       size="sm"
                       onClick={handleStartEnhancement}
                       disabled={enhancing}
-                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs px-3 py-1.5 h-8 min-h-[32px]"
                     >
                       Try Again
                     </Button>
                     <Button
                       type="button"
-                      size="sm"
                       variant="outline"
+                      size="sm"
                       onClick={() => setEnhanceError(null)}
-                      className="text-xs px-3 py-1.5 h-8 min-h-[32px]"
                     >
                       Dismiss
                     </Button>
@@ -1894,36 +1920,34 @@ export default function ImagesPage() {
         description="This action will accept this enhanced variant and immediately set it as the live photo on your public website."
         maxWidth="md"
         footer={
-          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 w-full">
+          <>
             <Button
               type="button"
               variant="outline"
+              size="md"
               disabled={publishing}
               onClick={() => setConfirmPublishOpen(false)}
-              className="w-full sm:w-auto h-11 min-h-[44px] px-5 text-sm font-medium border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="button"
+              variant="success"
+              size="md"
               disabled={publishing}
+              isLoading={publishing}
+              loadingText="Publishing..."
               onClick={async () => {
                 if (!enhancingImage || !enhancementResult) return;
                 await handlePublishImage(enhancingImage, enhancementResult.id);
                 setConfirmPublishOpen(false);
               }}
-              className="w-full sm:w-auto h-11 min-h-[44px] px-6 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+              className="w-full sm:w-auto"
             >
-              {publishing ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Publishing...
-                </>
-              ) : (
-                'Publish to Live Site'
-              )}
+              Publish to Live Site
             </Button>
-          </div>
+          </>
         }
       >
         <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
@@ -1943,18 +1967,24 @@ export default function ImagesPage() {
             <Button
               type="button"
               variant="outline"
+              size="md"
               disabled={removing}
               onClick={() => setRemoveModalOpen(false)}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="button"
+              variant="destructive"
+              size="md"
               disabled={removing}
+              isLoading={removing}
+              loadingText="Deleting..."
               onClick={handleConfirmRemoval}
-              className="bg-rose-600 hover:bg-rose-700 text-white font-medium"
+              className="w-full sm:w-auto"
             >
-              {removing ? 'Deleting...' : 'Delete Image'}
+              Delete Image
             </Button>
           </>
         }
