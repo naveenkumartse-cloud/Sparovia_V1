@@ -14,4 +14,5 @@ public class Tenant
     public ICollection<AIRequest> AIRequests { get; set; } = new List<AIRequest>();
     public TenantAIConfiguration? AIConfiguration { get; set; }
     public ICollection<Image> Images { get; set; } = new List<Image>();
+    public ICollection<Lead> Leads { get; set; } = new List<Lead>();
 }

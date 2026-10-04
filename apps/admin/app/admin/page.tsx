@@ -20,6 +20,7 @@ import {
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [contextSummary, setContextSummary] = useState<any>(null);
+  const [newLeadsCount, setNewLeadsCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -27,6 +28,16 @@ export default function AdminDashboard() {
       try {
         const data = await apiClient.get('/onboarding/summary');
         setContextSummary(data);
+
+        // Fetch leads summary count if confirmed
+        if ((data as any)?.isConfirmed) {
+          try {
+            const leadsData = await apiClient.get<any>('/leads?pageSize=1&status=New');
+            setNewLeadsCount(leadsData?.totalCount ?? 0);
+          } catch {
+            // Non-blocking for dashboard
+          }
+        }
       } catch (err: any) {
         // May be unconfirmed or empty
       } finally {
@@ -145,9 +156,15 @@ export default function AdminDashboard() {
               <div className="w-10 h-10 rounded-xl bg-[#FF7043]/10 border border-[#FF7043]/20 flex items-center justify-center text-[#FF7043]">
                 <Users className="w-5 h-5" />
               </div>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8]">
-                Intake Active
-              </span>
+              {newLeadsCount !== null && newLeadsCount > 0 ? (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  {newLeadsCount} New {newLeadsCount === 1 ? 'Lead' : 'Leads'}
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8]">
+                  Intake Active
+                </span>
+              )}
             </div>
             <h2 className="text-base font-bold text-slate-900 dark:text-white">Customer Leads</h2>
             <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 leading-relaxed">

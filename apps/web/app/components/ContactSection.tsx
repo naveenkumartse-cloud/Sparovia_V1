@@ -33,9 +33,52 @@ export default function ContactSection() {
     setError(null);
     
     try {
-      // Simulate API call for the landing page demonstration
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      let apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5043/api/v1';
+      apiUrl = apiUrl.replace(/\/+$/, '');
+      if (!apiUrl.endsWith('/api/v1')) {
+        apiUrl = `${apiUrl}/api/v1`;
+      }
+
+      const domain = typeof window !== 'undefined' ? window.location.hostname : undefined;
+
+      const res = await fetch(`${apiUrl}/leads/public`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          email: formData.email ? formData.email.trim() : null,
+          service: formData.service || null,
+          message: formData.message ? formData.message.trim() : null,
+          domain: domain || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        let errMessage = 'Failed to submit request. Please try again.';
+        try {
+          const data = await res.json();
+          if (data?.error) {
+            errMessage = data.error;
+          } else if (data?.message) {
+            errMessage = data.message;
+          }
+        } catch {
+          // Response body was not JSON
+        }
+        throw new Error(errMessage);
+      }
+
       setSubmitted(true);
+      setFormData({
+        name: '',
+        phone: '',
+        email: '',
+        service: serviceOptions[0] || 'General Inquiry',
+        message: '',
+      });
     } catch (err: any) {
       setError(err.message || 'Failed to submit request. Please try again.');
     } finally {

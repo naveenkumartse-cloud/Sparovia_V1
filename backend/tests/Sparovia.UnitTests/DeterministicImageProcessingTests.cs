@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging.Abstractions;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 using Sparovia.Application.Images;
 using Sparovia.Infrastructure.Images;
 using Xunit;
@@ -18,19 +17,19 @@ public class DeterministicImageProcessingTests
 
     private static byte[] CreateTestImageBytes(int width, int height)
     {
-        using var image = new Image<Rgba32>(width, height);
+        using var bitmap = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Premul);
         // Draw a test gradient pattern so sharpness/contrast can be calculated
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
                 byte val = (byte)((x * 255 / Math.Max(1, width) + y * 255 / Math.Max(1, height)) / 2);
-                image[x, y] = new Rgba32(val, val, val);
+                bitmap.SetPixel(x, y, new SKColor(val, val, val));
             }
         }
-        using var ms = new MemoryStream();
-        image.SaveAsPng(ms);
-        return ms.ToArray();
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        return data.ToArray();
     }
 
     [Fact]

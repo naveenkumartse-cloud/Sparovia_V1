@@ -24,6 +24,7 @@ public class SparoviaDbContext : DbContext
     public DbSet<ImageVariant> ImageVariants => Set<ImageVariant>();
     public DbSet<WebsiteWorkCategory> WebsiteWorkCategories => Set<WebsiteWorkCategory>();
     public DbSet<PhoneVerification> PhoneVerifications => Set<PhoneVerification>();
+    public DbSet<Lead> Leads => Set<Lead>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -312,6 +313,39 @@ public class SparoviaDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.WebsiteId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Lead>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.TenantId);
+            entity.HasIndex(e => new { e.TenantId, e.SubmittedAt });
+            entity.HasIndex(e => new { e.TenantId, e.Status });
+            entity.HasIndex(e => new { e.TenantId, e.Source });
+            entity.HasIndex(e => new { e.TenantId, e.ExternalReference });
+
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.Phone).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Email).HasMaxLength(256);
+            entity.Property(e => e.Message).HasMaxLength(4000);
+            entity.Property(e => e.Source).IsRequired().HasMaxLength(50).HasDefaultValue("Website");
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("New");
+            entity.Property(e => e.ExternalReference).HasMaxLength(256);
+
+            entity.HasOne(e => e.Tenant)
+                .WithMany(t => t.Leads)
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Website)
+                .WithMany(w => w.Leads)
+                .HasForeignKey(e => e.WebsiteId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.UpdatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.UpdatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

@@ -101,6 +101,11 @@ builder.Services.AddRateLimiter(options =>
         limiterOptions.PermitLimit = 10;
         limiterOptions.Window = TimeSpan.FromMinutes(1);
     });
+    options.AddFixedWindowLimiter("PublicLeadIntake", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 30;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+    });
 });
 
 // Database
@@ -165,6 +170,7 @@ builder.Services.AddSingleton<Sparovia.Application.Images.IImageValidator>(sp =>
 });
 builder.Services.AddScoped<Sparovia.Application.Images.IWebsiteImageService, Sparovia.Infrastructure.Images.WebsiteImageService>();
 builder.Services.AddSingleton<Sparovia.Application.Images.IImageProcessingService, Sparovia.Infrastructure.Images.DeterministicImageProcessingService>();
+builder.Services.AddScoped<Sparovia.Application.Leads.ILeadService, Sparovia.Infrastructure.Leads.LeadService>();
 
 // AI Platform Foundation
 builder.Services.Configure<Sparovia.Infrastructure.AI.AIOptions>(
