@@ -1,14 +1,16 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function SettingsRedirectPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    router.replace('/admin/account?tab=settings');
-  }, [router]);
+    const tab = searchParams.get('tab') || 'settings';
+    router.replace(`/admin/account?tab=${tab}`);
+  }, [router, searchParams]);
 
   return (
     <div className="flex items-center justify-center min-h-[40vh]">

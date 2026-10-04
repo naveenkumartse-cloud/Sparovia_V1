@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Instagram, Facebook, X } from 'lucide-react';
 import { siteConfig } from '@/config/siteConfig';
+import { useTemplateContent } from '@/components/providers/WebsiteContentProvider';
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -20,6 +21,17 @@ const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export function SocialControl() {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const templateContent = useTemplateContent();
+  const whatsappConfig = templateContent?.whatsapp;
+
+  let whatsappUrl = '';
+  if (whatsappConfig?.enabled && whatsappConfig.phoneNumber) {
+    const cleanPhone = whatsappConfig.phoneNumber.replace(/\D/g, '');
+    if (cleanPhone.length >= 10) {
+      const text = whatsappConfig.prefilledMessage ? encodeURIComponent(whatsappConfig.prefilledMessage) : '';
+      whatsappUrl = `https://wa.me/${cleanPhone}${text ? `?text=${text}` : ''}`;
+    }
+  }
 
   // Close on outside click
   useEffect(() => {
@@ -48,7 +60,7 @@ export function SocialControl() {
   }, [isOpen]);
 
   const socialLinks = [
-    { name: 'WhatsApp', icon: WhatsAppIcon, url: siteConfig.social.whatsapp },
+    { name: 'WhatsApp', icon: WhatsAppIcon, url: whatsappUrl },
     { name: 'Instagram', icon: Instagram, url: siteConfig.social.instagram },
     { name: 'Facebook', icon: Facebook, url: siteConfig.social.facebook },
   ].filter(link => Boolean(link.url && link.url.trim() !== '' && link.url !== '#'));

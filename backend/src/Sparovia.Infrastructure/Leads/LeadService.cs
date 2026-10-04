@@ -180,7 +180,7 @@ public class LeadService : ILeadService
             return LeadOperationResult.Fail("VALIDATION_ERROR", "Message must not exceed 4000 characters.");
         }
 
-        var source = LeadSource.Website;
+        var source = LeadSource.Manual;
         if (!string.IsNullOrWhiteSpace(request.Source) && LeadSource.IsValid(request.Source))
         {
             source = request.Source.Trim();

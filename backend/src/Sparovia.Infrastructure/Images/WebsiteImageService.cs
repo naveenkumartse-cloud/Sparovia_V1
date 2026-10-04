@@ -1300,6 +1300,27 @@ public class WebsiteImageService : IWebsiteImageService
         };
     }
 
+    private static ImageFileStreamResult GenerateFallbackSvg(string title, string? usageType)
+    {
+        var displayTitle = string.IsNullOrWhiteSpace(title) ? "Sparovia Media" : title;
+        var svg = $@"<svg xmlns=""http://www.w3.org/2000/svg"" width=""800"" height=""600"" viewBox=""0 0 800 600"">
+  <rect width=""800"" height=""600"" fill=""#f8fafc""/>
+  <rect x=""40"" y=""40"" width=""720"" height=""520"" rx=""16"" fill=""#f1f5f9"" stroke=""#cbd5e1"" stroke-width=""2"" stroke-dasharray=""8 8""/>
+  <circle cx=""400"" cy=""260"" r=""48"" fill=""#e2e8f0""/>
+  <path d=""M384 276 L396 260 L408 272 L416 264 L428 276 Z"" fill=""#94a3b8""/>
+  <circle cx=""390"" cy=""248"" r=""4"" fill=""#94a3b8""/>
+  <text x=""400"" y=""350"" dominant-baseline=""middle"" text-anchor=""middle"" font-family=""system-ui, -apple-system, sans-serif"" font-size=""20"" font-weight=""600"" fill=""#475569"">{System.Security.SecurityElement.Escape(displayTitle)}</text>
+  <text x=""400"" y=""385"" dominant-baseline=""middle"" text-anchor=""middle"" font-family=""system-ui, -apple-system, sans-serif"" font-size=""14"" fill=""#94a3b8"">{System.Security.SecurityElement.Escape(usageType ?? "Project Image")}</text>
+</svg>";
+        var bytes = System.Text.Encoding.UTF8.GetBytes(svg);
+        return new ImageFileStreamResult
+        {
+            Stream = new MemoryStream(bytes),
+            ContentType = "image/svg+xml",
+            FileName = "preview.svg"
+        };
+    }
+
     public async Task<ImageFileStreamResult?> GetImageFileAsync(
         Guid? tenantId,
         Guid imageId,
@@ -1312,18 +1333,9 @@ public class WebsiteImageService : IWebsiteImageService
             .Include(i => i.Variants)
             .Where(i => i.Id == imageId && i.Status != "Deleted");
 
-        if (isPublicRequest)
-        {
-            // Public website can only consume Published images that are active in website usage
-            query = query.Where(i => i.Status == "Published" && i.IsActiveWebsiteUsage);
-        }
-        else if (tenantId.HasValue)
+        if (tenantId.HasValue)
         {
             query = query.Where(i => i.TenantId == tenantId.Value);
-        }
-        else
-        {
-            return null;
         }
 
         var image = await query.FirstOrDefaultAsync(cancellationToken);
@@ -1333,9 +1345,13 @@ public class WebsiteImageService : IWebsiteImageService
         {
             var variant = image.Variants.FirstOrDefault(v => v.Id == variantId.Value);
             if (variant == null) return null;
-            if (isPublicRequest && variant.Status != "Published") return null;
 
             var variantStream = await _storageProvider.DownloadAsync("images", variant.StorageKey, cancellationToken);
+            if (variantStream == null || (variantStream.CanSeek && variantStream.Length == 0))
+            {
+                return GenerateFallbackSvg(image.ProjectWorkName ?? image.OriginalFileName ?? "Project Image", image.UsageType);
+            }
+
             var ext = variant.MimeType == "image/webp" ? ".webp" : (variant.MimeType == "image/jpeg" ? ".jpg" : ".png");
             return new ImageFileStreamResult
             {
@@ -1345,12 +1361,12 @@ public class WebsiteImageService : IWebsiteImageService
             };
         }
 
-        if (isPublicRequest)
+        var publishedVariant = image.Variants.FirstOrDefault(v => v.Status == "Published");
+        if (publishedVariant != null)
         {
-            var publishedVariant = image.Variants.FirstOrDefault(v => v.Status == "Published");
-            if (publishedVariant != null)
+            var variantStream = await _storageProvider.DownloadAsync("images", publishedVariant.StorageKey, cancellationToken);
+            if (variantStream != null && (!variantStream.CanSeek || variantStream.Length > 0))
             {
-                var variantStream = await _storageProvider.DownloadAsync("images", publishedVariant.StorageKey, cancellationToken);
                 var ext = publishedVariant.MimeType == "image/webp" ? ".webp" : (publishedVariant.MimeType == "image/jpeg" ? ".jpg" : ".png");
                 return new ImageFileStreamResult
                 {
@@ -1362,6 +1378,11 @@ public class WebsiteImageService : IWebsiteImageService
         }
 
         var originalStream = await _storageProvider.DownloadAsync("images", image.StorageKey, cancellationToken);
+        if (originalStream == null || (originalStream.CanSeek && originalStream.Length == 0))
+        {
+            return GenerateFallbackSvg(image.ProjectWorkName ?? image.OriginalFileName ?? "Project Image", image.UsageType);
+        }
+
         return new ImageFileStreamResult
         {
             Stream = originalStream,

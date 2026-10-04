@@ -56,7 +56,7 @@ interface LeadListResponse {
 }
 
 const STATUS_OPTIONS = ['All', 'New', 'Contacted', 'Qualified', 'Closed'] as const;
-const SOURCE_OPTIONS = ['All', 'Website', 'WhatsApp'] as const;
+const SOURCE_OPTIONS = ['All', 'Website', 'WhatsApp', 'Manual'] as const;
 
 export default function LeadsPage() {
   // Query parameters state
@@ -92,7 +92,7 @@ export default function LeadsPage() {
     message: '',
     areaOfInterest: '',
     areaOfInterestCategoryId: '',
-    source: 'Website',
+    source: 'Manual',
     status: 'New',
   });
   const [addError, setAddError] = useState<string | null>(null);
@@ -221,7 +221,7 @@ export default function LeadsPage() {
         message: '',
         areaOfInterest: '',
         areaOfInterestCategoryId: '',
-        source: 'Website',
+        source: 'Manual',
         status: 'New',
       });
       toast.success('Lead created successfully.');
@@ -353,10 +353,18 @@ export default function LeadsPage() {
   };
 
   const getSourceBadge = (source: string) => {
-    if (source.toLowerCase() === 'whatsapp') {
+    const s = source?.toLowerCase() || '';
+    if (s === 'whatsapp') {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/60">
           WhatsApp
+        </span>
+      );
+    }
+    if (s === 'manual') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-900/60">
+          Manual
         </span>
       );
     }
@@ -628,8 +636,16 @@ export default function LeadsPage() {
             {leads.map(lead => (
               <div
                 key={lead.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => setSelectedLead(lead)}
-                className="p-4 hover:bg-slate-50/60 dark:hover:bg-[#1E293B]/20 cursor-pointer space-y-3"
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedLead(lead);
+                  }
+                }}
+                className="p-4 hover:bg-slate-50/60 dark:hover:bg-[#1E293B]/20 active:bg-slate-100 dark:active:bg-[#1E293B]/40 cursor-pointer space-y-3 touch-manipulation select-none"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -719,25 +735,37 @@ export default function LeadsPage() {
         footer={
           selectedLead && (
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {selectedLead.phone && (
                   <a
                     href={`tel:${selectedLead.phone}`}
-                    className="inline-flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
                   >
                     <Phone className="w-3.5 h-3.5" />
                     <span>Call</span>
                   </a>
                 )}
+                {selectedLead.phone && (
+                  <a
+                    href={`https://wa.me/${selectedLead.phone.replace(/[^0-9]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white transition-colors"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>WhatsApp</span>
+                  </a>
+                )}
                 {selectedLead.email && (
                   <a
                     href={`mailto:${selectedLead.email}`}
-                    className="inline-flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-[#3B82F6] hover:bg-blue-600 text-white transition-colors"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#3B82F6] hover:bg-blue-600 text-white transition-colors"
                   >
                     <Mail className="w-3.5 h-3.5" />
                     <span>Email</span>
                   </a>
                 )}
+                <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
                 <Button
                   variant="outline"
                   size="sm"
@@ -936,6 +964,7 @@ export default function LeadsPage() {
                 onChange={e => setAddForm({ ...addForm, source: e.target.value })}
                 className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
               >
+                <option value="Manual">Manual</option>
                 <option value="Website">Website</option>
                 <option value="WhatsApp">WhatsApp</option>
               </select>

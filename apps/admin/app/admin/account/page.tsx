@@ -24,8 +24,18 @@ import {
   Info,
   Edit3,
   Save,
-  Phone
+  Phone,
+  MessageCircle,
+  ExternalLink,
+  AlertCircle
 } from 'lucide-react';
+
+interface WhatsAppIntegration {
+  enabled: boolean;
+  phoneNumber: string;
+  prefilledMessage: string;
+  status: string;
+}
 
 export default function AccountPage() {
   const { user, checkAuth } = useAuth();
@@ -34,11 +44,20 @@ export default function AccountPage() {
   const router = useRouter();
 
   const activeTabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<'profile' | 'settings' | 'security'>(
-    activeTabParam === 'settings' ? 'settings' : activeTabParam === 'security' ? 'security' : 'profile'
+  const [activeTab, setActiveTab] = useState<'profile' | 'settings' | 'integrations' | 'security'>(
+    activeTabParam === 'settings' ? 'settings' : activeTabParam === 'integrations' ? 'integrations' : activeTabParam === 'security' ? 'security' : 'profile'
   );
 
   const [copiedTenantId, setCopiedTenantId] = useState(false);
+
+  // WhatsApp Integration State
+  const [waLoading, setWaLoading] = useState(false);
+  const [waSaving, setWaSaving] = useState(false);
+  const [waEnabled, setWaEnabled] = useState(false);
+  const [waPhone, setWaPhone] = useState('');
+  const [waMessage, setWaMessage] = useState('Hi, I would like to inquire about interior design services.');
+  const [waStatus, setWaStatus] = useState('Inactive');
+  const [waError, setWaError] = useState<string | null>(null);
 
   // Edit Profile State
   const [isEditing, setIsEditing] = useState(false);
@@ -102,15 +121,65 @@ export default function AccountPage() {
     }
   };
 
+  const fetchWhatsAppSettings = async () => {
+    setWaLoading(true);
+    setWaError(null);
+    try {
+      const res = await apiClient.get<WhatsAppIntegration>('/integrations/whatsapp');
+      setWaEnabled(Boolean(res.enabled));
+      setWaPhone(res.phoneNumber || '');
+      setWaMessage(res.prefilledMessage || 'Hi, I would like to inquire about interior design services.');
+      setWaStatus(res.status || (res.enabled ? 'Active' : 'Inactive'));
+    } catch {
+      // Non-blocking fallback
+    } finally {
+      setWaLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (activeTabParam === 'settings' || activeTabParam === 'security' || activeTabParam === 'profile') {
+    fetchWhatsAppSettings();
+  }, []);
+
+  useEffect(() => {
+    if (activeTabParam === 'settings' || activeTabParam === 'integrations' || activeTabParam === 'security' || activeTabParam === 'profile') {
       setActiveTab(activeTabParam);
     }
   }, [activeTabParam]);
 
-  const handleTabChange = (tab: 'profile' | 'settings' | 'security') => {
+  const handleTabChange = (tab: 'profile' | 'settings' | 'integrations' | 'security') => {
     setActiveTab(tab);
     router.replace(`/admin/account?tab=${tab}`, { scroll: false });
+  };
+
+  const handleSaveWhatsApp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setWaError(null);
+
+    const cleanPhone = waPhone.replace(/\D/g, '');
+    if (waEnabled && cleanPhone.length < 10) {
+      setWaError('Please enter a valid phone number with at least 10 digits.');
+      return;
+    }
+
+    setWaSaving(true);
+    try {
+      const res = await apiClient.put<WhatsAppIntegration>('/integrations/whatsapp', {
+        enabled: waEnabled,
+        phoneNumber: cleanPhone,
+        prefilledMessage: waMessage.trim(),
+      });
+      setWaEnabled(Boolean(res.enabled));
+      setWaPhone(res.phoneNumber || cleanPhone);
+      setWaMessage(res.prefilledMessage || waMessage);
+      setWaStatus(res.status || (res.enabled ? 'Active' : 'Inactive'));
+      toast.success(res.enabled ? 'WhatsApp button activated on live website.' : 'WhatsApp settings saved.');
+    } catch (err: any) {
+      setWaError(err.message || 'Failed to save WhatsApp settings.');
+      toast.error(err.message || 'Failed to save WhatsApp settings.');
+    } finally {
+      setWaSaving(false);
+    }
   };
 
   const copyTenantId = () => {
@@ -136,7 +205,7 @@ export default function AccountPage() {
           Account &amp; Settings
         </h1>
         <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
-          Manage your client profile, admin appearance preferences, and workspace security.
+          Manage your client profile, admin appearance preferences, integrations, and workspace security.
         </p>
       </div>
 
@@ -165,7 +234,20 @@ export default function AccountPage() {
           }`}
         >
           <SettingsIcon className="w-4 h-4" />
-          <span>Settings</span>
+          <span>Appearance</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange('integrations')}
+          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === 'integrations'
+              ? 'border-[#3B82F6] text-[#3B82F6]'
+              : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <MessageCircle className="w-4 h-4" />
+          <span>Integrations</span>
         </button>
 
         <button
@@ -536,6 +618,133 @@ export default function AccountPage() {
                 </div>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: INTEGRATIONS (WHATSAPP) */}
+      {activeTab === 'integrations' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-6 sm:p-8 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-100 dark:border-[#1E293B]">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-800">
+                  <MessageCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    WhatsApp Floating Button
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                      waEnabled
+                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
+                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                    }`}>
+                      {waEnabled ? 'Active' : 'Inactive'}
+                    </span>
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">
+                    Connect your WhatsApp number to show an interactive customer chat button on your live website.
+                  </p>
+                </div>
+              </div>
+
+              {waPhone && (
+                <a
+                  href={`https://wa.me/${waPhone.replace(/\D/g, '')}${waMessage ? `?text=${encodeURIComponent(waMessage)}` : ''}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors shrink-0"
+                >
+                  <span>Test Link</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
+            </div>
+
+            <form onSubmit={handleSaveWhatsApp} className="mt-6 space-y-6">
+              {waError && (
+                <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{waError}</span>
+                </div>
+              )}
+
+              {/* Toggle Enable/Disable */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                    Display Floating WhatsApp Button
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">
+                    When turned on, your published website displays a responsive floating chat CTA in the bottom corner.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={waEnabled}
+                    onChange={(e) => setWaEnabled(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              {/* Phone Number */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
+                  WhatsApp Phone Number *
+                </label>
+                <p className="text-xs text-slate-400 mt-0.5 mb-2">
+                  Include country code with no + or spaces (e.g. 919876543210 for India).
+                </p>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                    <Phone className="w-3.5 h-3.5" />
+                  </span>
+                  <input
+                    type="tel"
+                    value={waPhone}
+                    onChange={(e) => {
+                      setWaPhone(e.target.value);
+                      if (waError) setWaError(null);
+                    }}
+                    placeholder="919876543210"
+                    className="w-full bg-white dark:bg-[#0B1220] border border-slate-300 dark:border-[#334155] rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B82F6] font-mono transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Pre-filled Message */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
+                  Pre-filled Message (Optional)
+                </label>
+                <p className="text-xs text-slate-400 mt-0.5 mb-2">
+                  Default greeting or enquiry message pre-loaded when a user clicks the WhatsApp button.
+                </p>
+                <textarea
+                  rows={3}
+                  value={waMessage}
+                  onChange={(e) => setWaMessage(e.target.value)}
+                  placeholder="Hi, I would like to inquire about interior design services."
+                  className="w-full bg-white dark:bg-[#0B1220] border border-slate-300 dark:border-[#334155] rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B82F6] transition-all resize-none"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 dark:border-[#1E293B] flex items-center justify-end">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  isLoading={waSaving}
+                  loadingText="Saving Settings..."
+                  leftIcon={<Save className="w-4 h-4" />}
+                  className="px-6"
+                >
+                  Save WhatsApp Settings
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}

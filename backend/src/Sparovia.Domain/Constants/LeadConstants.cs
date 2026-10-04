@@ -23,11 +23,13 @@ public static class LeadSource
 {
     public const string Website = "Website";
     public const string WhatsApp = "WhatsApp";
+    public const string Manual = "Manual";
 
     public static readonly IReadOnlySet<string> All = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
         Website,
-        WhatsApp
+        WhatsApp,
+        Manual
     };
 
     public static bool IsValid(string? source) =>

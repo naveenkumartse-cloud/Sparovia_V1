@@ -130,6 +130,13 @@ export interface UpvcContent {
   themes: TemplateThemeItem[];
 }
 
+export interface WhatsAppContent {
+  enabled: boolean;
+  phoneNumber?: string;
+  prefilledMessage?: string;
+  status?: string;
+}
+
 export interface AdaptedTemplateContent {
   hero: HeroContent;
   about: AboutContent;
@@ -142,6 +149,7 @@ export interface AdaptedTemplateContent {
   contact: ContactContent;
   footer: FooterContent;
   tenantCategories: string[];
+  whatsapp: WhatsAppContent;
 
   // Backward compatibility aliases
   brandIntro: AboutContent;
@@ -390,6 +398,14 @@ export function adaptTemplateContent(
     ? sections.tenantCategories
     : workCategories.filter((c: string) => c.toLowerCase() !== 'all');
 
+  const rawWa = sections.whatsapp || {};
+  const whatsapp: WhatsAppContent = {
+    enabled: Boolean(rawWa.enabled && rawWa.phoneNumber && String(rawWa.phoneNumber).trim().length > 0),
+    phoneNumber: rawWa.phoneNumber ? String(rawWa.phoneNumber).trim() : '',
+    prefilledMessage: rawWa.prefilledMessage ? String(rawWa.prefilledMessage) : 'Hi, I would like to inquire about interior design services.',
+    status: rawWa.status || (rawWa.enabled ? 'Active' : 'Inactive'),
+  };
+
   return {
     hero,
     about,
@@ -402,6 +418,7 @@ export function adaptTemplateContent(
     contact,
     footer,
     tenantCategories,
+    whatsapp,
     // Aliases
     brandIntro: about,
     interiors: services,

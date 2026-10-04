@@ -686,6 +686,12 @@ public class WebsiteContentService : IWebsiteContentService
             }
         }
 
+        if (!sectionsMap.ContainsKey("whatsapp"))
+        {
+            using var waDoc = JsonDocument.Parse("{\"enabled\":false,\"phoneNumber\":\"\",\"prefilledMessage\":\"\",\"status\":\"Inactive\"}");
+            sectionsMap["whatsapp"] = waDoc.RootElement.Clone();
+        }
+
         // Enrich hero, about, and services sections with published active Website Images
         var publishedWebsiteImages = await _dbContext.Images
             .AsNoTracking()
