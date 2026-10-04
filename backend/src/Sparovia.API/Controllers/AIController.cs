@@ -250,16 +250,16 @@ public class AIController : ControllerBase
         }
 
         var provider = AIProviderRegistry.GetProviderByKey(request.ProviderKey)!;
-        var isValid = await _aiProvider.TestConnectionAsync(request.ProviderKey, apiKeyToTest, cancellationToken);
+        var testResult = await _aiProvider.TestConnectionDetailedAsync(request.ProviderKey, apiKeyToTest, cancellationToken);
 
-        if (!isValid)
+        if (!testResult.Success)
         {
             return BadRequest(new
             {
                 error = new
                 {
-                    code = AIErrorCodes.ConnectionTestFailed,
-                    message = $"Could not authenticate with {provider.DisplayName}. Please verify your API key."
+                    code = testResult.ErrorCode ?? AIErrorCodes.ConnectionTestFailed,
+                    message = testResult.ErrorMessage ?? $"Connection failed. The API key could not be verified with {provider.DisplayName}. Please check your credentials and try again."
                 },
                 requestId = HttpContext.TraceIdentifier
             });
@@ -322,15 +322,15 @@ public class AIController : ControllerBase
         var provider = AIProviderRegistry.GetProviderByKey(request.ProviderKey)!;
 
         // Test connection with external provider before saving
-        var isAuthValid = await _aiProvider.TestConnectionAsync(request.ProviderKey, request.ApiKey, cancellationToken);
-        if (!isAuthValid)
+        var testResult = await _aiProvider.TestConnectionDetailedAsync(request.ProviderKey, request.ApiKey, cancellationToken);
+        if (!testResult.Success)
         {
             return BadRequest(new
             {
                 error = new
                 {
-                    code = AIErrorCodes.ConnectionTestFailed,
-                    message = $"Could not authenticate with {provider.DisplayName}. Please verify your API key."
+                    code = testResult.ErrorCode ?? AIErrorCodes.ConnectionTestFailed,
+                    message = testResult.ErrorMessage ?? $"Connection failed. The API key could not be verified with {provider.DisplayName}. Please check your credentials and try again."
                 },
                 requestId = HttpContext.TraceIdentifier
             });
@@ -437,15 +437,15 @@ public class AIController : ControllerBase
         // 1. If rotating API Key, test and encrypt
         if (!string.IsNullOrWhiteSpace(request.ApiKey))
         {
-            var isAuthValid = await _aiProvider.TestConnectionAsync(config.ProviderKey, request.ApiKey, cancellationToken);
-            if (!isAuthValid)
+            var testResult = await _aiProvider.TestConnectionDetailedAsync(config.ProviderKey, request.ApiKey, cancellationToken);
+            if (!testResult.Success)
             {
                 return BadRequest(new
                 {
                     error = new
                     {
-                        code = AIErrorCodes.ConnectionTestFailed,
-                        message = "Could not authenticate with provider using the new API key."
+                        code = testResult.ErrorCode ?? AIErrorCodes.ConnectionTestFailed,
+                        message = testResult.ErrorMessage ?? "Could not authenticate with provider using the new API key. Please check your credentials and try again."
                     },
                     requestId = HttpContext.TraceIdentifier
                 });

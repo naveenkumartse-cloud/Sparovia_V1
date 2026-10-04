@@ -14,18 +14,44 @@ public class StubAIProviderAdapter : IAIProvider
 
     public async Task<bool> TestConnectionAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default)
     {
+        var result = await TestConnectionDetailedAsync(providerKey, apiKey, cancellationToken);
+        return result.Success;
+    }
+
+    public async Task<AIConnectionTestResult> TestConnectionDetailedAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default)
+    {
         cancellationToken.ThrowIfCancellationRequested();
         await Task.Delay(10, cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(apiKey)) return false;
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            return new AIConnectionTestResult
+            {
+                Success = false,
+                ErrorCode = AIErrorCodes.ValidationError,
+                ErrorMessage = "API key cannot be empty.",
+                StatusCode = 400
+            };
+        }
+
         if (apiKey.Contains("__SIMULATE_INVALID_KEY__", StringComparison.OrdinalIgnoreCase) ||
             apiKey.Equals("invalid", StringComparison.OrdinalIgnoreCase) ||
             apiKey.Equals("invalid-key", StringComparison.OrdinalIgnoreCase))
         {
-            return false;
+            return new AIConnectionTestResult
+            {
+                Success = false,
+                ErrorCode = AIErrorCodes.ConnectionTestFailed,
+                ErrorMessage = "Could not authenticate with provider. Please check your credentials.",
+                StatusCode = 401
+            };
         }
 
-        return true;
+        return new AIConnectionTestResult
+        {
+            Success = true,
+            StatusCode = 200
+        };
     }
 
     public async Task<AIProviderResult> GenerateTextAsync(AIProviderTextRequest request, CancellationToken cancellationToken = default)

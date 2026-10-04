@@ -5,9 +5,18 @@ namespace Sparovia.Application.AI;
 /// implement this interface inside Infrastructure.
 /// The Application and Domain layers do NOT depend on external provider SDKs.
 /// </summary>
+public class AIConnectionTestResult
+{
+    public bool Success { get; set; }
+    public string? ErrorCode { get; set; }
+    public string? ErrorMessage { get; set; }
+    public int? StatusCode { get; set; }
+}
+
 public interface IAIProvider
 {
     string ProviderName { get; }
     Task<bool> TestConnectionAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default);
+    Task<AIConnectionTestResult> TestConnectionDetailedAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default);
     Task<AIProviderResult> GenerateTextAsync(AIProviderTextRequest request, CancellationToken cancellationToken = default);
 }

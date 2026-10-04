@@ -126,6 +126,9 @@ export default function BusinessDescriptionPage() {
             rows={4}
             required
             spellCheck={true}
+            autoCorrect="on"
+            autoCapitalize="sentences"
+            lang="en"
             value={formData.businessDescription || ''}
             onChange={e => setFormData({ ...formData, businessDescription: e.target.value })}
             placeholder="Tell your story: what your company specializes in, who you serve, and your commitment to excellence..."
@@ -157,6 +160,9 @@ export default function BusinessDescriptionPage() {
             rows={3}
             required
             spellCheck={true}
+            autoCorrect="on"
+            autoCapitalize="sentences"
+            lang="en"
             value={formData.differentiators || ''}
             onChange={e => setFormData({ ...formData, differentiators: e.target.value })}
             placeholder="e.g. 10-year comprehensive warranty, certified in-house master installers, precision German hardware..."

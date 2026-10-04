@@ -570,6 +570,34 @@ export default function AiConnectionsPage() {
       ) : (
         /* NOT CONNECTED / GUIDED CONNECTION WORKFLOW */
         <div className="space-y-6">
+          {/* Connection Status Banner */}
+          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                <AlertCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] block">
+                  Connection Status
+                </span>
+                <span className="text-sm font-bold text-slate-900 dark:text-white">
+                  {testingConnection ? 'Testing...' : testResult ? (testResult.success ? 'Connection Verified' : 'Connection Failed') : 'Not Connected'}
+                </span>
+              </div>
+            </div>
+            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+              testingConnection
+                ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                : testResult?.success
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                : testResult && !testResult.success
+                ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+            }`}>
+              {testingConnection ? 'TESTING' : testResult ? (testResult.success ? 'VERIFIED' : 'FAILED') : 'NOT CONNECTED'}
+            </span>
+          </div>
+
           {/* STEP 1: CHOOSE PROVIDER */}
           <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-6 shadow-sm space-y-4">
             <div className="flex items-center gap-2">
@@ -747,7 +775,10 @@ export default function AiConnectionsPage() {
                   <button
                     key={model.key}
                     type="button"
-                    onClick={() => setSelectedModelKey(model.key)}
+                    onClick={() => {
+                      setSelectedModelKey(model.key);
+                      setTestResult(null);
+                    }}
                     className={`rounded-2xl p-5 text-left border transition-all flex flex-col justify-between h-full ${
                       isSelected
                         ? 'border-[#3B82F6] bg-blue-50/40 dark:bg-[#0B1220] ring-1 ring-[#3B82F6] shadow-sm'
@@ -805,7 +836,7 @@ export default function AiConnectionsPage() {
               variant="primary"
               size="md"
               onClick={handleSaveConnection}
-              disabled={savingConnection || !apiKeyInput.trim() || !selectedModelKey}
+              disabled={savingConnection || !apiKeyInput.trim() || !selectedModelKey || (testResult !== null && !testResult.success)}
               leftIcon={
                 savingConnection ? (
                   <RefreshCw className="w-4 h-4 animate-spin" />

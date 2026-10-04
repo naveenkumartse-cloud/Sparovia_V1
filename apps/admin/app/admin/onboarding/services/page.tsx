@@ -213,6 +213,9 @@ export default function ServicesPage() {
               type="text"
               required
               spellCheck={true}
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              lang="en"
               disabled={isAdding}
               value={newServiceName}
               onChange={e => setNewServiceName(e.target.value)}
@@ -248,6 +251,9 @@ export default function ServicesPage() {
               id="serviceDesc"
               rows={2}
               spellCheck={true}
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              lang="en"
               disabled={isAdding}
               value={newServiceDesc}
               onChange={e => setNewServiceDesc(e.target.value)}

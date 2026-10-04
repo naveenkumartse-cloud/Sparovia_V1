@@ -12,8 +12,8 @@ namespace Sparovia.Infrastructure.AI;
 
 /// <summary>
 /// Production HTTP-based AI Provider Adapter.
-/// Handles external calls to OpenAI, Google Gemini, Anthropic Claude REST interfaces.
-/// Enforces timeouts, transient retries, and error normalization.
+/// Handles external calls to OpenAI, Google Gemini, and Anthropic Claude REST interfaces.
+/// Enforces real credential verification, context-aware prompting, timeouts, and error normalization.
 /// </summary>
 public class HttpAIProviderAdapter : IAIProvider
 {
@@ -32,21 +32,46 @@ public class HttpAIProviderAdapter : IAIProvider
 
     public async Task<bool> TestConnectionAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(apiKey)) return false;
+        var result = await TestConnectionDetailedAsync(providerKey, apiKey, cancellationToken);
+        return result.Success;
+    }
 
-        // Simulated/test keys for unit/integration tests
-        if (apiKey.Contains("__SIMULATE_INVALID_KEY__", StringComparison.OrdinalIgnoreCase) ||
-            apiKey.Equals("invalid", StringComparison.OrdinalIgnoreCase) ||
-            apiKey.Equals("invalid-key", StringComparison.OrdinalIgnoreCase))
+    public async Task<AIConnectionTestResult> TestConnectionDetailedAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(apiKey))
         {
-            return false;
+            return new AIConnectionTestResult
+            {
+                Success = false,
+                ErrorCode = AIErrorCodes.ValidationError,
+                ErrorMessage = "API key is required to test the connection.",
+                StatusCode = 400
+            };
         }
 
-        if (apiKey.StartsWith("sk-test-", StringComparison.OrdinalIgnoreCase) ||
-            apiKey.StartsWith("test-", StringComparison.OrdinalIgnoreCase) ||
-            apiKey.Contains("__SIMULATE_VALID_KEY__", StringComparison.OrdinalIgnoreCase))
+        var trimmedKey = apiKey.Trim();
+
+        // Automated unit/integration test simulation hooks
+        if (trimmedKey.Contains("__SIMULATE_INVALID_KEY__", StringComparison.OrdinalIgnoreCase) ||
+            trimmedKey.Equals("invalid", StringComparison.OrdinalIgnoreCase) ||
+            trimmedKey.Equals("invalid-key", StringComparison.OrdinalIgnoreCase))
         {
-            return true;
+            return new AIConnectionTestResult
+            {
+                Success = false,
+                ErrorCode = AIErrorCodes.ConnectionTestFailed,
+                ErrorMessage = "Connection failed. The API key could not be verified. Please check your credentials and try again.",
+                StatusCode = 401
+            };
+        }
+
+        if (trimmedKey.Contains("__SIMULATE_VALID_KEY__", StringComparison.OrdinalIgnoreCase))
+        {
+            return new AIConnectionTestResult
+            {
+                Success = true,
+                StatusCode = 200
+            };
         }
 
         try
@@ -55,38 +80,115 @@ public class HttpAIProviderAdapter : IAIProvider
             cts.CancelAfter(TimeSpan.FromSeconds(10));
 
             HttpRequestMessage request;
-            var provider = providerKey.ToLowerInvariant();
+            var provider = (providerKey ?? string.Empty).ToLowerInvariant();
 
             if (provider == AIProviders.OpenAI)
             {
                 request = new HttpRequestMessage(HttpMethod.Get, "https://api.openai.com/v1/models");
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey.Trim());
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", trimmedKey);
             }
             else if (provider == AIProviders.Gemini)
             {
-                request = new HttpRequestMessage(HttpMethod.Get, $"https://generativelanguage.googleapis.com/v1beta/models?key={Uri.EscapeDataString(apiKey.Trim())}");
+                request = new HttpRequestMessage(HttpMethod.Get, $"https://generativelanguage.googleapis.com/v1beta/models?key={Uri.EscapeDataString(trimmedKey)}");
             }
             else if (provider == AIProviders.Claude)
             {
                 request = new HttpRequestMessage(HttpMethod.Get, "https://api.anthropic.com/v1/models");
-                request.Headers.Add("x-api-key", apiKey.Trim());
+                request.Headers.Add("x-api-key", trimmedKey);
                 request.Headers.Add("anthropic-version", "2023-06-01");
             }
             else
             {
-                // Fallback to configured endpoint test
-                if (string.IsNullOrWhiteSpace(_options.Value.Endpoint)) return true;
-                request = new HttpRequestMessage(HttpMethod.Get, _options.Value.Endpoint);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey.Trim());
+                var endpoint = _options.Value.Endpoint;
+                if (string.IsNullOrWhiteSpace(endpoint))
+                {
+                    return new AIConnectionTestResult
+                    {
+                        Success = false,
+                        ErrorCode = AIErrorCodes.ProviderNotApproved,
+                        ErrorMessage = $"Provider '{providerKey}' is not configured for validation.",
+                        StatusCode = 400
+                    };
+                }
+
+                request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", trimmedKey);
             }
 
             using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token);
-            return response.IsSuccessStatusCode;
+            var statusCode = (int)response.StatusCode;
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new AIConnectionTestResult
+                {
+                    Success = true,
+                    StatusCode = statusCode
+                };
+            }
+
+            _logger.LogWarning("AI connection test rejected by {Provider} with HTTP status {StatusCode}", providerKey, statusCode);
+
+            if (statusCode == 401 || statusCode == 403 || statusCode == 400)
+            {
+                return new AIConnectionTestResult
+                {
+                    Success = false,
+                    StatusCode = statusCode,
+                    ErrorCode = AIErrorCodes.ConnectionTestFailed,
+                    ErrorMessage = "Connection failed. The API key could not be verified. Please check your credentials and try again."
+                };
+            }
+
+            if (statusCode == 429)
+            {
+                return new AIConnectionTestResult
+                {
+                    Success = false,
+                    StatusCode = 429,
+                    ErrorCode = AIErrorCodes.RateLimited,
+                    ErrorMessage = "Rate limit exceeded by the provider. Please wait a moment and try again."
+                };
+            }
+
+            if (statusCode >= 500)
+            {
+                return new AIConnectionTestResult
+                {
+                    Success = false,
+                    StatusCode = statusCode,
+                    ErrorCode = AIErrorCodes.ProviderUnavailable,
+                    ErrorMessage = "The AI provider service is temporarily unavailable. Please try again later."
+                };
+            }
+
+            return new AIConnectionTestResult
+            {
+                Success = false,
+                StatusCode = statusCode,
+                ErrorCode = AIErrorCodes.ConnectionTestFailed,
+                ErrorMessage = "Could not authenticate with provider. Please check your API key."
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("AI connection test timed out for {Provider}", providerKey);
+            return new AIConnectionTestResult
+            {
+                Success = false,
+                ErrorCode = AIErrorCodes.ProcessingTimeout,
+                ErrorMessage = "Connection timed out while verifying credentials with the AI provider."
+            };
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Provider connection test encountered an error for provider {ProviderKey}", providerKey);
-            return false;
+            _logger.LogWarning(ex, "Provider connection test encountered network error for provider {ProviderKey}", providerKey);
+            return new AIConnectionTestResult
+            {
+                Success = false,
+                ErrorCode = AIErrorCodes.ProviderUnavailable,
+                ErrorMessage = "Unable to reach the AI provider. Please check your network connection and try again."
+            };
         }
     }
 
@@ -95,20 +197,18 @@ public class HttpAIProviderAdapter : IAIProvider
         var opt = _options.Value;
         var stopwatch = Stopwatch.StartNew();
 
-        var apiKey = !string.IsNullOrWhiteSpace(request.ApiKey) ? request.ApiKey : opt.ApiKey;
-        var endpoint = !string.IsNullOrWhiteSpace(opt.Endpoint) 
-            ? opt.Endpoint 
-            : ResolveDefaultEndpoint(request.ProviderKey);
+        var apiKey = !string.IsNullOrWhiteSpace(request.ApiKey) ? request.ApiKey.Trim() : opt.ApiKey?.Trim();
+        var provider = (request.ProviderKey ?? string.Empty).ToLowerInvariant();
 
-        if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(endpoint))
+        if (string.IsNullOrWhiteSpace(apiKey))
         {
             stopwatch.Stop();
-            _logger.LogWarning("External AI provider called but ApiKey or Endpoint is not configured.");
+            _logger.LogWarning("External AI provider called but no API key was provided for Tenant/Request.");
             return new AIProviderResult
             {
                 Success = false,
                 ErrorCode = AIErrorCodes.ProviderUnavailable,
-                ErrorMessage = "AI service provider configuration is missing or inactive.",
+                ErrorMessage = "AI service provider configuration is missing or inactive. Please connect an AI provider in AI Connections.",
                 DurationMs = stopwatch.ElapsedMilliseconds
             };
         }
@@ -116,27 +216,44 @@ public class HttpAIProviderAdapter : IAIProvider
         var model = request.Model ?? opt.DefaultModel;
         var providerModelId = AIModelRegistry.ResolveProviderModelId(model);
 
-        var systemPrompt = request.SystemPrompt ?? 
-            "You are an expert business copywriter assisting a client within the Sparovia Website Content Editor. " +
-            "Follow these strict rules:\n" +
-            "1. Ground in Business Context: Use only the provided business facts. Never invent unverified facts, claims, years of experience, awards, or statistics.\n" +
-            "2. Never alter contact information (phone numbers, email addresses, street addresses).\n" +
-            "3. Output ONLY the refined content for the requested field. Do not include conversational introductory phrases (e.g., 'Here is the improved text:'), explanations, markdown code blocks, or conversational sign-offs.\n" +
-            "4. Do not wrap the entire response in quotation marks.";
+        var systemPrompt = request.SystemPrompt ??
+            "You are an expert business copywriter assisting a client within Sparovia.\n" +
+            "Strict Guardrails:\n" +
+            "1. FACTUAL GROUNDING: Rely strictly on the provided Business Context facts. NEVER invent or hallucinate:\n" +
+            "   - Certifications, licenses, or accreditations\n" +
+            "   - Awards, honors, or industry recognition\n" +
+            "   - Years in business, founding year, or experience claims\n" +
+            "   - Warranties, guarantees, or refund policies\n" +
+            "   - Prices, discounts, rates, or cost estimates\n" +
+            "   - Locations, cities, or service radiuses not listed in the context\n" +
+            "   - Project counts, client counts, or specific partner names\n" +
+            "   If a fact is not explicitly in the Business Context, do NOT create it.\n" +
+            "2. CONTACT INFO: Never alter or fabricate phone numbers, email addresses, or physical addresses.\n" +
+            "3. OUTPUT FORMAT: Output ONLY the refined text for the target field. Do NOT include greetings, intro phrases (such as 'Here is the improved version:'), explanations, markdown code blocks, or conversational sign-offs.\n" +
+            "4. Do NOT wrap the entire response in quotation marks.";
 
-        var payload = new
+        var operationGuidance = BuildOperationGuidance(request.OperationType, request.Instruction);
+
+        var userPromptBuilder = new StringBuilder();
+        if (!string.IsNullOrWhiteSpace(request.GroundingContext))
         {
-            model = providerModelId,
-            messages = new[]
-            {
-                new { role = "system", content = systemPrompt },
-                new { role = "user", content = $"Context: {request.GroundingContext}\nInstruction: {request.Instruction ?? request.OperationType}\nCurrent Text: {request.InputText}" }
-            },
-            max_tokens = request.MaxTokens,
-            temperature = 0.3
-        };
+            userPromptBuilder.AppendLine("=== APPROVED BUSINESS CONTEXT ===");
+            userPromptBuilder.AppendLine(request.GroundingContext);
+            userPromptBuilder.AppendLine();
+        }
 
-        var jsonContent = JsonSerializer.Serialize(payload);
+        userPromptBuilder.AppendLine("=== REQUESTED OPERATION ===");
+        userPromptBuilder.AppendLine($"Operation: {request.OperationType}");
+        userPromptBuilder.AppendLine($"Guidance: {operationGuidance}");
+        userPromptBuilder.AppendLine();
+
+        userPromptBuilder.AppendLine("=== CURRENT TEXT TO REFINE ===");
+        userPromptBuilder.AppendLine(request.InputText ?? string.Empty);
+        userPromptBuilder.AppendLine();
+        userPromptBuilder.AppendLine("Refine the current text following the operation guidance and approved business context:");
+
+        var userPrompt = userPromptBuilder.ToString();
+        var maxTokens = request.MaxTokens > 0 ? request.MaxTokens : 800;
         var maxRetries = Math.Max(0, opt.MaxRetries);
 
         for (var attempt = 0; attempt <= maxRetries; attempt++)
@@ -145,12 +262,83 @@ public class HttpAIProviderAdapter : IAIProvider
 
             try
             {
-                using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
-                {
-                    Content = new StringContent(jsonContent, Encoding.UTF8, "application/json")
-                };
+                HttpRequestMessage httpRequest;
 
-                httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                if (provider == AIProviders.Gemini)
+                {
+                    var geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{providerModelId}:generateContent?key={Uri.EscapeDataString(apiKey)}";
+                    var geminiPayload = new
+                    {
+                        contents = new[]
+                        {
+                            new
+                            {
+                                role = "user",
+                                parts = new[]
+                                {
+                                    new { text = systemPrompt + "\n\n" + userPrompt }
+                                }
+                            }
+                        },
+                        generationConfig = new
+                        {
+                            temperature = 0.3,
+                            maxOutputTokens = maxTokens
+                        }
+                    };
+
+                    httpRequest = new HttpRequestMessage(HttpMethod.Post, geminiUrl)
+                    {
+                        Content = new StringContent(JsonSerializer.Serialize(geminiPayload), Encoding.UTF8, "application/json")
+                    };
+                }
+                else if (provider == AIProviders.Claude)
+                {
+                    var claudeUrl = "https://api.anthropic.com/v1/messages";
+                    var claudePayload = new
+                    {
+                        model = providerModelId,
+                        system = systemPrompt,
+                        messages = new[]
+                        {
+                            new { role = "user", content = userPrompt }
+                        },
+                        max_tokens = maxTokens,
+                        temperature = 0.3
+                    };
+
+                    httpRequest = new HttpRequestMessage(HttpMethod.Post, claudeUrl)
+                    {
+                        Content = new StringContent(JsonSerializer.Serialize(claudePayload), Encoding.UTF8, "application/json")
+                    };
+                    httpRequest.Headers.Add("x-api-key", apiKey);
+                    httpRequest.Headers.Add("anthropic-version", "2023-06-01");
+                }
+                else
+                {
+                    // OpenAI or custom endpoint
+                    var openAiUrl = !string.IsNullOrWhiteSpace(opt.Endpoint)
+                        ? opt.Endpoint
+                        : "https://api.openai.com/v1/chat/completions";
+
+                    var openAiPayload = new
+                    {
+                        model = providerModelId,
+                        messages = new[]
+                        {
+                            new { role = "system", content = systemPrompt },
+                            new { role = "user", content = userPrompt }
+                        },
+                        max_tokens = maxTokens,
+                        temperature = 0.3
+                    };
+
+                    httpRequest = new HttpRequestMessage(HttpMethod.Post, openAiUrl)
+                    {
+                        Content = new StringContent(JsonSerializer.Serialize(openAiPayload), Encoding.UTF8, "application/json")
+                    };
+                    httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                }
 
                 using var response = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
@@ -158,18 +346,57 @@ public class HttpAIProviderAdapter : IAIProvider
                 {
                     var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
                     using var doc = JsonDocument.Parse(responseJson);
+                    string? generatedContent = null;
 
-                    var content = doc.RootElement
-                        .GetProperty("choices")[0]
-                        .GetProperty("message")
-                        .GetProperty("content")
-                        .GetString();
+                    if (provider == AIProviders.Gemini)
+                    {
+                        if (doc.RootElement.TryGetProperty("candidates", out var candidates) &&
+                            candidates.GetArrayLength() > 0 &&
+                            candidates[0].TryGetProperty("content", out var candContent) &&
+                            candContent.TryGetProperty("parts", out var parts) &&
+                            parts.GetArrayLength() > 0 &&
+                            parts[0].TryGetProperty("text", out var textElem))
+                        {
+                            generatedContent = textElem.GetString();
+                        }
+                    }
+                    else if (provider == AIProviders.Claude)
+                    {
+                        if (doc.RootElement.TryGetProperty("content", out var contentArr) &&
+                            contentArr.GetArrayLength() > 0 &&
+                            contentArr[0].TryGetProperty("text", out var textElem))
+                        {
+                            generatedContent = textElem.GetString();
+                        }
+                    }
+                    else
+                    {
+                        if (doc.RootElement.TryGetProperty("choices", out var choices) &&
+                            choices.GetArrayLength() > 0 &&
+                            choices[0].TryGetProperty("message", out var msg) &&
+                            msg.TryGetProperty("content", out var textElem))
+                        {
+                            generatedContent = textElem.GetString();
+                        }
+                    }
+
+                    if (string.IsNullOrWhiteSpace(generatedContent))
+                    {
+                        stopwatch.Stop();
+                        return new AIProviderResult
+                        {
+                            Success = false,
+                            ErrorCode = AIErrorCodes.OutputInvalid,
+                            ErrorMessage = "AI provider returned empty response.",
+                            DurationMs = stopwatch.ElapsedMilliseconds
+                        };
+                    }
 
                     stopwatch.Stop();
                     return new AIProviderResult
                     {
                         Success = true,
-                        OutputText = content?.Trim(),
+                        OutputText = CleanGeneratedText(generatedContent),
                         ProviderReference = request.ProviderKey ?? ProviderName,
                         ModelReference = model,
                         DurationMs = stopwatch.ElapsedMilliseconds
@@ -245,12 +472,41 @@ public class HttpAIProviderAdapter : IAIProvider
         };
     }
 
-    private static string ResolveDefaultEndpoint(string? providerKey)
+    private static string CleanGeneratedText(string text)
     {
-        return (providerKey?.ToLowerInvariant()) switch
+        var cleaned = text.Trim();
+        if (cleaned.StartsWith("\"") && cleaned.EndsWith("\"") && cleaned.Length > 2)
         {
-            AIProviders.OpenAI => "https://api.openai.com/v1/chat/completions",
-            _ => "https://api.openai.com/v1/chat/completions"
+            cleaned = cleaned[1..^1].Trim();
+        }
+        return cleaned;
+    }
+
+    private static string BuildOperationGuidance(string operationType, string? customInstruction)
+    {
+        return operationType switch
+        {
+            AIOperationTypes.ImproveWording =>
+                "Improve clarity, grammar, natural flow, and customer appeal while strictly preserving all factual meaning and business identity.",
+
+            AIOperationTypes.MakeMoreProfessional or AIOperationTypes.MakeProfessional =>
+                "Rewrite in a polished, authoritative, and professional tone suitable for high-value clients while strictly preserving all factual meaning.",
+
+            AIOperationTypes.MakeShorter or "Shorten" =>
+                "Make the content concise and punchy, eliminating unnecessary words and redundancy while preserving all key information.",
+
+            AIOperationTypes.MakeClearer or "Simplify" =>
+                "Enhance readability, directness, and simplicity so clients immediately understand what is offered, preserving factual truth.",
+
+            AIOperationTypes.ImproveServiceDescription or "ServiceDescription" =>
+                "Refine and enhance the service description using the actual business context and service offerings, making the value proposition compelling and accurate.",
+
+            AIOperationTypes.CustomInstruction when !string.IsNullOrWhiteSpace(customInstruction) =>
+                $"Apply this specific instruction: \"{customInstruction}\", while remaining strictly grounded in the approved Business Context.",
+
+            _ => !string.IsNullOrWhiteSpace(customInstruction)
+                ? $"Apply this instruction: \"{customInstruction}\", while strictly preserving factual meaning."
+                : "Improve clarity, grammar, and customer appeal while strictly preserving factual meaning."
         };
     }
 
@@ -258,12 +514,12 @@ public class HttpAIProviderAdapter : IAIProvider
     {
         return statusCode switch
         {
-            HttpStatusCode.TooManyRequests => (AIErrorCodes.RateLimited, "The AI provider rate limit was exceeded. Please try again shortly."),
-            HttpStatusCode.BadRequest => (AIErrorCodes.InvalidRequest, "The AI provider rejected the request format."),
-            HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => (AIErrorCodes.ProviderUnavailable, "AI provider authorization failed."),
-            HttpStatusCode.NotFound => (AIErrorCodes.ProviderUnavailable, "AI provider endpoint was not found."),
-            HttpStatusCode.RequestTimeout or HttpStatusCode.GatewayTimeout => (AIErrorCodes.ProcessingTimeout, "AI provider request timed out."),
-            _ when (int)statusCode >= 500 => (AIErrorCodes.ProviderUnavailable, "The AI provider service encountered an internal error."),
+            HttpStatusCode.TooManyRequests => (AIErrorCodes.RateLimited, "The AI provider rate limit was exceeded. Please wait a moment and try again."),
+            HttpStatusCode.BadRequest => (AIErrorCodes.InvalidRequest, "The AI provider rejected the request format or parameters."),
+            HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => (AIErrorCodes.ProviderUnavailable, "AI connection could not be verified. Please check your API key and try again."),
+            HttpStatusCode.NotFound => (AIErrorCodes.ProviderUnavailable, "The selected AI model or endpoint was not found for this account."),
+            HttpStatusCode.RequestTimeout or HttpStatusCode.GatewayTimeout => (AIErrorCodes.ProcessingTimeout, "AI provider request timed out. Please try again."),
+            _ when (int)statusCode >= 500 => (AIErrorCodes.ProviderUnavailable, "The AI provider service encountered an internal error. Please try again later."),
             _ => (AIErrorCodes.ProcessingFailed, "An error occurred while communicating with the AI service.")
         };
     }

@@ -171,13 +171,13 @@ builder.Services.Configure<Sparovia.Infrastructure.AI.AIOptions>(
 builder.Services.AddSingleton<Sparovia.Application.AI.IAICredentialEncryptionService, Sparovia.Infrastructure.AI.AesGcmAICredentialEncryptionService>();
 builder.Services.AddHttpClient<Sparovia.Infrastructure.AI.HttpAIProviderAdapter>();
 var aiConfig = builder.Configuration.GetSection(Sparovia.Infrastructure.AI.AIOptions.SectionName).Get<Sparovia.Infrastructure.AI.AIOptions>() ?? new Sparovia.Infrastructure.AI.AIOptions();
-if (string.Equals(aiConfig.Provider, "Http", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(aiConfig.ApiKey))
+if (string.Equals(aiConfig.Provider, "Stub", StringComparison.OrdinalIgnoreCase) && !builder.Environment.IsProduction())
 {
-    builder.Services.AddScoped<Sparovia.Application.AI.IAIProvider, Sparovia.Infrastructure.AI.HttpAIProviderAdapter>();
+    builder.Services.AddScoped<Sparovia.Application.AI.IAIProvider, Sparovia.Infrastructure.AI.StubAIProviderAdapter>();
 }
 else
 {
-    builder.Services.AddScoped<Sparovia.Application.AI.IAIProvider, Sparovia.Infrastructure.AI.StubAIProviderAdapter>();
+    builder.Services.AddScoped<Sparovia.Application.AI.IAIProvider, Sparovia.Infrastructure.AI.HttpAIProviderAdapter>();
 }
 builder.Services.AddScoped<Sparovia.Application.AI.IAIService, Sparovia.Infrastructure.AI.AIService>();
 

@@ -191,6 +191,10 @@ export default function BusinessBasicsPage() {
               id="businessName"
               type="text" 
               required
+              spellCheck={true}
+              autoCorrect="on"
+              autoCapitalize="words"
+              lang="en"
               value={formData.businessName || ''} 
               onChange={e => setFormData({...formData, businessName: e.target.value})}
               placeholder="e.g. Apex Window Systems"
@@ -286,6 +290,10 @@ export default function BusinessBasicsPage() {
               <div className="mt-2.5">
                 <input
                   type="text"
+                  spellCheck={true}
+                  autoCorrect="on"
+                  autoCapitalize="words"
+                  lang="en"
                   value={customCategory}
                   onChange={e => {
                     setCustomCategory(e.target.value);

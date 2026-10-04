@@ -181,6 +181,10 @@ export default function ApprovedFactsPage() {
             <input 
               id="certifications"
               type="text" 
+              spellCheck={true}
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              lang="en"
               value={getListFieldValue('certifications')} 
               onChange={e => handleListFieldChange('certifications', e.target.value)}
               placeholder="e.g. ISO 9001, AAMA Certified"
@@ -200,6 +204,9 @@ export default function ApprovedFactsPage() {
               id="awards"
               type="text" 
               spellCheck={true}
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              lang="en"
               value={getListFieldValue('awards')} 
               onChange={e => handleListFieldChange('awards', e.target.value)}
               placeholder="e.g. Best of Houzz 2023, Architectural Excellence 2024"
@@ -219,6 +226,9 @@ export default function ApprovedFactsPage() {
               id="accreditations"
               type="text" 
               spellCheck={true}
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              lang="en"
               value={getListFieldValue('accreditations')} 
               onChange={e => handleListFieldChange('accreditations', e.target.value)}
               placeholder="e.g. BBB Accredited A+, Energy Star Partner"
@@ -238,6 +248,9 @@ export default function ApprovedFactsPage() {
               id="warranties"
               type="text" 
               spellCheck={true}
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              lang="en"
               value={getListFieldValue('warranties')} 
               onChange={e => handleListFieldChange('warranties', e.target.value)}
               placeholder="e.g. 10-Year Frame Warranty, Lifetime Hardware"
@@ -257,6 +270,9 @@ export default function ApprovedFactsPage() {
               id="authorizedStatuses"
               type="text" 
               spellCheck={true}
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              lang="en"
               value={getListFieldValue('authorizedStatuses')} 
               onChange={e => handleListFieldChange('authorizedStatuses', e.target.value)}
               placeholder="e.g. Authorized Schuco Partner, Certified Installer"
@@ -276,6 +292,9 @@ export default function ApprovedFactsPage() {
               id="otherClaims"
               type="text" 
               spellCheck={true}
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              lang="en"
               value={getListFieldValue('otherClaims')} 
               onChange={e => handleListFieldChange('otherClaims', e.target.value)}
               placeholder="e.g. Zero Subcontractors, Over 5,000 Installations Completed"

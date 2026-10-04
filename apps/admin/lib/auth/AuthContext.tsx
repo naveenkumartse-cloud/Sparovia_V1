@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 interface User {
   email: string;
   fullName: string;
+  phoneNumber?: string;
   tenantId: string;
   isOnboardingConfirmed?: boolean;
 }

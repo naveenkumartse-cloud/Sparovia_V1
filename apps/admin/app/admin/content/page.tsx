@@ -1568,6 +1568,9 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
               <input
                 type="text"
                 spellCheck={!field.key.toLowerCase().includes('url') && !field.key.toLowerCase().includes('image') && !field.key.toLowerCase().includes('icon') && !field.key.toLowerCase().includes('id')}
+                autoCorrect={!field.key.toLowerCase().includes('url') && !field.key.toLowerCase().includes('image') && !field.key.toLowerCase().includes('icon') && !field.key.toLowerCase().includes('id') ? 'on' : 'off'}
+                autoCapitalize={!field.key.toLowerCase().includes('url') && !field.key.toLowerCase().includes('image') ? 'sentences' : 'off'}
+                lang="en"
                 maxLength={field.maxLength}
                 value={value[field.key] ?? ''}
                 onChange={(e) => onChange(field.key, e.target.value)}
@@ -1611,6 +1614,9 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                 rows={field.maxLength && field.maxLength > 400 ? 4 : 3}
                 maxLength={field.maxLength}
                 spellCheck={true}
+                autoCorrect="on"
+                autoCapitalize="sentences"
+                lang="en"
                 value={value[field.key] ?? ''}
                 onChange={(e) => onChange(field.key, e.target.value)}
                 placeholder={field.placeholder}
@@ -1644,6 +1650,9 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                       <input
                         type="text"
                         spellCheck={true}
+                        autoCorrect="on"
+                        autoCapitalize="sentences"
+                        lang="en"
                         value={itemVal ?? ''}
                         onChange={(e) => {
                           const updated = [...list];
@@ -1779,6 +1788,9 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                                   rows={2}
                                   maxLength={subField.maxLength}
                                   spellCheck={true}
+                                  autoCorrect="on"
+                                  autoCapitalize="sentences"
+                                  lang="en"
                                   value={item[subField.key] ?? ''}
                                   onChange={(e) => {
                                     const updated = [...items];
@@ -1792,6 +1804,9 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                                 <input
                                   type="text"
                                   spellCheck={!subField.key.toLowerCase().includes('url') && !subField.key.toLowerCase().includes('image') && !subField.key.toLowerCase().includes('icon')}
+                                  autoCorrect={!subField.key.toLowerCase().includes('url') && !subField.key.toLowerCase().includes('image') && !subField.key.toLowerCase().includes('icon') ? 'on' : 'off'}
+                                  autoCapitalize={!subField.key.toLowerCase().includes('url') && !subField.key.toLowerCase().includes('image') && !subField.key.toLowerCase().includes('icon') ? 'sentences' : 'none'}
+                                  lang="en"
                                   maxLength={subField.maxLength}
                                   value={item[subField.key] ?? ''}
                                   onChange={(e) => {

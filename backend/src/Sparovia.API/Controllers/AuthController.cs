@@ -334,6 +334,19 @@ public class AuthController : ControllerBase
         var tenantId = User.FindFirst("TenantId")?.Value;
         var fullName = User.FindFirst("FullName")?.Value;
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        string? phoneNumber = null;
+
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (Guid.TryParse(userIdStr, out var userId))
+        {
+            var user = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+            if (user != null)
+            {
+                fullName = user.FullName;
+                email = user.Email;
+                phoneNumber = user.PhoneNumber;
+            }
+        }
 
         bool isOnboardingConfirmed = false;
         if (Guid.TryParse(tenantId, out var tid))
@@ -346,6 +359,102 @@ public class AuthController : ControllerBase
         {
             Email = email,
             FullName = fullName,
+            PhoneNumber = phoneNumber,
+            TenantId = tenantId,
+            IsOnboardingConfirmed = isOnboardingConfirmed
+        });
+    }
+
+    public class UpdateProfileRequest
+    {
+        public string? FullName { get; set; }
+        public string? PhoneNumber { get; set; }
+    }
+
+    [HttpPut("me")]
+    [Authorize]
+    public async Task<IActionResult> UpdateCurrentUser([FromBody] UpdateProfileRequest request, CancellationToken cancellationToken)
+    {
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userIdStr, out var userId))
+        {
+            return Unauthorized(new { error = new { code = "UNAUTHORIZED", message = "User session is invalid." } });
+        }
+
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        if (user == null)
+        {
+            return NotFound(new { error = new { code = "USER_NOT_FOUND", message = "User not found." } });
+        }
+
+        if (string.IsNullOrWhiteSpace(request?.FullName))
+        {
+            return BadRequest(new { error = new { code = "VALIDATION_ERROR", message = "Account name is required." } });
+        }
+
+        var trimmedName = request.FullName.Trim();
+        if (trimmedName.Length < 2 || trimmedName.Length > 100)
+        {
+            return BadRequest(new { error = new { code = "VALIDATION_ERROR", message = "Account name must be between 2 and 100 characters." } });
+        }
+
+        user.FullName = trimmedName;
+
+        if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+        {
+            var digitsOnly = System.Text.RegularExpressions.Regex.Replace(request.PhoneNumber.Trim(), @"\D", "");
+            if (digitsOnly.Length != 10 || !System.Text.RegularExpressions.Regex.IsMatch(digitsOnly, @"^[6-9]\d{9}$"))
+            {
+                return BadRequest(new { error = new { code = "VALIDATION_ERROR", message = "Phone number must be a valid 10-digit Indian mobile number." } });
+            }
+            user.PhoneNumber = digitsOnly;
+            user.PhoneNumberNormalized = digitsOnly;
+        }
+        else
+        {
+            user.PhoneNumber = null;
+            user.PhoneNumberNormalized = null;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Refresh authentication cookie with updated FullName claim
+        var tenantId = User.FindFirst("TenantId")?.Value;
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim("FullName", user.FullName)
+        };
+        if (!string.IsNullOrWhiteSpace(tenantId))
+        {
+            claims.Add(new Claim("TenantId", tenantId));
+        }
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = true,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+        };
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity),
+            authProperties);
+
+        bool isOnboardingConfirmed = false;
+        if (Guid.TryParse(tenantId, out var tid))
+        {
+            isOnboardingConfirmed = await _dbContext.BusinessContexts
+                .AnyAsync(b => b.TenantId == tid && b.IsConfirmed, cancellationToken);
+        }
+
+        return Ok(new
+        {
+            Email = user.Email,
+            FullName = user.FullName,
+            PhoneNumber = user.PhoneNumber,
             TenantId = tenantId,
             IsOnboardingConfirmed = isOnboardingConfirmed
         });

@@ -252,6 +252,10 @@ export default function LocationCustomersPage() {
             <input
               id="serviceAreas"
               type="text"
+              spellCheck={true}
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              lang="en"
               value={serviceAreasInput}
               onChange={e => setServiceAreasInput(e.target.value)}
               placeholder="e.g. San Francisco, Oakland, San Jose"
@@ -269,6 +273,10 @@ export default function LocationCustomersPage() {
             <input
               id="targetCustomers"
               type="text"
+              spellCheck={true}
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              lang="en"
               value={targetCustomersInput}
               onChange={e => setTargetCustomersInput(e.target.value)}
               placeholder="e.g. Residential Homeowners, General Contractors, Architects"

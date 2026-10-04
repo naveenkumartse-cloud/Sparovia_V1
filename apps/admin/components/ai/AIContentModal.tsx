@@ -557,6 +557,9 @@ export function AIContentModal({
                       type="text"
                       maxLength={500}
                       spellCheck={true}
+                      autoCorrect="on"
+                      autoCapitalize="sentences"
+                      lang="en"
                       value={aiInstruction}
                       onChange={(e) => setAiInstruction(e.target.value)}
                       placeholder="e.g. Emphasize fast delivery and certified craftsmen"
@@ -653,6 +656,9 @@ export function AIContentModal({
                   <textarea
                     rows={4}
                     spellCheck={true}
+                    autoCorrect="on"
+                    autoCapitalize="sentences"
+                    lang="en"
                     value={aiEditableSuggestion}
                     onChange={(e) => setAiEditableSuggestion(e.target.value)}
                     className="w-full p-3.5 rounded-xl border border-purple-300 dark:border-purple-700 bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 leading-relaxed font-normal shadow-xs"
