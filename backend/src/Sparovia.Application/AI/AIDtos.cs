@@ -202,6 +202,7 @@ public class AIModelDto
     public required string Status { get; set; }
     public bool IsDefault { get; set; }
     public bool IsRecommended { get; set; }
+    public bool IsFreeTier { get; set; }
     public bool IsSelected { get; set; }
 }
 
@@ -223,6 +224,7 @@ public class AIConnectionDto
     public string? ProviderDisplayName { get; set; }
     public string? SelectedModelKey { get; set; }
     public string? SelectedModelDisplayName { get; set; }
+    public bool IsFreeTier { get; set; }
     public string? MaskedApiKey { get; set; }
     public string? SupportedCapability { get; set; }
     public bool IsContentAIAvailable { get; set; }
@@ -264,6 +266,9 @@ public class TestAIConnectionResponse
     public bool Success { get; set; }
     public required string ProviderKey { get; set; }
     public required string Message { get; set; }
+    public string Status { get; set; } = "CONNECTED";
+    public string? Provider { get; set; }
+    public string? Model { get; set; }
 }
 
 public class AIModelSelectionDto

@@ -47,6 +47,7 @@ interface AIModel {
   status: string; // "Available", "Unavailable", "Deprecated"
   isDefault: boolean;
   isRecommended: boolean;
+  isFreeTier?: boolean;
   isSelected: boolean;
 }
 
@@ -56,6 +57,7 @@ interface AIConnection {
   providerDisplayName?: string;
   selectedModelKey?: string;
   selectedModelDisplayName?: string;
+  isFreeTier?: boolean;
   maskedApiKey?: string;
   supportedCapability?: string;
   lastValidatedAt?: string;
@@ -70,7 +72,7 @@ export default function AiConnectionsPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Connection Setup Form State
-  const [selectedProviderKey, setSelectedProviderKey] = useState<string>('openai');
+  const [selectedProviderKey, setSelectedProviderKey] = useState<string>('gemini');
   const [apiKeyInput, setApiKeyInput] = useState<string>('');
   const [showApiKey, setShowApiKey] = useState(false);
   const [selectedModelKey, setSelectedModelKey] = useState<string>('');
@@ -364,6 +366,11 @@ export default function AiConnectionsPage() {
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Connected
                 </span>
+                {(connection.isFreeTier || activeModel?.isFreeTier) && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                    Free Tier
+                  </span>
+                )}
                 {activeModel?.capability === 'Both' && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20">
                     <Sparkles className="w-3 h-3" />
@@ -515,6 +522,11 @@ export default function AiConnectionsPage() {
                               Recommended
                             </span>
                           )}
+                          {model.isFreeTier && (
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                              Free Tier
+                            </span>
+                          )}
                         </div>
 
                         {isSelected ? (
@@ -645,8 +657,13 @@ export default function AiConnectionsPage() {
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t border-slate-100 dark:border-[#1E293B] text-[11px] text-slate-500 dark:text-[#64748B] mt-auto">
-                      Capabilities: Content &amp; Vision
+                    <div className="pt-2 border-t border-slate-100 dark:border-[#1E293B] text-[11px] text-slate-500 dark:text-[#64748B] mt-auto flex items-center justify-between">
+                      <span>Capabilities: Content &amp; Vision</span>
+                      {(provider.key === 'openrouter' || provider.key === 'nvidianim') && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                          Free Tier
+                        </span>
+                      )}
                     </div>
                   </button>
                 );
@@ -796,6 +813,11 @@ export default function AiConnectionsPage() {
                             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                               <Sparkles className="w-2.5 h-2.5" />
                               Recommended
+                            </span>
+                          )}
+                          {model.isFreeTier && (
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                              Free Tier
                             </span>
                           )}
                         </div>
@@ -955,9 +977,16 @@ export default function AiConnectionsPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-sm text-slate-900 dark:text-white">
-                      {model.displayName}
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-sm text-slate-900 dark:text-white">
+                        {model.displayName}
+                      </span>
+                      {model.isFreeTier && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                          Free Tier
+                        </span>
+                      )}
+                    </div>
                     {isSelected && <Check className="w-4 h-4 text-[#3B82F6] shrink-0" />}
                   </div>
                   <p className="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed">

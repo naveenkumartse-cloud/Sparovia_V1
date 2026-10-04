@@ -55,6 +55,28 @@ public static class AIProviderRegistry
             DefaultModelKey = "claude-3-5-haiku",
             DocumentationUrl = "https://console.anthropic.com/settings/keys",
             Placeholder = "sk-ant-api..."
+        },
+        new()
+        {
+            Key = AIProviders.OpenRouter,
+            DisplayName = "OpenRouter",
+            Description = "Multi-provider AI routing with access to free community and open-weight models.",
+            SupportedCapabilities = new List<string> { AIModelCapability.Content, AIModelCapability.Both },
+            IsActive = true,
+            DefaultModelKey = "openrouter/free",
+            DocumentationUrl = "https://openrouter.ai/keys",
+            Placeholder = "sk-or-v1-..."
+        },
+        new()
+        {
+            Key = AIProviders.NvidiaNim,
+            DisplayName = "NVIDIA NIM",
+            Description = "High-performance inference microservices with free API endpoints for open models.",
+            SupportedCapabilities = new List<string> { AIModelCapability.Content },
+            IsActive = true,
+            DefaultModelKey = "nvidia-llama-3.1-8b",
+            DocumentationUrl = "https://build.nvidia.com/explore/discover",
+            Placeholder = "nvapi-..."
         }
     };
 
@@ -63,7 +85,13 @@ public static class AIProviderRegistry
     public static ApprovedAIProvider? GetProviderByKey(string key)
     {
         if (string.IsNullOrWhiteSpace(key)) return null;
-        return Providers.FirstOrDefault(p => string.Equals(p.Key, key, StringComparison.OrdinalIgnoreCase));
+        var normKey = key.Trim();
+        if (string.Equals(normKey, "nvidia", StringComparison.OrdinalIgnoreCase))
+            normKey = AIProviders.NvidiaNim;
+        else if (string.Equals(normKey, "google", StringComparison.OrdinalIgnoreCase))
+            normKey = AIProviders.Gemini;
+
+        return Providers.FirstOrDefault(p => string.Equals(p.Key, normKey, StringComparison.OrdinalIgnoreCase));
     }
 
     public static bool IsApproved(string key)

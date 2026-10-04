@@ -76,28 +76,45 @@ public class AIService : IAIService
 
         // Always resolve authoritative model from tenant configuration (ignore untrusted frontend model overrides)
         var providerKey = config?.ProviderKey ?? AIProviders.OpenAI;
+        if (string.Equals(providerKey, "nvidia", StringComparison.OrdinalIgnoreCase)) providerKey = AIProviders.NvidiaNim;
+        else if (string.Equals(providerKey, "google", StringComparison.OrdinalIgnoreCase)) providerKey = AIProviders.Gemini;
+
         var selectedModelKey = config?.SelectedModelKey;
 
-        // Ensure model belongs to the configured provider; if missing or mismatched, pick default model for this provider
-        var candidateModel = AIModelRegistry.GetModelByKey(selectedModelKey ?? string.Empty);
-        if (candidateModel == null || !string.Equals(candidateModel.ProviderKey, providerKey, StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(selectedModelKey))
         {
             selectedModelKey = AIModelRegistry.DefaultModelKeyFor(providerKey);
         }
-
-        // Verify model is allowlisted and currently selectable in Sparovia
-        if (!AIModelRegistry.IsSelectable(selectedModelKey, out var selectableCode, out var selectableMsg))
+        else
         {
-            _logger.LogWarning("TenantId={TenantId} configured model '{ModelKey}' is not selectable: {Message}",
-                request.TenantId, selectedModelKey, selectableMsg);
-
-            return new AIExecutionResult
+            var candidateModel = AIModelRegistry.GetModelByKey(selectedModelKey);
+            if (candidateModel == null || !string.Equals(candidateModel.ProviderKey, providerKey, StringComparison.OrdinalIgnoreCase))
             {
-                Success = false,
-                Status = AIRequestStatus.Failed,
-                ErrorCode = selectableCode ?? AIErrorCodes.ModelUnavailable,
-                ErrorMessage = selectableMsg ?? $"The configured AI model '{selectedModelKey}' is not selectable."
-            };
+                _logger.LogWarning("TenantId={TenantId} configured model '{ModelKey}' does not belong to provider '{ProviderKey}' or is not recognized.",
+                    request.TenantId, selectedModelKey, providerKey);
+
+                return new AIExecutionResult
+                {
+                    Success = false,
+                    Status = AIRequestStatus.Failed,
+                    ErrorCode = AIErrorCodes.ModelUnavailable,
+                    ErrorMessage = "The selected AI model is no longer available. Please select another supported model."
+                };
+            }
+
+            if (!AIModelRegistry.IsSelectable(selectedModelKey, out var selectableCode, out var selectableMsg))
+            {
+                _logger.LogWarning("TenantId={TenantId} configured model '{ModelKey}' is not selectable: {Message}",
+                    request.TenantId, selectedModelKey, selectableMsg);
+
+                return new AIExecutionResult
+                {
+                    Success = false,
+                    Status = AIRequestStatus.Failed,
+                    ErrorCode = selectableCode ?? AIErrorCodes.ModelUnavailable,
+                    ErrorMessage = "The selected AI model is no longer available. Please select another supported model."
+                };
+            }
         }
 
         // 4. Validate Model Capability

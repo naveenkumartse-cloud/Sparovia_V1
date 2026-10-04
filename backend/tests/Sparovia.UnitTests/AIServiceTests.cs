@@ -380,4 +380,72 @@ public class AIServiceTests
         Assert.False(mismatch);
         Assert.Equal(AIErrorCodes.ProviderModelMismatch, mismatchErr);
     }
+
+    [Fact]
+    public void AIModelRegistry_OpenRouterAndNvidiaNim_RegisteredWithFreeTierModels()
+    {
+        // 1. OpenRouter free model validation
+        var orValid = AIModelRegistry.ValidateModelSelection(AIProviders.OpenRouter, "openrouter/free", out var orModel, out var orErr, out _);
+        Assert.True(orValid);
+        Assert.NotNull(orModel);
+        Assert.True(orModel.IsFreeTier);
+        Assert.Null(orErr);
+
+        // 2. NVIDIA NIM model validation
+        var nvValid = AIModelRegistry.ValidateModelSelection(AIProviders.NvidiaNim, "nvidia-llama-3.1-8b", out var nvModel, out var nvErr, out _);
+        Assert.True(nvValid);
+        Assert.NotNull(nvModel);
+        Assert.True(nvModel.IsFreeTier);
+        Assert.Null(nvErr);
+
+        // 3. Provider alias normalization: "nvidia" -> "nvidianim"
+        var aliasValid = AIModelRegistry.ValidateModelSelection("nvidia", "nvidia-mistral-7b", out var aliasModel, out _, out _);
+        Assert.True(aliasValid);
+        Assert.NotNull(aliasModel);
+        Assert.Equal("nvidianim", aliasModel.ProviderKey);
+
+        // 4. Provider alias normalization: "google" -> "gemini"
+        var googleAliasValid = AIModelRegistry.ValidateModelSelection("google", "gemini-1.5-flash", out var gModel, out _, out _);
+        Assert.True(googleAliasValid);
+        Assert.NotNull(gModel);
+        Assert.Equal("gemini", gModel.ProviderKey);
+    }
+
+    [Fact]
+    public async Task AIService_ExecuteAsync_FailsExplicitly_WhenConfiguredModelIsUnavailable()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var tenant = new Tenant { Name = "Strict Model Tenant" };
+        dbContext.Tenants.Add(tenant);
+
+        // Configure a deleted/unavailable model key
+        var config = new TenantAIConfiguration
+        {
+            TenantId = tenant.Id,
+            ProviderKey = AIProviders.OpenRouter,
+            SelectedModelKey = "discontinued-model-xyz",
+            SupportedCapability = AIModelCapability.Content
+        };
+        dbContext.TenantAIConfigurations.Add(config);
+        await dbContext.SaveChangesAsync();
+
+        var provider = new StubAIProviderAdapter();
+        var options = Options.Create(new AIOptions());
+        var service = new AIService(provider, dbContext, _encryptionService, options, NullLogger<AIService>.Instance);
+
+        var execReq = new AIExecutionRequest
+        {
+            TenantId = tenant.Id,
+            OperationType = AIOperationTypes.MakeMoreProfessional,
+            ResourceType = AIResourceTypes.WebsiteContent,
+            ResourceId = Guid.NewGuid(),
+            InputText = "Sample interior headline"
+        };
+
+        // Must FAIL strictly rather than silently switching to a default model!
+        var result = await service.ExecuteAsync(execReq);
+        Assert.False(result.Success);
+        Assert.Equal(AIErrorCodes.ModelUnavailable, result.ErrorCode);
+        Assert.Contains("no longer available", result.ErrorMessage);
+    }
 }

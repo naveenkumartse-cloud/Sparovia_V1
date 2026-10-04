@@ -115,7 +115,10 @@ public class AIController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(providerKey))
         {
-            allModels = allModels.Where(m => string.Equals(m.ProviderKey, providerKey, StringComparison.OrdinalIgnoreCase)).ToList();
+            var normProv = providerKey.Trim();
+            if (string.Equals(normProv, "nvidia", StringComparison.OrdinalIgnoreCase)) normProv = AIProviders.NvidiaNim;
+            else if (string.Equals(normProv, "google", StringComparison.OrdinalIgnoreCase)) normProv = AIProviders.Gemini;
+            allModels = allModels.Where(m => string.Equals(m.ProviderKey, normProv, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         if (!string.IsNullOrWhiteSpace(capability))
@@ -133,6 +136,7 @@ public class AIController : ControllerBase
             Status = m.Status,
             IsDefault = m.IsDefault,
             IsRecommended = m.IsRecommended,
+            IsFreeTier = m.IsFreeTier,
             IsSelected = string.Equals(m.Key, selectedKey, StringComparison.OrdinalIgnoreCase)
         }).ToList();
 
@@ -193,6 +197,7 @@ public class AIController : ControllerBase
             ProviderDisplayName = provider?.DisplayName ?? config.ProviderKey,
             SelectedModelKey = config.SelectedModelKey,
             SelectedModelDisplayName = model?.DisplayName ?? config.SelectedModelKey,
+            IsFreeTier = model?.IsFreeTier ?? false,
             MaskedApiKey = config.MaskedApiKey,
             SupportedCapability = config.SupportedCapability ?? model?.Capability,
             IsContentAIAvailable = isContentAvailable,
@@ -231,6 +236,8 @@ public class AIController : ControllerBase
             return BadRequest(new { Error = $"Provider '{request.ProviderKey}' is not an approved Sparovia provider.", Code = AIErrorCodes.ProviderNotApproved });
         }
 
+        var provider = AIProviderRegistry.GetProviderByKey(request.ProviderKey)!;
+
         var apiKeyToTest = request.ApiKey;
         if (string.IsNullOrWhiteSpace(apiKeyToTest))
         {
@@ -249,11 +256,13 @@ public class AIController : ControllerBase
             return BadRequest(new { Error = "API key is required to test the connection.", Code = AIErrorCodes.ValidationError });
         }
 
-        var provider = AIProviderRegistry.GetProviderByKey(request.ProviderKey)!;
-        var testResult = await _aiProvider.TestConnectionDetailedAsync(request.ProviderKey, apiKeyToTest, request.SelectedModelKey, cancellationToken);
+        var testResult = await _aiProvider.TestConnectionDetailedAsync(provider.Key, apiKeyToTest, request.SelectedModelKey, cancellationToken);
 
         if (!testResult.Success)
         {
+            _logger.LogWarning("AUDIT: AI_CONNECTION_FAILED. TenantId={TenantId}, ProviderKey={ProviderKey}, ModelKey={ModelKey}, ErrorCode={ErrorCode}",
+                tenantId, provider.Key, request.SelectedModelKey, testResult.ErrorCode);
+
             return BadRequest(new
             {
                 error = new
@@ -265,16 +274,19 @@ public class AIController : ControllerBase
             });
         }
 
-        _logger.LogInformation("AUDIT: AIProviderConnectionTested. TenantId={TenantId}, ProviderKey={ProviderKey}, Success=True",
-            tenantId, request.ProviderKey);
+        _logger.LogInformation("AUDIT: AI_CONNECTION_TESTED. TenantId={TenantId}, ProviderKey={ProviderKey}, ModelKey={ModelKey}, Success=True",
+            tenantId, provider.Key, request.SelectedModelKey);
 
         return Ok(new
         {
             data = new TestAIConnectionResponse
             {
                 Success = true,
-                ProviderKey = request.ProviderKey,
-                Message = $"Connection to {provider.DisplayName} verified successfully."
+                ProviderKey = provider.Key,
+                Message = $"Connection to {provider.DisplayName} verified successfully.",
+                Status = "CONNECTED",
+                Provider = provider.DisplayName,
+                Model = request.SelectedModelKey ?? AIModelRegistry.DefaultModelKeyFor(provider.Key)
             },
             requestId = HttpContext.TraceIdentifier
         });
@@ -388,6 +400,7 @@ public class AIController : ControllerBase
             ProviderDisplayName = provider.DisplayName,
             SelectedModelKey = config.SelectedModelKey,
             SelectedModelDisplayName = model.DisplayName,
+            IsFreeTier = model.IsFreeTier,
             MaskedApiKey = config.MaskedApiKey,
             SupportedCapability = config.SupportedCapability ?? model.Capability,
             IsContentAIAvailable = AIModelRegistry.SupportsCapability(model.Key, AIModelCapability.Content),
@@ -521,6 +534,7 @@ public class AIController : ControllerBase
             ProviderDisplayName = provider?.DisplayName ?? config.ProviderKey,
             SelectedModelKey = config.SelectedModelKey,
             SelectedModelDisplayName = activeModel?.DisplayName ?? config.SelectedModelKey,
+            IsFreeTier = activeModel?.IsFreeTier ?? false,
             MaskedApiKey = config.MaskedApiKey,
             SupportedCapability = config.SupportedCapability ?? activeModel?.Capability,
             IsContentAIAvailable = isContentAvailable,
@@ -845,11 +859,19 @@ public class AIController : ControllerBase
             Options = new AIOperationOptions { ModelKey = selectedModelKey }
         };
 
+        _logger.LogInformation(
+            "AUDIT: AI_GENERATION_STARTED. TenantId={TenantId}, UserId={UserId}, Operation={Operation}, SectionKey={SectionKey}, FieldKey={FieldKey}",
+            tenantId, executionRequest.UserId, request.Operation, request.SectionKey, request.Field);
+
         // 7. Execute AI Operation via AI Service
         var result = await _aiService.ExecuteAsync(executionRequest, cancellationToken);
 
         if (!result.Success)
         {
+            _logger.LogWarning(
+                "AUDIT: AI_GENERATION_FAILED. TenantId={TenantId}, AIRequestId={AIRequestId}, Operation={Operation}, ErrorCode={ErrorCode}",
+                tenantId, result.AIRequestId, request.Operation, result.ErrorCode);
+
             return result.ErrorCode switch
             {
                 AIErrorCodes.ModelCapabilityMismatch => BadRequest(new
@@ -910,6 +932,10 @@ public class AIController : ControllerBase
                 })
             };
         }
+
+        _logger.LogInformation(
+            "AUDIT: AI_GENERATION_SUCCEEDED. TenantId={TenantId}, AIRequestId={AIRequestId}, Operation={Operation}",
+            tenantId, result.AIRequestId, request.Operation);
 
         return Ok(new
         {

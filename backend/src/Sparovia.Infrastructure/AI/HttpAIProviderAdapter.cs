@@ -144,6 +144,36 @@ public class HttpAIProviderAdapter : IAIProvider
                 request.Headers.Add("x-api-key", trimmedKey);
                 request.Headers.Add("anthropic-version", "2023-06-01");
             }
+            else if (provider == AIProviders.OpenRouter)
+            {
+                var payload = new
+                {
+                    model = providerModelId,
+                    messages = new[] { new { role = "user", content = "Reply with the single word OK." } },
+                    max_tokens = 5
+                };
+                request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions")
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+                };
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", trimmedKey);
+                request.Headers.Add("HTTP-Referer", "https://sparovia.com");
+                request.Headers.Add("X-Title", "Sparovia");
+            }
+            else if (provider == AIProviders.NvidiaNim || provider == "nvidia")
+            {
+                var payload = new
+                {
+                    model = providerModelId,
+                    messages = new[] { new { role = "user", content = "Reply with the single word OK." } },
+                    max_tokens = 5
+                };
+                request = new HttpRequestMessage(HttpMethod.Post, "https://integrate.api.nvidia.com/v1/chat/completions")
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+                };
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", trimmedKey);
+            }
             else
             {
                 var endpoint = _options.Value.Endpoint;
@@ -277,8 +307,11 @@ public class HttpAIProviderAdapter : IAIProvider
         userPromptBuilder.AppendLine("Refine the current text following the operation guidance and approved business context:");
 
         var userPrompt = userPromptBuilder.ToString();
+        var isFreeQuota = string.Equals(provider, AIProviders.OpenRouter, StringComparison.OrdinalIgnoreCase) ||
+                          string.Equals(provider, AIProviders.NvidiaNim, StringComparison.OrdinalIgnoreCase) ||
+                          string.Equals(provider, "nvidia", StringComparison.OrdinalIgnoreCase);
         var maxTokens = request.MaxTokens > 0 ? request.MaxTokens : 800;
-        var maxRetries = Math.Max(0, opt.MaxRetries);
+        var maxRetries = isFreeQuota ? Math.Min(1, Math.Max(0, opt.MaxRetries)) : Math.Max(0, opt.MaxRetries);
 
         for (var attempt = 0; attempt <= maxRetries; attempt++)
         {
@@ -288,7 +321,7 @@ public class HttpAIProviderAdapter : IAIProvider
             {
                 HttpRequestMessage httpRequest;
 
-                if (provider == AIProviders.Gemini)
+                if (provider == AIProviders.Gemini || provider == "google")
                 {
                     var cleanModelId = providerModelId.StartsWith("models/", StringComparison.OrdinalIgnoreCase)
                         ? providerModelId["models/".Length..]
@@ -342,6 +375,50 @@ public class HttpAIProviderAdapter : IAIProvider
                     httpRequest.Headers.Add("x-api-key", apiKey);
                     httpRequest.Headers.Add("anthropic-version", "2023-06-01");
                 }
+                else if (provider == AIProviders.OpenRouter)
+                {
+                    var openRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
+                    var openRouterPayload = new
+                    {
+                        model = providerModelId,
+                        messages = new[]
+                        {
+                            new { role = "system", content = systemPrompt },
+                            new { role = "user", content = userPrompt }
+                        },
+                        max_tokens = maxTokens,
+                        temperature = 0.3
+                    };
+
+                    httpRequest = new HttpRequestMessage(HttpMethod.Post, openRouterUrl)
+                    {
+                        Content = new StringContent(JsonSerializer.Serialize(openRouterPayload), Encoding.UTF8, "application/json")
+                    };
+                    httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                    httpRequest.Headers.Add("HTTP-Referer", "https://sparovia.com");
+                    httpRequest.Headers.Add("X-Title", "Sparovia");
+                }
+                else if (provider == AIProviders.NvidiaNim || provider == "nvidia")
+                {
+                    var nvidiaUrl = "https://integrate.api.nvidia.com/v1/chat/completions";
+                    var nvidiaPayload = new
+                    {
+                        model = providerModelId,
+                        messages = new[]
+                        {
+                            new { role = "system", content = systemPrompt },
+                            new { role = "user", content = userPrompt }
+                        },
+                        max_tokens = maxTokens,
+                        temperature = 0.3
+                    };
+
+                    httpRequest = new HttpRequestMessage(HttpMethod.Post, nvidiaUrl)
+                    {
+                        Content = new StringContent(JsonSerializer.Serialize(nvidiaPayload), Encoding.UTF8, "application/json")
+                    };
+                    httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                }
                 else
                 {
                     // OpenAI or custom endpoint
@@ -376,7 +453,7 @@ public class HttpAIProviderAdapter : IAIProvider
                     using var doc = JsonDocument.Parse(responseJson);
                     string? generatedContent = null;
 
-                    if (provider == AIProviders.Gemini)
+                    if (provider == AIProviders.Gemini || provider == "google")
                     {
                         if (doc.RootElement.TryGetProperty("candidates", out var candidates) &&
                             candidates.GetArrayLength() > 0 &&
@@ -399,6 +476,7 @@ public class HttpAIProviderAdapter : IAIProvider
                     }
                     else
                     {
+                        // OpenAI, OpenRouter, and NVIDIA NIM all use choices[0].message.content
                         if (doc.RootElement.TryGetProperty("choices", out var choices) &&
                             choices.GetArrayLength() > 0 &&
                             choices[0].TryGetProperty("message", out var msg) &&
@@ -561,6 +639,10 @@ public class HttpAIProviderAdapter : IAIProvider
             bodyLower.Contains("invalid api key") ||
             bodyLower.Contains("authentication_error") ||
             bodyLower.Contains("unauthorized") ||
+            bodyLower.Contains("user not found") ||
+            bodyLower.Contains("forbidden") ||
+            bodyLower.Contains("invalid token") ||
+            bodyLower.Contains("bad credentials") ||
             bodyLower.Contains("permission_denied"))
         {
             return (AIErrorCodes.ConnectionTestFailed, "AI connection could not be authenticated. Please verify your API key in AI Connections.");
@@ -570,18 +652,26 @@ public class HttpAIProviderAdapter : IAIProvider
         if (intCode == 404 ||
             bodyLower.Contains("not found") ||
             bodyLower.Contains("model_not_found") ||
+            bodyLower.Contains("unknown model") ||
+            bodyLower.Contains("model is not available") ||
+            bodyLower.Contains("does not exist") ||
+            bodyLower.Contains("unsupported model") ||
             bodyLower.Contains("is not supported for generatecontent"))
         {
             var modelDisplay = !string.IsNullOrWhiteSpace(modelName) ? $" '{modelName}'" : "";
             return (AIErrorCodes.ModelUnavailable, $"The configured AI model{modelDisplay} is unavailable. Please verify the selected model in AI Connections.");
         }
 
-        // 3. Rate Limit / Quota Exceeded (429 or RESOURCE_EXHAUSTED)
+        // 3. Rate Limit / Quota Exceeded (429 or RESOURCE_EXHAUSTED / credit exhaustion)
         if (intCode == 429 ||
             bodyLower.Contains("resource_exhausted") ||
             bodyLower.Contains("rate_limit_exceeded") ||
+            bodyLower.Contains("rate limit") ||
             bodyLower.Contains("insufficient_quota") ||
-            bodyLower.Contains("quota exceeded"))
+            bodyLower.Contains("quota exceeded") ||
+            bodyLower.Contains("insufficient credits") ||
+            bodyLower.Contains("credits exhausted") ||
+            bodyLower.Contains("out of credits"))
         {
             return (AIErrorCodes.RateLimited, "The AI provider is temporarily rate limited. Please try again later.");
         }
@@ -592,7 +682,13 @@ public class HttpAIProviderAdapter : IAIProvider
             return (AIErrorCodes.InvalidRequest, "The AI provider rejected the request configuration. Please check your model settings in AI Connections.");
         }
 
-        // 5. Provider Service Failure (5xx)
+        // 5. Timeout
+        if (intCode == 408)
+        {
+            return (AIErrorCodes.ProcessingTimeout, "The AI provider took too long to respond. Please try again.");
+        }
+
+        // 6. Provider Service Failure (5xx)
         if (intCode >= 500)
         {
             return (AIErrorCodes.ProviderUnavailable, "The AI provider is temporarily unavailable. Please try again shortly.");

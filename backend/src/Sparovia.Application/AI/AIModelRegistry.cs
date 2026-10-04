@@ -12,6 +12,8 @@ public class ApprovedAIModel
     public required string Status { get; set; } // "Available", "Unavailable", "Deprecated"
     public bool IsDefault { get; set; }
     public bool IsRecommended { get; set; }
+    public bool IsFreeTier { get; set; }
+    public int SortOrder { get; set; } = 10;
 
     // Internal mapping to provider SDK/API identifier (NEVER exposed to frontend!)
     internal string ProviderModelId { get; set; } = string.Empty;
@@ -27,6 +29,8 @@ public static class AIModelRegistry
     public const string DefaultOpenAIModel = "gpt-4o-mini";
     public const string DefaultGeminiModel = "gemini-1.5-flash";
     public const string DefaultClaudeModel = "claude-3-5-haiku";
+    public const string DefaultOpenRouterModel = "openrouter/free";
+    public const string DefaultNvidiaNimModel = "nvidia-llama-3.1-8b";
 
     private static readonly IReadOnlyList<ApprovedAIModel> Models = new List<ApprovedAIModel>
     {
@@ -41,6 +45,8 @@ public static class AIModelRegistry
             Status = AIModelStatus.Available,
             IsDefault = true,
             IsRecommended = false,
+            IsFreeTier = false,
+            SortOrder = 1,
             ProviderModelId = "gpt-4o-mini"
         },
         new()
@@ -53,6 +59,8 @@ public static class AIModelRegistry
             Status = AIModelStatus.Available,
             IsDefault = false,
             IsRecommended = true,
+            IsFreeTier = false,
+            SortOrder = 2,
             ProviderModelId = "gpt-4o"
         },
 
@@ -67,6 +75,8 @@ public static class AIModelRegistry
             Status = AIModelStatus.Available,
             IsDefault = true,
             IsRecommended = false,
+            IsFreeTier = false,
+            SortOrder = 1,
             ProviderModelId = "gemini-1.5-flash"
         },
         new()
@@ -79,6 +89,8 @@ public static class AIModelRegistry
             Status = AIModelStatus.Available,
             IsDefault = false,
             IsRecommended = true,
+            IsFreeTier = false,
+            SortOrder = 2,
             ProviderModelId = "gemini-1.5-pro"
         },
         new()
@@ -91,6 +103,8 @@ public static class AIModelRegistry
             Status = AIModelStatus.Available,
             IsDefault = false,
             IsRecommended = false,
+            IsFreeTier = false,
+            SortOrder = 3,
             ProviderModelId = "gemini-2.0-flash"
         },
 
@@ -105,6 +119,8 @@ public static class AIModelRegistry
             Status = AIModelStatus.Available,
             IsDefault = true,
             IsRecommended = false,
+            IsFreeTier = false,
+            SortOrder = 1,
             ProviderModelId = "claude-3-5-haiku-20241022"
         },
         new()
@@ -117,7 +133,125 @@ public static class AIModelRegistry
             Status = AIModelStatus.Available,
             IsDefault = false,
             IsRecommended = true,
+            IsFreeTier = false,
+            SortOrder = 2,
             ProviderModelId = "claude-3-5-sonnet-20241022"
+        },
+
+        // OpenRouter models (with free model access)
+        new()
+        {
+            Key = "openrouter/free",
+            ProviderKey = AIProviders.OpenRouter,
+            DisplayName = "OpenRouter Free Router",
+            Description = "Auto-routing endpoint dynamically selecting available high-performance free models.",
+            Capability = AIModelCapability.Content,
+            Status = AIModelStatus.Available,
+            IsDefault = true,
+            IsRecommended = false,
+            IsFreeTier = true,
+            SortOrder = 1,
+            ProviderModelId = "openrouter/free"
+        },
+        new()
+        {
+            Key = "openrouter-gemini-2.0-flash-free",
+            ProviderKey = AIProviders.OpenRouter,
+            DisplayName = "Gemini 2.0 Flash (Free)",
+            Description = "Next-generation multimodal reasoning and copy refinement via OpenRouter free tier.",
+            Capability = AIModelCapability.Both,
+            Status = AIModelStatus.Available,
+            IsDefault = false,
+            IsRecommended = true,
+            IsFreeTier = true,
+            SortOrder = 2,
+            ProviderModelId = "google/gemini-2.0-flash-exp:free"
+        },
+        new()
+        {
+            Key = "openrouter-llama-3.3-70b-free",
+            ProviderKey = AIProviders.OpenRouter,
+            DisplayName = "Llama 3.3 70B Instruct (Free)",
+            Description = "State-of-the-art open-weight 70B reasoning and polished drafting via OpenRouter free tier.",
+            Capability = AIModelCapability.Content,
+            Status = AIModelStatus.Available,
+            IsDefault = false,
+            IsRecommended = false,
+            IsFreeTier = true,
+            SortOrder = 3,
+            ProviderModelId = "meta-llama/llama-3.3-70b-instruct:free"
+        },
+        new()
+        {
+            Key = "openrouter-qwen-2.5-72b-free",
+            ProviderKey = AIProviders.OpenRouter,
+            DisplayName = "Qwen 2.5 72B Instruct (Free)",
+            Description = "High-precision multilingual reasoning and structured copy via OpenRouter free tier.",
+            Capability = AIModelCapability.Content,
+            Status = AIModelStatus.Available,
+            IsDefault = false,
+            IsRecommended = false,
+            IsFreeTier = true,
+            SortOrder = 4,
+            ProviderModelId = "qwen/qwen-2.5-72b-instruct:free"
+        },
+
+        // NVIDIA NIM API models (free-endpoint models)
+        new()
+        {
+            Key = "nvidia-llama-3.1-8b",
+            ProviderKey = AIProviders.NvidiaNim,
+            DisplayName = "Llama 3.1 8B Instruct (Free Endpoint)",
+            Description = "Fast, lightweight instruction following on NVIDIA NIM accelerated cloud infrastructure.",
+            Capability = AIModelCapability.Content,
+            Status = AIModelStatus.Available,
+            IsDefault = true,
+            IsRecommended = false,
+            IsFreeTier = true,
+            SortOrder = 1,
+            ProviderModelId = "meta/llama-3.1-8b-instruct"
+        },
+        new()
+        {
+            Key = "nvidia-llama-3.1-70b",
+            ProviderKey = AIProviders.NvidiaNim,
+            DisplayName = "Llama 3.1 70B Instruct (Free Endpoint)",
+            Description = "Flagship enterprise reasoning and sophisticated brand copy on NVIDIA NIM API.",
+            Capability = AIModelCapability.Content,
+            Status = AIModelStatus.Available,
+            IsDefault = false,
+            IsRecommended = true,
+            IsFreeTier = true,
+            SortOrder = 2,
+            ProviderModelId = "meta/llama-3.1-70b-instruct"
+        },
+        new()
+        {
+            Key = "nvidia-mistral-7b",
+            ProviderKey = AIProviders.NvidiaNim,
+            DisplayName = "Mistral 7B Instruct v0.3 (Free Endpoint)",
+            Description = "Concise instruction following and punchy marketing copy on NVIDIA NIM API.",
+            Capability = AIModelCapability.Content,
+            Status = AIModelStatus.Available,
+            IsDefault = false,
+            IsRecommended = false,
+            IsFreeTier = true,
+            SortOrder = 3,
+            ProviderModelId = "mistralai/mistral-7b-instruct-v0.3"
+        },
+        new()
+        {
+            Key = "nvidia-nemotron-70b",
+            ProviderKey = AIProviders.NvidiaNim,
+            DisplayName = "Llama 3.1 Nemotron 70B (Free Endpoint)",
+            Description = "NVIDIA-aligned high-precision reasoning and professional copy generation.",
+            Capability = AIModelCapability.Content,
+            Status = AIModelStatus.Available,
+            IsDefault = false,
+            IsRecommended = false,
+            IsFreeTier = true,
+            SortOrder = 4,
+            ProviderModelId = "nvidia/llama-3.1-nemotron-70b-instruct"
         }
     };
 
@@ -126,13 +260,24 @@ public static class AIModelRegistry
     public static IReadOnlyList<ApprovedAIModel> GetModelsByProvider(string providerKey)
     {
         if (string.IsNullOrWhiteSpace(providerKey)) return Array.Empty<ApprovedAIModel>();
-        return Models.Where(m => string.Equals(m.ProviderKey, providerKey, StringComparison.OrdinalIgnoreCase)).ToList();
+        var normKey = providerKey.Trim();
+        if (string.Equals(normKey, "nvidia", StringComparison.OrdinalIgnoreCase))
+            normKey = AIProviders.NvidiaNim;
+        else if (string.Equals(normKey, "google", StringComparison.OrdinalIgnoreCase))
+            normKey = AIProviders.Gemini;
+
+        return Models.Where(m => string.Equals(m.ProviderKey, normKey, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(m => m.SortOrder)
+            .ToList();
     }
 
     public static ApprovedAIModel? GetModelByKey(string key)
     {
         if (string.IsNullOrWhiteSpace(key)) return null;
-        return Models.FirstOrDefault(m => string.Equals(m.Key, key, StringComparison.OrdinalIgnoreCase));
+        var trimmed = key.Trim();
+        return Models.FirstOrDefault(m => 
+            string.Equals(m.Key, trimmed, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(m.ProviderModelId, trimmed, StringComparison.OrdinalIgnoreCase));
     }
 
     public static bool IsApproved(string key)
@@ -185,7 +330,13 @@ public static class AIModelRegistry
     {
         model = null;
 
-        if (string.IsNullOrWhiteSpace(providerKey) || !AIProviderRegistry.IsApproved(providerKey))
+        var normProviderKey = providerKey?.Trim() ?? string.Empty;
+        if (string.Equals(normProviderKey, "nvidia", StringComparison.OrdinalIgnoreCase))
+            normProviderKey = AIProviders.NvidiaNim;
+        else if (string.Equals(normProviderKey, "google", StringComparison.OrdinalIgnoreCase))
+            normProviderKey = AIProviders.Gemini;
+
+        if (string.IsNullOrWhiteSpace(normProviderKey) || !AIProviderRegistry.IsApproved(normProviderKey))
         {
             errorCode = AIErrorCodes.ProviderNotFound;
             errorMessage = $"Provider '{providerKey}' is not an approved Sparovia AI provider.";
@@ -207,7 +358,7 @@ public static class AIModelRegistry
             return false;
         }
 
-        if (!string.Equals(candidate.ProviderKey, providerKey, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(candidate.ProviderKey, normProviderKey, StringComparison.OrdinalIgnoreCase))
         {
             errorCode = AIErrorCodes.ProviderModelMismatch;
             errorMessage = $"Model '{candidate.DisplayName}' does not belong to provider '{providerKey}'.";
@@ -265,7 +416,22 @@ public static class AIModelRegistry
 
     public static string DefaultModelKeyFor(string providerKey)
     {
-        var providerModels = GetModelsByProvider(providerKey);
+        var norm = providerKey?.Trim() ?? string.Empty;
+        if (string.Equals(norm, "nvidia", StringComparison.OrdinalIgnoreCase))
+            norm = AIProviders.NvidiaNim;
+        else if (string.Equals(norm, "google", StringComparison.OrdinalIgnoreCase))
+            norm = AIProviders.Gemini;
+
+        if (string.Equals(norm, AIProviders.OpenRouter, StringComparison.OrdinalIgnoreCase))
+            return DefaultOpenRouterModel;
+        if (string.Equals(norm, AIProviders.NvidiaNim, StringComparison.OrdinalIgnoreCase))
+            return DefaultNvidiaNimModel;
+        if (string.Equals(norm, AIProviders.Gemini, StringComparison.OrdinalIgnoreCase))
+            return DefaultGeminiModel;
+        if (string.Equals(norm, AIProviders.Claude, StringComparison.OrdinalIgnoreCase))
+            return DefaultClaudeModel;
+
+        var providerModels = GetModelsByProvider(norm);
         var def = providerModels.FirstOrDefault(m => m.IsDefault);
         return def?.Key ?? providerModels.FirstOrDefault()?.Key ?? DefaultOpenAIModel;
     }

@@ -111,6 +111,8 @@ public static class AIErrorCodes
     public const string ProviderNotApproved = "AI_PROVIDER_NOT_FOUND";
     public const string ModelCapabilityMismatch = "AI_MODEL_CAPABILITY_UNSUPPORTED";
     public const string ConnectionNotConfigured = "AI_PROVIDER_CONNECTION_REQUIRED";
+    public const string InvalidCredential = "INVALID_CREDENTIAL";
+    public const string ProviderTimeout = "PROVIDER_TIMEOUT";
 }
 
 public static class AIReviewStatus
@@ -149,12 +151,17 @@ public static class AIProviders
     public const string Gemini = "gemini";
     public const string Google = "gemini";
     public const string Claude = "claude";
+    public const string OpenRouter = "openrouter";
+    public const string NvidiaNim = "nvidianim";
+    public const string Nvidia = "nvidianim";
 
     public static readonly IReadOnlySet<string> All = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
         OpenAI,
         Gemini,
-        Claude
+        Claude,
+        OpenRouter,
+        NvidiaNim
     };
 }
 
