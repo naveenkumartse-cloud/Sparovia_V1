@@ -1520,6 +1520,132 @@ public class WebsiteImageService : IWebsiteImageService
         return CreateWorkCategoryAsync(tenantId, new CreateWorkCategoryRequest { Name = name }, cancellationToken);
     }
 
+    public async Task<WorkCategoryDto> UpdateWorkCategoryAsync(
+        Guid tenantId,
+        Guid categoryId,
+        UpdateWorkCategoryRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request?.Name))
+        {
+            throw new ArgumentException("Category name cannot be empty.", nameof(request.Name));
+        }
+
+        var trimmedName = request.Name.Trim();
+        if (trimmedName.Length > 100)
+        {
+            trimmedName = trimmedName[..100];
+        }
+
+        if (ContainsUnsafeContent(trimmedName))
+        {
+            throw new InvalidOperationException("Category name contains unsafe content.");
+        }
+
+        var category = await _dbContext.WebsiteWorkCategories
+            .FirstOrDefaultAsync(c => c.Id == categoryId && c.TenantId == tenantId, cancellationToken);
+
+        if (category == null)
+        {
+            throw new KeyNotFoundException("Category not found.");
+        }
+
+        // Check duplicate name within tenant
+        var duplicate = await _dbContext.WebsiteWorkCategories
+            .AnyAsync(c => c.TenantId == tenantId && c.Id != categoryId && c.Name.ToLower() == trimmedName.ToLower(), cancellationToken);
+
+        if (duplicate)
+        {
+            throw new InvalidOperationException($"A category named '{trimmedName}' already exists.");
+        }
+
+        var oldName = category.Name;
+        category.Name = trimmedName;
+        category.Slug = Slugify(trimmedName);
+        if (request.DisplayOrder.HasValue)
+        {
+            category.DisplayOrder = request.DisplayOrder.Value;
+        }
+        category.UpdatedAt = DateTime.UtcNow;
+
+        // If old category was used by images, update them to new name
+        if (!string.Equals(oldName, trimmedName, StringComparison.OrdinalIgnoreCase))
+        {
+            var imagesWithOldCat = await _dbContext.Images
+                .Where(i => i.TenantId == tenantId && i.Category == oldName)
+                .ToListAsync(cancellationToken);
+
+            foreach (var img in imagesWithOldCat)
+            {
+                img.Category = trimmedName;
+                img.UpdatedAt = DateTime.UtcNow;
+            }
+
+            var leadsWithOldCat = await _dbContext.Leads
+                .Where(l => l.TenantId == tenantId && (l.AreaOfInterestCategoryId == category.Id || l.AreaOfInterest == oldName))
+                .ToListAsync(cancellationToken);
+
+            foreach (var lead in leadsWithOldCat)
+            {
+                lead.AreaOfInterest = trimmedName;
+                lead.AreaOfInterestCategoryId = category.Id;
+                lead.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Sync explore our work to website content
+        await SyncExploreOurWorkToWebsiteContentAsync(tenantId, category.WebsiteId, cancellationToken);
+
+        var imageCount = await _dbContext.Images
+            .CountAsync(i => i.TenantId == tenantId && i.UsageType == "ExploreOurWork" && i.Status != "Deleted" && i.Status != "Unused" && i.Category == category.Name, cancellationToken);
+
+        return new WorkCategoryDto
+        {
+            Id = category.Id,
+            TenantId = category.TenantId,
+            WebsiteId = category.WebsiteId,
+            Name = category.Name,
+            Slug = category.Slug,
+            DisplayOrder = category.DisplayOrder,
+            IsActive = category.IsActive,
+            ImageCount = imageCount,
+            CreatedAt = category.CreatedAt
+        };
+    }
+
+    public async Task<bool> DeleteWorkCategoryAsync(
+        Guid tenantId,
+        Guid categoryId,
+        CancellationToken cancellationToken = default)
+    {
+        var category = await _dbContext.WebsiteWorkCategories
+            .FirstOrDefaultAsync(c => c.Id == categoryId && c.TenantId == tenantId, cancellationToken);
+
+        if (category == null)
+        {
+            throw new KeyNotFoundException("Category not found.");
+        }
+
+        // Option A safety check: prevent deletion if images currently use this category
+        var hasImages = await _dbContext.Images
+            .AnyAsync(i => i.TenantId == tenantId && i.UsageType == "ExploreOurWork" && i.Status != "Deleted" && i.Status != "Unused" && i.Category == category.Name, cancellationToken);
+
+        if (hasImages)
+        {
+            throw new InvalidOperationException($"Cannot delete category '{category.Name}' because it has project images assigned to it. Please reassign or delete the images first.");
+        }
+
+        _dbContext.WebsiteWorkCategories.Remove(category);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Sync explore our work
+        await SyncExploreOurWorkToWebsiteContentAsync(tenantId, category.WebsiteId, cancellationToken);
+
+        return true;
+    }
+
     private async Task EnsureWorkCategoryExistsAsync(Guid tenantId, Guid websiteId, string categoryName, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(categoryName)) return;
@@ -1572,6 +1698,7 @@ public class WebsiteImageService : IWebsiteImageService
             "heroImage" or "hero" => ("hero", "heroImage"),
             "primaryImage" or "aboutPrimary" => ("about", "primaryImage"),
             "secondaryImage" or "aboutSecondary" => ("about", "secondaryImage"),
+            "serviceImage" or "services" => ("services", "image"),
             _ => (null, null)
         };
 
@@ -1626,6 +1753,7 @@ public class WebsiteImageService : IWebsiteImageService
             "heroImage" or "hero" => ("hero", "heroImage"),
             "primaryImage" or "aboutPrimary" => ("about", "primaryImage"),
             "secondaryImage" or "aboutSecondary" => ("about", "secondaryImage"),
+            "serviceImage" or "services" => ("services", "image"),
             _ => (null, null)
         };
 

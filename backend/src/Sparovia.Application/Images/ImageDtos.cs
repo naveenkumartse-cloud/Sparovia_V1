@@ -85,6 +85,12 @@ public class CreateWorkCategoryRequest
     public Guid? WebsiteId { get; set; }
 }
 
+public class UpdateWorkCategoryRequest
+{
+    public required string Name { get; set; }
+    public int? DisplayOrder { get; set; }
+}
+
 public class PublishImageRequest
 {
     public Guid? VariantId { get; set; }

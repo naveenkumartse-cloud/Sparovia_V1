@@ -492,6 +492,74 @@ public class ReplaceImageForm
         }
     }
 
+    [HttpPut("/api/v1/website/categories/{id:guid}")]
+    [HttpPut("categories/{id:guid}")]
+    [Authorize]
+    public async Task<IActionResult> UpdateCategory(
+        Guid id,
+        [FromBody] UpdateWorkCategoryRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError)) return authError!;
+
+        if (string.IsNullOrWhiteSpace(request?.Name))
+        {
+            return BadRequest(new { Error = "Category name is required.", Code = "CATEGORY_NAME_REQUIRED" });
+        }
+
+        try
+        {
+            var category = await _imageService.UpdateWorkCategoryAsync(tenantId, id, request, cancellationToken);
+            return Ok(new
+            {
+                data = category,
+                message = "Category updated successfully.",
+                requestId = HttpContext.TraceIdentifier
+            });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { Error = "Category not found.", Code = "CATEGORY_NOT_FOUND" });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { Error = ex.Message, Code = "INVALID_CATEGORY_NAME" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Error = ex.Message, Code = "CATEGORY_UPDATE_FAILED" });
+        }
+    }
+
+    [HttpDelete("/api/v1/website/categories/{id:guid}")]
+    [HttpDelete("categories/{id:guid}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteCategory(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError)) return authError!;
+
+        try
+        {
+            await _imageService.DeleteWorkCategoryAsync(tenantId, id, cancellationToken);
+            return Ok(new
+            {
+                success = true,
+                message = "Category deleted successfully.",
+                requestId = HttpContext.TraceIdentifier
+            });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { Error = "Category not found.", Code = "CATEGORY_NOT_FOUND" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Error = ex.Message, Code = "CATEGORY_IN_USE" });
+        }
+    }
+
     [HttpPost("{id:guid}/enhancement/approve")]
     [Authorize]
     public async Task<IActionResult> ApproveEnhancement(

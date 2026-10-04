@@ -141,6 +141,7 @@ export interface AdaptedTemplateContent {
   faq: FaqContent;
   contact: ContactContent;
   footer: FooterContent;
+  tenantCategories: string[];
 
   // Backward compatibility aliases
   brandIntro: AboutContent;
@@ -197,6 +198,15 @@ export function adaptTemplateContent(
   const brandName = website?.name || '';
   const currentYear = new Date().getFullYear();
 
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/v1\/?$/, '') || 'http://localhost:5043';
+  const resolveImageUrl = (src?: string | null): string | undefined => {
+    if (!src) return undefined;
+    if (src.startsWith('/api/')) {
+      return `${apiBase}${src}`;
+    }
+    return src;
+  };
+
   // Helper to extract a section by key or alias
   const getRaw = (key: string): any => {
     if (sections[key]) return sections[key];
@@ -225,7 +235,7 @@ export function adaptTemplateContent(
     subheadline: rawHero.subheadline || '',
     primaryCta: rawHero.primaryCta || 'Get in Touch',
     secondaryCta: rawHero.secondaryCta || 'Learn More',
-    heroImage: rawHero.heroImage || rawHero.primaryImage || rawHero.image || undefined,
+    heroImage: resolveImageUrl(rawHero.heroImage || rawHero.primaryImage || rawHero.image) || undefined,
   };
 
   // 2. About
@@ -240,8 +250,8 @@ export function adaptTemplateContent(
     title: rawAbout.title || rawAbout.heading || (isLoading ? '' : brandName ? `About ${brandName}` : ''),
     description: rawAbout.description || '',
     pillars: aboutPillars,
-    primaryImage: rawAbout.primaryImage || rawAbout.image || undefined,
-    secondaryImage: rawAbout.secondaryImage || undefined,
+    primaryImage: resolveImageUrl(rawAbout.primaryImage || rawAbout.image) || undefined,
+    secondaryImage: resolveImageUrl(rawAbout.secondaryImage) || undefined,
   };
 
   // 3. Services
@@ -252,7 +262,7 @@ export function adaptTemplateContent(
         name: c.name || c.title || `Service ${idx + 1}`,
         tagline: c.tagline || '',
         description: c.description || '',
-        image: c.image || undefined,
+        image: resolveImageUrl(c.image) || undefined,
       }))
     : Array.isArray(rawServices.items)
     ? rawServices.items.map((c: any, idx: number) => ({
@@ -261,7 +271,7 @@ export function adaptTemplateContent(
         name: c.title || c.name || `Service ${idx + 1}`,
         tagline: c.tagline || '',
         description: c.description || '',
-        image: c.image || undefined,
+        image: resolveImageUrl(c.image) || undefined,
       }))
     : [];
 
@@ -302,7 +312,13 @@ export function adaptTemplateContent(
     heading: rawWork.heading || rawWork.title || (isLoading ? '' : 'Our Work'),
     description: rawWork.description || '',
     categories: workCategories,
-    items: Array.isArray(rawWork.items) ? rawWork.items : undefined,
+    items: Array.isArray(rawWork.items)
+      ? rawWork.items.map((item: any) => ({
+          ...item,
+          image: resolveImageUrl(item.image || item.src) || undefined,
+          src: resolveImageUrl(item.image || item.src) || undefined,
+        }))
+      : undefined,
   };
 
   // 6. Testimonials
@@ -370,6 +386,10 @@ export function adaptTemplateContent(
       : templateConfig.upvcPresentation.themes,
   };
 
+  const tenantCategories: string[] = Array.isArray(sections.tenantCategories) && sections.tenantCategories.length > 0
+    ? sections.tenantCategories
+    : workCategories.filter((c: string) => c.toLowerCase() !== 'all');
+
   return {
     hero,
     about,
@@ -381,6 +401,7 @@ export function adaptTemplateContent(
     faq,
     contact,
     footer,
+    tenantCategories,
     // Aliases
     brandIntro: about,
     interiors: services,

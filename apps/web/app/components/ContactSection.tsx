@@ -10,20 +10,21 @@ import { FadeIn } from '@/components/ui/Motion';
 import { CheckCircle2 } from 'lucide-react';
 
 export default function ContactSection() {
-  const { contact, services, website } = useTemplateContent();
+  const { contact, ourWork, tenantCategories, website } = useTemplateContent();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const serviceOptions = services.categories && services.categories.length > 0
-    ? services.categories.map((c) => c.name)
-    : ['General Inquiry', 'Design Consultation', 'Custom Project'];
+  // Authoritative tenant categories (excluding navigation concept "All")
+  const areaOptions = Array.isArray(tenantCategories) && tenantCategories.length > 0
+    ? tenantCategories
+    : (ourWork?.categories || []).filter((c) => c.toLowerCase() !== 'all');
   
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
-    service: serviceOptions[0] || 'General Inquiry',
+    areaOfInterest: '',
     message: '',
   });
 
@@ -39,7 +40,7 @@ export default function ContactSection() {
         apiUrl = `${apiUrl}/api/v1`;
       }
 
-      const domain = typeof window !== 'undefined' ? window.location.hostname : undefined;
+      const domain = typeof window !== 'undefined' ? (website?.domain || window.location.hostname) : undefined;
 
       const res = await fetch(`${apiUrl}/leads/public`, {
         method: 'POST',
@@ -50,14 +51,15 @@ export default function ContactSection() {
           name: formData.name.trim(),
           phone: formData.phone.trim(),
           email: formData.email ? formData.email.trim() : null,
-          service: formData.service || null,
+          areaOfInterest: formData.areaOfInterest || null,
+          service: formData.areaOfInterest || null, // backward compatibility
           message: formData.message ? formData.message.trim() : null,
           domain: domain || undefined,
         }),
       });
 
       if (!res.ok) {
-        let errMessage = 'Failed to submit request. Please try again.';
+        let errMessage = "We couldn't send your enquiry right now. Please try again.";
         try {
           const data = await res.json();
           if (data?.error) {
@@ -76,11 +78,11 @@ export default function ContactSection() {
         name: '',
         phone: '',
         email: '',
-        service: serviceOptions[0] || 'General Inquiry',
+        areaOfInterest: '',
         message: '',
       });
     } catch (err: any) {
-      setError(err.message || 'Failed to submit request. Please try again.');
+      setError(err.message || "We couldn't send your enquiry right now. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -175,11 +177,12 @@ export default function ContactSection() {
                     </label>
                     <select
                       id="user-service"
-                      value={formData.service}
-                      onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+                      value={formData.areaOfInterest}
+                      onChange={(e) => setFormData({ ...formData, areaOfInterest: e.target.value })}
                       className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring"
                     >
-                      {serviceOptions.map((opt) => (
+                      <option value="">Select an area of interest</option>
+                      {areaOptions.map((opt) => (
                         <option key={opt} value={opt}>
                           {opt}
                         </option>

@@ -233,6 +233,14 @@ export default function ImagesPage() {
   const [removingImage, setRemovingImage] = useState<ImageDto | null>(null);
   const [removing, setRemoving] = useState(false);
 
+  // Category Management Modal state
+  const [manageCategoriesModalOpen, setManageCategoriesModalOpen] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingCategoryName, setEditingCategoryName] = useState('');
+  const [categoryActionLoading, setCategoryActionLoading] = useState(false);
+  const [categoryActionError, setCategoryActionError] = useState<string | null>(null);
+  const [newCatInput, setNewCatInput] = useState('');
+
   const fetchImages = async () => {
     try {
       setLoading(true);
@@ -252,6 +260,56 @@ export default function ImagesPage() {
       setCategories(res?.data || []);
     } catch (err) {
       console.error('Failed to load work categories', err);
+    }
+  };
+
+  const handleCreateCategoryFromModal = async () => {
+    if (!newCatInput.trim()) return;
+    setCategoryActionLoading(true);
+    setCategoryActionError(null);
+    try {
+      await apiClient.post('/website/categories', { name: newCatInput.trim() });
+      setNewCatInput('');
+      await fetchCategories();
+    } catch (err: any) {
+      setCategoryActionError(err?.message || 'Failed to create category.');
+    } finally {
+      setCategoryActionLoading(false);
+    }
+  };
+
+  const handleUpdateCategoryFromModal = async (catId: string) => {
+    if (!editingCategoryName.trim()) return;
+    setCategoryActionLoading(true);
+    setCategoryActionError(null);
+    try {
+      await apiClient.put(`/website/categories/${catId}`, { name: editingCategoryName.trim() });
+      setEditingCategoryId(null);
+      setEditingCategoryName('');
+      await fetchCategories();
+      await fetchImages();
+    } catch (err: any) {
+      setCategoryActionError(err?.message || 'Failed to update category.');
+    } finally {
+      setCategoryActionLoading(false);
+    }
+  };
+
+  const handleDeleteCategoryFromModal = async (catId: string) => {
+    if (!window.confirm('Are you sure you want to delete this category?')) return;
+    setCategoryActionLoading(true);
+    setCategoryActionError(null);
+    try {
+      await apiClient.delete(`/website/categories/${catId}`);
+      if (categoryFilter.toLowerCase() === categories.find(c => c.id === catId)?.name.toLowerCase()) {
+        setCategoryFilter('All');
+      }
+      await fetchCategories();
+      await fetchImages();
+    } catch (err: any) {
+      setCategoryActionError(err?.message || 'Failed to delete category.');
+    } finally {
+      setCategoryActionLoading(false);
     }
   };
 
@@ -588,15 +646,31 @@ export default function ImagesPage() {
         </div>
 
         {activeTab === 'explore' && (
-          <Button
-            type="button"
-            variant="primary"
-            size="md"
-            onClick={() => openUploadModal()}
-            leftIcon={<Upload className="w-4 h-4" />}
-          >
-            Add Project Image
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => {
+                setCategoryActionError(null);
+                setEditingCategoryId(null);
+                setNewCatInput('');
+                setManageCategoriesModalOpen(true);
+              }}
+              leftIcon={<SlidersHorizontal className="w-4 h-4" />}
+            >
+              Manage Categories
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="md"
+              onClick={() => openUploadModal()}
+              leftIcon={<Upload className="w-4 h-4" />}
+            >
+              Add Project Image
+            </Button>
+          </div>
         )}
       </div>
 
@@ -891,15 +965,31 @@ export default function ImagesPage() {
                   ))}
                 </div>
 
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="sm"
-                  onClick={() => openUploadModal()}
-                  leftIcon={<Upload className="w-4 h-4" />}
-                >
-                  Add Project Image
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCategoryActionError(null);
+                      setEditingCategoryId(null);
+                      setNewCatInput('');
+                      setManageCategoriesModalOpen(true);
+                    }}
+                    leftIcon={<SlidersHorizontal className="w-4 h-4" />}
+                  >
+                    Manage Categories
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    onClick={() => openUploadModal()}
+                    leftIcon={<Upload className="w-4 h-4" />}
+                  >
+                    Add Project Image
+                  </Button>
+                </div>
               </div>
 
               {displayedExploreImages.length === 0 ? (
@@ -2017,6 +2107,157 @@ export default function ImagesPage() {
             </p>
           </div>
         )}
+      </Modal>
+
+      {/* MODAL: Manage Portfolio Categories */}
+      <Modal
+        isOpen={manageCategoriesModalOpen}
+        onClose={() => setManageCategoriesModalOpen(false)}
+        title="Manage Portfolio Categories"
+        description="Organize your Explore Our Work categories. These also define the Area of Interest choices in your public contact form."
+        maxWidth="md"
+        footer={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setManageCategoriesModalOpen(false)}
+          >
+            Close
+          </Button>
+        }
+      >
+        <div className="space-y-4">
+          {categoryActionError && (
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 flex items-start gap-2.5 text-xs text-rose-700 dark:text-rose-400">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{categoryActionError}</span>
+            </div>
+          )}
+
+          {/* Add Category Section */}
+          <div className="p-3.5 bg-slate-50 dark:bg-[#0B1120] rounded-xl border border-slate-200 dark:border-[#1E293B] space-y-2">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Add New Category
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="e.g. Modular Kitchen, Master Suite"
+                value={newCatInput}
+                onChange={(e) => setNewCatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCreateCategoryFromModal();
+                  }
+                }}
+                disabled={categoryActionLoading}
+                maxLength={100}
+                className="flex-1 text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#1E293B]/50 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={handleCreateCategoryFromModal}
+                disabled={categoryActionLoading || !newCatInput.trim()}
+              >
+                Add
+              </Button>
+            </div>
+          </div>
+
+          {/* Categories List */}
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Existing Categories ({categories.length})
+            </label>
+            {categories.length === 0 ? (
+              <p className="text-xs text-slate-400 italic py-2">No categories created yet.</p>
+            ) : (
+              <div className="divide-y divide-slate-100 dark:divide-[#1E293B] border border-slate-200 dark:border-[#1E293B] rounded-xl overflow-hidden bg-white dark:bg-[#0F172A]">
+                {categories.map((cat) => (
+                  <div key={cat.id} className="p-3 flex items-center justify-between gap-2">
+                    {editingCategoryId === cat.id ? (
+                      <div className="flex items-center gap-2 flex-1">
+                        <input
+                          type="text"
+                          value={editingCategoryName}
+                          onChange={(e) => setEditingCategoryName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleUpdateCategoryFromModal(cat.id);
+                            }
+                          }}
+                          autoFocus
+                          maxLength={100}
+                          className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-blue-400 bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <Button
+                          type="button"
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleUpdateCategoryFromModal(cat.id)}
+                          disabled={categoryActionLoading || !editingCategoryName.trim()}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingCategoryId(null);
+                            setEditingCategoryName('');
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs sm:text-sm font-medium text-slate-900 dark:text-white">
+                            {cat.name}
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
+                            {cat.imageCount} {cat.imageCount === 1 ? 'image' : 'images'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-xs"
+                            onClick={() => {
+                              setEditingCategoryId(cat.id);
+                              setEditingCategoryName(cat.name);
+                              setCategoryActionError(null);
+                            }}
+                            title="Edit Category Name"
+                          >
+                            <Edit3 className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-xs"
+                            onClick={() => handleDeleteCategoryFromModal(cat.id)}
+                            title="Delete Category"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-slate-400 hover:text-rose-600" />
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </Modal>
     </div>
   );

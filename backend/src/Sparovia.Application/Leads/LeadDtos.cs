@@ -7,6 +7,8 @@ public record LeadDto
     public string Phone { get; init; } = string.Empty;
     public string? Email { get; init; }
     public string Message { get; init; } = string.Empty;
+    public string? AreaOfInterest { get; init; }
+    public Guid? AreaOfInterestCategoryId { get; init; }
     public string Source { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
     public string? SourceReference { get; init; }
@@ -40,6 +42,8 @@ public record CreateLeadRequest
     public string Phone { get; init; } = string.Empty;
     public string? Email { get; init; }
     public string Message { get; init; } = string.Empty;
+    public string? AreaOfInterest { get; init; }
+    public Guid? AreaOfInterestCategoryId { get; init; }
     public string? Source { get; init; }
     public string? Status { get; init; }
 }
@@ -50,6 +54,8 @@ public record UpdateLeadRequest
     public string Phone { get; init; } = string.Empty;
     public string? Email { get; init; }
     public string Message { get; init; } = string.Empty;
+    public string? AreaOfInterest { get; init; }
+    public Guid? AreaOfInterestCategoryId { get; init; }
     public string? Status { get; init; }
 }
 
@@ -64,6 +70,8 @@ public record PublicWebsiteLeadRequest
     public string Phone { get; init; } = string.Empty;
     public string? Email { get; init; }
     public string? Service { get; init; }
+    public string? AreaOfInterest { get; init; }
+    public Guid? AreaOfInterestCategoryId { get; init; }
     public string Message { get; init; } = string.Empty;
     public string? Domain { get; init; }
 }

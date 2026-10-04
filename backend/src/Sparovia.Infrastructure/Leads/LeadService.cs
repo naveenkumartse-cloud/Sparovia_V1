@@ -81,6 +81,8 @@ public class LeadService : ILeadService
                 Phone = l.Phone,
                 Email = l.Email,
                 Message = l.Message,
+                AreaOfInterest = l.AreaOfInterest,
+                AreaOfInterestCategoryId = l.AreaOfInterestCategoryId,
                 Source = l.Source,
                 Status = l.Status,
                 SourceReference = l.SourceReference,
@@ -118,6 +120,8 @@ public class LeadService : ILeadService
             Phone = lead.Phone,
             Email = lead.Email,
             Message = lead.Message,
+            AreaOfInterest = lead.AreaOfInterest,
+            AreaOfInterestCategoryId = lead.AreaOfInterestCategoryId,
             Source = lead.Source,
             Status = lead.Status,
             SourceReference = lead.SourceReference,
@@ -196,6 +200,8 @@ public class LeadService : ILeadService
             Phone = normalizedPhone,
             Email = email,
             Message = message,
+            AreaOfInterest = request.AreaOfInterest?.Trim(),
+            AreaOfInterestCategoryId = request.AreaOfInterestCategoryId,
             Source = source,
             Status = status,
             SubmittedAt = now,
@@ -218,6 +224,8 @@ public class LeadService : ILeadService
             Phone = lead.Phone,
             Email = lead.Email,
             Message = lead.Message,
+            AreaOfInterest = lead.AreaOfInterest,
+            AreaOfInterestCategoryId = lead.AreaOfInterestCategoryId,
             Source = lead.Source,
             Status = lead.Status,
             SourceReference = lead.SourceReference,
@@ -301,6 +309,11 @@ public class LeadService : ILeadService
         lead.Phone = normalizedPhone;
         lead.Email = email;
         lead.Message = message;
+        if (request.AreaOfInterest != null)
+        {
+            lead.AreaOfInterest = request.AreaOfInterest.Trim();
+            lead.AreaOfInterestCategoryId = request.AreaOfInterestCategoryId;
+        }
         lead.UpdatedAt = DateTime.UtcNow;
         lead.UpdatedByUserId = updatedByUserId;
 
@@ -317,6 +330,8 @@ public class LeadService : ILeadService
             Phone = lead.Phone,
             Email = lead.Email,
             Message = lead.Message,
+            AreaOfInterest = lead.AreaOfInterest,
+            AreaOfInterestCategoryId = lead.AreaOfInterestCategoryId,
             Source = lead.Source,
             Status = lead.Status,
             SourceReference = lead.SourceReference,
@@ -405,6 +420,8 @@ public class LeadService : ILeadService
             Phone = lead.Phone,
             Email = lead.Email,
             Message = lead.Message,
+            AreaOfInterest = lead.AreaOfInterest,
+            AreaOfInterestCategoryId = lead.AreaOfInterestCategoryId,
             Source = lead.Source,
             Status = lead.Status,
             SourceReference = lead.SourceReference,
@@ -444,14 +461,26 @@ public class LeadService : ILeadService
             {
                 website = await _dbContext.Websites
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(w => w.Domain == domain || w.Domain.ToLower() == cleanDomain || w.Domain.ToLower().Contains(cleanDomain), cancellationToken);
+                    .FirstOrDefaultAsync(w => w.Domain == domain || w.Domain.ToLower() == cleanDomain || w.Domain.ToLower().Contains(cleanDomain) || cleanDomain.Contains(w.Domain.ToLower()), cancellationToken);
 
                 if (website == null)
                 {
-                    var totalWebsites = await _dbContext.Websites.CountAsync(cancellationToken);
-                    if (totalWebsites == 1)
+                    if (cleanDomain.EndsWith(".vercel.app") || cleanDomain.EndsWith(".onrender.com") || cleanDomain.Contains("sparovia") || cleanDomain.Contains("publicsite"))
                     {
-                        website = await _dbContext.Websites.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+                        website = await _dbContext.Websites
+                            .AsNoTracking()
+                            .Where(w => w.ConnectionStatus == "Connected")
+                            .OrderByDescending(w => w.UpdatedAt)
+                            .FirstOrDefaultAsync(cancellationToken);
+                    }
+
+                    if (website == null)
+                    {
+                        var totalWebsites = await _dbContext.Websites.CountAsync(cancellationToken);
+                        if (totalWebsites >= 1)
+                        {
+                            website = await _dbContext.Websites.AsNoTracking().OrderByDescending(w => w.UpdatedAt).FirstOrDefaultAsync(cancellationToken);
+                        }
                     }
                 }
             }
@@ -466,7 +495,7 @@ public class LeadService : ILeadService
 
         if (website == null)
         {
-            return LeadOperationResult.Fail("TENANT_NOT_FOUND", "Could not resolve valid tenant for website enquiry.");
+            return LeadOperationResult.Fail("TENANT_NOT_FOUND", "Could not resolve valid business for website enquiry.");
         }
 
         // 2. Validate input fields
@@ -503,21 +532,63 @@ public class LeadService : ILeadService
             email = trimmedEmail.ToLowerInvariant();
         }
 
-        var message = request.Message?.Trim() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(message))
+        // Validate Area of Interest against tenant categories
+        string? areaOfInterest = null;
+        Guid? areaOfInterestCategoryId = null;
+
+        var categoryInput = !string.IsNullOrWhiteSpace(request.AreaOfInterest)
+            ? request.AreaOfInterest.Trim()
+            : (!string.IsNullOrWhiteSpace(request.Service) ? request.Service.Trim() : null);
+
+        if (request.AreaOfInterestCategoryId.HasValue)
         {
-            return LeadOperationResult.Fail("VALIDATION_ERROR", "Message is required.");
+            var matchedCategory = await _dbContext.WebsiteWorkCategories
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == request.AreaOfInterestCategoryId.Value && c.TenantId == website.TenantId && c.IsActive, cancellationToken);
+
+            if (matchedCategory == null)
+            {
+                return LeadOperationResult.Fail("INVALID_CATEGORY", "Selected area of interest is not valid.");
+            }
+
+            areaOfInterest = matchedCategory.Name;
+            areaOfInterestCategoryId = matchedCategory.Id;
         }
+        else if (!string.IsNullOrWhiteSpace(categoryInput))
+        {
+            if (string.Equals(categoryInput, "All", StringComparison.OrdinalIgnoreCase))
+            {
+                return LeadOperationResult.Fail("INVALID_CATEGORY", "Please select a specific area of interest.");
+            }
+
+            var matchedCategory = await _dbContext.WebsiteWorkCategories
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.TenantId == website.TenantId && c.IsActive && c.Name.ToLower() == categoryInput.ToLower(), cancellationToken);
+
+            if (matchedCategory != null)
+            {
+                areaOfInterest = matchedCategory.Name;
+                areaOfInterestCategoryId = matchedCategory.Id;
+            }
+            else
+            {
+                if (categoryInput.Length <= 100)
+                {
+                    areaOfInterest = categoryInput;
+                }
+            }
+        }
+
+        var message = request.Message?.Trim() ?? string.Empty;
         if (message.Length > 4000)
         {
             return LeadOperationResult.Fail("VALIDATION_ERROR", "Message must not exceed 4000 characters.");
         }
-
-        // If service/area of interest was specified, prepend to message
-        if (!string.IsNullOrWhiteSpace(request.Service))
+        if (string.IsNullOrWhiteSpace(message))
         {
-            var servicePrefix = $"[Area of Interest: {request.Service.Trim()}]";
-            message = $"{servicePrefix}\n{message}";
+            message = !string.IsNullOrWhiteSpace(areaOfInterest)
+                ? $"Interested in {areaOfInterest}"
+                : "Website enquiry";
         }
 
         // 3. Controlled Server values
@@ -530,6 +601,8 @@ public class LeadService : ILeadService
             Phone = normalizedPhone,
             Email = email,
             Message = message,
+            AreaOfInterest = areaOfInterest,
+            AreaOfInterestCategoryId = areaOfInterestCategoryId,
             Source = LeadSource.Website,
             Status = LeadStatus.New,
             SubmittedAt = now,
@@ -541,8 +614,8 @@ public class LeadService : ILeadService
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
-            "AUDIT: LEAD_CREATED. TenantId={TenantId}, LeadId={LeadId}, Source={Source}, PhoneMasked={PhoneMasked}, SubmittedAt={SubmittedAt}",
-            website.TenantId, lead.Id, lead.Source, PhoneNumberHelper.Mask(normalizedPhone), now);
+            "AUDIT: LEAD_CREATED. TenantId={TenantId}, LeadId={LeadId}, Source={Source}, PhoneMasked={PhoneMasked}, AreaOfInterest={AreaOfInterest}, SubmittedAt={SubmittedAt}",
+            website.TenantId, lead.Id, lead.Source, PhoneNumberHelper.Mask(normalizedPhone), areaOfInterest, now);
 
         var dto = new LeadDto
         {
@@ -551,6 +624,8 @@ public class LeadService : ILeadService
             Phone = lead.Phone,
             Email = lead.Email,
             Message = lead.Message,
+            AreaOfInterest = lead.AreaOfInterest,
+            AreaOfInterestCategoryId = lead.AreaOfInterestCategoryId,
             Source = lead.Source,
             Status = lead.Status,
             SourceReference = lead.SourceReference,
@@ -617,6 +692,8 @@ public class LeadService : ILeadService
                     Phone = existingLead.Phone,
                     Email = existingLead.Email,
                     Message = existingLead.Message,
+                    AreaOfInterest = existingLead.AreaOfInterest,
+                    AreaOfInterestCategoryId = existingLead.AreaOfInterestCategoryId,
                     Source = existingLead.Source,
                     Status = existingLead.Status,
                     SourceReference = existingLead.SourceReference,
@@ -668,6 +745,8 @@ public class LeadService : ILeadService
             Phone = lead.Phone,
             Email = lead.Email,
             Message = lead.Message,
+            AreaOfInterest = lead.AreaOfInterest,
+            AreaOfInterestCategoryId = lead.AreaOfInterestCategoryId,
             Source = lead.Source,
             Status = lead.Status,
             SourceReference = lead.SourceReference,

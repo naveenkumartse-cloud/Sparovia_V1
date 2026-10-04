@@ -31,12 +31,20 @@ export interface Lead {
   phone: string;
   email: string | null;
   message: string;
+  areaOfInterest?: string | null;
+  areaOfInterestCategoryId?: string | null;
   source: string;
   status: 'New' | 'Contacted' | 'Qualified' | 'Closed' | string;
   sourceReference: string | null;
   submittedAt: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TenantWorkCategory {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 interface LeadListResponse {
@@ -66,6 +74,9 @@ export default function LeadsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Tenant Work Categories (Source of truth for Area of Interest)
+  const [tenantCategories, setTenantCategories] = useState<TenantWorkCategory[]>([]);
+
   // Selected Lead for detail view
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -79,6 +90,8 @@ export default function LeadsPage() {
     phone: '',
     email: '',
     message: '',
+    areaOfInterest: '',
+    areaOfInterestCategoryId: '',
     source: 'Website',
     status: 'New',
   });
@@ -92,6 +105,8 @@ export default function LeadsPage() {
     phone: '',
     email: '',
     message: '',
+    areaOfInterest: '',
+    areaOfInterestCategoryId: '',
     status: 'New',
   });
   const [editError, setEditError] = useState<string | null>(null);
@@ -137,6 +152,19 @@ export default function LeadsPage() {
     fetchLeads();
   }, [fetchLeads]);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res: any = await apiClient.get('/website/categories');
+        const list = Array.isArray(res) ? res : (res?.data || []);
+        setTenantCategories(list);
+      } catch (err) {
+        console.error('Failed to load categories for leads:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   const handleStatusChange = async (leadId: string, newStatus: string) => {
     if (isUpdatingStatus) return;
     setIsUpdatingStatus(true);
@@ -179,6 +207,8 @@ export default function LeadsPage() {
         phone: addForm.phone.trim(),
         email: addForm.email.trim() || null,
         message: addForm.message.trim(),
+        areaOfInterest: addForm.areaOfInterest.trim() || null,
+        areaOfInterestCategoryId: addForm.areaOfInterestCategoryId.trim() || null,
         source: addForm.source,
         status: addForm.status,
       });
@@ -189,6 +219,8 @@ export default function LeadsPage() {
         phone: '',
         email: '',
         message: '',
+        areaOfInterest: '',
+        areaOfInterestCategoryId: '',
         source: 'Website',
         status: 'New',
       });
@@ -207,6 +239,8 @@ export default function LeadsPage() {
       phone: lead.phone,
       email: lead.email || '',
       message: lead.message,
+      areaOfInterest: lead.areaOfInterest || '',
+      areaOfInterestCategoryId: lead.areaOfInterestCategoryId || '',
       status: lead.status,
     });
     setEditError(null);
@@ -229,6 +263,8 @@ export default function LeadsPage() {
         phone: editForm.phone.trim(),
         email: editForm.email.trim() || null,
         message: editForm.message.trim(),
+        areaOfInterest: editForm.areaOfInterest.trim() || null,
+        areaOfInterestCategoryId: editForm.areaOfInterestCategoryId.trim() || null,
         status: editForm.status,
       });
 
@@ -494,6 +530,7 @@ export default function LeadsPage() {
                 <tr>
                   <th scope="col" className="px-6 py-3.5">Customer</th>
                   <th scope="col" className="px-6 py-3.5">Phone / Contact</th>
+                  <th scope="col" className="px-6 py-3.5">Area of Interest</th>
                   <th scope="col" className="px-6 py-3.5">Source</th>
                   <th scope="col" className="px-6 py-3.5">Status</th>
                   <th scope="col" className="px-6 py-3.5">Submitted</th>
@@ -519,6 +556,15 @@ export default function LeadsPage() {
                       <div>{lead.phone}</div>
                       {lead.email && (
                         <div className="text-xs text-slate-400 truncate max-w-xs">{lead.email}</div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {lead.areaOfInterest ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                          {lead.areaOfInterest}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400">—</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -599,6 +645,14 @@ export default function LeadsPage() {
                     {getSourceBadge(lead.source)}
                   </div>
                 </div>
+
+                {lead.areaOfInterest && (
+                  <div>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                      {lead.areaOfInterest}
+                    </span>
+                  </div>
+                )}
 
                 {lead.message && (
                   <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
@@ -760,6 +814,15 @@ export default function LeadsPage() {
 
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#1E293B]/40 border border-slate-100 dark:border-slate-800">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  Area of Interest
+                </span>
+                <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
+                  {selectedLead.areaOfInterest || 'Not specified'}
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#1E293B]/40 border border-slate-100 dark:border-slate-800 sm:col-span-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   Channel / Source
                 </span>
                 <div className="mt-1 flex items-center gap-2">
@@ -897,6 +960,31 @@ export default function LeadsPage() {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Area of Interest
+            </label>
+            <select
+              value={addForm.areaOfInterest}
+              onChange={e => {
+                const selected = tenantCategories.find(c => c.name === e.target.value);
+                setAddForm({
+                  ...addForm,
+                  areaOfInterest: e.target.value,
+                  areaOfInterestCategoryId: selected ? selected.id : '',
+                });
+              }}
+              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+            >
+              <option value="">Select an area of interest (optional)</option>
+              {tenantCategories.map(cat => (
+                <option key={cat.id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Project Enquiry / Requirements *
             </label>
             <textarea
@@ -990,20 +1078,47 @@ export default function LeadsPage() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Status
-            </label>
-            <select
-              value={editForm.status}
-              onChange={e => setEditForm({ ...editForm, status: e.target.value })}
-              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
-            >
-              <option value="New">New</option>
-              <option value="Contacted">Contacted</option>
-              <option value="Qualified">Qualified</option>
-              <option value="Closed">Closed</option>
-            </select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Area of Interest
+              </label>
+              <select
+                value={editForm.areaOfInterest}
+                onChange={e => {
+                  const selected = tenantCategories.find(c => c.name === e.target.value);
+                  setEditForm({
+                    ...editForm,
+                    areaOfInterest: e.target.value,
+                    areaOfInterestCategoryId: selected ? selected.id : '',
+                  });
+                }}
+                className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+              >
+                <option value="">Select an area of interest (optional)</option>
+                {tenantCategories.map(cat => (
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Status
+              </label>
+              <select
+                value={editForm.status}
+                onChange={e => setEditForm({ ...editForm, status: e.target.value })}
+                className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+              >
+                <option value="New">New</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Qualified">Qualified</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </div>
           </div>
 
           <div>

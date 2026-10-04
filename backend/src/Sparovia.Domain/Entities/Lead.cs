@@ -20,6 +20,11 @@ public class Lead
     public string? Email { get; set; }
     public string? Message { get; set; }
 
+    // Area of Interest (Tenant Work Category)
+    public string? AreaOfInterest { get; set; }
+    public Guid? AreaOfInterestCategoryId { get; set; }
+    public WebsiteWorkCategory? AreaOfInterestCategory { get; set; }
+
     // Metadata & Classification
     public string Source { get; set; } = LeadSource.Website; // "Website" | "WhatsApp"
     public string Status { get; set; } = LeadStatus.New;     // "New" | "Contacted" | "Closed"

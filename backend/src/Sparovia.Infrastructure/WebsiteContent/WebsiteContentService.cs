@@ -622,14 +622,26 @@ public class WebsiteContentService : IWebsiteContentService
             {
                 website = await _dbContext.Websites
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(w => w.Domain == domain || w.Domain.ToLower() == cleanDomain || w.Domain.ToLower().Contains(cleanDomain), cancellationToken);
+                    .FirstOrDefaultAsync(w => w.Domain == domain || w.Domain.ToLower() == cleanDomain || w.Domain.ToLower().Contains(cleanDomain) || cleanDomain.Contains(w.Domain.ToLower()), cancellationToken);
 
                 if (website == null)
                 {
-                    var totalWebsites = await _dbContext.Websites.CountAsync(cancellationToken);
-                    if (totalWebsites == 1)
+                    if (cleanDomain.EndsWith(".vercel.app") || cleanDomain.EndsWith(".onrender.com") || cleanDomain.Contains("sparovia") || cleanDomain.Contains("publicsite"))
                     {
-                        website = await _dbContext.Websites.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+                        website = await _dbContext.Websites
+                            .AsNoTracking()
+                            .Where(w => w.ConnectionStatus == "Connected")
+                            .OrderByDescending(w => w.UpdatedAt)
+                            .FirstOrDefaultAsync(cancellationToken);
+                    }
+
+                    if (website == null)
+                    {
+                        var totalWebsites = await _dbContext.Websites.CountAsync(cancellationToken);
+                        if (totalWebsites >= 1)
+                        {
+                            website = await _dbContext.Websites.AsNoTracking().OrderByDescending(w => w.UpdatedAt).FirstOrDefaultAsync(cancellationToken);
+                        }
                     }
                 }
             }
@@ -671,6 +683,99 @@ public class WebsiteContentService : IWebsiteContentService
                     sectionsMap["gallery"] = doc.RootElement.Clone();
                 else if (c.SectionKey.Equals("faq", StringComparison.OrdinalIgnoreCase))
                     sectionsMap["faqs"] = doc.RootElement.Clone();
+            }
+        }
+
+        // Enrich hero, about, and services sections with published active Website Images
+        var publishedWebsiteImages = await _dbContext.Images
+            .AsNoTracking()
+            .Include(i => i.Variants)
+            .Where(i => i.WebsiteId == website.Id && i.UsageType == "WebsiteImage" && i.Status == "Published" && i.IsActiveWebsiteUsage)
+            .OrderByDescending(i => i.UpdatedAt)
+            .ToListAsync(cancellationToken);
+
+        foreach (var img in publishedWebsiteImages)
+        {
+            var publishedVariant = img.Variants
+                .Where(v => v.Status == "Published")
+                .OrderByDescending(v => v.CreatedAt)
+                .FirstOrDefault();
+
+            var deliveryUrl = publishedVariant != null
+                ? $"/api/v1/website/images/{img.Id}/variants/{publishedVariant.Id}/file"
+                : $"/api/v1/website/images/{img.Id}/file";
+
+            try
+            {
+                if (string.Equals(img.Slot, "heroImage", StringComparison.OrdinalIgnoreCase) || string.Equals(img.Slot, "hero", StringComparison.OrdinalIgnoreCase))
+                {
+                    JsonObject heroObj;
+                    if (sectionsMap.TryGetValue("hero", out var existingHero))
+                    {
+                        heroObj = JsonNode.Parse(existingHero.GetRawText()) as JsonObject ?? new JsonObject();
+                    }
+                    else
+                    {
+                        heroObj = new JsonObject();
+                    }
+                    heroObj["heroImage"] = deliveryUrl;
+                    heroObj["image"] = deliveryUrl;
+                    var doc = JsonDocument.Parse(heroObj.ToJsonString());
+                    sectionsMap["hero"] = doc.RootElement.Clone();
+                }
+                else if (string.Equals(img.Slot, "primaryImage", StringComparison.OrdinalIgnoreCase) || string.Equals(img.Slot, "aboutPrimary", StringComparison.OrdinalIgnoreCase) || string.Equals(img.Slot, "about", StringComparison.OrdinalIgnoreCase))
+                {
+                    JsonObject aboutObj;
+                    if (sectionsMap.TryGetValue("about", out var existingAbout))
+                    {
+                        aboutObj = JsonNode.Parse(existingAbout.GetRawText()) as JsonObject ?? new JsonObject();
+                    }
+                    else
+                    {
+                        aboutObj = new JsonObject();
+                    }
+                    aboutObj["primaryImage"] = deliveryUrl;
+                    aboutObj["image"] = deliveryUrl;
+                    var doc = JsonDocument.Parse(aboutObj.ToJsonString());
+                    sectionsMap["about"] = doc.RootElement.Clone();
+                    sectionsMap["brandIntro"] = sectionsMap["about"];
+                }
+                else if (string.Equals(img.Slot, "secondaryImage", StringComparison.OrdinalIgnoreCase) || string.Equals(img.Slot, "aboutSecondary", StringComparison.OrdinalIgnoreCase))
+                {
+                    JsonObject aboutObj;
+                    if (sectionsMap.TryGetValue("about", out var existingAbout))
+                    {
+                        aboutObj = JsonNode.Parse(existingAbout.GetRawText()) as JsonObject ?? new JsonObject();
+                    }
+                    else
+                    {
+                        aboutObj = new JsonObject();
+                    }
+                    aboutObj["secondaryImage"] = deliveryUrl;
+                    var doc = JsonDocument.Parse(aboutObj.ToJsonString());
+                    sectionsMap["about"] = doc.RootElement.Clone();
+                    sectionsMap["brandIntro"] = sectionsMap["about"];
+                }
+                else if (string.Equals(img.Slot, "serviceImage", StringComparison.OrdinalIgnoreCase) || string.Equals(img.Slot, "services", StringComparison.OrdinalIgnoreCase))
+                {
+                    JsonObject servicesObj;
+                    if (sectionsMap.TryGetValue("services", out var existingServices))
+                    {
+                        servicesObj = JsonNode.Parse(existingServices.GetRawText()) as JsonObject ?? new JsonObject();
+                    }
+                    else
+                    {
+                        servicesObj = new JsonObject();
+                    }
+                    servicesObj["image"] = deliveryUrl;
+                    var doc = JsonDocument.Parse(servicesObj.ToJsonString());
+                    sectionsMap["services"] = doc.RootElement.Clone();
+                    sectionsMap["interiors"] = sectionsMap["services"];
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Failed to dynamically populate published Website Image for slot {Slot}", img.Slot);
             }
         }
 
@@ -750,6 +855,9 @@ public class WebsiteContentService : IWebsiteContentService
                 _logger?.LogWarning(ex, "Failed to dynamically populate published Explore Our Work items in our-work section.");
             }
         }
+
+        var tenantOnlyCategories = dynamicCategories.Where(c => !c.Equals("All", StringComparison.OrdinalIgnoreCase)).ToList();
+        sectionsMap["tenantCategories"] = JsonDocument.Parse(JsonSerializer.Serialize(tenantOnlyCategories)).RootElement.Clone();
 
         return new PublishedWebsiteContentDto
         {

@@ -327,7 +327,8 @@ public class SparoviaDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(256);
             entity.Property(e => e.Phone).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Email).HasMaxLength(256);
-            entity.Property(e => e.Message).IsRequired().HasMaxLength(4000);
+            entity.Property(e => e.Message).HasMaxLength(4000);
+            entity.Property(e => e.AreaOfInterest).HasMaxLength(100);
             entity.Property(e => e.Source).IsRequired().HasMaxLength(50).HasDefaultValue("Website");
             entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("New");
             entity.Property(e => e.SourceReference).HasMaxLength(256);
@@ -340,6 +341,11 @@ public class SparoviaDbContext : DbContext
             entity.HasOne(e => e.Website)
                 .WithMany(w => w.Leads)
                 .HasForeignKey(e => e.WebsiteId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.AreaOfInterestCategory)
+                .WithMany()
+                .HasForeignKey(e => e.AreaOfInterestCategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasOne(e => e.UpdatedByUser)
