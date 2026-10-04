@@ -769,10 +769,10 @@ export default function ImagesPage() {
                         <div className="flex items-center gap-2">
                           <Button
                             type="button"
-                            variant="secondary"
+                            variant="enhance"
                             size="sm"
                             onClick={() => openEnhanceModal(assignedImage)}
-                            leftIcon={<SlidersHorizontal className="w-3.5 h-3.5" />}
+                            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
                           >
                             Enhance
                           </Button>
@@ -791,7 +791,7 @@ export default function ImagesPage() {
                           {assignedImage.status !== 'Published' ? (
                             <Button
                               type="button"
-                              variant="success"
+                              variant="primary"
                               size="sm"
                               onClick={() => handlePublishImage(assignedImage)}
                             >
@@ -982,10 +982,10 @@ export default function ImagesPage() {
                         <div className="flex items-center gap-2">
                           <Button
                             type="button"
-                            variant="secondary"
+                            variant="enhance"
                             size="sm"
                             onClick={() => openEnhanceModal(image)}
-                            leftIcon={<SlidersHorizontal className="w-3.5 h-3.5" />}
+                            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
                           >
                             Enhance
                           </Button>
@@ -1014,7 +1014,7 @@ export default function ImagesPage() {
                           {(image.status === 'Approved' || (image.status !== 'Published' && image.status !== 'Uploaded')) && (
                             <Button
                               type="button"
-                              variant="success"
+                              variant="primary"
                               size="sm"
                               onClick={() => handlePublishImage(image)}
                             >
@@ -1570,7 +1570,7 @@ export default function ImagesPage() {
                 </Button>
                 <Button
                   type="button"
-                  variant="success"
+                  variant="primary"
                   size="md"
                   disabled={approving || publishing}
                   isLoading={publishing}
@@ -1933,7 +1933,7 @@ export default function ImagesPage() {
             </Button>
             <Button
               type="button"
-              variant="success"
+              variant="primary"
               size="md"
               disabled={publishing}
               isLoading={publishing}
