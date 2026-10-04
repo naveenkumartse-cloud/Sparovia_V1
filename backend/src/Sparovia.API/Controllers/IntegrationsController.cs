@@ -139,9 +139,9 @@ public class IntegrationsController : ControllerBase
             return BadRequest(new { Error = "A valid WhatsApp phone number is required when enabling WhatsApp integration." });
         }
 
-        if (request.Enabled && cleanedPhone.Length < 10)
+        if (request.Enabled && cleanedPhone.Length == 10)
         {
-            return BadRequest(new { Error = "WhatsApp phone number must contain at least 10 digits." });
+            cleanedPhone = "91" + cleanedPhone;
         }
 
         var prefilledMessage = string.IsNullOrWhiteSpace(request.PrefilledMessage)
@@ -191,6 +191,7 @@ public class IntegrationsController : ControllerBase
             content.PublishedAt = now;
         }
 
+        website.UpdatedAt = now;
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return Ok(new WhatsAppIntegrationDto

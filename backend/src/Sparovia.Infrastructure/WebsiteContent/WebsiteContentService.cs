@@ -622,7 +622,9 @@ public class WebsiteContentService : IWebsiteContentService
             {
                 website = await _dbContext.Websites
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(w => w.Domain == domain || w.Domain.ToLower() == cleanDomain || w.Domain.ToLower().Contains(cleanDomain) || cleanDomain.Contains(w.Domain.ToLower()), cancellationToken);
+                    .Where(w => w.Domain == domain || w.Domain.ToLower() == cleanDomain || w.Domain.ToLower().Contains(cleanDomain) || cleanDomain.Contains(w.Domain.ToLower()))
+                    .OrderByDescending(w => w.UpdatedAt)
+                    .FirstOrDefaultAsync(cancellationToken);
 
                 if (website == null)
                 {

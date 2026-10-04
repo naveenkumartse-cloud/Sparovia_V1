@@ -32,7 +32,7 @@ export function Section({
   };
 
   return (
-    <section id={id} className={cn('relative overflow-hidden', bgClasses[background], paddingClasses[padding], className)}>
+    <section id={id} className={cn('relative overflow-hidden scroll-mt-20', bgClasses[background], paddingClasses[padding], className)}>
       {children}
     </section>
   );

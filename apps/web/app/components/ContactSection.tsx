@@ -34,6 +34,15 @@ export default function ContactSection() {
     setError(null);
     
     try {
+      const trimmedName = formData.name.trim();
+      const trimmedPhone = formData.phone.trim();
+      const trimmedMessage = formData.message.trim();
+      const trimmedArea = formData.areaOfInterest ? formData.areaOfInterest.trim() : null;
+
+      if (!trimmedName || !trimmedPhone || !trimmedMessage) {
+        throw new Error('Please fill in all required fields (Name, Phone, and Project Details).');
+      }
+
       let apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5043/api/v1';
       apiUrl = apiUrl.replace(/\/+$/, '');
       if (!apiUrl.endsWith('/api/v1')) {
@@ -48,12 +57,12 @@ export default function ContactSection() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formData.name.trim(),
-          phone: formData.phone.trim(),
+          name: trimmedName,
+          phone: trimmedPhone,
           email: formData.email ? formData.email.trim() : null,
-          areaOfInterest: formData.areaOfInterest || null,
-          service: formData.areaOfInterest || null, // backward compatibility
-          message: formData.message ? formData.message.trim() : null,
+          areaOfInterest: trimmedArea,
+          service: trimmedArea, // backward compatibility
+          message: trimmedMessage,
           domain: domain || undefined,
         }),
       });
@@ -62,7 +71,12 @@ export default function ContactSection() {
         let errMessage = "We couldn't send your enquiry right now. Please try again.";
         try {
           const data = await res.json();
-          if (data?.error) {
+          if (data?.errors && typeof data.errors === 'object') {
+            const firstKey = Object.keys(data.errors)[0];
+            if (firstKey && Array.isArray(data.errors[firstKey]) && data.errors[firstKey].length > 0) {
+              errMessage = data.errors[firstKey][0];
+            }
+          } else if (data?.error) {
             errMessage = data.error;
           } else if (data?.message) {
             errMessage = data.message;
@@ -192,10 +206,11 @@ export default function ContactSection() {
 
                   <div>
                     <label htmlFor="user-message" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
-                      Project Details
+                      Project Details *
                     </label>
                     <textarea
                       id="user-message"
+                      required
                       rows={4}
                       placeholder="Tell us about your project requirements..."
                       value={formData.message}
@@ -218,7 +233,7 @@ export default function ContactSection() {
                     disabled={loading}
                     className="w-full justify-center"
                   >
-                    {loading ? 'Submitting...' : (contact.ctaLabel || 'Submit Request')}
+                    {loading ? 'Sending...' : (error ? 'Try Again' : (contact.ctaLabel || 'Request a Quote'))}
                   </Button>
                 </form>
               )}
