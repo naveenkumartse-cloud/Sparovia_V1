@@ -13,35 +13,37 @@ public class DeterministicImageProcessingService : IImageProcessingService
         _logger = logger;
     }
 
-    public Task<ImageAnalysisResult> AnalyzeImageAsync(
+    public async Task<ImageAnalysisResult> AnalyzeImageAsync(
         Stream imageStream,
         long fileSize,
         string? originalFormat = null,
         CancellationToken cancellationToken = default)
     {
-        if (imageStream.CanSeek)
+        byte[] imageBytes;
+        if (imageStream is MemoryStream ms)
         {
-            imageStream.Position = 0;
+            imageBytes = ms.ToArray();
+        }
+        else
+        {
+            using var mem = new MemoryStream();
+            if (imageStream.CanSeek) imageStream.Position = 0;
+            await imageStream.CopyToAsync(mem, cancellationToken);
+            imageBytes = mem.ToArray();
         }
 
         SKBitmap? bitmap = null;
         try
         {
-            using var codec = SKCodec.Create(imageStream);
-            if (codec != null)
+            using var data = SKData.CreateCopy(imageBytes);
+            if (data != null && data.Size > 0)
             {
-                var info = codec.Info;
-                bitmap = SKBitmap.Decode(codec);
-            }
-            else
-            {
-                if (imageStream.CanSeek) imageStream.Position = 0;
-                bitmap = SKBitmap.Decode(imageStream);
+                bitmap = SKBitmap.Decode(data);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to decode stream via SkiaSharp (e.g. test stub). Using fallback canvas for analysis.");
+            _logger.LogWarning(ex, "Failed to decode image data via SkiaSharp. Using fallback canvas for analysis.");
         }
 
         bitmap ??= new SKBitmap(800, 600, SKColorType.Rgba8888, SKAlphaType.Premul);
@@ -83,17 +85,16 @@ public class DeterministicImageProcessingService : IImageProcessingService
                 canvas.DrawBitmap(bitmap, destRect, paint);
             }
 
-            // Compute luminance matrix
+            // Compute luminance matrix safely from color pixels
             var totalPixels = sampleW * sampleH;
             var lumMatrix = new double[sampleW, sampleH];
             double sumLum = 0;
 
-            var pixels = sampleBitmap.Pixels;
             for (var y = 0; y < sampleH; y++)
             {
                 for (var x = 0; x < sampleW; x++)
                 {
-                    var color = pixels[y * sampleW + x];
+                    var color = sampleBitmap.GetPixel(x, y);
                     // Rec. 709 luminance
                     var lum = (0.2126 * color.Red + 0.7152 * color.Green + 0.0722 * color.Blue) / 255.0;
                     lumMatrix[x, y] = lum;
@@ -203,7 +204,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
                 recommendedReason = "This image is ready for website delivery with optimized WebP compression.";
             }
 
-            return Task.FromResult(new ImageAnalysisResult
+            return new ImageAnalysisResult
             {
                 Width = width,
                 Height = height,
@@ -217,38 +218,41 @@ public class DeterministicImageProcessingService : IImageProcessingService
                 IsLargeEnough = isLargeEnough,
                 RecommendedOperation = recommendedOp,
                 RecommendationReason = recommendedReason
-            });
+            };
         }
     }
 
-    public Task<ProcessedImageResult> ProcessImageAsync(
+    public async Task<ProcessedImageResult> ProcessImageAsync(
         Stream imageStream,
         string operation,
         ImageProcessingOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        if (imageStream.CanSeek)
+        byte[] imageBytes;
+        if (imageStream is MemoryStream ms)
         {
-            imageStream.Position = 0;
+            imageBytes = ms.ToArray();
+        }
+        else
+        {
+            using var mem = new MemoryStream();
+            if (imageStream.CanSeek) imageStream.Position = 0;
+            await imageStream.CopyToAsync(mem, cancellationToken);
+            imageBytes = mem.ToArray();
         }
 
         SKBitmap? sourceBitmap = null;
         try
         {
-            using var codec = SKCodec.Create(imageStream);
-            if (codec != null)
+            using var data = SKData.CreateCopy(imageBytes);
+            if (data != null && data.Size > 0)
             {
-                sourceBitmap = SKBitmap.Decode(codec);
-            }
-            else
-            {
-                if (imageStream.CanSeek) imageStream.Position = 0;
-                sourceBitmap = SKBitmap.Decode(imageStream);
+                sourceBitmap = SKBitmap.Decode(data);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to decode input stream with SkiaSharp (e.g. test stub). Using fallback canvas for processing.");
+            _logger.LogWarning(ex, "Failed to decode input bytes with SkiaSharp. Using fallback canvas for processing.");
         }
 
         if (sourceBitmap == null)
@@ -382,7 +386,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
 
                 var bytes = data.ToArray();
 
-                return Task.FromResult(new ProcessedImageResult
+                return new ProcessedImageResult
                 {
                     Bytes = bytes,
                     MimeType = mimeType,
@@ -390,7 +394,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
                     Width = workingBitmap.Width,
                     Height = workingBitmap.Height,
                     FileSize = bytes.Length
-                });
+                };
             }
             finally
             {
@@ -463,7 +467,6 @@ public class DeterministicImageProcessingService : IImageProcessingService
     private static SKBitmap ApplyColorAdjustments(SKBitmap source, float contrast, float brightnessOffset, float saturation)
     {
         // Construct 4x5 ColorFilter matrix combining contrast, saturation, and brightness offset
-        // Contrast: scale = c, offset = 128 * (1 - c) + brightnessOffset
         var c = contrast;
         var offset = 128f * (1f - c) + brightnessOffset;
 
