@@ -92,12 +92,26 @@ export default function LoginPage() {
   const handleIdentifierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawVal = e.target.value;
 
+    if (!rawVal.trim()) {
+      setIdentifier('');
+      setFieldError('');
+      return;
+    }
+
     if (/^\d/.test(rawVal.trim())) {
       // In phone mode: clean to digits only and limit to 10
       const cleaned = cleanPhoneInput(rawVal);
       setIdentifier(cleaned);
-      if (identifierTouched) {
+
+      if (cleaned.length === 10) {
         if (isValidIndianPhone(cleaned)) {
+          setFieldError('');
+        } else {
+          setFieldError('Enter a valid 10-digit phone number.');
+        }
+      } else {
+        // While user is actively typing under 10 digits, clear any prior format error
+        if (fieldError) {
           setFieldError('');
         }
       }
@@ -278,17 +292,23 @@ export default function LoginPage() {
                     maxLength={isPhoneMode ? 10 : 120}
                     value={identifier}
                     onKeyDown={isPhoneMode ? handlePhoneKeyDown : undefined}
-                    onPaste={
-                      isPhoneMode
-                        ? (e) =>
-                            handlePhonePaste(e, (cleanVal) => {
-                              setIdentifier(cleanVal);
-                              if (isValidIndianPhone(cleanVal)) {
-                                setFieldError('');
-                              }
-                            })
-                        : undefined
-                    }
+                    onPaste={(e) => {
+                      const text = e.clipboardData.getData('text').trim();
+                      if (/^(\+?91|\d)/.test(text)) {
+                        e.preventDefault();
+                        const cleaned = cleanPhoneInput(text);
+                        setIdentifier(cleaned);
+                        if (cleaned.length === 10) {
+                          if (isValidIndianPhone(cleaned)) {
+                            setFieldError('');
+                          } else {
+                            setFieldError('Enter a valid 10-digit phone number.');
+                          }
+                        } else {
+                          if (fieldError) setFieldError('');
+                        }
+                      }
+                    }}
                     onChange={handleIdentifierChange}
                     onBlur={handleIdentifierBlur}
                     placeholder="name@example.com or 9876543210"

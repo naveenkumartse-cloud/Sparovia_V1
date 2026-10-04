@@ -1,3 +1,10 @@
+'use client';
+
+import { useWebsiteContent } from '@/components/providers/WebsiteContentProvider';
+import PublicWebsiteSkeleton from '@/components/ui/PublicWebsiteSkeleton';
+import PublicWebsiteError from '@/components/ui/PublicWebsiteError';
+import PublicWebsiteEmpty from '@/components/ui/PublicWebsiteEmpty';
+
 import Navbar from '@/components/layout/Navbar';
 import HeroSection from './components/HeroSection';
 import BrandIntroSection from './components/BrandIntroSection';
@@ -12,6 +19,29 @@ import ContactSection from './components/ContactSection';
 import Footer from '@/components/layout/Footer';
 
 export default function Home() {
+  const { website, sections, isLoading, error, refresh } = useWebsiteContent();
+
+  // 1. Initial Loading State: Display branded skeleton matching the page layout
+  if (isLoading) {
+    return <PublicWebsiteSkeleton />;
+  }
+
+  // 2. Error State: Display clean public error card with retry action
+  if (error && !website && Object.keys(sections).length === 0) {
+    return <PublicWebsiteError onRetry={refresh} />;
+  }
+
+  // 3. No Published Content State: Display intentional clean empty/setup state
+  const hasPublishedSections = Object.keys(sections).length > 0;
+  if (!hasPublishedSections && !website) {
+    return <PublicWebsiteEmpty />;
+  }
+
+  if (website && !hasPublishedSections) {
+    return <PublicWebsiteEmpty businessName={website.name} />;
+  }
+
+  // 4. Success State: Render dynamic published website sections
   return (
     <main className="min-h-screen bg-white text-charcoal-900 relative">
       {/* 1. Navbar */}
