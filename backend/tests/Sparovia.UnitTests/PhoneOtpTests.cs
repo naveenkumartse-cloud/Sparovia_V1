@@ -52,6 +52,38 @@ public class PhoneNumberHelperTests
         Assert.Equal("******", PhoneNumberHelper.Mask(null));
         Assert.Equal("******", PhoneNumberHelper.Mask(""));
     }
+
+    [Theory]
+    [InlineData("9876543210", true)]
+    [InlineData("+919876543210", true)]
+    [InlineData("6123456789", true)]
+    [InlineData("7012345678", true)]
+    [InlineData("8901234567", true)]
+    [InlineData("98765", false)] // too short
+    [InlineData("98765432101", false)] // 11 digits
+    [InlineData("98765abcde", false)] // letters
+    [InlineData("98-76543210", false)] // special chars
+    [InlineData("98765 43210", false)] // spaces
+    [InlineData("1234567890", false)] // doesn't start with 6-9
+    [InlineData("", false)]
+    [InlineData(null, false)]
+    public void IsValidIndianPhoneNumber_ValidatesCorrectly(string? phone, bool expected)
+    {
+        var isValid = PhoneNumberHelper.IsValidIndianPhoneNumber(phone);
+        Assert.Equal(expected, isValid);
+    }
+
+    [Theory]
+    [InlineData("9876543210", "+919876543210")]
+    [InlineData("+919876543210", "+919876543210")]
+    [InlineData("98765abcde", null)]
+    [InlineData("98765", null)]
+    [InlineData("", null)]
+    public void NormalizeIndianPhoneNumber_NormalizesOrReturnsNull(string? phone, string? expected)
+    {
+        var normalized = PhoneNumberHelper.NormalizeIndianPhoneNumber(phone);
+        Assert.Equal(expected, normalized);
+    }
 }
 
 public class OtpServiceTests

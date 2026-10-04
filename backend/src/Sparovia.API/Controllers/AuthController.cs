@@ -297,7 +297,7 @@ public class AuthController : ControllerBase
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, result.UserId.ToString()!),
-            new Claim(ClaimTypes.Email, request.Email),
+            new Claim(ClaimTypes.Email, result.Email ?? request.GetIdentifier()),
             new Claim(ClaimTypes.Role, result.Role!),
             new Claim("TenantId", result.TenantId.ToString()!),
             new Claim("FullName", result.FullName ?? "")

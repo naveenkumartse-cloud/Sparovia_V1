@@ -9,6 +9,12 @@ import { OnboardingFormSkeleton } from '@/components/ui/Skeleton';
 import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
 import { ArrowRight, Building2, Check, ChevronDown, Search, X } from 'lucide-react';
+import {
+  cleanPhoneInput,
+  isValidIndianPhone,
+  handlePhoneKeyDown,
+  handlePhonePaste,
+} from '@/lib/validation/authValidation';
 
 const BUSINESS_OPERATING_TYPES = [
   'Storefront',
@@ -121,6 +127,12 @@ export default function BusinessBasicsPage() {
 
     if (!formData.businessType?.trim()) {
       setError('Business Operating Type is required.');
+      setIsSaving(false);
+      return;
+    }
+
+    if (!formData.businessPhone?.trim() || !isValidIndianPhone(formData.businessPhone)) {
+      setError('Enter a valid 10-digit phone number.');
       setIsSaving(false);
       return;
     }
@@ -318,10 +330,22 @@ export default function BusinessBasicsPage() {
             <input 
               id="businessPhone"
               type="tel" 
+              inputMode="numeric"
+              autoComplete="tel"
+              maxLength={10}
               required
               value={formData.businessPhone || ''} 
-              onChange={e => setFormData({...formData, businessPhone: e.target.value})}
-              placeholder="+1 (555) 234-5678"
+              onKeyDown={handlePhoneKeyDown}
+              onPaste={(e) => {
+                handlePhonePaste(e, (cleanVal) => {
+                  setFormData({ ...formData, businessPhone: cleanVal });
+                });
+              }}
+              onChange={e => {
+                const cleaned = cleanPhoneInput(e.target.value);
+                setFormData({ ...formData, businessPhone: cleaned });
+              }}
+              placeholder="9876543210"
               className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
             />
           </div>

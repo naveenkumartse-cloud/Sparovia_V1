@@ -10,18 +10,44 @@ import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api/client';
-import { ArrowRight, Eye, EyeOff, Lock, Mail, Phone, User } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Lock, Mail, Phone, User, CheckCircle2 } from 'lucide-react';
+import {
+  cleanPhoneInput,
+  isValidIndianPhone,
+  isValidEmail,
+  handlePhoneKeyDown,
+  handlePhonePaste,
+} from '@/lib/validation/authValidation';
 
 const registerSchema = z.object({
-  fullName: z.string().min(2, 'Full Name is required'),
-  phoneNumber: z.string().min(8, 'Please enter a valid phone number (e.g. +91 98765 43210)'),
-  email: z.string().email('Please enter a valid email address').optional().or(z.literal('')),
-  password: z.string().min(8, 'Password must be at least 8 characters long'),
-  confirmPassword: z.string(),
-  acceptedTerms: z.boolean().refine(val => val === true, "You must accept the terms and conditions"),
+  fullName: z
+    .string()
+    .trim()
+    .min(2, 'Enter your full name (at least 2 characters).'),
+  phoneNumber: z
+    .string()
+    .refine((val) => isValidIndianPhone(val), {
+      message: 'Enter a valid 10-digit phone number.',
+    }),
+  email: z
+    .string()
+    .trim()
+    .refine((val) => !val || isValidEmail(val), {
+      message: 'Enter a valid email address.',
+    })
+    .optional(),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters long.'),
+  confirmPassword: z
+    .string()
+    .min(1, 'Confirm your password.'),
+  acceptedTerms: z
+    .boolean()
+    .refine((val) => val === true, 'You must accept the terms and conditions.'),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
+  message: 'Passwords do not match.',
+  path: ['confirmPassword'],
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -35,18 +61,40 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    setValue,
+    watch,
+    clearErrors,
+    formState: { errors, isSubmitting, touchedFields },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
+    mode: 'onTouched', // Non-noisy validation: validates on blur, not premature red error while typing
+    defaultValues: {
+      fullName: '',
+      phoneNumber: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      acceptedTerms: false,
+    },
   });
+
+  const phoneNumberValue = watch('phoneNumber') || '';
+  const passwordValue = watch('password') || '';
+  const confirmPasswordValue = watch('confirmPassword') || '';
+  const emailValue = watch('email') || '';
+  const fullNameValue = watch('fullName') || '';
+
+  const isPhoneValid = isValidIndianPhone(phoneNumberValue);
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
       setGlobalError(null);
+      // Clean phone number before sending
+      const cleanedPhone = cleanPhoneInput(data.phoneNumber);
       const payload = {
-        fullName: data.fullName,
-        phoneNumber: data.phoneNumber,
-        email: data.email || undefined,
+        fullName: data.fullName.trim(),
+        phoneNumber: cleanedPhone,
+        email: data.email?.trim() || undefined,
         password: data.password,
         confirmPassword: data.confirmPassword,
         acceptedTerms: data.acceptedTerms,
@@ -54,8 +102,8 @@ export default function RegisterPage() {
 
       const response: any = await apiClient.post('/auth/register', payload);
       const resData = response?.data || response;
-      const targetPhone = resData?.phoneNumber || data.phoneNumber;
-      
+      const targetPhone = resData?.phoneNumber || cleanedPhone;
+
       // Store dev verification OTP in session if returned by backend in Development mode
       if (resData?.devOtp && typeof window !== 'undefined') {
         sessionStorage.setItem('sparovia_dev_otp', resData.devOtp);
@@ -101,7 +149,7 @@ export default function RegisterPage() {
 
       <div className="mt-5 sm:mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="bg-white dark:bg-[#0F172A] py-5 px-5 sm:py-6 sm:px-8 shadow-xl dark:shadow-2xl rounded-2xl border border-slate-200 dark:border-[#1E293B]">
-          <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit(onSubmit)}>
+          <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit(onSubmit)} method="POST">
             {globalError && (
               <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 dark:text-red-300 text-xs flex items-start space-x-2" role="alert">
                 <span className="text-red-500 dark:text-red-400 font-bold">Error:</span>
@@ -109,6 +157,7 @@ export default function RegisterPage() {
               </div>
             )}
 
+            {/* 1. Full Name */}
             <div>
               <div className="flex items-center gap-1.5 mb-1">
                 <label htmlFor="fullName" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
@@ -125,22 +174,37 @@ export default function RegisterPage() {
                   type="text"
                   autoComplete="name"
                   placeholder="e.g. Jane Doe"
-                  {...register('fullName')}
+                  {...register('fullName', {
+                    onChange: (e) => {
+                      if (e.target.value.trim().length >= 2) {
+                        clearErrors('fullName');
+                      }
+                    },
+                  })}
                   className="block w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
-                  aria-invalid={errors.fullName ? "true" : "false"}
+                  aria-invalid={errors.fullName ? 'true' : 'false'}
+                  aria-describedby={errors.fullName ? 'fullName-error' : undefined}
                 />
               </div>
               {errors.fullName && (
-                <p className="mt-1 text-xs text-red-500 dark:text-red-400" role="alert">{errors.fullName.message}</p>
+                <p id="fullName-error" className="mt-1 text-xs text-red-500 dark:text-red-400" role="alert">
+                  {errors.fullName.message}
+                </p>
               )}
             </div>
 
+            {/* 2. Phone Number (Strict 10 digits) */}
             <div>
-              <div className="flex items-center gap-1.5 mb-1">
-                <label htmlFor="phoneNumber" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
-                  Phone Number
-                </label>
-                <InfoTooltip content="A 6-digit verification code will be sent to this number via SMS." />
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <label htmlFor="phoneNumber" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
+                    Phone Number
+                  </label>
+                  <InfoTooltip content="Enter your 10-digit Indian mobile number. A 6-digit verification code will be sent via SMS." />
+                </div>
+                <span className="text-[11px] text-slate-400 dark:text-[#64748B]">
+                  10-digit mobile
+                </span>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-[#64748B]">
@@ -149,18 +213,53 @@ export default function RegisterPage() {
                 <input
                   id="phoneNumber"
                   type="tel"
+                  inputMode="numeric"
                   autoComplete="tel"
-                  placeholder="+91 98765 43210"
-                  {...register('phoneNumber')}
-                  className="block w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
-                  aria-invalid={errors.phoneNumber ? "true" : "false"}
+                  maxLength={10}
+                  placeholder="9876543210"
+                  value={phoneNumberValue}
+                  onKeyDown={handlePhoneKeyDown}
+                  onPaste={(e) => {
+                    handlePhonePaste(e, (cleanVal) => {
+                      setValue('phoneNumber', cleanVal, { shouldValidate: true });
+                      if (isValidIndianPhone(cleanVal)) {
+                        clearErrors('phoneNumber');
+                      }
+                    });
+                  }}
+                  onChange={(e) => {
+                    const cleaned = cleanPhoneInput(e.target.value);
+                    setValue('phoneNumber', cleaned, {
+                      shouldValidate: touchedFields.phoneNumber,
+                    });
+                    if (isValidIndianPhone(cleaned)) {
+                      clearErrors('phoneNumber');
+                    }
+                  }}
+                  className={`block w-full pl-9 pr-9 py-2 bg-slate-50 dark:bg-[#0B1220] border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors ${
+                    errors.phoneNumber
+                      ? 'border-red-500/60 dark:border-red-500/60'
+                      : isPhoneValid
+                      ? 'border-emerald-500/60 dark:border-emerald-500/60'
+                      : 'border-slate-200 dark:border-[#334155]'
+                  }`}
+                  aria-invalid={errors.phoneNumber ? 'true' : 'false'}
+                  aria-describedby={errors.phoneNumber ? 'phoneNumber-error' : undefined}
                 />
+                {isPhoneValid && !errors.phoneNumber && (
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-500">
+                    <CheckCircle2 className="h-4 w-4" />
+                  </div>
+                )}
               </div>
               {errors.phoneNumber && (
-                <p className="mt-1 text-xs text-red-500 dark:text-red-400" role="alert">{errors.phoneNumber.message}</p>
+                <p id="phoneNumber-error" className="mt-1 text-xs text-red-500 dark:text-red-400" role="alert">
+                  {errors.phoneNumber.message}
+                </p>
               )}
             </div>
 
+            {/* 3. Work Email (Optional) */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
@@ -180,16 +279,26 @@ export default function RegisterPage() {
                   type="email"
                   autoComplete="email"
                   placeholder="jane@example.com"
-                  {...register('email')}
+                  {...register('email', {
+                    onChange: (e) => {
+                      if (!e.target.value || isValidEmail(e.target.value)) {
+                        clearErrors('email');
+                      }
+                    },
+                  })}
                   className="block w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
-                  aria-invalid={errors.email ? "true" : "false"}
+                  aria-invalid={errors.email ? 'true' : 'false'}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-xs text-red-500 dark:text-red-400" role="alert">{errors.email.message}</p>
+                <p id="email-error" className="mt-1 text-xs text-red-500 dark:text-red-400" role="alert">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
+            {/* 4. Password */}
             <div>
               <div className="flex items-center gap-1.5 mb-1">
                 <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
@@ -206,9 +315,16 @@ export default function RegisterPage() {
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   placeholder="••••••••"
-                  {...register('password')}
+                  {...register('password', {
+                    onChange: (e) => {
+                      if (e.target.value.length >= 8) {
+                        clearErrors('password');
+                      }
+                    },
+                  })}
                   className="block w-full pl-9 pr-10 py-2 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
-                  aria-invalid={errors.password ? "true" : "false"}
+                  aria-invalid={errors.password ? 'true' : 'false'}
+                  aria-describedby={errors.password ? 'password-error' : undefined}
                 />
                 <button
                   type="button"
@@ -216,18 +332,17 @@ export default function RegisterPage() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:text-[#64748B] dark:hover:text-[#94A3B8] transition-colors focus:outline-none"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-xs text-red-500 dark:text-red-400" role="alert">{errors.password.message}</p>
+                <p id="password-error" className="mt-1 text-xs text-red-500 dark:text-red-400" role="alert">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
+            {/* 5. Confirm Password */}
             <div>
               <div className="flex items-center gap-1.5 mb-1">
                 <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
@@ -244,9 +359,16 @@ export default function RegisterPage() {
                   type={showConfirmPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   placeholder="••••••••"
-                  {...register('confirmPassword')}
+                  {...register('confirmPassword', {
+                    onChange: (e) => {
+                      if (e.target.value === passwordValue) {
+                        clearErrors('confirmPassword');
+                      }
+                    },
+                  })}
                   className="block w-full pl-9 pr-10 py-2 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
-                  aria-invalid={errors.confirmPassword ? "true" : "false"}
+                  aria-invalid={errors.confirmPassword ? 'true' : 'false'}
+                  aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
                 />
                 <button
                   type="button"
@@ -254,33 +376,37 @@ export default function RegisterPage() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:text-[#64748B] dark:hover:text-[#94A3B8] transition-colors focus:outline-none"
                   aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-500 dark:text-red-400" role="alert">{errors.confirmPassword.message}</p>
+                <p id="confirmPassword-error" className="mt-1 text-xs text-red-500 dark:text-red-400" role="alert">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
 
+            {/* 6. Terms Checkbox */}
             <div className="flex items-start pt-0.5">
               <input
                 id="acceptedTerms"
                 type="checkbox"
                 {...register('acceptedTerms')}
                 className="mt-0.5 h-3.5 w-3.5 text-[#3B82F6] focus:ring-[#3B82F6] border-slate-300 dark:border-[#334155] rounded bg-white dark:bg-[#0B1220]"
+                aria-invalid={errors.acceptedTerms ? 'true' : 'false'}
+                aria-describedby={errors.acceptedTerms ? 'acceptedTerms-error' : undefined}
               />
               <label htmlFor="acceptedTerms" className="ml-2 block text-xs text-slate-600 dark:text-[#94A3B8] leading-tight">
                 I accept the terms and conditions and agree to receive transactional notifications.
               </label>
             </div>
             {errors.acceptedTerms && (
-              <p className="text-xs text-red-500 dark:text-red-400" role="alert">{errors.acceptedTerms.message}</p>
+              <p id="acceptedTerms-error" className="text-xs text-red-500 dark:text-red-400" role="alert">
+                {errors.acceptedTerms.message}
+              </p>
             )}
 
+            {/* Submit Button */}
             <div className="pt-1.5">
               <Button
                 type="submit"

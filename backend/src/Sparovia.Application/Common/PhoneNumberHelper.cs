@@ -57,6 +57,42 @@ public static class PhoneNumberHelper
         return IsValidE164(normalized) ? normalized : null;
     }
 
+    // Indian mobile phone format: exactly 10 digits starting with 6, 7, 8, or 9
+    private static readonly Regex IndianPhoneRegex = new(@"^[6-9]\d{9}$", RegexOptions.Compiled);
+    private static readonly Regex IndianE164Regex = new(@"^\+91[6-9]\d{9}$", RegexOptions.Compiled);
+
+    /// <summary>
+    /// Validates whether a phone number is a valid 10-digit Indian phone number (or with +91 country code).
+    /// Rejects letters, symbols, spaces, and incorrect lengths.
+    /// </summary>
+    public static bool IsValidIndianPhoneNumber(string? phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            return false;
+
+        var trimmed = phoneNumber.Trim();
+        return IndianPhoneRegex.IsMatch(trimmed) || IndianE164Regex.IsMatch(trimmed);
+    }
+
+    /// <summary>
+    /// Normalizes a valid 10-digit Indian phone number to E.164 (+91XXXXXXXXXX).
+    /// Returns null if the input is not a valid 10-digit Indian phone number.
+    /// </summary>
+    public static string? NormalizeIndianPhoneNumber(string? phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            return null;
+
+        var trimmed = phoneNumber.Trim();
+        if (IndianE164Regex.IsMatch(trimmed))
+            return trimmed;
+
+        if (IndianPhoneRegex.IsMatch(trimmed))
+            return "+91" + trimmed;
+
+        return null;
+    }
+
     public static bool IsValidE164(string? phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(phoneNumber))

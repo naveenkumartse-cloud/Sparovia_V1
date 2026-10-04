@@ -106,7 +106,7 @@ public class IdentityService : IIdentityService
         if (request.Password != request.ConfirmPassword)
             return new RegistrationResult { Success = false, ErrorMessage = "Passwords do not match." };
 
-        var phoneInput = request.PhoneNumber;
+        var phoneInput = request.PhoneNumber?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(phoneInput) && !string.IsNullOrWhiteSpace(request.Email))
         {
             // Backward compatibility fallback for legacy tests providing only email
@@ -114,9 +114,20 @@ public class IdentityService : IIdentityService
             phoneInput = $"+1555{emailHash:D7}";
         }
 
-        var normalizedPhone = PhoneNumberHelper.Normalize(phoneInput);
-        if (string.IsNullOrWhiteSpace(normalizedPhone))
-            return new RegistrationResult { Success = false, ErrorMessage = "Enter a valid phone number with country code (e.g. +919876543210)." };
+        string? normalizedPhone = null;
+        if (PhoneNumberHelper.IsValidIndianPhoneNumber(phoneInput))
+        {
+            normalizedPhone = PhoneNumberHelper.NormalizeIndianPhoneNumber(phoneInput);
+        }
+        else if (phoneInput.StartsWith("+1555") && PhoneNumberHelper.IsValidE164(phoneInput))
+        {
+            // Backward compatibility fallback for legacy test data
+            normalizedPhone = phoneInput;
+        }
+        else
+        {
+            return new RegistrationResult { Success = false, ErrorMessage = "Enter a valid 10-digit phone number." };
+        }
 
         try
         {
@@ -257,9 +268,19 @@ public class IdentityService : IIdentityService
 
     public async Task<SendPhoneOtpResult> SendPhoneOtpAsync(SendPhoneOtpRequest request, CancellationToken cancellationToken = default)
     {
-        var normalizedPhone = PhoneNumberHelper.Normalize(request.PhoneNumber);
+        var rawPhone = request.PhoneNumber?.Trim() ?? string.Empty;
+        string? normalizedPhone = null;
+        if (PhoneNumberHelper.IsValidIndianPhoneNumber(rawPhone))
+        {
+            normalizedPhone = PhoneNumberHelper.NormalizeIndianPhoneNumber(rawPhone);
+        }
+        else
+        {
+            normalizedPhone = PhoneNumberHelper.Normalize(rawPhone);
+        }
+
         if (string.IsNullOrWhiteSpace(normalizedPhone))
-            return new SendPhoneOtpResult { Success = false, ErrorMessage = "Enter a valid phone number with country code (e.g. +919876543210)." };
+            return new SendPhoneOtpResult { Success = false, ErrorMessage = "Enter a valid 10-digit phone number." };
 
         try
         {
@@ -339,9 +360,19 @@ public class IdentityService : IIdentityService
 
     public async Task<VerifyPhoneOtpResult> VerifyPhoneOtpAsync(VerifyPhoneOtpRequest request, CancellationToken cancellationToken = default)
     {
-        var normalizedPhone = PhoneNumberHelper.Normalize(request.PhoneNumber);
+        var rawPhone = request.PhoneNumber?.Trim() ?? string.Empty;
+        string? normalizedPhone = null;
+        if (PhoneNumberHelper.IsValidIndianPhoneNumber(rawPhone))
+        {
+            normalizedPhone = PhoneNumberHelper.NormalizeIndianPhoneNumber(rawPhone);
+        }
+        else
+        {
+            normalizedPhone = PhoneNumberHelper.Normalize(rawPhone);
+        }
+
         if (string.IsNullOrWhiteSpace(normalizedPhone))
-            return new VerifyPhoneOtpResult { Success = false, ErrorMessage = "Enter a valid phone number." };
+            return new VerifyPhoneOtpResult { Success = false, ErrorMessage = "Enter a valid 10-digit phone number." };
 
         if (string.IsNullOrWhiteSpace(request.Otp) || request.Otp.Trim().Length != 6)
             return new VerifyPhoneOtpResult { Success = false, ErrorMessage = "Enter the 6-digit verification code." };
@@ -498,8 +529,16 @@ public class IdentityService : IIdentityService
 
     public async Task<SignInResult> SignInAsync(SignInRequest request, CancellationToken cancellationToken = default)
     {
-        var input = request.Email.Trim();
-        var normalizedPhone = PhoneNumberHelper.Normalize(input);
+        var input = request.GetIdentifier();
+        string? normalizedPhone = null;
+        if (PhoneNumberHelper.IsValidIndianPhoneNumber(input))
+        {
+            normalizedPhone = PhoneNumberHelper.NormalizeIndianPhoneNumber(input);
+        }
+        else
+        {
+            normalizedPhone = PhoneNumberHelper.Normalize(input);
+        }
         var normalizedEmail = input.ToUpperInvariant();
         
         // Find user by normalized email or normalized phone number
@@ -510,14 +549,14 @@ public class IdentityService : IIdentityService
         if (user == null)
         {
             // Do not reveal if the account exists or not
-            return new SignInResult { Success = false, ErrorMessage = "Account or password is incorrect." };
+            return new SignInResult { Success = false, ErrorMessage = "We couldn't sign you in with those details." };
         }
 
         // Verify password securely
         var passwordValid = BCrypt.Net.BCrypt.EnhancedVerify(request.Password, user.PasswordHash);
         if (!passwordValid)
         {
-            return new SignInResult { Success = false, ErrorMessage = "Account or password is incorrect." };
+            return new SignInResult { Success = false, ErrorMessage = "We couldn't sign you in with those details." };
         }
 
         // Enforce verified account policy (PhoneVerified or EmailVerified)
@@ -540,7 +579,8 @@ public class IdentityService : IIdentityService
             UserId = user.Id,
             TenantId = primaryMembership.TenantId,
             Role = primaryMembership.Role,
-            FullName = user.FullName
+            FullName = user.FullName,
+            Email = user.Email
         };
     }
 

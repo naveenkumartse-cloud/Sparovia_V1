@@ -8,6 +8,8 @@ import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
 import { ArrowLeft, ArrowRight, Mail } from 'lucide-react';
 
+import { isValidEmail } from '@/lib/validation/authValidation';
+
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +18,11 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !isValidEmail(email)) {
+      setError('Enter a valid email address.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
     setSuccess('');
@@ -80,7 +87,7 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
           ) : (
-            <form className="space-y-5" onSubmit={handleSubmit}>
+            <form className="space-y-5" onSubmit={handleSubmit} method="POST">
               <div>
                 <div className="flex items-center gap-1.5">
                   <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
@@ -100,7 +107,12 @@ export default function ForgotPasswordPage() {
                     required
                     maxLength={256}
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (error && isValidEmail(e.target.value)) {
+                        setError('');
+                      }
+                    }}
                     placeholder="name@example.com"
                     className="block w-full pl-10 pr-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
                   />
