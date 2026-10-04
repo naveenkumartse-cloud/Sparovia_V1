@@ -76,7 +76,7 @@ export default function AdminDashboard() {
           <div className="shrink-0">
             <Link
               href={isConfirmed ? "/admin/business-context" : "/admin/onboarding/business-basics"}
-              className="inline-flex items-center justify-center h-10 min-h-[40px] px-5 rounded-xl text-sm font-semibold text-white bg-[#F97316] hover:bg-[#EA580C] active:bg-[#C2410C] transition-all shadow-xs"
+              className="inline-flex items-center justify-center h-10 min-h-[40px] px-5 rounded-xl text-sm font-semibold text-white bg-[#FF7043] hover:bg-[#F4511E] active:bg-[#E64A19] transition-all shadow-lg shadow-[#FF7043]/25 hover:shadow-xl hover:shadow-[#FF7043]/30"
             >
               {isConfirmed ? 'Manage Business Context' : 'Complete Onboarding'}
               <ArrowRight className="ml-2 h-4 w-4" />

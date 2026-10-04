@@ -48,9 +48,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles: Record<ButtonVariant, string> = {
       primary:
-        'bg-[#F97316] hover:bg-[#EA580C] active:bg-[#C2410C] text-white shadow-xs focus:ring-[#F97316] border border-transparent',
+        'bg-[#FF7043] hover:bg-[#F4511E] active:bg-[#E64A19] text-white shadow-lg shadow-[#FF7043]/25 hover:shadow-xl hover:shadow-[#FF7043]/30 focus:ring-[#FF7043] border border-transparent',
       enhance:
-        'bg-gradient-to-r from-[#F97316] via-[#EC4899] to-[#8B5CF6] hover:from-[#EA580C] hover:via-[#DB2777] hover:to-[#7C3AED] text-white shadow-xs focus:ring-purple-400 border border-transparent',
+        'bg-gradient-to-r from-[#FF7043] via-[#EC4899] to-[#8B5CF6] hover:from-[#F4511E] hover:via-[#DB2777] hover:to-[#7C3AED] text-white shadow-lg shadow-[#FF7043]/20 focus:ring-purple-400 border border-transparent',
       secondary:
         'bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-[#334155] focus:ring-slate-400',
       outline:
@@ -64,9 +64,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       'destructive-outline':
         'bg-white dark:bg-[#0F172A] hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 focus:ring-rose-400',
       success:
-        'bg-[#F97316] hover:bg-[#EA580C] active:bg-[#C2410C] text-white shadow-xs focus:ring-[#F97316] border border-transparent',
+        'bg-[#FF7043] hover:bg-[#F4511E] active:bg-[#E64A19] text-white shadow-lg shadow-[#FF7043]/25 focus:ring-[#FF7043] border border-transparent',
       link:
-        'bg-transparent hover:bg-transparent text-[#F97316] hover:text-[#EA580C] dark:text-[#FB923C] dark:hover:text-[#F97316] underline-offset-4 hover:underline p-0 h-auto font-medium focus:ring-0',
+        'bg-transparent hover:bg-transparent text-[#FF7043] hover:text-[#F4511E] dark:text-[#FF7043] dark:hover:text-[#F4511E] underline-offset-4 hover:underline p-0 h-auto font-medium focus:ring-0',
     };
 
     const sizeStyles: Record<ButtonSize, string> = {
