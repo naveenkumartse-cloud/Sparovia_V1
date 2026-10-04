@@ -164,6 +164,7 @@ builder.Services.AddSingleton<Sparovia.Application.Images.IImageValidator>(sp =>
     return new Sparovia.Application.Images.ImageValidator(opts);
 });
 builder.Services.AddScoped<Sparovia.Application.Images.IWebsiteImageService, Sparovia.Infrastructure.Images.WebsiteImageService>();
+builder.Services.AddSingleton<Sparovia.Application.Images.IImageProcessingService, Sparovia.Infrastructure.Images.DeterministicImageProcessingService>();
 
 // AI Platform Foundation
 builder.Services.Configure<Sparovia.Infrastructure.AI.AIOptions>(

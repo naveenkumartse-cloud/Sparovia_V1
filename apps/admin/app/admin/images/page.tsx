@@ -70,6 +70,21 @@ interface WorkCategoryDto {
   imageCount: number;
 }
 
+interface ImageAnalysisDto {
+  width: number;
+  height: number;
+  fileSize: number;
+  format: string;
+  aspectRatio: number;
+  brightness: number;
+  contrast: number;
+  sharpness: number;
+  noiseLevel: number;
+  isLargeEnough: boolean;
+  recommendedOperation: string;
+  recommendationReason: string;
+}
+
 interface AIConnectionInfo {
   status: string;
   providerDisplayName?: string;
@@ -218,6 +233,8 @@ export default function ImagesPage() {
   const [enhanceError, setEnhanceError] = useState<string | null>(null);
   const [reviewMode, setReviewMode] = useState<'after' | 'before'>('after');
   const [approving, setApproving] = useState(false);
+  const [imageAnalysis, setImageAnalysis] = useState<ImageAnalysisDto | null>(null);
+  const [analyzingImage, setAnalyzingImage] = useState(false);
 
   // Delete Confirmation Modal state
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
@@ -453,13 +470,29 @@ export default function ImagesPage() {
     }
   };
 
-  const openEnhanceModal = (image: ImageDto) => {
+  const openEnhanceModal = async (image: ImageDto) => {
     setEnhancingImage(image);
     setSelectedOperation('ImproveClarity');
     setEnhancementResult(null);
     setEnhanceError(null);
     setReviewMode('after');
+    setImageAnalysis(null);
     setEnhanceModalOpen(true);
+    setAnalyzingImage(true);
+
+    try {
+      const res = await apiClient.get<{ data: ImageAnalysisDto }>(`/website/images/${image.id}/analysis`);
+      if (res?.data) {
+        setImageAnalysis(res.data);
+        if (res.data.recommendedOperation) {
+          setSelectedOperation(res.data.recommendedOperation);
+        }
+      }
+    } catch (err) {
+      console.warn('Could not load image analysis:', err);
+    } finally {
+      setAnalyzingImage(false);
+    }
   };
 
   const handleStartEnhancement = async () => {
@@ -476,11 +509,11 @@ export default function ImagesPage() {
         );
         variantId = res?.data?.id;
       } else {
-        const res = await apiClient.post<{ data: any }>(
-          `/ai/images/${enhancingImage.id}/enhance`,
+        const res = await apiClient.post<{ data: ImageVariantDto }>(
+          `/website/images/${enhancingImage.id}/enhance`,
           { operation: selectedOperation }
         );
-        variantId = res?.data?.variantId;
+        variantId = res?.data?.id;
       }
 
       // Refresh image to get latest variant
@@ -602,7 +635,7 @@ export default function ImagesPage() {
           </p>
           <p className="mt-0.5 text-blue-800/90 dark:text-blue-300">
             Supported formats: <strong>JPG, PNG, WebP</strong> (Max 10 MB per image). Original uploads remain
-            preserved and are never overwritten. When replacing or AI-enhancing, your active live website image
+            preserved and are never overwritten. When replacing or enhancing, your active live website image
             remains unchanged until explicitly published.
           </p>
         </div>
@@ -774,7 +807,7 @@ export default function ImagesPage() {
                             className="text-xs font-medium bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 px-3 py-1.5"
                           >
                             <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                            AI Enhance
+                            Enhance
                           </Button>
                         </div>
 
@@ -1466,12 +1499,12 @@ export default function ImagesPage() {
         </div>
       </Modal>
 
-      {/* MODAL 4: AI Image Enhancement Modal */}
+      {/* MODAL 4: Image Enhancement & Web Optimization Modal */}
       <Modal
         isOpen={enhanceModalOpen}
         onClose={() => !enhancing && setEnhanceModalOpen(false)}
-        title="AI Image Enhancement & Web Optimization"
-        description="Improve photograph quality or generate optimized web representations while strictly preserving authentic project architecture."
+        title="Image Enhancement & Web Optimization"
+        description="Enhance photograph quality and generate web-optimized variants using deterministic processing. Original images are never modified."
         maxWidth="2xl"
         footer={
           <>
@@ -1487,19 +1520,19 @@ export default function ImagesPage() {
                 </Button>
                 <Button
                   type="button"
-                  disabled={enhancing || (selectedOperation !== 'WebOptimize' && !aiConnection?.isImageEnhancementAvailable)}
+                  disabled={enhancing}
                   onClick={handleStartEnhancement}
                   className="bg-purple-600 hover:bg-purple-700 text-white font-medium"
                 >
                   {enhancing ? (
                     <>
                       <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      {selectedOperation === 'WebOptimize' ? 'Optimizing Asset...' : 'Processing Enhancement...'}
+                      Improving your image...
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4 mr-1.5" />
-                      {selectedOperation === 'WebOptimize' ? 'Optimize Asset' : 'Enhance Photograph'}
+                      Apply Enhancement
                     </>
                   )}
                 </Button>
@@ -1536,62 +1569,92 @@ export default function ImagesPage() {
         }
       >
         <div className="space-y-4">
-          {/* AI Connection Status Check (only shown when an AI-specific operation is chosen) */}
-          {selectedOperation !== 'WebOptimize' && aiConnection && !aiConnection.isImageEnhancementAvailable && (
-            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-start justify-between gap-3 text-xs">
-              <div className="flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-amber-900 dark:text-amber-200">
-                    Image-Capable Model Required
-                  </p>
-                  <p className="text-amber-800/90 dark:text-amber-300 mt-0.5">
-                    Your currently connected model does not support image enhancement. Please select a multimodal model
-                    (such as Gemini 1.5 Pro or GPT-4o) under AI Connections.
-                  </p>
-                </div>
-              </div>
-              <Link
-                href="/admin/ai-models"
-                className="inline-flex items-center gap-1 font-semibold text-amber-900 dark:text-amber-200 hover:underline shrink-0"
-              >
-                Configure
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          )}
-
           {!enhancementResult ? (
             /* Operation Selection */
             <div className="space-y-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              {/* Image Analysis Card */}
+              {analyzingImage ? (
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-[#1E293B] flex items-center gap-2.5 text-xs text-slate-500">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-purple-600 shrink-0" />
+                  <span>Analyzing image characteristics (dimensions, clarity, noise, contrast)...</span>
+                </div>
+              ) : imageAnalysis ? (
+                <div className="p-3.5 rounded-xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/40 text-xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-purple-900 dark:text-purple-200 font-semibold">
+                      <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      <span>Image Analysis</span>
+                    </div>
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                      {imageAnalysis.width} × {imageAnalysis.height} px • {formatFileSize(imageAnalysis.fileSize)} • {imageAnalysis.format}
+                    </span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-white/80 dark:bg-[#0B1120]/80 border border-purple-100 dark:border-purple-900/30 text-slate-700 dark:text-slate-300">
+                    <p className="leading-relaxed">
+                      <strong className="text-purple-900 dark:text-purple-200">Recommended:</strong>{' '}
+                      <span className="font-semibold text-purple-700 dark:text-purple-300">{imageAnalysis.recommendedOperation}</span>
+                      {' — '}{imageAnalysis.recommendationReason}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-1 text-center">
+                    <div className="bg-white/60 dark:bg-[#0B1120]/60 p-1.5 rounded border border-purple-100/60 dark:border-purple-900/20">
+                      <span className="block text-[10px] uppercase text-slate-400">Contrast</span>
+                      <strong className="text-slate-700 dark:text-slate-200">{(imageAnalysis.contrast * 100).toFixed(0)}%</strong>
+                    </div>
+                    <div className="bg-white/60 dark:bg-[#0B1120]/60 p-1.5 rounded border border-purple-100/60 dark:border-purple-900/20">
+                      <span className="block text-[10px] uppercase text-slate-400">Sharpness</span>
+                      <strong className="text-slate-700 dark:text-slate-200">{imageAnalysis.sharpness.toFixed(3)}</strong>
+                    </div>
+                    <div className="bg-white/60 dark:bg-[#0B1120]/60 p-1.5 rounded border border-purple-100/60 dark:border-purple-900/20">
+                      <span className="block text-[10px] uppercase text-slate-400">Noise</span>
+                      <strong className="text-slate-700 dark:text-slate-200">{(imageAnalysis.noiseLevel * 100).toFixed(1)}%</strong>
+                    </div>
+                    <div className="bg-white/60 dark:bg-[#0B1120]/60 p-1.5 rounded border border-purple-100/60 dark:border-purple-900/20">
+                      <span className="block text-[10px] uppercase text-slate-400">Ratio</span>
+                      <strong className="text-slate-700 dark:text-slate-200">{imageAnalysis.aspectRatio}:1</strong>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 block pt-1">
                 Choose Enhancement Operation
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {ENHANCEMENT_OPERATIONS.map((op) => (
-                  <button
-                    key={op.key}
-                    type="button"
-                    onClick={() => setSelectedOperation(op.key)}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      selectedOperation === op.key
-                        ? 'border-purple-600 bg-purple-50/60 dark:bg-purple-950/30 ring-1 ring-purple-600'
-                        : 'border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#0B1120]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">
-                        {op.name}
-                      </span>
-                      {selectedOperation === op.key && (
-                        <Check className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
-                      )}
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                      {op.desc}
-                    </p>
-                  </button>
-                ))}
+                {ENHANCEMENT_OPERATIONS.map((op) => {
+                  const isRecommended = imageAnalysis?.recommendedOperation === op.key;
+                  return (
+                    <button
+                      key={op.key}
+                      type="button"
+                      onClick={() => setSelectedOperation(op.key)}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        selectedOperation === op.key
+                          ? 'border-purple-600 bg-purple-50/60 dark:bg-purple-950/30 ring-1 ring-purple-600'
+                          : 'border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#0B1120]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-slate-900 dark:text-white">
+                            {op.name}
+                          </span>
+                          {isRecommended && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 uppercase tracking-wider">
+                              Recommended
+                            </span>
+                          )}
+                        </div>
+                        {selectedOperation === op.key && (
+                          <Check className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                        {op.desc}
+                      </p>
+                    </button>
+                  );
+                })}
               </div>
 
               {enhanceError && (
@@ -1668,7 +1731,7 @@ export default function ImagesPage() {
                       </div>
                     </div>
                     <span className="block text-center text-[11px] font-semibold text-slate-600 dark:text-slate-400">
-                      Original Client Photograph
+                      Original Photograph
                     </span>
                   </div>
 
@@ -1689,7 +1752,7 @@ export default function ImagesPage() {
                       </div>
                     </div>
                     <span className="block text-center text-[11px] font-semibold text-purple-600 dark:text-purple-400">
-                      AI Enhanced Variant (Derived)
+                      Enhanced Variant (Derived)
                     </span>
                   </div>
                 </div>
@@ -1717,11 +1780,31 @@ export default function ImagesPage() {
                 </div>
               )}
 
+              {/* Metadata Comparison Card */}
+              <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-[#0B1120] p-3 rounded-xl border border-slate-200 dark:border-[#1E293B]">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Original Photograph</span>
+                  <div className="text-[11px] text-slate-700 dark:text-slate-300 space-y-0.5">
+                    <p>Resolution: <strong>{enhancingImage?.width} × {enhancingImage?.height} px</strong></p>
+                    <p>File Size: <strong>{formatFileSize(enhancingImage?.fileSize || 0)}</strong></p>
+                    <p>Format: <strong>{imageAnalysis?.format || 'Original'}</strong></p>
+                  </div>
+                </div>
+                <div className="space-y-1 border-l border-slate-200 dark:border-[#1E293B] pl-3">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">Enhanced Variant</span>
+                  <div className="text-[11px] text-slate-700 dark:text-slate-300 space-y-0.5">
+                    <p>Resolution: <strong>{enhancementResult.width} × {enhancementResult.height} px</strong></p>
+                    <p>File Size: <strong>{formatFileSize(enhancementResult.fileSize)}</strong></p>
+                    <p>Format: <strong>{enhancementResult.mimeType?.replace('image/', '').toUpperCase() || 'Optimized'}</strong></p>
+                  </div>
+                </div>
+              </div>
+
               <div className="bg-slate-50 dark:bg-[#0B1120] p-3 rounded-xl border border-slate-100 dark:border-[#1E293B] space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
                 <div className="flex items-start gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <p>
-                    <strong>Improve Quality, Not Reality:</strong> Verify that materials, architectural structures, and genuine project characteristics remain faithful to the original photograph without added or fabricated elements.
+                    <strong>Improve Quality, Not Reality:</strong> Verify that materials, architectural structures, and genuine project characteristics remain faithful to the original photograph without generative alterations or added elements.
                   </p>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 pl-6">

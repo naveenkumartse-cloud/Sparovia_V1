@@ -658,6 +658,10 @@ public class HttpAIProviderAdapter : IAIProvider
             bodyLower.Contains("unsupported model") ||
             bodyLower.Contains("is not supported for generatecontent"))
         {
+            if (!string.IsNullOrWhiteSpace(modelName) && modelName.Contains("openrouter", StringComparison.OrdinalIgnoreCase))
+            {
+                return (AIErrorCodes.ModelUnavailable, $"The configured AI model '{modelName}' is unavailable from OpenRouter. Please switch to 'OpenRouter Free Router' (openrouter/free) in AI Connections.");
+            }
             var modelDisplay = !string.IsNullOrWhiteSpace(modelName) ? $" '{modelName}'" : "";
             return (AIErrorCodes.ModelUnavailable, $"The configured AI model{modelDisplay} is unavailable. Please verify the selected model in AI Connections.");
         }

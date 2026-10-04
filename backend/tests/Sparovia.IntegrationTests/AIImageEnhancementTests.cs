@@ -321,23 +321,20 @@ public class AIImageEnhancementTests : IClassFixture<WebApplicationFactory<Progr
         var client = await GetAuthenticatedClientAsync(email);
         await SetupAndConfirmBusinessContextAsync(client, "Text Only Design", email);
 
-        // Connect text/content only model (gpt-4o-mini is content only)
-        await ConnectAIModelAsync(email, "gpt-4o-mini", AIProviders.OpenAI);
-
         var uploadContent = CreateUploadContent(CreateValidJpegBytes(), "decor.jpg", "image/jpeg", "WebsiteImage", "hero");
         var uploadRes = await client.PostAsync("/api/v1/website/images", uploadContent);
         var uploadJson = await uploadRes.Content.ReadFromJsonAsync<JsonElement>();
         var imageId = uploadJson.GetProperty("data").GetProperty("id").GetString()!;
 
-        // Submit enhancement -> must fail with MODEL_CAPABILITY_MISMATCH
-        var enhanceRes = await client.PostAsJsonAsync($"/api/v1/ai/images/{imageId}/enhance", new { Operation = "ReduceNoise" });
-        Assert.Equal(HttpStatusCode.BadRequest, enhanceRes.StatusCode);
-        var err = await enhanceRes.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal(AIErrorCodes.ModelCapabilityMismatch, err.GetProperty("code").GetString());
+        // Enhancement works deterministically without AI capability requirement
+        var enhanceRes = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/enhance", new { Operation = "ReduceNoise" });
+        Assert.Equal(HttpStatusCode.Created, enhanceRes.StatusCode);
+        var resp = await enhanceRes.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("ReduceNoise", resp.GetProperty("data").GetProperty("operation").GetString());
     }
 
     [Fact]
-    public async Task AIEnhancement_ProviderConnectionRequired_WhenNoAIConfigured()
+    public async Task Enhancement_WorksWithoutAIConfigured_SucceedsDeterministically()
     {
         var email = $"no_ai_{Guid.NewGuid():N}@sparovia.com";
         var client = await GetAuthenticatedClientAsync(email);
@@ -349,10 +346,10 @@ public class AIImageEnhancementTests : IClassFixture<WebApplicationFactory<Progr
         var uploadJson = await uploadRes.Content.ReadFromJsonAsync<JsonElement>();
         var imageId = uploadJson.GetProperty("data").GetProperty("id").GetString()!;
 
-        var enhanceRes = await client.PostAsJsonAsync($"/api/v1/ai/images/{imageId}/enhance", new { Operation = "ImproveSharpness" });
-        Assert.Equal(HttpStatusCode.BadRequest, enhanceRes.StatusCode);
-        var err = await enhanceRes.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal(AIErrorCodes.ProviderConnectionRequired, err.GetProperty("code").GetString());
+        var enhanceRes = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/enhance", new { Operation = "ImproveSharpness" });
+        Assert.Equal(HttpStatusCode.Created, enhanceRes.StatusCode);
+        var resp = await enhanceRes.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("ImproveSharpness", resp.GetProperty("data").GetProperty("operation").GetString());
     }
 
     [Fact]

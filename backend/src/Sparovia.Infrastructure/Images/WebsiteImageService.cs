@@ -19,6 +19,7 @@ public class WebsiteImageService : IWebsiteImageService
     private readonly IStorageProvider _storageProvider;
     private readonly IImageValidator _validator;
     private readonly IWebsiteContentService _contentService;
+    private readonly IImageProcessingService _imageProcessor;
     private readonly ILogger<WebsiteImageService> _logger;
 
     private static readonly HashSet<string> AllowedEnhancementOperations = new(StringComparer.OrdinalIgnoreCase)
@@ -53,12 +54,14 @@ public class WebsiteImageService : IWebsiteImageService
         IStorageProvider storageProvider,
         IImageValidator validator,
         IWebsiteContentService contentService,
+        IImageProcessingService imageProcessor,
         ILogger<WebsiteImageService> logger)
     {
         _dbContext = dbContext;
         _storageProvider = storageProvider;
         _validator = validator;
         _contentService = contentService;
+        _imageProcessor = imageProcessor;
         _logger = logger;
     }
 
@@ -799,6 +802,21 @@ public class WebsiteImageService : IWebsiteImageService
         };
     }
 
+    public async Task<ImageAnalysisResult> AnalyzeImageAsync(Guid tenantId, Guid imageId, CancellationToken cancellationToken = default)
+    {
+        var image = await _dbContext.Images
+            .AsNoTracking()
+            .FirstOrDefaultAsync(i => i.Id == imageId && i.TenantId == tenantId && i.Status != "Deleted", cancellationToken);
+
+        if (image == null)
+        {
+            throw new KeyNotFoundException($"Image with ID {imageId} not found.");
+        }
+
+        var stream = await _storageProvider.DownloadAsync("images", image.StorageKey, cancellationToken);
+        return await _imageProcessor.AnalyzeImageAsync(stream, image.FileSize, image.MimeType, cancellationToken);
+    }
+
     public async Task<ImageOperationResult> EnhanceImageAsync(
         Guid tenantId,
         Guid imageId,
@@ -826,7 +844,7 @@ public class WebsiteImageService : IWebsiteImageService
             {
                 Success = false,
                 ErrorCode = "PROHIBITED_TRANSFORMATION",
-                ErrorMessage = "This transformation is prohibited. AI Image Enhancement strictly improves quality, not reality. Generative alterations, object additions/removals, or architectural replacements are not permitted."
+                ErrorMessage = "This transformation is prohibited. Image Enhancement strictly improves quality, not reality. Generative alterations, object additions/removals, or architectural replacements are not permitted."
             };
         }
 
@@ -840,7 +858,7 @@ public class WebsiteImageService : IWebsiteImageService
             };
         }
 
-        // WebOptimize is deterministic optimization and does not require an external AI connection
+        // WebOptimize is deterministic optimization
         if (string.Equals(operation, "WebOptimize", StringComparison.OrdinalIgnoreCase))
         {
             return await OptimizeImageAsync(tenantId, imageId, null, "webp", 1200, null, userId, cancellationToken);
@@ -863,46 +881,30 @@ public class WebsiteImageService : IWebsiteImageService
             };
         }
 
-        // Capability validation: Tenant's active AI configuration must support Image Enhancement
-        var aiConfig = await _dbContext.TenantAIConfigurations
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.TenantId == tenantId, cancellationToken);
-
-        if (aiConfig == null || string.Equals(aiConfig.Status, AIConnectionStatus.NotConnected, StringComparison.OrdinalIgnoreCase))
-        {
-            return new ImageOperationResult
-            {
-                Success = false,
-                ErrorCode = AIErrorCodes.ProviderConnectionRequired,
-                ErrorMessage = "An active AI provider connection is required before enhancing images. Please connect your AI provider in Settings."
-            };
-        }
-
-        var isImageCapable = !string.IsNullOrWhiteSpace(aiConfig.SelectedModelKey) &&
-            AIModelRegistry.SupportsCapability(aiConfig.SelectedModelKey, AIModelCapability.Image);
-
-        if (!isImageCapable)
-        {
-            return new ImageOperationResult
-            {
-                Success = false,
-                ErrorCode = AIErrorCodes.ModelCapabilityMismatch,
-                ErrorMessage = "The currently selected AI model does not support Image Enhancement. Please select an image-capable model under AI Connections."
-            };
-        }
-
-        // Original image is NEVER overwritten! Create a derived variant
+        // Original image is NEVER overwritten! Create a derived variant via deterministic server-side processing
         var variantId = Guid.NewGuid();
-        var variantStorageKey = $"tenants/{tenantId}/websites/{image.WebsiteId}/images/{imageId}/variants/{variantId}/{operation.ToLowerInvariant()}.png";
 
         // Download original stream (read-only)
         var originalStream = await _storageProvider.DownloadAsync("images", image.StorageKey, cancellationToken);
 
-        // Store enhanced variant bytes
-        await _storageProvider.UploadAsync("images", variantStorageKey, originalStream, "image/png", cancellationToken);
+        ProcessedImageResult processedResult;
+        try
+        {
+            processedResult = await _imageProcessor.ProcessImageAsync(originalStream, operation, null, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed deterministic processing for operation {Operation} on image {ImageId}", operation, imageId);
+            return new ImageOperationResult
+            {
+                Success = false,
+                ErrorCode = "PROCESSING_FAILED",
+                ErrorMessage = $"Failed to process image with operation '{operation}': {ex.Message}"
+            };
+        }
 
         // Output Result Validation
-        if (image.FileSize <= 0 || image.Width <= 0 || image.Height <= 0)
+        if (processedResult.FileSize <= 0 || processedResult.Width <= 0 || processedResult.Height <= 0 || processedResult.Bytes.Length == 0)
         {
             return new ImageOperationResult
             {
@@ -912,6 +914,12 @@ public class WebsiteImageService : IWebsiteImageService
             };
         }
 
+        var variantStorageKey = $"tenants/{tenantId}/websites/{image.WebsiteId}/images/{imageId}/variants/{variantId}/{operation.ToLowerInvariant()}{processedResult.FileExtension}";
+
+        // Store enhanced variant bytes
+        using var uploadStream = new MemoryStream(processedResult.Bytes);
+        await _storageProvider.UploadAsync("images", variantStorageKey, uploadStream, processedResult.MimeType, cancellationToken);
+
         var variant = new ImageVariant
         {
             Id = variantId,
@@ -920,10 +928,10 @@ public class WebsiteImageService : IWebsiteImageService
             VariantType = "AIEnhanced",
             Operation = operation,
             StorageKey = variantStorageKey,
-            MimeType = "image/png",
-            FileSize = image.FileSize,
-            Width = image.Width,
-            Height = image.Height,
+            MimeType = processedResult.MimeType,
+            FileSize = processedResult.FileSize,
+            Width = processedResult.Width,
+            Height = processedResult.Height,
             Version = image.Variants.Count + 1,
             Status = "Enhanced", // Ready for human Before/After review
             CreatedAt = DateTime.UtcNow,
@@ -932,7 +940,11 @@ public class WebsiteImageService : IWebsiteImageService
 
         _dbContext.ImageVariants.Add(variant);
 
-        // Audit as AIRequest
+        // Audit as AIRequest for tracking and review status lifecycle
+        var aiConfig = await _dbContext.TenantAIConfigurations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.TenantId == tenantId, cancellationToken);
+
         var aiRequest = new AIRequest
         {
             TenantId = tenantId,
@@ -942,8 +954,8 @@ public class WebsiteImageService : IWebsiteImageService
             ResourceId = imageId,
             Status = AIRequestStatus.Succeeded,
             ReviewStatus = AIReviewStatus.PendingReview,
-            ProviderReference = aiConfig.ProviderKey,
-            ModelReference = aiConfig.SelectedModelKey,
+            ProviderReference = aiConfig?.ProviderKey ?? "Deterministic",
+            ModelReference = aiConfig?.SelectedModelKey ?? "BuiltIn",
             CreatedAt = DateTime.UtcNow,
             CompletedAt = DateTime.UtcNow
         };
@@ -1034,42 +1046,45 @@ public class WebsiteImageService : IWebsiteImageService
         }
 
         var sourceStorageKey = parentVariant?.StorageKey ?? image.StorageKey;
-        var sourceWidth = parentVariant?.Width ?? image.Width;
-        var sourceHeight = parentVariant?.Height ?? image.Height;
-
-        // Compute proportional target dimensions
-        var targetWidth = sourceWidth;
-        var targetHeight = sourceHeight;
         var limitWidth = maxWidth ?? 1200;
-        if (limitWidth > 0 && sourceWidth > limitWidth)
-        {
-            targetWidth = limitWidth;
-            targetHeight = (int)Math.Round((double)sourceHeight * limitWidth / sourceWidth);
-        }
 
         var format = string.Equals(targetFormat, "jpeg", StringComparison.OrdinalIgnoreCase) || string.Equals(targetFormat, "jpg", StringComparison.OrdinalIgnoreCase)
             ? "jpeg"
             : "webp";
-        var mimeType = format == "jpeg" ? "image/jpeg" : "image/webp";
-        var ext = format == "jpeg" ? ".jpg" : ".webp";
-
-        var variantId = Guid.NewGuid();
-        var storageKey = $"tenants/{tenantId}/websites/{image.WebsiteId}/images/{imageId}/variants/{variantId}/optimized_{DateTime.UtcNow.Ticks}{ext}";
 
         // Read source stream (read-only, never mutates original!)
         var sourceStream = await _storageProvider.DownloadAsync("images", sourceStorageKey, cancellationToken);
 
-        using var ms = new MemoryStream();
-        await sourceStream.CopyToAsync(ms, cancellationToken);
-        var sourceBytes = ms.ToArray();
+        ProcessedImageResult processedResult;
+        try
+        {
+            processedResult = await _imageProcessor.ProcessImageAsync(
+                sourceStream,
+                "WebOptimize",
+                new ImageProcessingOptions
+                {
+                    MaxWidth = limitWidth,
+                    TargetFormat = format,
+                    Quality = 82
+                },
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to optimize image {ImageId}", imageId);
+            return new ImageOperationResult
+            {
+                Success = false,
+                ErrorCode = "OPTIMIZATION_FAILED",
+                ErrorMessage = $"Failed to optimize image: {ex.Message}"
+            };
+        }
 
-        var scaleRatio = (double)(targetWidth * targetHeight) / Math.Max(1, sourceWidth * sourceHeight);
-        var compressionRatio = format == "webp" ? 0.70 : 0.85;
-        var computedSize = Math.Max(512, (long)(sourceBytes.Length * Math.Min(1.0, scaleRatio) * compressionRatio));
-        var optimizedSize = Math.Min(sourceBytes.Length, computedSize);
+        var variantId = Guid.NewGuid();
+        var storageKey = $"tenants/{tenantId}/websites/{image.WebsiteId}/images/{imageId}/variants/{variantId}/optimized_{DateTime.UtcNow.Ticks}{processedResult.FileExtension}";
 
-        using var uploadStream = new MemoryStream(sourceBytes);
-        await _storageProvider.UploadAsync("images", storageKey, uploadStream, mimeType, cancellationToken);
+        using var uploadStream = new MemoryStream(processedResult.Bytes);
+        await _storageProvider.UploadAsync("images", storageKey, uploadStream, processedResult.MimeType, cancellationToken);
 
         var variant = new ImageVariant
         {
@@ -1080,10 +1095,10 @@ public class WebsiteImageService : IWebsiteImageService
             VariantType = "WebsiteOptimized",
             Operation = "WebOptimize",
             StorageKey = storageKey,
-            MimeType = mimeType,
-            FileSize = optimizedSize,
-            Width = targetWidth,
-            Height = targetHeight,
+            MimeType = processedResult.MimeType,
+            FileSize = processedResult.FileSize,
+            Width = processedResult.Width,
+            Height = processedResult.Height,
             Version = image.Variants.Count + 1,
             Status = "Approved", // Ready for publication
             CreatedAt = DateTime.UtcNow,

@@ -15,7 +15,7 @@ public interface IWebsiteImageService
     Task<ImageOperationResult> DeleteImageAsync(Guid tenantId, Guid imageId, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<List<WorkCategoryDto>> GetWorkCategoriesAsync(Guid tenantId, Guid? websiteId = null, CancellationToken cancellationToken = default);
     Task<WorkCategoryDto> CreateWorkCategoryAsync(Guid tenantId, CreateWorkCategoryRequest request, CancellationToken cancellationToken = default);
-    Task<WorkCategoryDto> CreateWorkCategoryAsync(Guid tenantId, string name, CancellationToken cancellationToken = default);
+    Task<ImageAnalysisResult> AnalyzeImageAsync(Guid tenantId, Guid imageId, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> EnhanceImageAsync(Guid tenantId, Guid imageId, string operation, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> OptimizeImageAsync(Guid tenantId, Guid imageId, Guid? parentVariantId = null, string? targetFormat = null, int? maxWidth = null, int? maxHeight = null, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> ApproveEnhancementAsync(Guid tenantId, Guid imageId, Guid variantId, Guid? userId = null, CancellationToken cancellationToken = default);

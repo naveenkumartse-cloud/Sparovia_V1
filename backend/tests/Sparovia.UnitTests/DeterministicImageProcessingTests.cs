@@ -1,0 +1,108 @@
+using Microsoft.Extensions.Logging.Abstractions;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using Sparovia.Application.Images;
+using Sparovia.Infrastructure.Images;
+using Xunit;
+
+namespace Sparovia.UnitTests;
+
+public class DeterministicImageProcessingTests
+{
+    private readonly DeterministicImageProcessingService _service;
+
+    public DeterministicImageProcessingTests()
+    {
+        _service = new DeterministicImageProcessingService(NullLogger<DeterministicImageProcessingService>.Instance);
+    }
+
+    private static byte[] CreateTestImageBytes(int width, int height)
+    {
+        using var image = new Image<Rgba32>(width, height);
+        // Draw a test gradient pattern so sharpness/contrast can be calculated
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                byte val = (byte)((x * 255 / Math.Max(1, width) + y * 255 / Math.Max(1, height)) / 2);
+                image[x, y] = new Rgba32(val, val, val);
+            }
+        }
+        using var ms = new MemoryStream();
+        image.SaveAsPng(ms);
+        return ms.ToArray();
+    }
+
+    [Fact]
+    public async Task AnalyzeImageAsync_ReturnsExpectedAnalysisAndMetrics()
+    {
+        var testBytes = CreateTestImageBytes(800, 600);
+        using var stream = new MemoryStream(testBytes);
+
+        var result = await _service.AnalyzeImageAsync(stream, testBytes.Length, "image/png");
+
+        Assert.NotNull(result);
+        Assert.Equal(800, result.Width);
+        Assert.Equal(600, result.Height);
+        Assert.Equal(1.33, result.AspectRatio);
+        Assert.Equal(testBytes.Length, result.FileSize);
+        Assert.Equal("PNG", result.Format);
+        Assert.False(result.IsLargeEnough); // width < 1200
+        Assert.NotEmpty(result.RecommendedOperation);
+        Assert.NotEmpty(result.RecommendationReason);
+    }
+
+    [Theory]
+    [InlineData("ImproveClarity")]
+    [InlineData("ImproveSharpness")]
+    [InlineData("ReduceNoise")]
+    [InlineData("ClassicLook")]
+    [InlineData("ModernLook")]
+    [InlineData("WebOptimize")]
+    public async Task ProcessImageAsync_StandardOperations_ReturnValidProcessedResult(string operation)
+    {
+        var testBytes = CreateTestImageBytes(400, 300);
+        using var stream = new MemoryStream(testBytes);
+
+        var result = await _service.ProcessImageAsync(stream, operation);
+
+        Assert.NotNull(result);
+        Assert.NotEmpty(result.Bytes);
+        Assert.True(result.FileSize > 0);
+        Assert.True(result.Width > 0);
+        Assert.True(result.Height > 0);
+    }
+
+    [Fact]
+    public async Task ProcessImageAsync_Upscale_IncreasesResolution()
+    {
+        var testBytes = CreateTestImageBytes(200, 150);
+        using var stream = new MemoryStream(testBytes);
+
+        var result = await _service.ProcessImageAsync(stream, "Upscale");
+
+        Assert.NotNull(result);
+        Assert.Equal(400, result.Width);
+        Assert.Equal(300, result.Height);
+    }
+
+    [Fact]
+    public async Task ProcessImageAsync_WebOptimize_ConvertsToWebp()
+    {
+        var testBytes = CreateTestImageBytes(1400, 1000);
+        using var stream = new MemoryStream(testBytes);
+
+        var result = await _service.ProcessImageAsync(stream, "WebOptimize", new ImageProcessingOptions
+        {
+            MaxWidth = 1200,
+            TargetFormat = "webp",
+            Quality = 82
+        });
+
+        Assert.NotNull(result);
+        Assert.Equal("image/webp", result.MimeType);
+        Assert.Equal(".webp", result.FileExtension);
+        Assert.Equal(1200, result.Width);
+        Assert.True(result.Bytes.Length > 0);
+    }
+}

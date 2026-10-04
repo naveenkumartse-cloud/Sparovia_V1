@@ -169,5 +169,31 @@ public class ImageAfterReviewDto
     public string MimeType { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public string Operation { get; set; } = string.Empty;
-    public string Label { get; set; } = "AI Enhanced Variant";
+    public string Label { get; set; } = "Enhanced Variant";
+}
+
+public class ImageAnalysisResult
+{
+    public int Width { get; set; }
+    public int Height { get; set; }
+    public long FileSize { get; set; }
+    public string Format { get; set; } = string.Empty;
+    public double AspectRatio { get; set; }
+    public double Brightness { get; set; }
+    public double Contrast { get; set; }
+    public double Sharpness { get; set; }
+    public double NoiseLevel { get; set; }
+    public bool IsLargeEnough { get; set; }
+    public string RecommendedOperation { get; set; } = "ImproveSharpness";
+    public string RecommendationReason { get; set; } = string.Empty;
+}
+
+public class ProcessedImageResult
+{
+    public required byte[] Bytes { get; set; }
+    public required string MimeType { get; set; }
+    public required string FileExtension { get; set; }
+    public int Width { get; set; }
+    public int Height { get; set; }
+    public long FileSize { get; set; }
 }

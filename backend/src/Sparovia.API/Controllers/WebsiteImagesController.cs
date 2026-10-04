@@ -577,6 +577,70 @@ public class ReplaceImageForm
         });
     }
 
+    [HttpGet("{id:guid}/analysis")]
+    [Authorize]
+    public async Task<IActionResult> GetImageAnalysis(Guid id, CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError)) return authError!;
+
+        try
+        {
+            var analysis = await _imageService.AnalyzeImageAsync(tenantId, id, cancellationToken);
+            return Ok(new
+            {
+                data = analysis,
+                requestId = HttpContext.TraceIdentifier
+            });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { Error = "Image not found.", Code = "IMAGE_NOT_FOUND" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to analyze image {ImageId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Failed to analyze image.", Details = ex.Message });
+        }
+    }
+
+    [HttpPost("{id:guid}/enhance")]
+    [Authorize]
+    public async Task<IActionResult> EnhanceImage(
+        Guid id,
+        [FromBody] EnhanceImageRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError)) return authError!;
+
+        if (request == null || string.IsNullOrWhiteSpace(request.Operation))
+        {
+            return BadRequest(new { Error = "Operation is required.", Code = "OPERATION_REQUIRED" });
+        }
+
+        var result = await _imageService.EnhanceImageAsync(
+            tenantId,
+            id,
+            request.Operation,
+            TryGetUserId(),
+            cancellationToken);
+
+        if (!result.Success)
+        {
+            if (result.ErrorCode == "IMAGE_NOT_FOUND")
+            {
+                return NotFound(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+            }
+            return BadRequest(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+        }
+
+        return StatusCode(StatusCodes.Status201Created, new
+        {
+            data = result.Variant,
+            message = "Image enhancement generated successfully. Original image remains preserved.",
+            requestId = HttpContext.TraceIdentifier
+        });
+    }
+
     [HttpPost("{id:guid}/optimize")]
     [Authorize]
     public async Task<IActionResult> OptimizeImage(

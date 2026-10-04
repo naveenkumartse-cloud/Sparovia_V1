@@ -319,11 +319,11 @@ public class WebsiteImagesTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task EnhanceImage_WithContentOnlyModel_RejectsWithCapabilityMismatch()
+    public async Task EnhanceImage_DoesNotRequireAIProvider_SucceedsDeterministically()
     {
-        var email = $"ai_enhance_mismatch_{Guid.NewGuid():N}@test.local";
+        var email = $"non_ai_enhance_{Guid.NewGuid():N}@test.local";
         var client = await GetAuthenticatedClientAsync(email);
-        await SetupAndConfirmBusinessContextAsync(client, "Capability Studio", email);
+        await SetupAndConfirmBusinessContextAsync(client, "Deterministic Studio", email);
 
         // Upload image
         var form = CreateImageMultipartContent(CreateValidJpegBytes(), "kitchen.jpg", "image/jpeg");
@@ -331,31 +331,15 @@ public class WebsiteImagesTests : IClassFixture<WebApplicationFactory<Program>>
         var body = await uploadResp.Content.ReadFromJsonAsync<JsonElement>();
         var imageId = body.GetProperty("data").GetProperty("id").GetString();
 
-        // Connect AI with content-only model: gpt-4o-mini
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<SparoviaDbContext>();
-            var user = db.Users.Single(u => u.Email == email);
-            var membership = db.Memberships.Single(m => m.UserId == user.Id);
-            var aiConfig = new TenantAIConfiguration
-            {
-                TenantId = membership.TenantId,
-                ProviderKey = AIProviders.OpenAI,
-                SelectedModelKey = "gpt-4o-mini", // Content only
-                Status = AIConnectionStatus.Connected,
-                SupportedCapability = AIModelCapability.Content
-            };
-            db.TenantAIConfigurations.Add(aiConfig);
-            await db.SaveChangesAsync();
-        }
-
-        // Attempt EnhanceImage
+        // Attempt EnhanceImage - succeeds without any AI provider configured
         var enhanceReq = new EnhanceImageRequest { Operation = "ImproveClarity" };
-        var enhanceResp = await client.PostAsJsonAsync($"/api/v1/ai/images/{imageId}/enhance", enhanceReq);
-        Assert.Equal(HttpStatusCode.BadRequest, enhanceResp.StatusCode);
+        var enhanceResp = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/enhance", enhanceReq);
+        Assert.Equal(HttpStatusCode.Created, enhanceResp.StatusCode);
 
-        var errBody = await enhanceResp.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Contains(AIErrorCodes.ModelCapabilityMismatch, errBody.ToString());
+        var respBody = await enhanceResp.Content.ReadFromJsonAsync<JsonElement>();
+        var variantId = respBody.GetProperty("data").GetProperty("id").GetString();
+        Assert.NotNull(variantId);
+        Assert.Equal("ImproveClarity", respBody.GetProperty("data").GetProperty("operation").GetString());
     }
 
     [Fact]

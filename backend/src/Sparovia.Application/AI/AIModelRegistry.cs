@@ -144,11 +144,11 @@ public static class AIModelRegistry
             Key = "openrouter/free",
             ProviderKey = AIProviders.OpenRouter,
             DisplayName = "OpenRouter Free Router",
-            Description = "Auto-routing endpoint dynamically selecting available high-performance free models.",
+            Description = "Auto-routing smart endpoint dynamically selecting active high-capacity free models with reliable uptime.",
             Capability = AIModelCapability.Content,
             Status = AIModelStatus.Available,
             IsDefault = true,
-            IsRecommended = false,
+            IsRecommended = true,
             IsFreeTier = true,
             SortOrder = 1,
             ProviderModelId = "openrouter/free"
