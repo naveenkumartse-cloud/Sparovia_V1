@@ -85,13 +85,6 @@ interface ImageAnalysisDto {
   recommendationReason: string;
 }
 
-interface AIConnectionInfo {
-  status: string;
-  providerDisplayName?: string;
-  selectedModelDisplayName?: string;
-  isImageEnhancementAvailable: boolean;
-}
-
 const WEBSITE_SLOTS = [
   {
     key: 'heroImage',
@@ -194,9 +187,6 @@ export default function ImagesPage() {
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
 
-  // AI Connection Info
-  const [aiConnection, setAiConnection] = useState<AIConnectionInfo | null>(null);
-
   // Upload / Replace Modal state
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadSlot, setUploadSlot] = useState<string | null>(null);
@@ -224,7 +214,7 @@ export default function ImagesPage() {
   const [editCaption, setEditCaption] = useState('');
   const [savingMetadata, setSavingMetadata] = useState(false);
 
-  // AI Enhancement Modal state
+  // Image Enhancement Modal state
   const [enhanceModalOpen, setEnhanceModalOpen] = useState(false);
   const [enhancingImage, setEnhancingImage] = useState<ImageDto | null>(null);
   const [selectedOperation, setSelectedOperation] = useState('ImproveClarity');
@@ -263,26 +253,9 @@ export default function ImagesPage() {
     }
   };
 
-  const fetchAIConnection = async () => {
-    try {
-      const res = await apiClient.get<{ data: any }>('/ai/connection');
-      if (res?.data) {
-        setAiConnection({
-          status: res.data.status,
-          providerDisplayName: res.data.providerDisplayName,
-          selectedModelDisplayName: res.data.selectedModelDisplayName,
-          isImageEnhancementAvailable: res.data.isImageEnhancementAvailable,
-        });
-      }
-    } catch {
-      // Non-blocking: AI capability will be checked on demand
-    }
-  };
-
   useEffect(() => {
     fetchImages();
     fetchCategories();
-    fetchAIConnection();
 
     return () => {
       if (filePreviewUrlRef.current) {
@@ -1504,7 +1477,7 @@ export default function ImagesPage() {
         isOpen={enhanceModalOpen}
         onClose={() => !enhancing && setEnhanceModalOpen(false)}
         title="Image Enhancement & Web Optimization"
-        description="Enhance photograph quality and generate web-optimized variants using deterministic processing. Original images are never modified."
+        description="Improve image quality and optimize images for fast website delivery while preserving the original image."
         maxWidth="2xl"
         footer={
           <>
