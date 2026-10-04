@@ -562,7 +562,7 @@ public class IdentityService : IIdentityService
         // Enforce verified account policy (PhoneVerified or EmailVerified)
         if (!user.PhoneVerified && !user.EmailVerified)
         {
-            return new SignInResult { Success = false, ErrorMessage = "Please verify your phone number before continuing." };
+            return new SignInResult { Success = false, ErrorMessage = "Please verify your email or phone number before continuing." };
         }
 
         // Determine authorized tenant server-side

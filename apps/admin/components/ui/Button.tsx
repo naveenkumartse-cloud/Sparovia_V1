@@ -64,7 +64,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       'destructive-outline':
         'bg-white dark:bg-[#0F172A] hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 focus:ring-rose-400',
       success:
-        'bg-[#FF7043] hover:bg-[#F4511E] active:bg-[#E64A19] text-white shadow-lg shadow-[#FF7043]/25 focus:ring-[#FF7043] border border-transparent',
+        'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-xs focus:ring-emerald-500 border border-transparent',
       link:
         'bg-transparent hover:bg-transparent text-[#FF7043] hover:text-[#F4511E] dark:text-[#FF7043] dark:hover:text-[#F4511E] underline-offset-4 hover:underline p-0 h-auto font-medium focus:ring-0',
     };

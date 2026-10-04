@@ -590,11 +590,12 @@ export default function ImagesPage() {
         {activeTab === 'explore' && (
           <Button
             type="button"
+            variant="primary"
+            size="md"
             onClick={() => openUploadModal()}
-            className="inline-flex items-center gap-2 shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+            leftIcon={<Upload className="w-4 h-4" />}
           >
-            <Upload className="w-4 h-4" />
-            + Add Project Image
+            Add Project Image
           </Button>
         )}
       </div>
@@ -791,7 +792,7 @@ export default function ImagesPage() {
                           {assignedImage.status !== 'Published' ? (
                             <Button
                               type="button"
-                              variant="primary"
+                              variant="success"
                               size="sm"
                               onClick={() => handlePublishImage(assignedImage)}
                             >
@@ -849,11 +850,12 @@ export default function ImagesPage() {
               <div className="mt-6">
                 <Button
                   type="button"
+                  variant="primary"
+                  size="md"
                   onClick={() => openUploadModal()}
-                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 shadow-sm"
+                  leftIcon={<Upload className="w-4 h-4" />}
                 >
-                  <Upload className="w-4 h-4" />
-                  + Add Project Image
+                  Add Project Image
                 </Button>
               </div>
             </div>
@@ -1014,7 +1016,7 @@ export default function ImagesPage() {
                           {(image.status === 'Approved' || (image.status !== 'Published' && image.status !== 'Uploaded')) && (
                             <Button
                               type="button"
-                              variant="primary"
+                              variant="success"
                               size="sm"
                               onClick={() => handlePublishImage(image)}
                             >
@@ -1570,7 +1572,7 @@ export default function ImagesPage() {
                 </Button>
                 <Button
                   type="button"
-                  variant="primary"
+                  variant="success"
                   size="md"
                   disabled={approving || publishing}
                   isLoading={publishing}
@@ -1933,7 +1935,7 @@ export default function ImagesPage() {
             </Button>
             <Button
               type="button"
-              variant="primary"
+              variant="success"
               size="md"
               disabled={publishing}
               isLoading={publishing}
