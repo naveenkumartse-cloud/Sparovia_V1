@@ -13,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Sparovia | Home Interiors & Architectural Systems',
+  title: 'Sparovia | Business Website',
   description: 'Custom Home Interiors, Modular Kitchens, Wardrobes, Living Units & Architectural Window Solutions.',
   keywords: [
     'Interior Design',

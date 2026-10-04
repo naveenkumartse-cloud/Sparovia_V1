@@ -1033,7 +1033,7 @@ export default function ContentPage() {
             ? `Refine "${aiFieldInfo.label}" in ${aiFieldInfo.sectionTitle} using your configured AI model.`
             : 'Refine your content with AI assistance.'
         }
-        maxWidth="2xl"
+        maxWidth="ai"
         footer={
           // Dynamic dedicated footer pinned to bottom of modal
           (() => {
@@ -1375,6 +1375,10 @@ export default function ContentPage() {
                       <input
                         type="text"
                         maxLength={500}
+                        spellCheck={true}
+                        autoCorrect="on"
+                        autoCapitalize="sentences"
+                        lang="en"
                         value={aiInstruction}
                         onChange={(e) => setAiInstruction(e.target.value)}
                         placeholder="e.g., Make it emphasize our 15 years of bespoke residential experience"
@@ -1469,6 +1473,10 @@ export default function ContentPage() {
 
                     <textarea
                       rows={4}
+                      spellCheck={true}
+                      autoCorrect="on"
+                      autoCapitalize="sentences"
+                      lang="en"
                       value={aiEditableSuggestion}
                       onChange={(e) => setAiEditableSuggestion(e.target.value)}
                       className="w-full p-3.5 rounded-xl border border-purple-300 dark:border-purple-700 bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 leading-relaxed font-normal shadow-xs"
@@ -1523,6 +1531,10 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
           <FormField key={k} label={k}>
             <input
               type="text"
+              spellCheck={true}
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              lang="en"
               value={typeof value[k] === 'string' ? value[k] : JSON.stringify(value[k])}
               onChange={(e) => onChange(k, e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FF7043]/30 focus:border-[#FF7043]"

@@ -32,11 +32,15 @@ public class HttpAIProviderAdapter : IAIProvider
 
     public async Task<bool> TestConnectionAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default)
     {
-        var result = await TestConnectionDetailedAsync(providerKey, apiKey, cancellationToken);
+        var result = await TestConnectionDetailedAsync(providerKey, apiKey, null, cancellationToken);
         return result.Success;
     }
 
-    public async Task<AIConnectionTestResult> TestConnectionDetailedAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default)
+    public async Task<AIConnectionTestResult> TestConnectionDetailedAsync(
+        string providerKey,
+        string apiKey,
+        string? modelKey = null,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
         {
@@ -60,7 +64,7 @@ public class HttpAIProviderAdapter : IAIProvider
             {
                 Success = false,
                 ErrorCode = AIErrorCodes.ConnectionTestFailed,
-                ErrorMessage = "Connection failed. The API key could not be verified. Please check your credentials and try again.",
+                ErrorMessage = "AI connection could not be authenticated. Please verify your API key.",
                 StatusCode = 401
             };
         }
@@ -74,26 +78,69 @@ public class HttpAIProviderAdapter : IAIProvider
             };
         }
 
+        var provider = (providerKey ?? string.Empty).ToLowerInvariant();
+        var activeModelKey = !string.IsNullOrWhiteSpace(modelKey) 
+            ? modelKey 
+            : AIModelRegistry.DefaultModelKeyFor(provider);
+        var providerModelId = AIModelRegistry.ResolveProviderModelId(activeModelKey, provider);
+
         try
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(10));
 
             HttpRequestMessage request;
-            var provider = (providerKey ?? string.Empty).ToLowerInvariant();
 
             if (provider == AIProviders.OpenAI)
             {
-                request = new HttpRequestMessage(HttpMethod.Get, "https://api.openai.com/v1/models");
+                var payload = new
+                {
+                    model = providerModelId,
+                    messages = new[] { new { role = "user", content = "ping" } },
+                    max_tokens = 2
+                };
+                request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions")
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+                };
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", trimmedKey);
             }
             else if (provider == AIProviders.Gemini)
             {
-                request = new HttpRequestMessage(HttpMethod.Get, $"https://generativelanguage.googleapis.com/v1beta/models?key={Uri.EscapeDataString(trimmedKey)}");
+                var cleanModelId = providerModelId.StartsWith("models/", StringComparison.OrdinalIgnoreCase)
+                    ? providerModelId["models/".Length..]
+                    : providerModelId;
+                var geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{cleanModelId}:generateContent?key={Uri.EscapeDataString(trimmedKey)}";
+                var payload = new
+                {
+                    contents = new[]
+                    {
+                        new
+                        {
+                            role = "user",
+                            parts = new[] { new { text = "ping" } }
+                        }
+                    },
+                    generationConfig = new { maxOutputTokens = 2 }
+                };
+                request = new HttpRequestMessage(HttpMethod.Post, geminiUrl)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+                };
+                request.Headers.Add("x-goog-api-key", trimmedKey);
             }
             else if (provider == AIProviders.Claude)
             {
-                request = new HttpRequestMessage(HttpMethod.Get, "https://api.anthropic.com/v1/models");
+                var payload = new
+                {
+                    model = providerModelId,
+                    messages = new[] { new { role = "user", content = "ping" } },
+                    max_tokens = 2
+                };
+                request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages")
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+                };
                 request.Headers.Add("x-api-key", trimmedKey);
                 request.Headers.Add("anthropic-version", "2023-06-01");
             }
@@ -127,47 +174,24 @@ public class HttpAIProviderAdapter : IAIProvider
                 };
             }
 
-            _logger.LogWarning("AI connection test rejected by {Provider} with HTTP status {StatusCode}", providerKey, statusCode);
-
-            if (statusCode == 401 || statusCode == 403 || statusCode == 400)
+            string? errorBody = null;
+            try
             {
-                return new AIConnectionTestResult
-                {
-                    Success = false,
-                    StatusCode = statusCode,
-                    ErrorCode = AIErrorCodes.ConnectionTestFailed,
-                    ErrorMessage = "Connection failed. The API key could not be verified. Please check your credentials and try again."
-                };
+                errorBody = await response.Content.ReadAsStringAsync(cts.Token);
             }
+            catch { /* ignore */ }
 
-            if (statusCode == 429)
-            {
-                return new AIConnectionTestResult
-                {
-                    Success = false,
-                    StatusCode = 429,
-                    ErrorCode = AIErrorCodes.RateLimited,
-                    ErrorMessage = "Rate limit exceeded by the provider. Please wait a moment and try again."
-                };
-            }
+            _logger.LogWarning("AI connection test rejected by {Provider} with HTTP status {StatusCode}: {ErrorBody}",
+                providerKey, statusCode, errorBody);
 
-            if (statusCode >= 500)
-            {
-                return new AIConnectionTestResult
-                {
-                    Success = false,
-                    StatusCode = statusCode,
-                    ErrorCode = AIErrorCodes.ProviderUnavailable,
-                    ErrorMessage = "The AI provider service is temporarily unavailable. Please try again later."
-                };
-            }
+            var (errCode, errMsg) = ClassifyProviderError(response.StatusCode, errorBody, activeModelKey);
 
             return new AIConnectionTestResult
             {
                 Success = false,
                 StatusCode = statusCode,
-                ErrorCode = AIErrorCodes.ConnectionTestFailed,
-                ErrorMessage = "Could not authenticate with provider. Please check your API key."
+                ErrorCode = errCode,
+                ErrorMessage = errMsg
             };
         }
         catch (OperationCanceledException)
@@ -177,7 +201,7 @@ public class HttpAIProviderAdapter : IAIProvider
             {
                 Success = false,
                 ErrorCode = AIErrorCodes.ProcessingTimeout,
-                ErrorMessage = "Connection timed out while verifying credentials with the AI provider."
+                ErrorMessage = "Connection timed out while verifying credentials with the AI provider. Please try again."
             };
         }
         catch (Exception ex)
@@ -214,7 +238,7 @@ public class HttpAIProviderAdapter : IAIProvider
         }
 
         var model = request.Model ?? opt.DefaultModel;
-        var providerModelId = AIModelRegistry.ResolveProviderModelId(model);
+        var providerModelId = AIModelRegistry.ResolveProviderModelId(model, provider);
 
         var systemPrompt = request.SystemPrompt ??
             "You are an expert business copywriter assisting a client within Sparovia.\n" +
@@ -266,7 +290,10 @@ public class HttpAIProviderAdapter : IAIProvider
 
                 if (provider == AIProviders.Gemini)
                 {
-                    var geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{providerModelId}:generateContent?key={Uri.EscapeDataString(apiKey)}";
+                    var cleanModelId = providerModelId.StartsWith("models/", StringComparison.OrdinalIgnoreCase)
+                        ? providerModelId["models/".Length..]
+                        : providerModelId;
+                    var geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{cleanModelId}:generateContent?key={Uri.EscapeDataString(apiKey)}";
                     var geminiPayload = new
                     {
                         contents = new[]
@@ -291,6 +318,7 @@ public class HttpAIProviderAdapter : IAIProvider
                     {
                         Content = new StringContent(JsonSerializer.Serialize(geminiPayload), Encoding.UTF8, "application/json")
                     };
+                    httpRequest.Headers.Add("x-goog-api-key", apiKey);
                 }
                 else if (provider == AIProviders.Claude)
                 {
@@ -412,8 +440,16 @@ public class HttpAIProviderAdapter : IAIProvider
                     continue;
                 }
 
+                string? errorBody = null;
+                try
+                {
+                    errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                }
+                catch { /* ignore */ }
+
                 stopwatch.Stop();
-                var (errorCode, errorMessage) = MapHttpStatusToErrorCode(response.StatusCode);
+                _logger.LogWarning("AI provider request rejected with status {StatusCode}: {ErrorBody}", response.StatusCode, errorBody);
+                var (errorCode, errorMessage) = ClassifyProviderError(response.StatusCode, errorBody, model);
                 return new AIProviderResult
                 {
                     Success = false,
@@ -510,17 +546,58 @@ public class HttpAIProviderAdapter : IAIProvider
         };
     }
 
-    private static (string ErrorCode, string ErrorMessage) MapHttpStatusToErrorCode(HttpStatusCode statusCode)
+    private static (string ErrorCode, string ErrorMessage) ClassifyProviderError(
+        HttpStatusCode statusCode,
+        string? responseBody,
+        string? modelName = null)
     {
-        return statusCode switch
+        var bodyLower = responseBody?.ToLowerInvariant() ?? string.Empty;
+        var intCode = (int)statusCode;
+
+        // 1. Authentication & Credentials (401, 403, or Google's 400 with API_KEY_INVALID)
+        if (intCode == 401 || intCode == 403 ||
+            bodyLower.Contains("api_key_invalid") ||
+            bodyLower.Contains("invalid_api_key") ||
+            bodyLower.Contains("invalid api key") ||
+            bodyLower.Contains("authentication_error") ||
+            bodyLower.Contains("unauthorized") ||
+            bodyLower.Contains("permission_denied"))
         {
-            HttpStatusCode.TooManyRequests => (AIErrorCodes.RateLimited, "The AI provider rate limit was exceeded. Please wait a moment and try again."),
-            HttpStatusCode.BadRequest => (AIErrorCodes.InvalidRequest, "The AI provider rejected the request format or parameters."),
-            HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => (AIErrorCodes.ProviderUnavailable, "AI connection could not be verified. Please check your API key and try again."),
-            HttpStatusCode.NotFound => (AIErrorCodes.ProviderUnavailable, "The selected AI model or endpoint was not found for this account."),
-            HttpStatusCode.RequestTimeout or HttpStatusCode.GatewayTimeout => (AIErrorCodes.ProcessingTimeout, "AI provider request timed out. Please try again."),
-            _ when (int)statusCode >= 500 => (AIErrorCodes.ProviderUnavailable, "The AI provider service encountered an internal error. Please try again later."),
-            _ => (AIErrorCodes.ProcessingFailed, "An error occurred while communicating with the AI service.")
-        };
+            return (AIErrorCodes.ConnectionTestFailed, "AI connection could not be authenticated. Please verify your API key in AI Connections.");
+        }
+
+        // 2. Model Not Found / Resource Unavailable (404, or body indicates model not found)
+        if (intCode == 404 ||
+            bodyLower.Contains("not found") ||
+            bodyLower.Contains("model_not_found") ||
+            bodyLower.Contains("is not supported for generatecontent"))
+        {
+            var modelDisplay = !string.IsNullOrWhiteSpace(modelName) ? $" '{modelName}'" : "";
+            return (AIErrorCodes.ModelUnavailable, $"The configured AI model{modelDisplay} is unavailable. Please verify the selected model in AI Connections.");
+        }
+
+        // 3. Rate Limit / Quota Exceeded (429 or RESOURCE_EXHAUSTED)
+        if (intCode == 429 ||
+            bodyLower.Contains("resource_exhausted") ||
+            bodyLower.Contains("rate_limit_exceeded") ||
+            bodyLower.Contains("insufficient_quota") ||
+            bodyLower.Contains("quota exceeded"))
+        {
+            return (AIErrorCodes.RateLimited, "The AI provider is temporarily rate limited. Please try again later.");
+        }
+
+        // 4. Request / Parameter validation (400, 422)
+        if (intCode == 400 || intCode == 422)
+        {
+            return (AIErrorCodes.InvalidRequest, "The AI provider rejected the request configuration. Please check your model settings in AI Connections.");
+        }
+
+        // 5. Provider Service Failure (5xx)
+        if (intCode >= 500)
+        {
+            return (AIErrorCodes.ProviderUnavailable, "The AI provider is temporarily unavailable. Please try again shortly.");
+        }
+
+        return (AIErrorCodes.ProviderUnavailable, "The AI provider is temporarily unavailable. Please try again shortly.");
     }
 }

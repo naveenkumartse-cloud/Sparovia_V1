@@ -11,17 +11,19 @@ export interface ModalProps {
   description?: string;
   children?: React.ReactNode;
   footer?: React.ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | 'ai';
   className?: string;
   bodyClassName?: string;
 }
 
 const maxWidthMap: Record<string, string> = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-xl',
-  '2xl': 'max-w-[720px]',
+  sm: 'w-[calc(100vw-24px)] max-w-sm',
+  md: 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] max-w-md',
+  lg: 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] max-w-lg',
+  xl: 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] max-w-xl',
+  '2xl': 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] md:w-[calc(100vw-48px)] max-w-[768px]',
+  '3xl': 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] md:w-[calc(100vw-48px)] max-w-[896px]',
+  ai: 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] md:w-[calc(100vw-48px)] max-w-[960px]',
 };
 
 export function Modal({
@@ -75,7 +77,7 @@ export function Modal({
       <div
         ref={modalRef}
         className={cn(
-          'relative w-full max-w-[calc(100vw-16px)] sm:max-w-none flex flex-col max-h-[calc(100dvh-20px)] sm:max-h-[calc(100vh-48px)] bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl shadow-2xl z-10 overflow-hidden transform transition-all',
+          'relative flex flex-col max-h-[calc(100dvh-20px)] sm:max-h-[85vh] my-auto bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl shadow-2xl z-10 overflow-hidden transform transition-all',
           maxWidthMap[maxWidth] || maxWidthMap.md,
           className
         )}

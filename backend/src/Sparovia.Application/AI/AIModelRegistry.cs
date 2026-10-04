@@ -81,6 +81,18 @@ public static class AIModelRegistry
             IsRecommended = true,
             ProviderModelId = "gemini-1.5-pro"
         },
+        new()
+        {
+            Key = "gemini-2.0-flash",
+            ProviderKey = AIProviders.Gemini,
+            DisplayName = "Gemini 2.0 Flash",
+            Description = "Next-generation high-speed multimodal reasoning and responsive copy generation.",
+            Capability = AIModelCapability.Both,
+            Status = AIModelStatus.Available,
+            IsDefault = false,
+            IsRecommended = false,
+            ProviderModelId = "gemini-2.0-flash"
+        },
 
         // Anthropic Claude models
         new()
@@ -236,10 +248,19 @@ public static class AIModelRegistry
         return string.Equals(model.Capability, requiredCapability, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static string ResolveProviderModelId(string modelKey)
+    public static string ResolveProviderModelId(string modelKey, string? providerKey = null)
     {
         var model = GetModelByKey(modelKey);
-        return model?.ProviderModelId ?? "gpt-4o-mini";
+        if (model != null) return model.ProviderModelId;
+
+        if (!string.IsNullOrWhiteSpace(providerKey))
+        {
+            var defKey = DefaultModelKeyFor(providerKey);
+            var defModel = GetModelByKey(defKey);
+            if (defModel != null) return defModel.ProviderModelId;
+        }
+
+        return "gpt-4o-mini";
     }
 
     public static string DefaultModelKeyFor(string providerKey)

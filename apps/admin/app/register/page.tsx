@@ -417,7 +417,7 @@ export default function RegisterPage() {
                 loadingText="Creating account..."
                 rightIcon={<ArrowRight className="ml-1 h-4 w-4" />}
               >
-                Create Account
+                Create account
               </Button>
             </div>
           </form>

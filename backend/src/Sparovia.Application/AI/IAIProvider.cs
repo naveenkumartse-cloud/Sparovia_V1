@@ -17,6 +17,6 @@ public interface IAIProvider
 {
     string ProviderName { get; }
     Task<bool> TestConnectionAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default);
-    Task<AIConnectionTestResult> TestConnectionDetailedAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default);
+    Task<AIConnectionTestResult> TestConnectionDetailedAsync(string providerKey, string apiKey, string? modelKey = null, CancellationToken cancellationToken = default);
     Task<AIProviderResult> GenerateTextAsync(AIProviderTextRequest request, CancellationToken cancellationToken = default);
 }

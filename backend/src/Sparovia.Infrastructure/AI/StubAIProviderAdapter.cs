@@ -14,11 +14,11 @@ public class StubAIProviderAdapter : IAIProvider
 
     public async Task<bool> TestConnectionAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default)
     {
-        var result = await TestConnectionDetailedAsync(providerKey, apiKey, cancellationToken);
+        var result = await TestConnectionDetailedAsync(providerKey, apiKey, null, cancellationToken);
         return result.Success;
     }
 
-    public async Task<AIConnectionTestResult> TestConnectionDetailedAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default)
+    public async Task<AIConnectionTestResult> TestConnectionDetailedAsync(string providerKey, string apiKey, string? modelKey = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         await Task.Delay(10, cancellationToken);

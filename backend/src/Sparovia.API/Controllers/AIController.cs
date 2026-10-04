@@ -250,7 +250,7 @@ public class AIController : ControllerBase
         }
 
         var provider = AIProviderRegistry.GetProviderByKey(request.ProviderKey)!;
-        var testResult = await _aiProvider.TestConnectionDetailedAsync(request.ProviderKey, apiKeyToTest, cancellationToken);
+        var testResult = await _aiProvider.TestConnectionDetailedAsync(request.ProviderKey, apiKeyToTest, request.SelectedModelKey, cancellationToken);
 
         if (!testResult.Success)
         {
@@ -322,7 +322,7 @@ public class AIController : ControllerBase
         var provider = AIProviderRegistry.GetProviderByKey(request.ProviderKey)!;
 
         // Test connection with external provider before saving
-        var testResult = await _aiProvider.TestConnectionDetailedAsync(request.ProviderKey, request.ApiKey, cancellationToken);
+        var testResult = await _aiProvider.TestConnectionDetailedAsync(request.ProviderKey, request.ApiKey, request.SelectedModelKey, cancellationToken);
         if (!testResult.Success)
         {
             return BadRequest(new
@@ -437,7 +437,8 @@ public class AIController : ControllerBase
         // 1. If rotating API Key, test and encrypt
         if (!string.IsNullOrWhiteSpace(request.ApiKey))
         {
-            var testResult = await _aiProvider.TestConnectionDetailedAsync(config.ProviderKey, request.ApiKey, cancellationToken);
+            var testModelKey = request.ResolvedModelKey ?? config.SelectedModelKey;
+            var testResult = await _aiProvider.TestConnectionDetailedAsync(config.ProviderKey, request.ApiKey, testModelKey, cancellationToken);
             if (!testResult.Success)
             {
                 return BadRequest(new
@@ -858,25 +859,39 @@ public class AIController : ControllerBase
                     message = result.ErrorMessage ?? "The configured model does not support this workflow.",
                     aiRequestId = result.AIRequestId
                 }),
-                AIErrorCodes.ProviderUnavailable => StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                AIErrorCodes.ModelUnavailable or AIErrorCodes.ModelNotFound => BadRequest(new
                 {
-                    error = new { code = result.ErrorCode, message = "The AI service is temporarily unavailable. Please try again shortly." },
+                    error = new { code = result.ErrorCode, message = result.ErrorMessage ?? "The configured AI model is unavailable. Please verify the selected model in AI Connections." },
                     code = result.ErrorCode,
-                    message = "The AI service is temporarily unavailable. Please try again shortly.",
+                    message = result.ErrorMessage ?? "The configured AI model is unavailable. Please verify the selected model in AI Connections.",
                     aiRequestId = result.AIRequestId
                 }),
-                AIErrorCodes.ProcessingTimeout => StatusCode(StatusCodes.Status504GatewayTimeout, new
+                AIErrorCodes.ConnectionTestFailed => StatusCode(StatusCodes.Status401Unauthorized, new
                 {
-                    error = new { code = result.ErrorCode, message = "The AI request timed out. Please try again." },
+                    error = new { code = result.ErrorCode, message = result.ErrorMessage ?? "AI connection could not be authenticated. Please verify your API key in AI Connections." },
                     code = result.ErrorCode,
-                    message = "The AI request timed out. Please try again.",
+                    message = result.ErrorMessage ?? "AI connection could not be authenticated. Please verify your API key in AI Connections.",
                     aiRequestId = result.AIRequestId
                 }),
                 AIErrorCodes.RateLimited => StatusCode(StatusCodes.Status429TooManyRequests, new
                 {
-                    error = new { code = result.ErrorCode, message = "Too many AI requests. Please slow down." },
+                    error = new { code = result.ErrorCode, message = result.ErrorMessage ?? "The AI provider is temporarily rate limited. Please try again later." },
                     code = result.ErrorCode,
-                    message = "Too many AI requests. Please slow down.",
+                    message = result.ErrorMessage ?? "The AI provider is temporarily rate limited. Please try again later.",
+                    aiRequestId = result.AIRequestId
+                }),
+                AIErrorCodes.ProviderUnavailable => StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                {
+                    error = new { code = result.ErrorCode, message = result.ErrorMessage ?? "The AI provider is temporarily unavailable. Please try again shortly." },
+                    code = result.ErrorCode,
+                    message = result.ErrorMessage ?? "The AI provider is temporarily unavailable. Please try again shortly.",
+                    aiRequestId = result.AIRequestId
+                }),
+                AIErrorCodes.ProcessingTimeout => StatusCode(StatusCodes.Status504GatewayTimeout, new
+                {
+                    error = new { code = result.ErrorCode, message = result.ErrorMessage ?? "The AI request timed out. Please try again." },
+                    code = result.ErrorCode,
+                    message = result.ErrorMessage ?? "The AI request timed out. Please try again.",
                     aiRequestId = result.AIRequestId
                 }),
                 AIErrorCodes.ValidationError or AIErrorCodes.InvalidRequest or AIErrorCodes.OutputInvalid or AIErrorCodes.OutputProhibitedContent or AIErrorCodes.OutputValidationFailed or AIErrorCodes.ContentValidationFailed or AIErrorCodes.ContentOperationNotSupported or AIErrorCodes.ContentFieldNotSupported or AIErrorCodes.UnsupportedOperation => BadRequest(new
@@ -888,9 +903,9 @@ public class AIController : ControllerBase
                 }),
                 _ => StatusCode(StatusCodes.Status500InternalServerError, new
                 {
-                    error = new { code = result.ErrorCode ?? AIErrorCodes.ProcessingFailed, message = "An error occurred while processing the AI request." },
+                    error = new { code = result.ErrorCode ?? AIErrorCodes.ProcessingFailed, message = result.ErrorMessage ?? "An error occurred while processing the AI request." },
                     code = result.ErrorCode ?? AIErrorCodes.ProcessingFailed,
-                    message = "An error occurred while processing the AI request.",
+                    message = result.ErrorMessage ?? "An error occurred while processing the AI request.",
                     aiRequestId = result.AIRequestId
                 })
             };

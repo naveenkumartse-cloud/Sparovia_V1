@@ -173,7 +173,8 @@ export default function AiConnectionsPage() {
         method: 'POST',
         body: JSON.stringify({
           providerKey: selectedProviderKey,
-          apiKey: apiKeyInput.trim()
+          apiKey: apiKeyInput.trim(),
+          selectedModelKey: selectedModelKey
         })
       });
 

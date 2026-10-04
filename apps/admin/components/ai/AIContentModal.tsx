@@ -250,7 +250,7 @@ export function AIContentModal({
           ? `Refine "${fieldLabel}" in ${sectionTitle} using your configured AI model.`
           : `Refine "${fieldLabel}" while preserving your verified business facts.`
       }
-      maxWidth="2xl"
+      maxWidth="ai"
       footer={
         (() => {
           if (isLoadingAiConnection && !aiConnection) {

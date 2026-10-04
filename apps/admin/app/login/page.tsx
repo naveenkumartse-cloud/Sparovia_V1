@@ -194,7 +194,7 @@ export default function LoginPage() {
         router.push('/admin');
       }
     } catch (err: any) {
-      const genericMsg = "We couldn't sign you in with those details.";
+      const genericMsg = "We couldn't continue with that account. If you don't have a Sparovia account yet, create one.";
       const errorMsg = err.message || genericMsg;
       setError(errorMsg);
       toast.error(errorMsg);
@@ -214,12 +214,12 @@ export default function LoginPage() {
           </span>
         </Link>
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-          Welcome back
+          {step === 1 ? 'Sign in' : 'Welcome back'}
         </h1>
         <p className="mt-1.5 text-xs sm:text-sm text-slate-500 dark:text-[#94A3B8]">
           {step === 1
-            ? 'Sign in with your email address or phone number'
-            : 'Enter your password to access your workspace'}
+            ? 'Enter your email address or phone number to continue'
+            : 'Enter your password to sign in'}
         </p>
       </div>
 
@@ -232,13 +232,23 @@ export default function LoginPage() {
                 role="alert"
               >
                 <p>{error}</p>
-                {error.toLowerCase().includes('verify') && (
+                {error.toLowerCase().includes('verify') ? (
                   <div>
                     <Link
                       href={`/verify-phone?phone=${encodeURIComponent(identifier)}`}
                       className="text-[#3B82F6] hover:text-[#60A5FA] underline text-xs font-semibold inline-flex items-center"
                     >
                       Go to verification
+                      <ArrowRight className="ml-1 h-3 w-3" />
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="pt-1">
+                    <Link
+                      href="/register"
+                      className="text-[#3B82F6] hover:text-[#60A5FA] underline text-xs font-semibold inline-flex items-center"
+                    >
+                      Create account
                       <ArrowRight className="ml-1 h-3 w-3" />
                     </Link>
                   </div>
@@ -255,7 +265,7 @@ export default function LoginPage() {
                       htmlFor="identifier"
                       className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0]"
                     >
-                      Email or Phone Number
+                      Email or phone number
                     </label>
                     <InfoTooltip content="Enter your registered work email address or your 10-digit Indian phone number." />
                   </div>
@@ -311,7 +321,7 @@ export default function LoginPage() {
                     }}
                     onChange={handleIdentifierChange}
                     onBlur={handleIdentifierBlur}
-                    placeholder="name@example.com or 9876543210"
+                    placeholder="Email or phone number"
                     className={`block w-full pl-10 pr-9 py-2.5 bg-slate-50 dark:bg-[#0B1220] border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors ${
                       fieldError
                         ? 'border-red-500/60 dark:border-red-500/60'
@@ -377,9 +387,9 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={handleBackToIdentifier}
-                    className="text-xs font-semibold text-[#3B82F6] hover:text-[#60A5FA] px-2 py-1 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors"
+                    className="text-xs font-semibold text-[#3B82F6] hover:text-[#60A5FA] px-2 py-1 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors whitespace-nowrap"
                   >
-                    Change
+                    Use a different email or phone
                   </button>
                 </div>
 
@@ -398,7 +408,7 @@ export default function LoginPage() {
                       htmlFor="password"
                       className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0]"
                     >
-                      Password
+                      Enter your password
                     </label>
                     <Link
                       href="/forgot-password"
@@ -423,7 +433,7 @@ export default function LoginPage() {
                         setPassword(e.target.value);
                         if (error) setError('');
                       }}
-                      placeholder="••••••••"
+                      placeholder="Enter your password"
                       className="block w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
                       aria-invalid={error ? 'true' : 'false'}
                     />
@@ -449,7 +459,7 @@ export default function LoginPage() {
                     loadingText="Signing in..."
                     rightIcon={<ArrowRight className="ml-1 h-4 w-4" />}
                   >
-                    Sign In
+                    Sign in
                   </Button>
                 </div>
               </div>

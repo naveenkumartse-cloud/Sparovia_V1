@@ -256,6 +256,7 @@ public class TestAIConnectionRequest
 {
     public required string ProviderKey { get; set; }
     public string? ApiKey { get; set; }
+    public string? SelectedModelKey { get; set; }
 }
 
 public class TestAIConnectionResponse

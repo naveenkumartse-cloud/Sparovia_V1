@@ -75,8 +75,15 @@ public class AIService : IAIService
             .FirstOrDefaultAsync(c => c.TenantId == request.TenantId, cancellationToken);
 
         // Always resolve authoritative model from tenant configuration (ignore untrusted frontend model overrides)
-        var selectedModelKey = config?.SelectedModelKey ?? AIModelRegistry.DefaultOpenAIModel;
         var providerKey = config?.ProviderKey ?? AIProviders.OpenAI;
+        var selectedModelKey = config?.SelectedModelKey;
+
+        // Ensure model belongs to the configured provider; if missing or mismatched, pick default model for this provider
+        var candidateModel = AIModelRegistry.GetModelByKey(selectedModelKey ?? string.Empty);
+        if (candidateModel == null || !string.Equals(candidateModel.ProviderKey, providerKey, StringComparison.OrdinalIgnoreCase))
+        {
+            selectedModelKey = AIModelRegistry.DefaultModelKeyFor(providerKey);
+        }
 
         // Verify model is allowlisted and currently selectable in Sparovia
         if (!AIModelRegistry.IsSelectable(selectedModelKey, out var selectableCode, out var selectableMsg))
