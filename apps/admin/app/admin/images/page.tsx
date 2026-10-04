@@ -7,6 +7,7 @@ import {
   Upload,
   RefreshCw,
   Sparkles,
+  SlidersHorizontal,
   Check,
   CheckCircle2,
   AlertCircle,
@@ -225,6 +226,7 @@ export default function ImagesPage() {
   const [approving, setApproving] = useState(false);
   const [imageAnalysis, setImageAnalysis] = useState<ImageAnalysisDto | null>(null);
   const [analyzingImage, setAnalyzingImage] = useState(false);
+  const [confirmPublishOpen, setConfirmPublishOpen] = useState(false);
 
   // Delete Confirmation Modal state
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
@@ -450,6 +452,7 @@ export default function ImagesPage() {
     setEnhanceError(null);
     setReviewMode('after');
     setImageAnalysis(null);
+    setConfirmPublishOpen(false);
     setEnhanceModalOpen(true);
     setAnalyzingImage(true);
 
@@ -469,7 +472,7 @@ export default function ImagesPage() {
   };
 
   const handleStartEnhancement = async () => {
-    if (!enhancingImage) return;
+    if (!enhancingImage || enhancing) return;
     setEnhancing(true);
     setEnhanceError(null);
 
@@ -498,10 +501,7 @@ export default function ImagesPage() {
       }
       setReviewMode('after');
     } catch (err: any) {
-      setEnhanceError(
-        err?.message ||
-          'Processing failed. Your original image remains unchanged.'
-      );
+      setEnhanceError("We couldn't improve this image. Your original image is safe and unchanged.");
     } finally {
       setEnhancing(false);
     }
@@ -777,9 +777,9 @@ export default function ImagesPage() {
                           <Button
                             type="button"
                             onClick={() => openEnhanceModal(assignedImage)}
-                            className="text-xs font-medium bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 px-3 py-1.5"
+                            className="text-xs font-medium bg-slate-100 dark:bg-[#1E293B] hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3 py-1.5"
                           >
-                            <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                            <SlidersHorizontal className="w-3.5 h-3.5 mr-1.5" />
                             Enhance
                           </Button>
                         </div>
@@ -971,9 +971,9 @@ export default function ImagesPage() {
                           <Button
                             type="button"
                             onClick={() => openEnhanceModal(image)}
-                            className="text-xs font-medium bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 px-2.5 py-1"
+                            className="text-xs font-medium bg-slate-100 dark:bg-[#1E293B] hover:bg-slate-200 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2.5 py-1"
                           >
-                            <Sparkles className="w-3 h-3 mr-1" />
+                            <SlidersHorizontal className="w-3 h-3 mr-1" />
                             Enhance
                           </Button>
                           <Button
@@ -1478,16 +1478,17 @@ export default function ImagesPage() {
         onClose={() => !enhancing && setEnhanceModalOpen(false)}
         title="Image Enhancement & Web Optimization"
         description="Improve image quality and optimize images for fast website delivery while preserving the original image."
-        maxWidth="2xl"
+        maxWidth="3xl"
         footer={
-          <>
+          <div className="w-full">
             {!enhancementResult ? (
-              <>
+              <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 sm:gap-3.5 w-full">
                 <Button
                   type="button"
                   variant="outline"
                   disabled={enhancing}
                   onClick={() => setEnhanceModalOpen(false)}
+                  className="w-full sm:w-auto h-11 min-h-[44px] px-5 text-sm font-medium border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   Cancel
                 </Button>
@@ -1495,94 +1496,114 @@ export default function ImagesPage() {
                   type="button"
                   disabled={enhancing}
                   onClick={handleStartEnhancement}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                  className="w-full sm:w-auto h-11 min-h-[44px] px-6 text-sm font-semibold bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-xs"
                 >
                   {enhancing ? (
                     <>
                       <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Improving your image...
+                      Improving Image...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4 mr-1.5" />
+                      <SlidersHorizontal className="w-4 h-4 mr-2" />
                       Apply Enhancement
                     </>
                   )}
                 </Button>
-              </>
+              </div>
             ) : (
-              <>
+              <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 sm:gap-3.5 w-full">
                 <Button
                   type="button"
                   variant="outline"
+                  disabled={approving || publishing}
                   onClick={handleRejectVariant}
-                  className="text-slate-600 hover:text-rose-600"
+                  className="w-full sm:w-auto h-11 min-h-[44px] px-5 text-sm font-medium border-slate-300 dark:border-slate-700 text-slate-600 hover:text-rose-600 hover:border-rose-300 dark:text-slate-400 dark:hover:text-rose-400"
                 >
                   Discard / Reject
                 </Button>
                 <Button
                   type="button"
-                  disabled={approving}
+                  variant="outline"
+                  disabled={approving || publishing}
                   onClick={handleApproveVariant}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                  className="w-full sm:w-auto h-11 min-h-[44px] px-5 text-sm font-medium border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
-                  {approving ? 'Approving...' : 'Approve Variant'}
+                  {approving ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Approving...
+                    </>
+                  ) : (
+                    'Approve Variant'
+                  )}
                 </Button>
                 <Button
                   type="button"
-                  disabled={publishing}
-                  onClick={() => enhancingImage && handlePublishImage(enhancingImage, enhancementResult.id)}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                  disabled={approving || publishing}
+                  onClick={() => setConfirmPublishOpen(true)}
+                  className="w-full sm:w-auto h-11 min-h-[44px] px-6 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
                 >
-                  {publishing ? 'Publishing...' : 'Approve & Publish to Live Site'}
+                  {publishing ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Publishing...
+                    </>
+                  ) : (
+                    'Approve & Publish to Live Site'
+                  )}
                 </Button>
-              </>
+              </div>
             )}
-          </>
+          </div>
         }
       >
         <div className="space-y-4">
           {!enhancementResult ? (
             /* Operation Selection */
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {/* Image Analysis Card */}
               {analyzingImage ? (
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-[#1E293B] flex items-center gap-2.5 text-xs text-slate-500">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-purple-600 shrink-0" />
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-[#1E293B] flex items-center gap-2.5 text-xs text-slate-500">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-600 shrink-0" />
                   <span>Analyzing image characteristics (dimensions, clarity, noise, contrast)...</span>
                 </div>
               ) : imageAnalysis ? (
-                <div className="p-3.5 rounded-xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/40 text-xs space-y-2">
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-[#1E293B] text-xs space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-purple-900 dark:text-purple-200 font-semibold">
-                      <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                    <div className="flex items-center gap-2 text-slate-900 dark:text-white font-semibold">
+                      <SlidersHorizontal className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                       <span>Image Analysis</span>
                     </div>
                     <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                       {imageAnalysis.width} × {imageAnalysis.height} px • {formatFileSize(imageAnalysis.fileSize)} • {imageAnalysis.format}
                     </span>
                   </div>
-                  <div className="p-2.5 rounded-lg bg-white/80 dark:bg-[#0B1120]/80 border border-purple-100 dark:border-purple-900/30 text-slate-700 dark:text-slate-300">
-                    <p className="leading-relaxed">
-                      <strong className="text-purple-900 dark:text-purple-200">Recommended:</strong>{' '}
-                      <span className="font-semibold text-purple-700 dark:text-purple-300">{imageAnalysis.recommendedOperation}</span>
-                      {' — '}{imageAnalysis.recommendationReason}
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-1 text-center">
-                    <div className="bg-white/60 dark:bg-[#0B1120]/60 p-1.5 rounded border border-purple-100/60 dark:border-purple-900/20">
+
+                  {imageAnalysis.recommendedOperation && (
+                    <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-[#1E293B] text-slate-700 dark:text-slate-300">
+                      <p className="leading-relaxed">
+                        <strong className="text-slate-900 dark:text-white">Recommended:</strong>{' '}
+                        <span className="font-semibold text-blue-600 dark:text-blue-400">{imageAnalysis.recommendedOperation}</span>
+                        {imageAnalysis.recommendationReason ? ` — ${imageAnalysis.recommendationReason}` : ''}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-4 gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5 text-center">
+                    <div className="bg-white dark:bg-slate-900/60 p-1.5 rounded-lg border border-slate-200 dark:border-[#1E293B]">
                       <span className="block text-[10px] uppercase text-slate-400">Contrast</span>
                       <strong className="text-slate-700 dark:text-slate-200">{(imageAnalysis.contrast * 100).toFixed(0)}%</strong>
                     </div>
-                    <div className="bg-white/60 dark:bg-[#0B1120]/60 p-1.5 rounded border border-purple-100/60 dark:border-purple-900/20">
+                    <div className="bg-white dark:bg-slate-900/60 p-1.5 rounded-lg border border-slate-200 dark:border-[#1E293B]">
                       <span className="block text-[10px] uppercase text-slate-400">Sharpness</span>
                       <strong className="text-slate-700 dark:text-slate-200">{imageAnalysis.sharpness.toFixed(3)}</strong>
                     </div>
-                    <div className="bg-white/60 dark:bg-[#0B1120]/60 p-1.5 rounded border border-purple-100/60 dark:border-purple-900/20">
+                    <div className="bg-white dark:bg-slate-900/60 p-1.5 rounded-lg border border-slate-200 dark:border-[#1E293B]">
                       <span className="block text-[10px] uppercase text-slate-400">Noise</span>
                       <strong className="text-slate-700 dark:text-slate-200">{(imageAnalysis.noiseLevel * 100).toFixed(1)}%</strong>
                     </div>
-                    <div className="bg-white/60 dark:bg-[#0B1120]/60 p-1.5 rounded border border-purple-100/60 dark:border-purple-900/20">
+                    <div className="bg-white dark:bg-slate-900/60 p-1.5 rounded-lg border border-slate-200 dark:border-[#1E293B]">
                       <span className="block text-[10px] uppercase text-slate-400">Ratio</span>
                       <strong className="text-slate-700 dark:text-slate-200">{imageAnalysis.aspectRatio}:1</strong>
                     </div>
@@ -1590,94 +1611,136 @@ export default function ImagesPage() {
                 </div>
               ) : null}
 
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 block pt-1">
-                Choose Enhancement Operation
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {ENHANCEMENT_OPERATIONS.map((op) => {
-                  const isRecommended = imageAnalysis?.recommendedOperation === op.key;
-                  return (
-                    <button
-                      key={op.key}
-                      type="button"
-                      onClick={() => setSelectedOperation(op.key)}
-                      className={`p-3 rounded-xl border text-left transition-all ${
-                        selectedOperation === op.key
-                          ? 'border-purple-600 bg-purple-50/60 dark:bg-purple-950/30 ring-1 ring-purple-600'
-                          : 'border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#0B1120]'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-slate-900 dark:text-white">
-                            {op.name}
-                          </span>
-                          {isRecommended && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 uppercase tracking-wider">
-                              Recommended
+              <div className="space-y-1.5 pt-1">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 block">
+                  Choose Enhancement Operation
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5" role="radiogroup" aria-label="Enhancement operations">
+                  {ENHANCEMENT_OPERATIONS.map((op) => {
+                    const isSelected = selectedOperation === op.key;
+                    const isRecommended = imageAnalysis?.recommendedOperation === op.key;
+                    return (
+                      <button
+                        key={op.key}
+                        type="button"
+                        role="radio"
+                        aria-checked={isSelected}
+                        disabled={enhancing}
+                        onClick={() => setSelectedOperation(op.key)}
+                        className={`p-3.5 rounded-xl border text-left transition-all min-h-[76px] flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${
+                          isSelected
+                            ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/30 ring-1 ring-blue-600'
+                            : 'border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#0B1120]'
+                        } ${enhancing ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white">
+                              {op.name}
                             </span>
+                            {isRecommended && (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 uppercase tracking-wider">
+                                Recommended
+                              </span>
+                            )}
+                          </div>
+                          {isSelected && (
+                            <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                           )}
                         </div>
-                        {selectedOperation === op.key && (
-                          <Check className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                        {op.desc}
-                      </p>
-                    </button>
-                  );
-                })}
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                          {op.desc}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {enhanceError && (
-                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 text-xs text-rose-700 dark:text-rose-400">
-                  {enhanceError}
+                <div className="p-4 rounded-xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 text-xs space-y-2.5">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-amber-900 dark:text-amber-200 block text-sm">
+                        We couldn&apos;t improve this image.
+                      </strong>
+                      <p className="text-amber-700 dark:text-amber-300 mt-0.5">
+                        Your original image is safe and unchanged.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1 pl-6">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleStartEnhancement}
+                      disabled={enhancing}
+                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs px-3 py-1.5 h-8 min-h-[32px]"
+                    >
+                      Try Again
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setEnhanceError(null)}
+                      className="text-xs px-3 py-1.5 h-8 min-h-[32px]"
+                    >
+                      Dismiss
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
           ) : (
             /* Before / After Comparison */
-            <div className="space-y-3.5">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#1E293B] pb-2">
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 dark:border-[#1E293B] pb-3">
                 <div>
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                     Fidelity Review: Before vs. After
                   </span>
                   <span className="block text-[11px] text-slate-500 dark:text-slate-400">
-                    Operation: {selectedOperation}
+                    Operation: {ENHANCEMENT_OPERATIONS.find((o) => o.key === selectedOperation)?.name || selectedOperation}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#1E293B] p-0.5 rounded-lg text-xs">
+                <div className="inline-flex items-center gap-1 bg-slate-100 dark:bg-[#1E293B] p-1 rounded-xl text-xs self-start sm:self-auto" role="tablist" aria-label="Review Mode">
                   <button
                     type="button"
+                    role="tab"
+                    aria-selected={reviewMode === 'before'}
                     onClick={() => setReviewMode('before')}
-                    className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                    className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
                       reviewMode === 'before'
                         ? 'bg-white dark:bg-[#0B1120] text-slate-900 dark:text-white shadow-xs'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     Before
                   </button>
                   <button
                     type="button"
+                    role="tab"
+                    aria-selected={reviewMode === 'after'}
                     onClick={() => setReviewMode('after')}
-                    className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                    className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
                       reviewMode === 'after'
-                        ? 'bg-white dark:bg-[#0B1120] text-purple-600 dark:text-purple-400 shadow-xs'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        ? 'bg-white dark:bg-[#0B1120] text-blue-600 dark:text-blue-400 shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
-                    ✨ After
+                    After
                   </button>
                   <button
                     type="button"
+                    role="tab"
+                    aria-selected={(reviewMode as any) === 'split'}
                     onClick={() => setReviewMode('split' as any)}
-                    className={`hidden sm:inline-block px-2.5 py-1 rounded-md font-medium transition-colors ${
+                    className={`hidden sm:inline-block px-3 py-1.5 rounded-lg font-medium transition-colors ${
                       (reviewMode as any) === 'split'
-                        ? 'bg-white dark:bg-[#0B1120] text-blue-600 dark:text-blue-400 shadow-xs'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        ? 'bg-white dark:bg-[#0B1120] text-slate-900 dark:text-white shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     Side-by-Side
@@ -1686,51 +1749,51 @@ export default function ImagesPage() {
               </div>
 
               {(reviewMode as any) === 'split' ? (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div className="space-y-1.5">
-                    <div className="relative rounded-xl overflow-hidden bg-slate-950 h-[260px] flex items-center justify-center border border-slate-200 dark:border-[#1E293B]">
+                    <div className="relative rounded-xl overflow-hidden bg-slate-900/95 dark:bg-slate-950 h-[240px] sm:h-[300px] flex items-center justify-center border border-slate-200 dark:border-[#1E293B]">
                       <img
                         src={resolveImageUrl(enhancingImage?.previewUrl)}
                         crossOrigin="use-credentials"
                         onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE_DATA_URI; }}
-                        alt="Original"
-                        className="max-h-[260px] w-auto object-contain mx-auto"
+                        alt="Original photograph before enhancement"
+                        className="max-h-full max-w-full object-contain mx-auto select-none"
                       />
-                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-900/85 text-[10px] font-bold text-white tracking-wide uppercase">
+                      <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md bg-slate-900/85 backdrop-blur-xs text-[10px] font-bold text-white tracking-wider uppercase">
                         BEFORE
                       </div>
-                      <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-900/80 text-[10px] text-slate-300">
+                      <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-md bg-slate-900/80 backdrop-blur-xs text-[10px] text-slate-300">
                         {enhancingImage?.width} × {enhancingImage?.height} px • {formatFileSize(enhancingImage?.fileSize || 0)}
                       </div>
                     </div>
-                    <span className="block text-center text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                    <span className="block text-center text-xs font-semibold text-slate-600 dark:text-slate-400">
                       Original Photograph
                     </span>
                   </div>
 
                   <div className="space-y-1.5">
-                    <div className="relative rounded-xl overflow-hidden bg-slate-950 h-[260px] flex items-center justify-center border border-purple-200 dark:border-purple-900/40">
+                    <div className="relative rounded-xl overflow-hidden bg-slate-900/95 dark:bg-slate-950 h-[240px] sm:h-[300px] flex items-center justify-center border border-slate-200 dark:border-[#1E293B]">
                       <img
                         src={resolveImageUrl(enhancementResult.previewUrl)}
                         crossOrigin="use-credentials"
                         onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE_DATA_URI; }}
-                        alt="Enhanced Variant"
-                        className="max-h-[260px] w-auto object-contain mx-auto"
+                        alt="Enhanced variant after processing"
+                        className="max-h-full max-w-full object-contain mx-auto select-none"
                       />
-                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-purple-600 text-[10px] font-bold text-white tracking-wide uppercase">
+                      <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md bg-blue-600 text-[10px] font-bold text-white tracking-wider uppercase">
                         AFTER
                       </div>
-                      <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-900/80 text-[10px] text-purple-200">
+                      <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-md bg-slate-900/80 backdrop-blur-xs text-[10px] text-slate-300">
                         {enhancementResult.width} × {enhancementResult.height} px • {formatFileSize(enhancementResult.fileSize)}
                       </div>
                     </div>
-                    <span className="block text-center text-[11px] font-semibold text-purple-600 dark:text-purple-400">
-                      Enhanced Variant (Derived)
+                    <span className="block text-center text-xs font-semibold text-blue-600 dark:text-blue-400">
+                      Enhanced Variant
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="relative rounded-xl overflow-hidden bg-slate-950 max-h-[360px] flex items-center justify-center border border-slate-200 dark:border-[#1E293B]">
+                <div className="relative rounded-xl overflow-hidden bg-slate-900/95 dark:bg-slate-950 h-[260px] sm:h-[340px] max-h-[360px] flex items-center justify-center border border-slate-200 dark:border-[#1E293B]">
                   <img
                     src={resolveImageUrl(
                       reviewMode === 'after'
@@ -1739,13 +1802,13 @@ export default function ImagesPage() {
                     )}
                     crossOrigin="use-credentials"
                     onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE_DATA_URI; }}
-                    alt="Review comparison"
-                    className="max-h-[360px] w-auto object-contain mx-auto"
+                    alt={reviewMode === 'after' ? 'Enhanced Variant' : 'Original Photograph'}
+                    className="max-h-full max-w-full object-contain mx-auto select-none"
                   />
-                  <div className="absolute top-2 left-2 px-2.5 py-1 rounded-md bg-slate-900/85 backdrop-blur-xs text-xs font-bold text-white uppercase tracking-wide">
+                  <div className="absolute top-2.5 left-2.5 px-3 py-1 rounded-md bg-slate-900/85 backdrop-blur-xs text-xs font-bold text-white uppercase tracking-wider">
                     {reviewMode === 'after' ? 'AFTER: Enhanced Variant' : 'BEFORE: Original Photograph'}
                   </div>
-                  <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded-md bg-slate-900/80 backdrop-blur-xs text-[11px] text-slate-300">
+                  <div className="absolute bottom-2.5 left-2.5 px-3 py-1 rounded-md bg-slate-900/80 backdrop-blur-xs text-[11px] text-slate-300">
                     {reviewMode === 'after'
                       ? `${enhancementResult.width} × ${enhancementResult.height} px • ${formatFileSize(enhancementResult.fileSize)}`
                       : `${enhancingImage?.width} × ${enhancingImage?.height} px • ${formatFileSize(enhancingImage?.fileSize || 0)}`}
@@ -1753,39 +1816,118 @@ export default function ImagesPage() {
                 </div>
               )}
 
-              {/* Metadata Comparison Card */}
-              <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-[#0B1120] p-3 rounded-xl border border-slate-200 dark:border-[#1E293B]">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Original Photograph</span>
-                  <div className="text-[11px] text-slate-700 dark:text-slate-300 space-y-0.5">
-                    <p>Resolution: <strong>{enhancingImage?.width} × {enhancingImage?.height} px</strong></p>
-                    <p>File Size: <strong>{formatFileSize(enhancingImage?.fileSize || 0)}</strong></p>
-                    <p>Format: <strong>{imageAnalysis?.format || 'Original'}</strong></p>
+              {/* Metadata Comparison: Equal Visual Structure & Responsive Stack */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-[#1E293B] space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      Original Photograph
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                      Source
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-700 dark:text-slate-300 space-y-1 pt-0.5">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Resolution:</span>
+                      <strong>{enhancingImage?.width} × {enhancingImage?.height} px</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">File Size:</span>
+                      <strong>{formatFileSize(enhancingImage?.fileSize || 0)}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Format:</span>
+                      <strong>{imageAnalysis?.format || 'Original'}</strong>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-1 border-l border-slate-200 dark:border-[#1E293B] pl-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">Enhanced Variant</span>
-                  <div className="text-[11px] text-slate-700 dark:text-slate-300 space-y-0.5">
-                    <p>Resolution: <strong>{enhancementResult.width} × {enhancementResult.height} px</strong></p>
-                    <p>File Size: <strong>{formatFileSize(enhancementResult.fileSize)}</strong></p>
-                    <p>Format: <strong>{enhancementResult.mimeType?.replace('image/', '').toUpperCase() || 'Optimized'}</strong></p>
+
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-[#1E293B] space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                      Enhanced Variant
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">
+                      Optimized
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-700 dark:text-slate-300 space-y-1 pt-0.5">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Resolution:</span>
+                      <strong>{enhancementResult.width} × {enhancementResult.height} px</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">File Size:</span>
+                      <strong>{formatFileSize(enhancementResult.fileSize)}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Format:</span>
+                      <strong>{enhancementResult.mimeType?.replace('image/', '').toUpperCase() || 'WEBP'}</strong>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-slate-50 dark:bg-[#0B1120] p-3 rounded-xl border border-slate-100 dark:border-[#1E293B] space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
-                <div className="flex items-start gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <p>
-                    <strong>Improve Quality, Not Reality:</strong> Verify that materials, architectural structures, and genuine project characteristics remain faithful to the original photograph without generative alterations or added elements.
+              {/* Improve Quality, Not Reality Notice */}
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#0B1120] border border-slate-200/80 dark:border-[#1E293B] flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-400">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <span className="font-semibold text-slate-900 dark:text-slate-200 block">
+                    Improve Quality, Not Reality
+                  </span>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Verify that materials, architectural structures, and genuine project characteristics remain faithful to the original photograph.
                   </p>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 pl-6">
-                  Approval accepts this enhanced variant for website workflows. Publishing to your live website is an explicit action.
-                </p>
               </div>
             </div>
           )}
+        </div>
+      </Modal>
+
+      {/* Lightweight Publish Confirmation Modal */}
+      <Modal
+        isOpen={confirmPublishOpen}
+        onClose={() => !publishing && setConfirmPublishOpen(false)}
+        title="Publish Image to Live Website?"
+        description="This action will accept this enhanced variant and immediately set it as the live photo on your public website."
+        maxWidth="md"
+        footer={
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 w-full">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={publishing}
+              onClick={() => setConfirmPublishOpen(false)}
+              className="w-full sm:w-auto h-11 min-h-[44px] px-5 text-sm font-medium border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={publishing}
+              onClick={async () => {
+                if (!enhancingImage || !enhancementResult) return;
+                await handlePublishImage(enhancingImage, enhancementResult.id);
+                setConfirmPublishOpen(false);
+              }}
+              className="w-full sm:w-auto h-11 min-h-[44px] px-6 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+            >
+              {publishing ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Publishing...
+                </>
+              ) : (
+                'Publish to Live Site'
+              )}
+            </Button>
+          </div>
+        }
+      >
+        <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+          Are you sure you want to publish this enhanced image variant to your live website now? Your previous live photo will be updated with this optimized variant.
         </div>
       </Modal>
 

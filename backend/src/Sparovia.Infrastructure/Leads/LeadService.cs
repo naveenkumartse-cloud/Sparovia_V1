@@ -83,8 +83,9 @@ public class LeadService : ILeadService
                 Message = l.Message,
                 Source = l.Source,
                 Status = l.Status,
-                ExternalReference = l.ExternalReference,
+                SourceReference = l.SourceReference,
                 SubmittedAt = l.SubmittedAt,
+                CreatedAt = l.CreatedAt,
                 UpdatedAt = l.UpdatedAt
             })
             .ToListAsync(cancellationToken);
@@ -119,10 +120,250 @@ public class LeadService : ILeadService
             Message = lead.Message,
             Source = lead.Source,
             Status = lead.Status,
-            ExternalReference = lead.ExternalReference,
+            SourceReference = lead.SourceReference,
             SubmittedAt = lead.SubmittedAt,
+            CreatedAt = lead.CreatedAt,
             UpdatedAt = lead.UpdatedAt
         };
+    }
+
+    public async Task<LeadOperationResult> CreateManualLeadAsync(
+        Guid tenantId,
+        CreateLeadRequest request,
+        Guid? createdByUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var name = request.Name?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Customer name is required.");
+        }
+        if (name.Length > 256)
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Customer name must not exceed 256 characters.");
+        }
+
+        var rawPhone = request.Phone?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(rawPhone))
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Phone number is required.");
+        }
+
+        var normalizedPhone = PhoneNumberHelper.Normalize(rawPhone);
+        if (normalizedPhone == null)
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Invalid phone number format. Please provide a valid phone number.");
+        }
+
+        string? email = null;
+        if (!string.IsNullOrWhiteSpace(request.Email))
+        {
+            var trimmedEmail = request.Email.Trim();
+            if (trimmedEmail.Length > 256 || !trimmedEmail.Contains('@') || !trimmedEmail.Contains('.'))
+            {
+                return LeadOperationResult.Fail("VALIDATION_ERROR", "Please provide a valid email address.");
+            }
+            email = trimmedEmail.ToLowerInvariant();
+        }
+
+        var message = request.Message?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Message is required.");
+        }
+        if (message.Length > 4000)
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Message must not exceed 4000 characters.");
+        }
+
+        var source = LeadSource.Website;
+        if (!string.IsNullOrWhiteSpace(request.Source) && LeadSource.IsValid(request.Source))
+        {
+            source = request.Source.Trim();
+        }
+
+        var status = LeadStatus.New;
+        if (!string.IsNullOrWhiteSpace(request.Status) && LeadStatus.IsValid(request.Status))
+        {
+            status = request.Status.Trim();
+        }
+
+        var now = DateTime.UtcNow;
+        var lead = new Lead
+        {
+            TenantId = tenantId,
+            Name = name,
+            Phone = normalizedPhone,
+            Email = email,
+            Message = message,
+            Source = source,
+            Status = status,
+            SubmittedAt = now,
+            CreatedAt = now,
+            UpdatedAt = now,
+            UpdatedByUserId = createdByUserId
+        };
+
+        _dbContext.Leads.Add(lead);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "AUDIT: LEAD_CREATED_MANUAL. TenantId={TenantId}, LeadId={LeadId}, Source={Source}, Status={Status}, UserId={UserId}",
+            tenantId, lead.Id, lead.Source, lead.Status, createdByUserId);
+
+        var dto = new LeadDto
+        {
+            Id = lead.Id,
+            Name = lead.Name,
+            Phone = lead.Phone,
+            Email = lead.Email,
+            Message = lead.Message,
+            Source = lead.Source,
+            Status = lead.Status,
+            SourceReference = lead.SourceReference,
+            SubmittedAt = lead.SubmittedAt,
+            CreatedAt = lead.CreatedAt,
+            UpdatedAt = lead.UpdatedAt
+        };
+
+        return LeadOperationResult.Ok(dto);
+    }
+
+    public async Task<LeadOperationResult> UpdateLeadAsync(
+        Guid tenantId,
+        Guid leadId,
+        UpdateLeadRequest request,
+        Guid? updatedByUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var lead = await _dbContext.Leads
+            .FirstOrDefaultAsync(l => l.Id == leadId && l.TenantId == tenantId, cancellationToken);
+
+        if (lead == null)
+        {
+            _logger.LogWarning("AUDIT: LEAD_ACCESS_DENIED. LeadId={LeadId}, TenantId={TenantId}", leadId, tenantId);
+            return LeadOperationResult.Fail("NOT_FOUND", "Lead not found.");
+        }
+
+        var name = request.Name?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Customer name is required.");
+        }
+        if (name.Length > 256)
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Customer name must not exceed 256 characters.");
+        }
+
+        var rawPhone = request.Phone?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(rawPhone))
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Phone number is required.");
+        }
+
+        var normalizedPhone = PhoneNumberHelper.Normalize(rawPhone);
+        if (normalizedPhone == null)
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Invalid phone number format. Please provide a valid phone number.");
+        }
+
+        string? email = null;
+        if (!string.IsNullOrWhiteSpace(request.Email))
+        {
+            var trimmedEmail = request.Email.Trim();
+            if (trimmedEmail.Length > 256 || !trimmedEmail.Contains('@') || !trimmedEmail.Contains('.'))
+            {
+                return LeadOperationResult.Fail("VALIDATION_ERROR", "Please provide a valid email address.");
+            }
+            email = trimmedEmail.ToLowerInvariant();
+        }
+
+        var message = request.Message?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Message is required.");
+        }
+        if (message.Length > 4000)
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Message must not exceed 4000 characters.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Status))
+        {
+            if (!LeadStatus.IsValid(request.Status))
+            {
+                return LeadOperationResult.Fail("VALIDATION_ERROR", "Invalid status value.");
+            }
+            lead.Status = request.Status.Trim();
+        }
+
+        lead.Name = name;
+        lead.Phone = normalizedPhone;
+        lead.Email = email;
+        lead.Message = message;
+        lead.UpdatedAt = DateTime.UtcNow;
+        lead.UpdatedByUserId = updatedByUserId;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "AUDIT: LEAD_UPDATED. TenantId={TenantId}, LeadId={LeadId}, UserId={UserId}",
+            tenantId, lead.Id, updatedByUserId);
+
+        var dto = new LeadDto
+        {
+            Id = lead.Id,
+            Name = lead.Name,
+            Phone = lead.Phone,
+            Email = lead.Email,
+            Message = lead.Message,
+            Source = lead.Source,
+            Status = lead.Status,
+            SourceReference = lead.SourceReference,
+            SubmittedAt = lead.SubmittedAt,
+            CreatedAt = lead.CreatedAt,
+            UpdatedAt = lead.UpdatedAt
+        };
+
+        return LeadOperationResult.Ok(dto);
+    }
+
+    public async Task<LeadOperationResult> DeleteLeadAsync(
+        Guid tenantId,
+        Guid leadId,
+        Guid? deletedByUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var lead = await _dbContext.Leads
+            .FirstOrDefaultAsync(l => l.Id == leadId && l.TenantId == tenantId, cancellationToken);
+
+        if (lead == null)
+        {
+            _logger.LogWarning("AUDIT: LEAD_DELETE_NOT_FOUND_OR_DENIED. LeadId={LeadId}, TenantId={TenantId}", leadId, tenantId);
+            return LeadOperationResult.Fail("NOT_FOUND", "Lead not found.");
+        }
+
+        _dbContext.Leads.Remove(lead);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "AUDIT: LEAD_DELETED. TenantId={TenantId}, LeadId={LeadId}, DeletedByUserId={DeletedByUserId}",
+            tenantId, leadId, deletedByUserId);
+
+        return LeadOperationResult.Ok(new LeadDto
+        {
+            Id = leadId,
+            Name = lead.Name,
+            Phone = lead.Phone,
+            Email = lead.Email,
+            Message = lead.Message,
+            Source = lead.Source,
+            Status = lead.Status,
+            SourceReference = lead.SourceReference,
+            SubmittedAt = lead.SubmittedAt,
+            CreatedAt = lead.CreatedAt,
+            UpdatedAt = lead.UpdatedAt
+        });
     }
 
     public async Task<LeadOperationResult> UpdateLeadStatusAsync(
@@ -134,7 +375,7 @@ public class LeadService : ILeadService
     {
         if (string.IsNullOrWhiteSpace(newStatus) || !LeadStatus.IsValid(newStatus))
         {
-            return LeadOperationResult.Fail("VALIDATION_ERROR", "Invalid status value. Approved statuses are New, Contacted, and Closed.");
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Invalid status value. Approved statuses are New, Contacted, Qualified, and Closed.");
         }
 
         var lead = await _dbContext.Leads
@@ -166,8 +407,9 @@ public class LeadService : ILeadService
             Message = lead.Message,
             Source = lead.Source,
             Status = lead.Status,
-            ExternalReference = lead.ExternalReference,
+            SourceReference = lead.SourceReference,
             SubmittedAt = lead.SubmittedAt,
+            CreatedAt = lead.CreatedAt,
             UpdatedAt = lead.UpdatedAt
         };
 
@@ -216,7 +458,6 @@ public class LeadService : ILeadService
         }
         else
         {
-            // Default to sole active website if available
             website = await _dbContext.Websites
                 .AsNoTracking()
                 .OrderByDescending(w => w.UpdatedAt)
@@ -262,22 +503,21 @@ public class LeadService : ILeadService
             email = trimmedEmail.ToLowerInvariant();
         }
 
-        string? message = null;
-        if (!string.IsNullOrWhiteSpace(request.Message))
+        var message = request.Message?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(message))
         {
-            var trimmedMsg = request.Message.Trim();
-            if (trimmedMsg.Length > 4000)
-            {
-                return LeadOperationResult.Fail("VALIDATION_ERROR", "Message must not exceed 4000 characters.");
-            }
-            message = trimmedMsg;
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Message is required.");
+        }
+        if (message.Length > 4000)
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Message must not exceed 4000 characters.");
         }
 
-        // If service/area of interest was specified, prepend to message if not already included
+        // If service/area of interest was specified, prepend to message
         if (!string.IsNullOrWhiteSpace(request.Service))
         {
             var servicePrefix = $"[Area of Interest: {request.Service.Trim()}]";
-            message = string.IsNullOrWhiteSpace(message) ? servicePrefix : $"{servicePrefix}\n{message}";
+            message = $"{servicePrefix}\n{message}";
         }
 
         // 3. Controlled Server values
@@ -293,6 +533,7 @@ public class LeadService : ILeadService
             Source = LeadSource.Website,
             Status = LeadStatus.New,
             SubmittedAt = now,
+            CreatedAt = now,
             UpdatedAt = now
         };
 
@@ -312,8 +553,9 @@ public class LeadService : ILeadService
             Message = lead.Message,
             Source = lead.Source,
             Status = lead.Status,
-            ExternalReference = lead.ExternalReference,
+            SourceReference = lead.SourceReference,
             SubmittedAt = lead.SubmittedAt,
+            CreatedAt = lead.CreatedAt,
             UpdatedAt = lead.UpdatedAt
         };
 
@@ -360,7 +602,7 @@ public class LeadService : ILeadService
         if (!string.IsNullOrWhiteSpace(externalRef))
         {
             var existingLead = await _dbContext.Leads
-                .FirstOrDefaultAsync(l => l.TenantId == tenantId && l.ExternalReference == externalRef, cancellationToken);
+                .FirstOrDefaultAsync(l => l.TenantId == tenantId && l.SourceReference == externalRef, cancellationToken);
 
             if (existingLead != null)
             {
@@ -377,8 +619,9 @@ public class LeadService : ILeadService
                     Message = existingLead.Message,
                     Source = existingLead.Source,
                     Status = existingLead.Status,
-                    ExternalReference = existingLead.ExternalReference,
+                    SourceReference = existingLead.SourceReference,
                     SubmittedAt = existingLead.SubmittedAt,
+                    CreatedAt = existingLead.CreatedAt,
                     UpdatedAt = existingLead.UpdatedAt
                 };
                 return LeadOperationResult.Ok(existingDto);
@@ -391,14 +634,10 @@ public class LeadService : ILeadService
             ? request.Timestamp.Value.ToUniversalTime()
             : now;
 
-        string? message = null;
-        if (!string.IsNullOrWhiteSpace(request.Message))
+        var message = request.Message?.Trim() ?? "WhatsApp enquiry";
+        if (message.Length > 4000)
         {
-            message = request.Message.Trim();
-            if (message.Length > 4000)
-            {
-                message = message.Substring(0, 4000);
-            }
+            message = message.Substring(0, 4000);
         }
 
         var lead = new Lead
@@ -409,8 +648,9 @@ public class LeadService : ILeadService
             Message = message,
             Source = LeadSource.WhatsApp,
             Status = LeadStatus.New,
-            ExternalReference = externalRef,
+            SourceReference = externalRef,
             SubmittedAt = submittedTime,
+            CreatedAt = now,
             UpdatedAt = now
         };
 
@@ -430,8 +670,9 @@ public class LeadService : ILeadService
             Message = lead.Message,
             Source = lead.Source,
             Status = lead.Status,
-            ExternalReference = lead.ExternalReference,
+            SourceReference = lead.SourceReference,
             SubmittedAt = lead.SubmittedAt,
+            CreatedAt = lead.CreatedAt,
             UpdatedAt = lead.UpdatedAt
         };
 

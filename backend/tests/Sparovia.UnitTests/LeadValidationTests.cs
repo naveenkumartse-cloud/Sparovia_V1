@@ -9,11 +9,12 @@ public class LeadValidationTests
     [Theory]
     [InlineData("New", true)]
     [InlineData("Contacted", true)]
+    [InlineData("Qualified", true)]
     [InlineData("Closed", true)]
     [InlineData("new", true)]
     [InlineData("CONTACTED", true)]
+    [InlineData("qualified", true)]
     [InlineData("closed", true)]
-    [InlineData("Qualified", false)]
     [InlineData("Negotiating", false)]
     [InlineData("Won", false)]
     [InlineData("", false)]
@@ -56,12 +57,14 @@ public class LeadValidationTests
         var lead = new Lead
         {
             Name = "Aarav Patel",
-            Phone = "+919876543210"
+            Phone = "+919876543210",
+            Message = "Need consultation for interior work"
         };
 
         Assert.NotEqual(Guid.Empty, lead.Id);
         Assert.Equal(LeadStatus.New, lead.Status);
         Assert.Equal(LeadSource.Website, lead.Source);
         Assert.True(lead.SubmittedAt <= DateTime.UtcNow);
+        Assert.True(lead.CreatedAt <= DateTime.UtcNow);
     }
 }

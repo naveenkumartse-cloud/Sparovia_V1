@@ -322,15 +322,15 @@ public class SparoviaDbContext : DbContext
             entity.HasIndex(e => new { e.TenantId, e.SubmittedAt });
             entity.HasIndex(e => new { e.TenantId, e.Status });
             entity.HasIndex(e => new { e.TenantId, e.Source });
-            entity.HasIndex(e => new { e.TenantId, e.ExternalReference });
+            entity.HasIndex(e => new { e.TenantId, e.SourceReference });
 
             entity.Property(e => e.Name).IsRequired().HasMaxLength(256);
             entity.Property(e => e.Phone).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Email).HasMaxLength(256);
-            entity.Property(e => e.Message).HasMaxLength(4000);
+            entity.Property(e => e.Message).IsRequired().HasMaxLength(4000);
             entity.Property(e => e.Source).IsRequired().HasMaxLength(50).HasDefaultValue("Website");
             entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("New");
-            entity.Property(e => e.ExternalReference).HasMaxLength(256);
+            entity.Property(e => e.SourceReference).HasMaxLength(256);
 
             entity.HasOne(e => e.Tenant)
                 .WithMany(t => t.Leads)

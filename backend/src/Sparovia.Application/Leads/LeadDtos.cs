@@ -6,11 +6,12 @@ public record LeadDto
     public string Name { get; init; } = string.Empty;
     public string Phone { get; init; } = string.Empty;
     public string? Email { get; init; }
-    public string? Message { get; init; }
+    public string Message { get; init; } = string.Empty;
     public string Source { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
-    public string? ExternalReference { get; init; }
+    public string? SourceReference { get; init; }
     public DateTime SubmittedAt { get; init; }
+    public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
 }
 
@@ -33,6 +34,25 @@ public record LeadQueryParameters
     public string? Sort { get; init; }
 }
 
+public record CreateLeadRequest
+{
+    public string Name { get; init; } = string.Empty;
+    public string Phone { get; init; } = string.Empty;
+    public string? Email { get; init; }
+    public string Message { get; init; } = string.Empty;
+    public string? Source { get; init; }
+    public string? Status { get; init; }
+}
+
+public record UpdateLeadRequest
+{
+    public string Name { get; init; } = string.Empty;
+    public string Phone { get; init; } = string.Empty;
+    public string? Email { get; init; }
+    public string Message { get; init; } = string.Empty;
+    public string? Status { get; init; }
+}
+
 public record UpdateLeadStatusRequest
 {
     public string Status { get; init; } = string.Empty;
@@ -44,7 +64,7 @@ public record PublicWebsiteLeadRequest
     public string Phone { get; init; } = string.Empty;
     public string? Email { get; init; }
     public string? Service { get; init; }
-    public string? Message { get; init; }
+    public string Message { get; init; } = string.Empty;
     public string? Domain { get; init; }
 }
 

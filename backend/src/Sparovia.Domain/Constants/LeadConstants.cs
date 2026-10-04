@@ -4,12 +4,14 @@ public static class LeadStatus
 {
     public const string New = "New";
     public const string Contacted = "Contacted";
+    public const string Qualified = "Qualified";
     public const string Closed = "Closed";
 
     public static readonly IReadOnlySet<string> All = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
         New,
         Contacted,
+        Qualified,
         Closed
     };
 

@@ -25,10 +25,11 @@ public class Lead
     public string Status { get; set; } = LeadStatus.New;     // "New" | "Contacted" | "Closed"
     
     // External / WhatsApp reference for idempotency and traceability
-    public string? ExternalReference { get; set; }
+    public string? SourceReference { get; set; }
 
     // Timestamps
     public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // Operational audit identifiers

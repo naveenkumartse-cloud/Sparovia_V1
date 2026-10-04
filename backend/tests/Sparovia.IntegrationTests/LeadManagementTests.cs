@@ -162,6 +162,7 @@ public class LeadManagementTests : IClassFixture<WebApplicationFactory<Program>>
             Name = "Customer For B",
             Phone = "9876543210",
             Email = "leadB@example.com",
+            Message = "Inquiry for tenant B",
             Domain = domainB
         });
 
@@ -169,18 +170,31 @@ public class LeadManagementTests : IClassFixture<WebApplicationFactory<Program>>
         var listB = await clientB.GetFromJsonAsync<LeadListResponse>("/api/v1/leads");
         var leadB = listB!.Items.First(l => l.Name == "Customer For B");
 
-        // 1. Tenant A attempts to view Tenant B's lead -> 404 Not Found (or Forbidden)
+        // 1. Tenant A attempts to view Tenant B's lead -> 404 Not Found
         var crossGetResp = await clientA.GetAsync($"/api/v1/leads/{leadB.Id}");
         Assert.Equal(HttpStatusCode.NotFound, crossGetResp.StatusCode);
 
         // 2. Tenant A attempts to update Tenant B's lead status -> 404 Not Found
-        var crossUpdateResp = await clientA.PatchAsJsonAsync($"/api/v1/leads/{leadB.Id}/status", new UpdateLeadStatusRequest
+        var crossStatusResp = await clientA.PatchAsJsonAsync($"/api/v1/leads/{leadB.Id}/status", new UpdateLeadStatusRequest
         {
             Status = LeadStatus.Contacted
         });
-        Assert.Equal(HttpStatusCode.NotFound, crossUpdateResp.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, crossStatusResp.StatusCode);
 
-        // 3. Tenant A's lead list must NOT include Tenant B's lead
+        // 3. Tenant A attempts to edit Tenant B's lead -> 404 Not Found
+        var crossEditResp = await clientA.PutAsJsonAsync($"/api/v1/leads/{leadB.Id}", new UpdateLeadRequest
+        {
+            Name = "Hacked Name",
+            Phone = "9876543210",
+            Message = "Hacked message"
+        });
+        Assert.Equal(HttpStatusCode.NotFound, crossEditResp.StatusCode);
+
+        // 4. Tenant A attempts to delete Tenant B's lead -> 404 Not Found
+        var crossDeleteResp = await clientA.DeleteAsync($"/api/v1/leads/{leadB.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, crossDeleteResp.StatusCode);
+
+        // 5. Tenant A's lead list must NOT include Tenant B's lead
         var listA = await clientA.GetFromJsonAsync<LeadListResponse>("/api/v1/leads");
         Assert.DoesNotContain(listA!.Items, l => l.Id == leadB.Id);
     }
@@ -213,6 +227,7 @@ public class LeadManagementTests : IClassFixture<WebApplicationFactory<Program>>
         {
             Name = "Alice Sharma",
             Phone = "9876543210",
+            Message = "Need living room design",
             Domain = domain
         });
 
@@ -229,16 +244,25 @@ public class LeadManagementTests : IClassFixture<WebApplicationFactory<Program>>
         var updatedLead1 = await update1.Content.ReadFromJsonAsync<LeadDto>();
         Assert.Equal(LeadStatus.Contacted, updatedLead1!.Status);
 
-        // 2. Update status to Closed
+        // 2. Update status to Qualified
         var update2 = await client.PatchAsJsonAsync($"/api/v1/leads/{lead.Id}/status", new UpdateLeadStatusRequest
         {
-            Status = LeadStatus.Closed
+            Status = LeadStatus.Qualified
         });
         Assert.Equal(HttpStatusCode.OK, update2.StatusCode);
         var updatedLead2 = await update2.Content.ReadFromJsonAsync<LeadDto>();
-        Assert.Equal(LeadStatus.Closed, updatedLead2!.Status);
+        Assert.Equal(LeadStatus.Qualified, updatedLead2!.Status);
 
-        // 3. Attempt invalid status
+        // 3. Update status to Closed
+        var update3 = await client.PatchAsJsonAsync($"/api/v1/leads/{lead.Id}/status", new UpdateLeadStatusRequest
+        {
+            Status = LeadStatus.Closed
+        });
+        Assert.Equal(HttpStatusCode.OK, update3.StatusCode);
+        var updatedLead3 = await update3.Content.ReadFromJsonAsync<LeadDto>();
+        Assert.Equal(LeadStatus.Closed, updatedLead3!.Status);
+
+        // 4. Attempt invalid status
         var updateInvalid = await client.PatchAsJsonAsync($"/api/v1/leads/{lead.Id}/status", new UpdateLeadStatusRequest
         {
             Status = "WonDeal" // Unapproved status
@@ -279,7 +303,7 @@ public class LeadManagementTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(1, leads.TotalCount);
         var lead = leads.Items[0];
         Assert.Equal(LeadSource.WhatsApp, lead.Source);
-        Assert.Equal(msgId, lead.ExternalReference);
+        Assert.Equal(msgId, lead.SourceReference);
         Assert.Equal("+919123456789", lead.Phone);
     }
 
@@ -292,7 +316,8 @@ public class LeadManagementTests : IClassFixture<WebApplicationFactory<Program>>
         var res1 = await publicClient.PostAsJsonAsync("/api/v1/leads/public", new PublicWebsiteLeadRequest
         {
             Name = "",
-            Phone = "9876543210"
+            Phone = "9876543210",
+            Message = "Some message"
         });
         Assert.Equal(HttpStatusCode.BadRequest, res1.StatusCode);
 
@@ -300,7 +325,8 @@ public class LeadManagementTests : IClassFixture<WebApplicationFactory<Program>>
         var res2 = await publicClient.PostAsJsonAsync("/api/v1/leads/public", new PublicWebsiteLeadRequest
         {
             Name = "Valid Name",
-            Phone = "invalid-phone"
+            Phone = "invalid-phone",
+            Message = "Some message"
         });
         Assert.Equal(HttpStatusCode.BadRequest, res2.StatusCode);
 
@@ -309,8 +335,82 @@ public class LeadManagementTests : IClassFixture<WebApplicationFactory<Program>>
         {
             Name = "Valid Name",
             Phone = "9876543210",
-            Email = "not-an-email"
+            Email = "not-an-email",
+            Message = "Some message"
         });
         Assert.Equal(HttpStatusCode.BadRequest, res3.StatusCode);
+
+        // 4. Missing message
+        var res4 = await publicClient.PostAsJsonAsync("/api/v1/leads/public", new PublicWebsiteLeadRequest
+        {
+            Name = "Valid Name",
+            Phone = "9876543210",
+            Message = ""
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, res4.StatusCode);
+    }
+
+    [Fact]
+    public async Task ManualLeadCrud_CreateEditDelete_FlowSucceeds()
+    {
+        var unique = Guid.NewGuid().ToString("N")[..8];
+        var domain = $"{unique}-manual.com";
+        var (client, tenantId, _) = await SetupTenantAsync($"{unique}@manual.com", "Manual Lead Interiors", domain);
+
+        // 1. Manual Create Lead
+        var addReq = new CreateLeadRequest
+        {
+            Name = "Walk-in Client",
+            Phone = "+91 98765 11223",
+            Email = "walkin@example.com",
+            Message = "Walked in to discuss whole home renovation budget",
+            Source = LeadSource.Website,
+            Status = LeadStatus.New
+        };
+
+        var createResp = await client.PostAsJsonAsync("/api/v1/leads", addReq);
+        Assert.Equal(HttpStatusCode.Created, createResp.StatusCode);
+
+        var createdLead = await createResp.Content.ReadFromJsonAsync<LeadDto>();
+        Assert.NotNull(createdLead);
+        Assert.Equal("Walk-in Client", createdLead.Name);
+        Assert.Equal("+919876511223", createdLead.Phone);
+        Assert.Equal("walkin@example.com", createdLead.Email);
+        Assert.Equal(LeadStatus.New, createdLead.Status);
+
+        // 2. Manual Edit Lead
+        var editReq = new UpdateLeadRequest
+        {
+            Name = "Walk-in Client - VIP",
+            Phone = "+91 98765 11223",
+            Email = "vip.walkin@example.com",
+            Message = "Updated scope: 4BHK luxury interior complete turnkey",
+            Status = LeadStatus.Qualified
+        };
+
+        var editResp = await client.PutAsJsonAsync($"/api/v1/leads/{createdLead.Id}", editReq);
+        Assert.Equal(HttpStatusCode.OK, editResp.StatusCode);
+
+        var updatedLead = await editResp.Content.ReadFromJsonAsync<LeadDto>();
+        Assert.NotNull(updatedLead);
+        Assert.Equal("Walk-in Client - VIP", updatedLead.Name);
+        Assert.Equal("vip.walkin@example.com", updatedLead.Email);
+        Assert.Equal(LeadStatus.Qualified, updatedLead.Status);
+        Assert.Contains("luxury interior", updatedLead.Message);
+
+        // 3. Get Lead By Id
+        var getResp = await client.GetAsync($"/api/v1/leads/{createdLead.Id}");
+        Assert.Equal(HttpStatusCode.OK, getResp.StatusCode);
+        var fetchedLead = await getResp.Content.ReadFromJsonAsync<LeadDto>();
+        Assert.NotNull(fetchedLead);
+        Assert.Equal("Walk-in Client - VIP", fetchedLead.Name);
+
+        // 4. Delete Lead
+        var deleteResp = await client.DeleteAsync($"/api/v1/leads/{createdLead.Id}");
+        Assert.Equal(HttpStatusCode.OK, deleteResp.StatusCode);
+
+        // 5. Verify lead is gone
+        var getAfterDelete = await client.GetAsync($"/api/v1/leads/{createdLead.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, getAfterDelete.StatusCode);
     }
 }

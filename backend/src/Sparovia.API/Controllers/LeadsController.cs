@@ -106,6 +106,107 @@ public class LeadsController : ControllerBase
         return Ok(lead);
     }
 
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> CreateLead([FromBody] CreateLeadRequest request, CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError))
+        {
+            return authError!;
+        }
+
+        var isConfirmed = await IsOnboardingCompleteAsync(tenantId, cancellationToken);
+        if (!isConfirmed)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                Error = "Onboarding incomplete. Business Context must be confirmed before managing Leads.",
+                Code = "ONBOARDING_REQUIRED",
+                RedirectUrl = "/admin/onboarding/business-basics"
+            });
+        }
+
+        var userId = TryGetUserId();
+        var result = await _leadService.CreateManualLeadAsync(tenantId, request, userId, cancellationToken);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+        }
+
+        return CreatedAtAction(nameof(GetLeadById), new { id = result.Lead!.Id }, result.Lead);
+    }
+
+    [HttpPut("{id:guid}")]
+    [Authorize]
+    public async Task<IActionResult> UpdateLead(Guid id, [FromBody] UpdateLeadRequest request, CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError))
+        {
+            return authError!;
+        }
+
+        var isConfirmed = await IsOnboardingCompleteAsync(tenantId, cancellationToken);
+        if (!isConfirmed)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                Error = "Onboarding incomplete. Business Context must be confirmed before managing Leads.",
+                Code = "ONBOARDING_REQUIRED",
+                RedirectUrl = "/admin/onboarding/business-basics"
+            });
+        }
+
+        var userId = TryGetUserId();
+        var result = await _leadService.UpdateLeadAsync(tenantId, id, request, userId, cancellationToken);
+
+        if (!result.Success)
+        {
+            if (result.ErrorCode == "NOT_FOUND")
+            {
+                return NotFound(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+            }
+            return BadRequest(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+        }
+
+        return Ok(result.Lead);
+    }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteLead(Guid id, CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError))
+        {
+            return authError!;
+        }
+
+        var isConfirmed = await IsOnboardingCompleteAsync(tenantId, cancellationToken);
+        if (!isConfirmed)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                Error = "Onboarding incomplete. Business Context must be confirmed before managing Leads.",
+                Code = "ONBOARDING_REQUIRED",
+                RedirectUrl = "/admin/onboarding/business-basics"
+            });
+        }
+
+        var userId = TryGetUserId();
+        var result = await _leadService.DeleteLeadAsync(tenantId, id, userId, cancellationToken);
+
+        if (!result.Success)
+        {
+            if (result.ErrorCode == "NOT_FOUND")
+            {
+                return NotFound(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+            }
+            return BadRequest(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+        }
+
+        return Ok(new { Success = true, Message = "Lead deleted successfully." });
+    }
+
     [HttpPatch("{id:guid}/status")]
     [Authorize]
     public async Task<IActionResult> UpdateLeadStatus(Guid id, [FromBody] UpdateLeadStatusRequest request, CancellationToken cancellationToken)
