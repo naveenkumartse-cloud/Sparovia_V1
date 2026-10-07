@@ -14,18 +14,20 @@ export function InfoTooltip({ content, align = 'left' }: InfoTooltipProps) {
   const [effectiveAlign, setEffectiveAlign] = useState<'left' | 'right' | 'center'>(align);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
+  // Close on outside click or touch
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsVisible(false);
       }
     }
     if (isVisible) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside, { passive: true });
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isVisible]);
 
@@ -61,19 +63,31 @@ export function InfoTooltip({ content, align = 'left' }: InfoTooltipProps) {
     <div 
       ref={containerRef}
       className="relative inline-flex items-center text-left shrink-0"
-      onMouseEnter={() => setIsVisible(true)}
-      onMouseLeave={() => setIsVisible(false)}
+      onMouseEnter={() => {
+        if (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches) {
+          setIsVisible(true);
+        }
+      }}
+      onMouseLeave={() => {
+        if (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches) {
+          setIsVisible(false);
+        }
+      }}
     >
       <button 
         type="button" 
         onClick={() => setIsVisible(!isVisible)}
-        onFocus={() => setIsVisible(true)}
+        onFocus={() => {
+          if (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches) {
+            setIsVisible(true);
+          }
+        }}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
             setIsVisible(false);
           }
         }}
-        className="text-[#64748B] hover:text-[#94A3B8] focus:text-[#3B82F6] focus:outline-none rounded-full p-0.5 transition-colors"
+        className="text-[#64748B] hover:text-[#94A3B8] focus:text-[#3B82F6] focus:outline-none rounded-full p-0.5 transition-colors touch-manipulation"
         aria-label="Field information"
         aria-expanded={isVisible}
       >

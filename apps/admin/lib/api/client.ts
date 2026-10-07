@@ -2,7 +2,14 @@ export class ApiClient {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5043/api/v1';
+    const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (envUrl && envUrl.trim()) {
+      this.baseUrl = envUrl.trim();
+    } else if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      this.baseUrl = 'https://sparovia-api.onrender.com/api/v1';
+    } else {
+      this.baseUrl = 'http://localhost:5043/api/v1';
+    }
   }
 
   async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {

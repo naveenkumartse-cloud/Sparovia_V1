@@ -17,7 +17,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   logout: () => Promise<void>;
-  checkAuth: () => Promise<void>;
+  checkAuth: () => Promise<User | null>;
+  setAuthUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,13 +28,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  const setAuthUser = useCallback((userData: User | null) => {
+    setUser(userData);
+    setIsLoading(false);
+  }, []);
+
   const checkAuth = useCallback(async () => {
     try {
       // The API client automatically sends the HttpOnly cookie because of credentials: 'include'
       const userData = await apiClient.get<User>('/auth/me');
       setUser(userData);
+      return userData;
     } catch (error) {
       setUser(null);
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, logout, checkAuth, setAuthUser }}>
       {children}
     </AuthContext.Provider>
   );

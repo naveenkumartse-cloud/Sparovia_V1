@@ -10,7 +10,6 @@ import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
 import {
   ArrowRight,
-  ArrowLeft,
   Eye,
   EyeOff,
   Lock,
@@ -21,11 +20,9 @@ import {
 } from 'lucide-react';
 import {
   cleanPhoneInput,
-  isValidIndianPhone,
-  isValidEmail,
   detectIdentifierType,
+  validateIdentifier,
   handlePhoneKeyDown,
-  handlePhonePaste,
 } from '@/lib/validation/authValidation';
 
 export default function LoginPage() {
@@ -36,22 +33,34 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [fieldError, setFieldError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
   const [identifierTouched, setIdentifierTouched] = useState(false);
 
   const identifierInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
+  const isContinuingRef = useRef(false);
+  const isSubmittingRef = useRef(false);
 
   const router = useRouter();
-  const { checkAuth } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, setAuthUser } = useAuth();
 
   const identifierType = detectIdentifierType(identifier);
   const isPhoneMode = identifierType === 'phone';
   const isEmailMode = identifierType === 'email';
 
-  // Real-time valid state for visual feedback
-  const isIdentifierValid =
-    (isPhoneMode && isValidIndianPhone(identifier)) ||
-    (isEmailMode && isValidEmail(identifier));
+  // Real-time validation status
+  const isIdentifierValid = identifier.trim() !== '' && validateIdentifier(identifier) === null;
+
+  // If already authenticated, redirect immediately
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && user) {
+      if (user.isOnboardingConfirmed === false) {
+        router.replace('/admin/onboarding/business-basics');
+      } else {
+        router.replace('/admin');
+      }
+    }
+  }, [authLoading, isAuthenticated, user, router]);
 
   // Focus management on step change
   useEffect(() => {
@@ -71,24 +80,6 @@ export default function LoginPage() {
     }
   };
 
-  const validateIdentifier = (val: string): string | null => {
-    const trimmed = val.trim();
-    if (!trimmed) {
-      return 'Enter your email or phone number.';
-    }
-    const type = detectIdentifierType(trimmed);
-    if (type === 'phone') {
-      if (!isValidIndianPhone(trimmed)) {
-        return 'Enter a valid 10-digit phone number.';
-      }
-    } else {
-      if (!isValidEmail(trimmed)) {
-        return 'Enter a valid email address.';
-      }
-    }
-    return null;
-  };
-
   const handleIdentifierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawVal = e.target.value;
 
@@ -98,30 +89,14 @@ export default function LoginPage() {
       return;
     }
 
-    if (/^\d/.test(rawVal.trim())) {
-      // In phone mode: clean to digits only and limit to 10
-      const cleaned = cleanPhoneInput(rawVal);
-      setIdentifier(cleaned);
+    setIdentifier(rawVal);
 
-      if (cleaned.length === 10) {
-        if (isValidIndianPhone(cleaned)) {
-          setFieldError('');
-        } else {
-          setFieldError('Enter a valid 10-digit phone number.');
-        }
-      } else {
-        // While user is actively typing under 10 digits, clear any prior format error
-        if (fieldError) {
-          setFieldError('');
-        }
-      }
+    if (identifierTouched) {
+      const err = validateIdentifier(rawVal);
+      setFieldError(err || '');
     } else {
-      // In email mode: allow normal email characters
-      setIdentifier(rawVal);
-      if (identifierTouched) {
-        if (isValidEmail(rawVal)) {
-          setFieldError('');
-        }
+      if (validateIdentifier(rawVal) === null) {
+        setFieldError('');
       }
     }
   };
@@ -138,8 +113,10 @@ export default function LoginPage() {
     }
   };
 
-  const handleContinue = (e?: React.FormEvent) => {
+  const handleContinue = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (isContinuingRef.current || isChecking) return;
+
     setIdentifierTouched(true);
     setError('');
 
@@ -151,12 +128,26 @@ export default function LoginPage() {
     }
 
     setFieldError('');
-    setStep(2);
+    isContinuingRef.current = true;
+    setIsChecking(true);
+
+    try {
+      // Provide smooth visual feedback (Checking...) without exposing an insecure account existence API
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setStep(2);
+    } finally {
+      setIsChecking(false);
+      isContinuingRef.current = false;
+    }
   };
 
   const handleBackToIdentifier = () => {
     setStep(1);
     setError('');
+    setPassword('');
+    setTimeout(() => {
+      identifierInputRef.current?.focus();
+    }, 50);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -167,38 +158,49 @@ export default function LoginPage() {
       return;
     }
 
+    if (isSubmittingRef.current || isLoading) return;
+
     if (!password) {
       setError('Enter your password.');
       passwordInputRef.current?.focus();
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsLoading(true);
     setError('');
 
     try {
+      const cleanIdent = identifier.trim();
       const payload = {
-        email: identifier.trim(),
-        identifier: identifier.trim(),
+        email: cleanIdent,
+        identifier: cleanIdent,
         password,
       };
 
       await apiClient.post('/auth/login', payload);
       const me: any = await apiClient.get('/auth/me');
-      await checkAuth(); // Refresh the AuthContext
+      setAuthUser(me);
       toast.success('Signed in successfully.');
 
-      if (!me?.isOnboardingConfirmed) {
-        router.push('/admin/onboarding/business-basics');
-      } else {
-        router.push('/admin');
-      }
+      const dest = !me?.isOnboardingConfirmed
+        ? '/admin/onboarding/business-basics'
+        : '/admin';
+
+      // Perform a clean navigation so browser session and cookies initialize fresh
+      window.location.href = dest;
     } catch (err: any) {
-      const genericMsg = "We couldn't continue with that account. If you don't have a Sparovia account yet, create one.";
-      const errorMsg = err.message || genericMsg;
+      const genericMsg = 'Invalid email/phone number or password.';
+      const rawError = err?.message || '';
+      const isNetworkOrFetch = rawError.toLowerCase().includes('failed to fetch') || rawError.toLowerCase().includes('unable to connect');
+      const errorMsg = isNetworkOrFetch 
+        ? 'Unable to connect to the server. Please check your connection and try again.'
+        : (rawError && !rawError.toLowerCase().includes('an unexpected error occurred.') ? rawError : genericMsg);
+
       setError(errorMsg);
       toast.error(errorMsg);
       setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -214,7 +216,7 @@ export default function LoginPage() {
           </span>
         </Link>
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-          {step === 1 ? 'Sign in' : 'Welcome back'}
+          Welcome back
         </h1>
         <p className="mt-1.5 text-xs sm:text-sm text-slate-500 dark:text-[#94A3B8]">
           {step === 1
@@ -267,7 +269,10 @@ export default function LoginPage() {
                     >
                       Email or phone number
                     </label>
-                    <InfoTooltip content="Enter your registered work email address or your 10-digit Indian phone number." />
+                    <InfoTooltip 
+                      content="Enter your registered work email address or your 10-digit Indian phone number." 
+                      align="right"
+                    />
                   </div>
                   {isPhoneMode && (
                     <span className="text-[11px] font-medium text-[#3B82F6] bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md">
@@ -294,35 +299,28 @@ export default function LoginPage() {
                   <input
                     ref={identifierInputRef}
                     id="identifier"
-                    name="email"
+                    name="identifier"
                     type={isPhoneMode ? 'tel' : 'text'}
                     inputMode={isPhoneMode ? 'numeric' : 'email'}
-                    autoComplete="username"
+                    autoComplete={isPhoneMode ? 'tel' : 'username'}
                     required
                     maxLength={isPhoneMode ? 10 : 120}
                     value={identifier}
                     onKeyDown={isPhoneMode ? handlePhoneKeyDown : undefined}
                     onPaste={(e) => {
                       const text = e.clipboardData.getData('text').trim();
-                      if (/^(\+?91|\d)/.test(text)) {
+                      if (/^(\+?91|\d)/.test(text) && !text.includes('@')) {
                         e.preventDefault();
                         const cleaned = cleanPhoneInput(text);
                         setIdentifier(cleaned);
-                        if (cleaned.length === 10) {
-                          if (isValidIndianPhone(cleaned)) {
-                            setFieldError('');
-                          } else {
-                            setFieldError('Enter a valid 10-digit phone number.');
-                          }
-                        } else {
-                          if (fieldError) setFieldError('');
-                        }
+                        const err = validateIdentifier(cleaned);
+                        setFieldError(err || '');
                       }
                     }}
                     onChange={handleIdentifierChange}
                     onBlur={handleIdentifierBlur}
                     placeholder="Email or phone number"
-                    className={`block w-full pl-10 pr-9 py-2.5 bg-slate-50 dark:bg-[#0B1220] border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors ${
+                    className={`block w-full pl-10 pr-9 py-2.5 bg-slate-50 dark:bg-[#0B1220] border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors touch-manipulation ${
                       fieldError
                         ? 'border-red-500/60 dark:border-red-500/60'
                         : isIdentifierValid
@@ -344,8 +342,8 @@ export default function LoginPage() {
                   </p>
                 )}
 
-                {/* Password field kept in DOM for browser password manager / autofill detection */}
-                <div className="sr-only" aria-hidden="true">
+                {/* Password field kept in DOM for browser password manager / autofill detection with pointer-events-none */}
+                <div className="sr-only pointer-events-none" aria-hidden="true">
                   <input
                     type="password"
                     name="password"
@@ -358,11 +356,14 @@ export default function LoginPage() {
 
                 <div className="pt-3">
                   <Button
-                    type="button"
+                    type="submit"
                     variant="primary"
                     size="lg"
-                    className="w-full"
-                    onClick={handleContinue}
+                    className="w-full touch-manipulation"
+                    disabled={isChecking}
+                    isLoading={isChecking}
+                    loadingText="Checking..."
+                    onMouseDown={(e) => e.preventDefault()}
                     rightIcon={<ArrowRight className="ml-1 h-4 w-4" />}
                   >
                     Continue
@@ -377,7 +378,7 @@ export default function LoginPage() {
                 {/* Active Identifier Pill with Change Button */}
                 <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-xl">
                   <div className="flex items-center space-x-2.5 min-w-0">
-                    <div className="p-1.5 bg-blue-500/10 text-[#3B82F6] rounded-lg">
+                    <div className="p-1.5 bg-blue-500/10 text-[#3B82F6] rounded-lg shrink-0">
                       {isPhoneMode ? <Smartphone className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
                     </div>
                     <span className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
@@ -387,7 +388,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={handleBackToIdentifier}
-                    className="text-xs font-semibold text-[#3B82F6] hover:text-[#60A5FA] px-2 py-1 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors whitespace-nowrap"
+                    className="text-xs font-semibold text-[#3B82F6] hover:text-[#60A5FA] px-2 py-1 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors whitespace-nowrap touch-manipulation shrink-0 ml-2"
                   >
                     Use a different email or phone
                   </button>
@@ -396,7 +397,7 @@ export default function LoginPage() {
                 {/* Hidden username input in form for browser password manager compliance */}
                 <input
                   type="hidden"
-                  name="email"
+                  name="identifier"
                   value={identifier}
                   autoComplete="username"
                 />
@@ -434,13 +435,13 @@ export default function LoginPage() {
                         if (error) setError('');
                       }}
                       placeholder="Enter your password"
-                      className="block w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
+                      className="block w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors touch-manipulation"
                       aria-invalid={error ? 'true' : 'false'}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:text-[#64748B] dark:hover:text-[#94A3B8] transition-colors focus:outline-none"
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:text-[#64748B] dark:hover:text-[#94A3B8] transition-colors focus:outline-none touch-manipulation"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -453,10 +454,11 @@ export default function LoginPage() {
                     type="submit"
                     variant="primary"
                     size="lg"
-                    className="w-full"
+                    className="w-full touch-manipulation"
                     disabled={isLoading}
                     isLoading={isLoading}
                     loadingText="Signing in..."
+                    onMouseDown={(e) => e.preventDefault()}
                     rightIcon={<ArrowRight className="ml-1 h-4 w-4" />}
                   >
                     Sign in

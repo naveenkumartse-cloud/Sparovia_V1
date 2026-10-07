@@ -32,8 +32,10 @@ export function cleanPhoneInput(value: string): string {
  */
 export function isValidIndianPhone(phone: string): boolean {
   if (!phone) return false;
-  const cleaned = cleanPhoneInput(phone);
-  return /^[6-9]\d{9}$/.test(cleaned);
+  const trimmed = phone.trim();
+  // Reject letters, spaces, or symbols
+  if (/[^\d]/.test(trimmed)) return false;
+  return /^[6-9]\d{9}$/.test(trimmed);
 }
 
 /**
@@ -48,21 +50,83 @@ export function isValidEmail(email: string): boolean {
 
 /**
  * Detects whether an identifier input is intended as a Phone Number or an Email.
- * - If the first character entered is a digit, it is treated as Phone Mode.
- * - Otherwise (letters, symbols, @), it is treated as Email Mode.
+ * - If the input contains '@', it is treated as Email Mode.
+ * - If the input begins with a '+' or digit, it is treated as Phone Mode.
+ * - Otherwise, it is treated as Email Mode.
  */
 export function detectIdentifierType(value: string): 'empty' | 'phone' | 'email' {
   const trimmed = value.trim();
   if (!trimmed) return 'empty';
-  if (/^\d/.test(trimmed)) return 'phone';
+  if (trimmed.includes('@')) return 'email';
+  if (/^\+?\d/.test(trimmed)) return 'phone';
   return 'email';
 }
 
 /**
+ * Comprehensive inline validation for login identifier (Email or 10-digit Indian Phone).
+ * Returns null if valid, or a clear user-facing error message.
+ */
+export function validateIdentifier(val: string): string | null {
+  const trimmed = val.trim();
+  if (!trimmed) {
+    return 'Enter your email or phone number.';
+  }
+
+  const type = detectIdentifierType(trimmed);
+
+  if (type === 'email') {
+    if (!isValidEmail(trimmed)) {
+      return 'Enter a valid email address.';
+    }
+    return null;
+  }
+
+  // Phone Mode Validation
+  if (/[a-zA-Z]/.test(trimmed)) {
+    return 'Phone number cannot contain letters.';
+  }
+
+  if (/\s/.test(trimmed)) {
+    return 'Phone number cannot contain spaces.';
+  }
+
+  if (/[^\d+]/.test(trimmed)) {
+    return 'Phone number cannot contain special characters.';
+  }
+
+  // Handle +91 or 0 prefix safely
+  let digits = trimmed.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) {
+    digits = digits.slice(2);
+  } else if (digits.length === 11 && digits.startsWith('0')) {
+    digits = digits.slice(1);
+  }
+
+  if (digits.length < 10) {
+    return 'Phone number must be exactly 10 digits.';
+  }
+
+  if (digits.length > 10) {
+    return 'Phone number cannot exceed 10 digits.';
+  }
+
+  if (!/^[6-9]\d{9}$/.test(digits)) {
+    return 'Enter a valid 10-digit Indian phone number starting with 6, 7, 8, or 9.';
+  }
+
+  return null;
+}
+
+/**
  * Keyboard handler for phone-only inputs.
- * Blocks non-digit keys at input time while allowing essential navigation/control keys.
+ * Blocks non-digit keys on physical keyboards without blocking mobile/virtual keyboards.
  */
 export function handlePhoneKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void {
+  // Never block Android or virtual keyboard unidentified / composing keys
+  if (e.key === 'Unidentified' || e.nativeEvent?.isComposing) {
+    return;
+  }
+
   // Allow navigation and edit controls
   if (
     e.key === 'Backspace' ||
@@ -85,8 +149,13 @@ export function handlePhoneKeyDown(e: React.KeyboardEvent<HTMLInputElement>): vo
     return;
   }
 
-  // Disallow non-numeric characters (letters, spaces, punctuation)
-  if (!/^\d$/.test(e.key)) {
+  // Allow digits
+  if (/^\d$/.test(e.key)) {
+    return;
+  }
+
+  // Disallow non-numeric single characters only on physical keyboards
+  if (e.key.length === 1 && !/^\d$/.test(e.key)) {
     e.preventDefault();
   }
 }
