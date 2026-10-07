@@ -178,7 +178,12 @@ export default function LoginPage() {
         password,
       };
 
-      await apiClient.post('/auth/login', payload);
+      const res: any = await apiClient.post('/auth/login', payload);
+      const token = res?.accessToken || res?.data?.accessToken || res?.token;
+      if (token) {
+        apiClient.setToken(token);
+      }
+
       const me: any = await apiClient.get('/auth/me');
       setAuthUser(me);
       toast.success('Signed in successfully.');

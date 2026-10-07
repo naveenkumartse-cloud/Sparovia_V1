@@ -167,6 +167,74 @@ public class AuthenticationTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.Unauthorized, afterLogoutResponse.StatusCode);
     }
 
+    [Fact]
+    public async Task Login_ReturnsAccessToken_AndBearerHeaderAuthenticatesMeEndpoint()
+    {
+        var client = _factory.CreateClient();
+        var email = $"jwttester-{Guid.NewGuid()}@sparovia.com";
+
+        // 1. Register & verify user
+        var regReq = new RegisterRequest
+        {
+            FullName = "JWT Bearer Tester",
+            Email = email,
+            Password = "StrongPassword123!",
+            ConfirmPassword = "StrongPassword123!",
+            AcceptedTerms = true
+        };
+        var regRes = await client.PostAsJsonAsync("/api/v1/auth/register", regReq);
+        Assert.Equal(HttpStatusCode.OK, regRes.StatusCode);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<Sparovia.Infrastructure.Data.SparoviaDbContext>();
+            var user = await db.Users.SingleAsync(u => u.Email == email);
+            user.EmailVerified = true;
+            user.PhoneVerified = true;
+            await db.SaveChangesAsync();
+        }
+
+        // 2. Perform Login
+        var loginReq = new SignInRequest
+        {
+            Email = email,
+            Password = "StrongPassword123!"
+        };
+        var loginRes = await client.PostAsJsonAsync("/api/v1/auth/login", loginReq);
+        Assert.Equal(HttpStatusCode.OK, loginRes.StatusCode);
+
+        var loginBody = await loginRes.Content.ReadFromJsonAsync<LoginSuccessResponse>();
+        Assert.NotNull(loginBody);
+        Assert.False(string.IsNullOrWhiteSpace(loginBody.AccessToken));
+        Assert.Equal("Bearer", loginBody.TokenType);
+
+        // 3. New separate HttpClient WITHOUT any cookies
+        var bearerClient = _factory.CreateDefaultClient();
+        bearerClient.DefaultRequestHeaders.Authorization = 
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", loginBody.AccessToken);
+
+        // 4. Access /api/v1/auth/me using Bearer token only -> Must return 200 OK
+        var meRes = await bearerClient.GetAsync("/api/v1/auth/me");
+        Assert.Equal(HttpStatusCode.OK, meRes.StatusCode);
+
+        var meData = await meRes.Content.ReadFromJsonAsync<MeResponse>();
+        Assert.NotNull(meData);
+        Assert.Equal(email, meData.Email);
+
+        // 5. Unauthenticated client (no cookie, no Bearer) -> Must return 401 Unauthorized
+        var anonClient = _factory.CreateDefaultClient();
+        var anonRes = await anonClient.GetAsync("/api/v1/auth/me");
+        Assert.Equal(HttpStatusCode.Unauthorized, anonRes.StatusCode);
+    }
+
+    private class LoginSuccessResponse
+    {
+        public string? Message { get; set; }
+        public string? AccessToken { get; set; }
+        public string? TokenType { get; set; }
+        public int? ExpiresIn { get; set; }
+    }
+
     private class MeResponse
     {
         public string? Email { get; set; }

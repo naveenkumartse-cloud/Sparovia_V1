@@ -160,6 +160,11 @@ function VerifyPhoneContent() {
         otp: fullOtp,
       });
 
+      const token = response?.accessToken || response?.data?.accessToken;
+      if (token) {
+        apiClient.setToken(token);
+      }
+
       setStatus('success');
       toast.success('Phone verified successfully!');
 

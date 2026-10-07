@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Sparovia.Application.Identity;
 using Sparovia.Infrastructure.Data;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Sparovia.API.Controllers;
 
@@ -16,15 +19,18 @@ public class AuthController : ControllerBase
     private readonly IIdentityService _identityService;
     private readonly IWebHostEnvironment _environment;
     private readonly SparoviaDbContext _dbContext;
+    private readonly IConfiguration _configuration;
 
     public AuthController(
         IIdentityService identityService, 
         IWebHostEnvironment environment,
-        SparoviaDbContext dbContext)
+        SparoviaDbContext dbContext,
+        IConfiguration configuration)
     {
         _identityService = identityService;
         _environment = environment;
         _dbContext = dbContext;
+        _configuration = configuration;
     }
 
     [HttpPost("register")]
@@ -160,6 +166,7 @@ public class AuthController : ControllerBase
             .FirstOrDefaultAsync(u => (result.UserId.HasValue && u.Id == result.UserId.Value) || 
                                       (normalizedPhone != null && u.PhoneNumberNormalized == normalizedPhone), cancellationToken);
 
+        string? token = null;
         if (user != null && user.Memberships.Any())
         {
             var primaryMembership = user.Memberships.First();
@@ -183,6 +190,8 @@ public class AuthController : ControllerBase
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
+
+            token = GenerateJwtToken(user.Id, user.Email, primaryMembership.Role, primaryMembership.TenantId, user.FullName ?? "");
         }
 
         return Ok(new 
@@ -191,8 +200,12 @@ public class AuthController : ControllerBase
             {
                 message = "Phone number verified successfully.",
                 requiresOnboarding = true,
-                onboardingStep = "/admin/onboarding/business-basics"
+                onboardingStep = "/admin/onboarding/business-basics",
+                accessToken = token,
+                tokenType = "Bearer"
             },
+            accessToken = token,
+            tokenType = "Bearer",
             requestId = HttpContext.TraceIdentifier 
         });
     }
@@ -218,6 +231,7 @@ public class AuthController : ControllerBase
             .Include(u => u.Memberships)
             .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
 
+        string? token = null;
         if (user != null && user.Memberships.Any())
         {
             var primaryMembership = user.Memberships.First();
@@ -241,13 +255,17 @@ public class AuthController : ControllerBase
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
+
+            token = GenerateJwtToken(user.Id, user.Email, primaryMembership.Role, primaryMembership.TenantId, user.FullName ?? "");
         }
 
         return Ok(new 
         { 
             Message = !string.IsNullOrWhiteSpace(result.ErrorMessage) ? result.ErrorMessage : "Email verified successfully.",
             RequiresOnboarding = true,
-            OnboardingStep = "/admin/onboarding/business-basics"
+            OnboardingStep = "/admin/onboarding/business-basics",
+            AccessToken = token,
+            TokenType = "Bearer"
         });
     }
 
@@ -316,7 +334,58 @@ public class AuthController : ControllerBase
             new ClaimsPrincipal(claimsIdentity), 
             authProperties);
 
-        return Ok(new { Message = "Signed in successfully." });
+        var token = GenerateJwtToken(
+            result.UserId!.Value, 
+            result.Email ?? request.GetIdentifier(), 
+            result.Role!, 
+            result.TenantId!.Value, 
+            result.FullName ?? "");
+
+        return Ok(new 
+        { 
+            Message = "Signed in successfully.",
+            AccessToken = token,
+            TokenType = "Bearer",
+            ExpiresIn = 7 * 24 * 3600,
+            Data = new
+            {
+                AccessToken = token,
+                TokenType = "Bearer",
+                ExpiresIn = 7 * 24 * 3600
+            }
+        });
+    }
+
+    private string GenerateJwtToken(Guid userId, string email, string role, Guid tenantId, string fullName)
+    {
+        var jwtSecret = _configuration["Jwt:Secret"] 
+            ?? "SparoviaDefaultProductionGradeJwtSigningKey2026_EnterpriseGradeSecretKey!";
+        var jwtIssuer = _configuration["Jwt:Issuer"] ?? "Sparovia.API";
+        var jwtAudience = _configuration["Jwt:Audience"] ?? "Sparovia.Client";
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+            new Claim(ClaimTypes.Email, email),
+            new Claim(JwtRegisteredClaimNames.Email, email),
+            new Claim(ClaimTypes.Role, role),
+            new Claim("TenantId", tenantId.ToString()),
+            new Claim("FullName", fullName ?? string.Empty),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: jwtIssuer,
+            audience: jwtAudience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddDays(7),
+            signingCredentials: creds
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     [HttpPost("logout")]

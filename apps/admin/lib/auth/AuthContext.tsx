@@ -35,11 +35,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = useCallback(async () => {
     try {
-      // The API client automatically sends the HttpOnly cookie because of credentials: 'include'
+      // The API client automatically sends Authorization Bearer header if token exists, and credentials: 'include'
       const userData = await apiClient.get<User>('/auth/me');
       setUser(userData);
       return userData;
-    } catch (error) {
+    } catch (error: any) {
+      const isUnauthorized = error?.message?.includes('expired') || error?.message?.includes('401') || error?.message?.includes('sign in');
+      if (isUnauthorized) {
+        apiClient.setToken(null);
+      }
       setUser(null);
       return null;
     } finally {
@@ -57,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       // Ignore errors on logout
     } finally {
+      apiClient.setToken(null);
       setUser(null);
       router.push('/login');
     }

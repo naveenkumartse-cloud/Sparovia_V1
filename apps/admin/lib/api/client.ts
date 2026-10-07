@@ -12,10 +12,35 @@ export class ApiClient {
     }
   }
 
+  getToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    try {
+      return localStorage.getItem('accessToken');
+    } catch {
+      return null;
+    }
+  }
+
+  setToken(token: string | null): void {
+    if (typeof window === 'undefined') return;
+    try {
+      if (token && token.trim()) {
+        localStorage.setItem('accessToken', token.trim());
+      } else {
+        localStorage.removeItem('accessToken');
+      }
+    } catch {}
+  }
+
   async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const headers: Record<string, string> = { ...(options?.headers as Record<string, string>) };
     if (!(options?.body instanceof FormData) && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';
+    }
+
+    const token = this.getToken();
+    if (token && !headers['Authorization']) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     let response: Response;
