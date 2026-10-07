@@ -1,19 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTemplateContent } from '@/components/providers/WebsiteContentProvider';
 import { Section } from '@/components/ui/Section';
 import { Container } from '@/components/ui/Container';
 import { Eyebrow } from '@/components/ui/Typography';
 import { Button } from '@/components/ui/Button';
 import { FadeIn } from '@/components/ui/Motion';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function ContactSection() {
   const { contact, ourWork, tenantCategories, website } = useTemplateContent();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isSubmittingRef = useRef(false);
 
   // Authoritative tenant categories (excluding navigation concept "All")
   const areaOptions = Array.isArray(tenantCategories) && tenantCategories.length > 0
@@ -25,24 +26,62 @@ export default function ContactSection() {
     phone: '',
     email: '',
     areaOfInterest: '',
-    message: '',
+    projectDetails: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+
+    // Prevent duplicate submissions from rapid double-clicks or event propagation
+    if (isSubmittingRef.current || loading) {
+      return;
+    }
+
     setError(null);
-    
-    try {
-      const trimmedName = formData.name.trim();
-      const trimmedPhone = formData.phone.trim();
-      const trimmedMessage = formData.message.trim();
-      const trimmedArea = formData.areaOfInterest ? formData.areaOfInterest.trim() : null;
 
-      if (!trimmedName || !trimmedPhone || !trimmedMessage) {
-        throw new Error('Please fill in all required fields (Name, Phone, and Project Details).');
+    const trimmedName = formData.name.trim();
+    const trimmedPhone = formData.phone.trim();
+    const trimmedEmail = formData.email.trim();
+    const trimmedProjectDetails = formData.projectDetails.trim();
+    const trimmedArea = formData.areaOfInterest ? formData.areaOfInterest.trim() : null;
+
+    // 1. Frontend validation with clear user-facing messages
+    if (!trimmedName) {
+      setError('Please enter your full name.');
+      return;
+    }
+
+    if (!trimmedPhone) {
+      setError('Please enter your phone number.');
+      return;
+    }
+
+    const phoneDigits = trimmedPhone.replace(/[^\d]/g, '');
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      setError('Please enter a valid phone number (at least 10 digits).');
+      return;
+    }
+
+    if (trimmedEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(trimmedEmail)) {
+        setError('Please enter a valid email address.');
+        return;
       }
+    }
 
+    if (!trimmedProjectDetails) {
+      setError('Please enter your project requirements.');
+      return;
+    }
+
+    isSubmittingRef.current = true;
+    setLoading(true);
+
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 20000);
+
+    try {
       let apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5043/api/v1';
       apiUrl = apiUrl.replace(/\/+$/, '');
       if (!apiUrl.endsWith('/api/v1')) {
@@ -56,28 +95,35 @@ export default function ContactSection() {
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: abortController.signal,
         body: JSON.stringify({
           name: trimmedName,
           phone: trimmedPhone,
-          email: formData.email ? formData.email.trim() : null,
+          email: trimmedEmail || null,
           areaOfInterest: trimmedArea,
           service: trimmedArea, // backward compatibility
-          message: trimmedMessage,
+          message: trimmedProjectDetails, // Maps UI "projectDetails" to API property "message"
           domain: domain || undefined,
         }),
       });
+
+      clearTimeout(timeoutId);
 
       if (!res.ok) {
         let errMessage = "We couldn't send your enquiry right now. Please try again.";
         try {
           const data = await res.json();
-          if (data?.errors && typeof data.errors === 'object') {
+          if (res.status === 429) {
+            errMessage = "Too many requests. Please wait a moment and try again.";
+          } else if (res.status === 404) {
+            errMessage = "Business website not found. Please try again later.";
+          } else if (data?.errors && typeof data.errors === 'object') {
             const firstKey = Object.keys(data.errors)[0];
             if (firstKey && Array.isArray(data.errors[firstKey]) && data.errors[firstKey].length > 0) {
               errMessage = data.errors[firstKey][0];
             }
           } else if (data?.error) {
-            errMessage = data.error;
+            errMessage = typeof data.error === 'string' ? data.error : (data.error.message || errMessage);
           } else if (data?.message) {
             errMessage = data.message;
           }
@@ -93,12 +139,18 @@ export default function ContactSection() {
         phone: '',
         email: '',
         areaOfInterest: '',
-        message: '',
+        projectDetails: '',
       });
     } catch (err: any) {
-      setError(err.message || "We couldn't send your enquiry right now. Please try again.");
+      if (err.name === 'AbortError') {
+        setError('Request timed out. Please check your connection and try again.');
+      } else {
+        setError(err.message || "We couldn't send your enquiry right now. Please try again.");
+      }
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -119,7 +171,7 @@ export default function ContactSection() {
                     Inquiry Received
                   </h3>
                   <p className="text-sm text-charcoal-600 font-normal mb-8 max-w-sm mx-auto">
-                    Thank you for contacting {brandName}. We have received your request and will get back to you shortly.
+                    Thank you for contacting {brandName}. Your enquiry has been submitted successfully.
                   </p>
                   <Button onClick={() => setSubmitted(false)} variant="primary" size="md">
                     Send Another Request
@@ -147,10 +199,14 @@ export default function ContactSection() {
                       id="user-name"
                       type="text"
                       required
+                      disabled={loading}
                       placeholder="Enter your full name"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring"
+                      onChange={(e) => {
+                        setFormData({ ...formData, name: e.target.value });
+                        if (error) setError(null);
+                      }}
+                      className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60"
                     />
                   </div>
 
@@ -163,10 +219,14 @@ export default function ContactSection() {
                         id="user-phone"
                         type="tel"
                         required
+                        disabled={loading}
                         placeholder="Enter your phone number"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring"
+                        onChange={(e) => {
+                          setFormData({ ...formData, phone: e.target.value });
+                          if (error) setError(null);
+                        }}
+                        className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60"
                       />
                     </div>
 
@@ -177,10 +237,14 @@ export default function ContactSection() {
                       <input
                         id="user-email"
                         type="email"
+                        disabled={loading}
                         placeholder="name@example.com"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring"
+                        onChange={(e) => {
+                          setFormData({ ...formData, email: e.target.value });
+                          if (error) setError(null);
+                        }}
+                        className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60"
                       />
                     </div>
                   </div>
@@ -191,9 +255,13 @@ export default function ContactSection() {
                     </label>
                     <select
                       id="user-service"
+                      disabled={loading}
                       value={formData.areaOfInterest}
-                      onChange={(e) => setFormData({ ...formData, areaOfInterest: e.target.value })}
-                      className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring"
+                      onChange={(e) => {
+                        setFormData({ ...formData, areaOfInterest: e.target.value });
+                        if (error) setError(null);
+                      }}
+                      className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60"
                     >
                       <option value="">Select an area of interest</option>
                       {areaOptions.map((opt) => (
@@ -211,17 +279,22 @@ export default function ContactSection() {
                     <textarea
                       id="user-message"
                       required
+                      disabled={loading}
                       rows={4}
                       placeholder="Tell us about your project requirements..."
-                      value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring resize-none"
+                      value={formData.projectDetails}
+                      onChange={(e) => {
+                        setFormData({ ...formData, projectDetails: e.target.value });
+                        if (error) setError(null);
+                      }}
+                      className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring resize-none disabled:opacity-60"
                     />
                   </div>
 
                   {error && (
-                    <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
-                      {error}
+                    <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                      <span>{error}</span>
                     </div>
                   )}
 
@@ -233,7 +306,7 @@ export default function ContactSection() {
                     disabled={loading}
                     className="w-full justify-center"
                   >
-                    {loading ? 'Sending...' : (error ? 'Try Again' : (contact.ctaLabel || 'Request a Quote'))}
+                    {loading ? 'Submitting...' : (contact.ctaLabel || 'Request Consultation')}
                   </Button>
                 </form>
               )}

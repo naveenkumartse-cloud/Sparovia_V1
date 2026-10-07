@@ -145,6 +145,88 @@ public class LeadManagementTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task MinimalWebsiteLead_NamePhoneMessage_SucceedsAndPersists()
+    {
+        var unique = Guid.NewGuid().ToString("N")[..8];
+        var domain = $"{unique}-minimal.com";
+        var (client, tenantId, _) = await SetupTenantAsync($"{unique}@minimal.com", "Minimal Studio", domain);
+
+        var publicClient = _factory.CreateClient();
+        var leadReq = new PublicWebsiteLeadRequest
+        {
+            Name = "Minimal User",
+            Phone = "9988551107",
+            Message = "Need a quick quotation",
+            Domain = domain
+        };
+
+        var submitResp = await publicClient.PostAsJsonAsync("/api/v1/leads/public", leadReq);
+        Assert.Equal(HttpStatusCode.OK, submitResp.StatusCode);
+
+        var list = await client.GetFromJsonAsync<LeadListResponse>("/api/v1/leads");
+        Assert.NotNull(list);
+        var created = list.Items.FirstOrDefault(l => l.Name == "Minimal User");
+        Assert.NotNull(created);
+        Assert.Equal("+919988551107", created.Phone);
+        Assert.Null(created.Email);
+        Assert.Equal("Need a quick quotation", created.Message);
+        Assert.Equal(LeadSource.Website, created.Source);
+        Assert.Equal(LeadStatus.New, created.Status);
+    }
+
+    [Fact]
+    public async Task FullWebsiteLead_WithAreaOfInterestAndEmail_PersistsAllFields()
+    {
+        var unique = Guid.NewGuid().ToString("N")[..8];
+        var domain = $"{unique}-full.com";
+        var (client, tenantId, _) = await SetupTenantAsync($"{unique}@full.com", "Full Lead Studio", domain);
+
+        // Add a tenant category
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<SparoviaDbContext>();
+            var ws = await db.Websites.FirstAsync(w => w.TenantId == tenantId);
+            var category = new WebsiteWorkCategory
+            {
+                TenantId = tenantId,
+                WebsiteId = ws.Id,
+                Name = "Modular Kitchens",
+                Slug = "modular-kitchens",
+                IsActive = true
+            };
+            db.WebsiteWorkCategories.Add(category);
+            await db.SaveChangesAsync();
+        }
+
+        var publicClient = _factory.CreateClient();
+        var leadReq = new PublicWebsiteLeadRequest
+        {
+            Name = "Full Customer",
+            Phone = "+91 99885 51107",
+            Email = "full.customer@example.com",
+            AreaOfInterest = "Modular Kitchens",
+            Message = "Looking for an L-shaped modular kitchen setup",
+            Domain = domain
+        };
+
+        var submitResp = await publicClient.PostAsJsonAsync("/api/v1/leads/public", leadReq);
+        Assert.Equal(HttpStatusCode.OK, submitResp.StatusCode);
+
+        var list = await client.GetFromJsonAsync<LeadListResponse>("/api/v1/leads");
+        Assert.NotNull(list);
+        var created = list.Items.FirstOrDefault(l => l.Name == "Full Customer");
+        Assert.NotNull(created);
+        Assert.Equal("+919988551107", created.Phone);
+        Assert.Equal("full.customer@example.com", created.Email);
+        Assert.Equal("Modular Kitchens", created.AreaOfInterest);
+        Assert.NotNull(created.AreaOfInterestCategoryId);
+        Assert.Contains("Modular Kitchens", created.Message);
+        Assert.Contains("L-shaped", created.Message);
+        Assert.Equal(LeadSource.Website, created.Source);
+        Assert.Equal(LeadStatus.New, created.Status);
+    }
+
+    [Fact]
     public async Task TenantIsolation_TenantACannotAccessOrModifyTenantBLead()
     {
         var uniqueA = Guid.NewGuid().ToString("N")[..8];

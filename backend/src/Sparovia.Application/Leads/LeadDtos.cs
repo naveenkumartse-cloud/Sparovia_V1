@@ -72,7 +72,7 @@ public record PublicWebsiteLeadRequest
     public string? Service { get; init; }
     public string? AreaOfInterest { get; init; }
     public Guid? AreaOfInterestCategoryId { get; init; }
-    public string? Message { get; init; }
+    public string Message { get; init; } = string.Empty;
     public string? Domain { get; init; }
 }
 

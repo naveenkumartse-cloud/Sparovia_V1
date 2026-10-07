@@ -582,15 +582,19 @@ public class LeadService : ILeadService
         }
 
         var message = request.Message?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Message is required.");
+        }
         if (message.Length > 4000)
         {
             return LeadOperationResult.Fail("VALIDATION_ERROR", "Message must not exceed 4000 characters.");
         }
-        if (string.IsNullOrWhiteSpace(message))
+
+        if (!string.IsNullOrWhiteSpace(areaOfInterest) && !message.Contains(areaOfInterest, StringComparison.OrdinalIgnoreCase))
         {
-            message = !string.IsNullOrWhiteSpace(areaOfInterest)
-                ? $"Interested in {areaOfInterest}"
-                : "Website enquiry";
+            var servicePrefix = $"[Area of Interest: {areaOfInterest}]";
+            message = $"{servicePrefix}\n{message}";
         }
 
         // 3. Controlled Server values
