@@ -136,25 +136,29 @@ public class StubStorageProvider : IStorageProvider
             {
                 await using var conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync(cancellationToken);
-                var sql = @"SELECT ""Data"" FROM ""StorageBlobs"" WHERE ""Key"" = @key LIMIT 1;";
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("key", key);
-                var result = await cmd.ExecuteScalarAsync(cancellationToken);
-                if (result is byte[] dbBytes && dbBytes.Length > 0)
+                var possibleKeys = new[] { key, $"images/{objectName}", objectName };
+                foreach (var tryKey in possibleKeys)
                 {
-                    _memoryStore[key] = dbBytes;
-                    try
+                    var sql = @"SELECT ""Data"" FROM ""StorageBlobs"" WHERE ""Key"" = @key LIMIT 1;";
+                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("key", tryKey);
+                    var result = await cmd.ExecuteScalarAsync(cancellationToken);
+                    if (result is byte[] dbBytes && dbBytes.Length > 0)
                     {
-                        var filePath = GetFilePath(key);
-                        var parentDir = Path.GetDirectoryName(filePath);
-                        if (!string.IsNullOrEmpty(parentDir) && !Directory.Exists(parentDir))
+                        _memoryStore[key] = dbBytes;
+                        try
                         {
-                            Directory.CreateDirectory(parentDir);
+                            var filePath = GetFilePath(key);
+                            var parentDir = Path.GetDirectoryName(filePath);
+                            if (!string.IsNullOrEmpty(parentDir) && !Directory.Exists(parentDir))
+                            {
+                                Directory.CreateDirectory(parentDir);
+                            }
+                            await File.WriteAllBytesAsync(filePath, dbBytes, cancellationToken);
                         }
-                        await File.WriteAllBytesAsync(filePath, dbBytes, cancellationToken);
+                        catch { }
+                        return new MemoryStream(dbBytes);
                     }
-                    catch { }
-                    return new MemoryStream(dbBytes);
                 }
             }
             catch
@@ -190,9 +194,10 @@ public class StubStorageProvider : IStorageProvider
             {
                 await using var conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync(cancellationToken);
-                var sql = @"DELETE FROM ""StorageBlobs"" WHERE ""Key"" = @key;";
+                var sql = @"DELETE FROM ""StorageBlobs"" WHERE ""Key"" = @key OR ""Key"" = @altKey;";
                 await using var cmd = new NpgsqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("key", key);
+                cmd.Parameters.AddWithValue("altKey", objectName);
                 await cmd.ExecuteNonQueryAsync(cancellationToken);
             }
             catch
@@ -200,5 +205,10 @@ public class StubStorageProvider : IStorageProvider
                 // Ignore
             }
         }
+    }
+
+    public Task<string?> GetSignedUrlAsync(string bucket, string objectName, TimeSpan expiresIn, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult<string?>(null);
     }
 }

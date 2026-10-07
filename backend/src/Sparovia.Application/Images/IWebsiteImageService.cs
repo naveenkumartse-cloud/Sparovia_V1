@@ -25,4 +25,6 @@ public interface IWebsiteImageService
     Task<ImageOperationResult> ReviewVariantAsync(Guid tenantId, Guid imageId, Guid variantId, bool isApproved, string? reason = null, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<VariantReviewDto?> GetVariantReviewAsync(Guid tenantId, Guid imageId, Guid variantId, CancellationToken cancellationToken = default);
     Task<ImageFileStreamResult?> GetImageFileAsync(Guid? tenantId, Guid imageId, Guid? variantId = null, bool isPublicRequest = false, CancellationToken cancellationToken = default);
+    string GenerateImageSignature(Guid imageId, Guid tenantId, long expiresUnix);
+    bool VerifyImageSignature(Guid imageId, Guid tenantId, long expiresUnix, string signature);
 }

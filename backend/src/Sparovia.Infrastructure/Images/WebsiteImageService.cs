@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -21,6 +23,8 @@ public class WebsiteImageService : IWebsiteImageService
     private readonly IWebsiteContentService _contentService;
     private readonly IImageProcessingService _imageProcessor;
     private readonly ILogger<WebsiteImageService> _logger;
+    private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
+    private const string ImageBucket = "sparovia-images";
 
     private static readonly HashSet<string> AllowedEnhancementOperations = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -55,7 +59,8 @@ public class WebsiteImageService : IWebsiteImageService
         IImageValidator validator,
         IWebsiteContentService contentService,
         IImageProcessingService imageProcessor,
-        ILogger<WebsiteImageService> logger)
+        ILogger<WebsiteImageService> logger,
+        Microsoft.Extensions.Configuration.IConfiguration configuration)
     {
         _dbContext = dbContext;
         _storageProvider = storageProvider;
@@ -63,6 +68,7 @@ public class WebsiteImageService : IWebsiteImageService
         _contentService = contentService;
         _imageProcessor = imageProcessor;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public async Task<List<ImageDto>> GetImagesAsync(Guid tenantId, string? usageType = null, bool includeUnused = false, CancellationToken cancellationToken = default)
@@ -207,7 +213,7 @@ public class WebsiteImageService : IWebsiteImageService
         {
             fileStream.Seek(0, SeekOrigin.Begin);
         }
-        await _storageProvider.UploadAsync("images", storageKey, fileStream, valResult.DetectedMimeType, cancellationToken);
+        await _storageProvider.UploadAsync(ImageBucket, storageKey, fileStream, valResult.DetectedMimeType, cancellationToken);
 
         // Track category in website work categories if provided
         if (!string.IsNullOrWhiteSpace(category))
@@ -248,7 +254,7 @@ public class WebsiteImageService : IWebsiteImageService
             _logger.LogError(ex, "Failed to persist Image entity. Executing compensating delete on storage key {StorageKey} for TenantId={TenantId}.", storageKey, tenantId);
             try
             {
-                await _storageProvider.DeleteAsync("images", storageKey, CancellationToken.None);
+                await _storageProvider.DeleteAsync(ImageBucket, storageKey, CancellationToken.None);
             }
             catch (Exception delEx)
             {
@@ -313,7 +319,7 @@ public class WebsiteImageService : IWebsiteImageService
         {
             fileStream.Seek(0, SeekOrigin.Begin);
         }
-        await _storageProvider.UploadAsync("images", storageKey, fileStream, valResult.DetectedMimeType, cancellationToken);
+        await _storageProvider.UploadAsync(ImageBucket, storageKey, fileStream, valResult.DetectedMimeType, cancellationToken);
 
         var replacementSlot = existingImage.Slot;
         if (string.IsNullOrWhiteSpace(replacementSlot) && existingImage.UsageType == "ExploreOurWork")
@@ -362,7 +368,7 @@ public class WebsiteImageService : IWebsiteImageService
             _logger.LogError(ex, "Failed to persist replacement Image entity. Executing compensating delete on storage key {StorageKey} for TenantId={TenantId}.", storageKey, tenantId);
             try
             {
-                await _storageProvider.DeleteAsync("images", storageKey, CancellationToken.None);
+                await _storageProvider.DeleteAsync(ImageBucket, storageKey, CancellationToken.None);
             }
             catch (Exception delEx)
             {
@@ -604,8 +610,8 @@ public class WebsiteImageService : IWebsiteImageService
             ProjectWorkName = image.ProjectWorkName,
             Category = image.Category,
             Caption = image.Caption,
-            PreviewUrl = $"/api/v1/website/images/{image.Id}/file",
-            ActiveVariant = activeVariant != null ? MapVariantDto(activeVariant) : null,
+            PreviewUrl = GeneratePreviewUrl(image.Id, image.TenantId),
+            ActiveVariant = activeVariant != null ? MapVariantDto(activeVariant, image.TenantId) : null,
             CreatedAt = image.CreatedAt
         };
     }
@@ -813,7 +819,7 @@ public class WebsiteImageService : IWebsiteImageService
             throw new KeyNotFoundException($"Image with ID {imageId} not found.");
         }
 
-        var stream = await _storageProvider.DownloadAsync("images", image.StorageKey, cancellationToken);
+        var stream = await _storageProvider.DownloadAsync(ImageBucket, image.StorageKey, cancellationToken);
         return await _imageProcessor.AnalyzeImageAsync(stream, image.FileSize, image.MimeType, cancellationToken);
     }
 
@@ -885,7 +891,7 @@ public class WebsiteImageService : IWebsiteImageService
         var variantId = Guid.NewGuid();
 
         // Download original stream (read-only)
-        var originalStream = await _storageProvider.DownloadAsync("images", image.StorageKey, cancellationToken);
+        var originalStream = await _storageProvider.DownloadAsync(ImageBucket, image.StorageKey, cancellationToken);
 
         ProcessedImageResult processedResult;
         try
@@ -918,7 +924,7 @@ public class WebsiteImageService : IWebsiteImageService
 
         // Store enhanced variant bytes
         using var uploadStream = new MemoryStream(processedResult.Bytes);
-        await _storageProvider.UploadAsync("images", variantStorageKey, uploadStream, processedResult.MimeType, cancellationToken);
+        await _storageProvider.UploadAsync(ImageBucket, variantStorageKey, uploadStream, processedResult.MimeType, cancellationToken);
 
         var variant = new ImageVariant
         {
@@ -968,7 +974,7 @@ public class WebsiteImageService : IWebsiteImageService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to persist enhanced variant. Executing compensating delete on {StorageKey}", variantStorageKey);
-            try { await _storageProvider.DeleteAsync("images", variantStorageKey, CancellationToken.None); } catch { }
+            try { await _storageProvider.DeleteAsync(ImageBucket, variantStorageKey, CancellationToken.None); } catch { }
             throw;
         }
 
@@ -1053,7 +1059,7 @@ public class WebsiteImageService : IWebsiteImageService
             : "webp";
 
         // Read source stream (read-only, never mutates original!)
-        var sourceStream = await _storageProvider.DownloadAsync("images", sourceStorageKey, cancellationToken);
+        var sourceStream = await _storageProvider.DownloadAsync(ImageBucket, sourceStorageKey, cancellationToken);
 
         ProcessedImageResult processedResult;
         try
@@ -1084,7 +1090,7 @@ public class WebsiteImageService : IWebsiteImageService
         var storageKey = $"tenants/{tenantId}/websites/{image.WebsiteId}/images/{imageId}/variants/{variantId}/optimized_{DateTime.UtcNow.Ticks}{processedResult.FileExtension}";
 
         using var uploadStream = new MemoryStream(processedResult.Bytes);
-        await _storageProvider.UploadAsync("images", storageKey, uploadStream, processedResult.MimeType, cancellationToken);
+        await _storageProvider.UploadAsync(ImageBucket, storageKey, uploadStream, processedResult.MimeType, cancellationToken);
 
         var variant = new ImageVariant
         {
@@ -1114,7 +1120,7 @@ public class WebsiteImageService : IWebsiteImageService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to persist optimized variant. Executing compensating delete on {StorageKey}", storageKey);
-            try { await _storageProvider.DeleteAsync("images", storageKey, CancellationToken.None); } catch { }
+            try { await _storageProvider.DeleteAsync(ImageBucket, storageKey, CancellationToken.None); } catch { }
             throw;
         }
 
@@ -1278,7 +1284,7 @@ public class WebsiteImageService : IWebsiteImageService
             {
                 Id = img.Id,
                 OriginalFileName = img.OriginalFileName,
-                PreviewUrl = $"/api/v1/website/images/{img.Id}/file",
+                PreviewUrl = GeneratePreviewUrl(img.Id, img.TenantId),
                 Width = img.Width,
                 Height = img.Height,
                 FileSize = img.FileSize,
@@ -1288,7 +1294,7 @@ public class WebsiteImageService : IWebsiteImageService
             After = new ImageAfterReviewDto
             {
                 Id = variant.Id,
-                PreviewUrl = $"/api/v1/website/images/{img.Id}/variants/{variant.Id}/file",
+                PreviewUrl = GenerateVariantPreviewUrl(img.Id, variant.Id, img.TenantId),
                 Width = variant.Width,
                 Height = variant.Height,
                 FileSize = variant.FileSize,
@@ -1333,9 +1339,18 @@ public class WebsiteImageService : IWebsiteImageService
             .Include(i => i.Variants)
             .Where(i => i.Id == imageId && i.Status != "Deleted");
 
-        if (tenantId.HasValue)
+        if (isPublicRequest)
+        {
+            // Public website can only consume Published images that are active in website usage
+            query = query.Where(i => i.Status == "Published" && i.IsActiveWebsiteUsage);
+        }
+        else if (tenantId.HasValue)
         {
             query = query.Where(i => i.TenantId == tenantId.Value);
+        }
+        else
+        {
+            return null;
         }
 
         var image = await query.FirstOrDefaultAsync(cancellationToken);
@@ -1345,8 +1360,9 @@ public class WebsiteImageService : IWebsiteImageService
         {
             var variant = image.Variants.FirstOrDefault(v => v.Id == variantId.Value);
             if (variant == null) return null;
+            if (isPublicRequest && variant.Status != "Published") return null;
 
-            var variantStream = await _storageProvider.DownloadAsync("images", variant.StorageKey, cancellationToken);
+            var variantStream = await _storageProvider.DownloadAsync(ImageBucket, variant.StorageKey, cancellationToken);
             if (variantStream == null || (variantStream.CanSeek && variantStream.Length == 0))
             {
                 return GenerateFallbackSvg(image.ProjectWorkName ?? image.OriginalFileName ?? "Project Image", image.UsageType);
@@ -1364,7 +1380,7 @@ public class WebsiteImageService : IWebsiteImageService
         var publishedVariant = image.Variants.FirstOrDefault(v => v.Status == "Published");
         if (publishedVariant != null)
         {
-            var variantStream = await _storageProvider.DownloadAsync("images", publishedVariant.StorageKey, cancellationToken);
+            var variantStream = await _storageProvider.DownloadAsync(ImageBucket, publishedVariant.StorageKey, cancellationToken);
             if (variantStream != null && (!variantStream.CanSeek || variantStream.Length > 0))
             {
                 var ext = publishedVariant.MimeType == "image/webp" ? ".webp" : (publishedVariant.MimeType == "image/jpeg" ? ".jpg" : ".png");
@@ -1377,7 +1393,7 @@ public class WebsiteImageService : IWebsiteImageService
             }
         }
 
-        var originalStream = await _storageProvider.DownloadAsync("images", image.StorageKey, cancellationToken);
+        var originalStream = await _storageProvider.DownloadAsync(ImageBucket, image.StorageKey, cancellationToken);
         if (originalStream == null || (originalStream.CanSeek && originalStream.Length == 0))
         {
             return GenerateFallbackSvg(image.ProjectWorkName ?? image.OriginalFileName ?? "Project Image", image.UsageType);
@@ -1895,7 +1911,43 @@ public class WebsiteImageService : IWebsiteImageService
         }
     }
 
-    private static ImageDto MapToDto(Image image)
+    public string GenerateImageSignature(Guid imageId, Guid tenantId, long expiresUnix)
+    {
+        var secret = _configuration["Jwt:Secret"] ?? "Sparovia-Default-Development-Key-At-Least-32-Bytes-Long-12345";
+        var payload = $"{imageId:D}:{tenantId:D}:{expiresUnix}";
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    public bool VerifyImageSignature(Guid imageId, Guid tenantId, long expiresUnix, string signature)
+    {
+        if (DateTimeOffset.UtcNow.ToUnixTimeSeconds() > expiresUnix)
+        {
+            return false;
+        }
+
+        var expected = GenerateImageSignature(imageId, tenantId, expiresUnix);
+        return CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(expected),
+            Encoding.UTF8.GetBytes(signature));
+    }
+
+    private string GeneratePreviewUrl(Guid imageId, Guid tenantId)
+    {
+        var expires = DateTimeOffset.UtcNow.AddDays(7).ToUnixTimeSeconds();
+        var sig = GenerateImageSignature(imageId, tenantId, expires);
+        return $"/api/v1/website/images/{imageId}/file?sig={sig}&exp={expires}";
+    }
+
+    private string GenerateVariantPreviewUrl(Guid imageId, Guid variantId, Guid tenantId)
+    {
+        var expires = DateTimeOffset.UtcNow.AddDays(7).ToUnixTimeSeconds();
+        var sig = GenerateImageSignature(variantId, tenantId, expires);
+        return $"/api/v1/website/images/{imageId}/variants/{variantId}/file?sig={sig}&exp={expires}";
+    }
+
+    private ImageDto MapToDto(Image image)
     {
         return new ImageDto
         {
@@ -1914,15 +1966,16 @@ public class WebsiteImageService : IWebsiteImageService
             Caption = image.Caption,
             Status = image.Status,
             IsActiveWebsiteUsage = image.IsActiveWebsiteUsage,
-            PreviewUrl = $"/api/v1/website/images/{image.Id}/file",
+            PreviewUrl = GeneratePreviewUrl(image.Id, image.TenantId),
             CreatedAt = image.CreatedAt,
             UpdatedAt = image.UpdatedAt,
-            Variants = image.Variants?.Select(MapVariantDto).ToList() ?? new()
+            Variants = image.Variants?.Select(v => MapVariantDto(v, image.TenantId)).ToList() ?? new()
         };
     }
 
-    private static ImageVariantDto MapVariantDto(ImageVariant variant)
+    private ImageVariantDto MapVariantDto(ImageVariant variant, Guid? tenantId = null)
     {
+        var tid = tenantId ?? variant.Image?.TenantId ?? Guid.Empty;
         return new ImageVariantDto
         {
             Id = variant.Id,
@@ -1936,7 +1989,9 @@ public class WebsiteImageService : IWebsiteImageService
             Height = variant.Height,
             Version = variant.Version,
             Status = variant.Status,
-            PreviewUrl = $"/api/v1/website/images/{variant.ImageId}/variants/{variant.Id}/file",
+            PreviewUrl = tid != Guid.Empty
+                ? GenerateVariantPreviewUrl(variant.ImageId, variant.Id, tid)
+                : $"/api/v1/website/images/{variant.ImageId}/variants/{variant.Id}/file",
             CreatedAt = variant.CreatedAt
         };
     }

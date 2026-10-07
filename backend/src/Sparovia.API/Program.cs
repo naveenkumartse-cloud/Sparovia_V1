@@ -127,7 +127,7 @@ else
 }
 
 // Storage, Email & SMS
-builder.Services.AddSingleton<IStorageProvider, StubStorageProvider>();
+builder.Services.AddHttpClient<IStorageProvider, SupabaseStorageProvider>();
 
 // Phone OTP & SMS Services
 builder.Services.Configure<PhoneOtpOptions>(builder.Configuration.GetSection(PhoneOtpOptions.SectionName));

@@ -656,7 +656,6 @@ export default function ImagesPage() {
                         <>
                           <img
                             src={resolveImageUrl(assignedImage.previewUrl)}
-                            crossOrigin="use-credentials"
                             onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE_DATA_URI; }}
                             alt={slot.title}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -838,7 +837,6 @@ export default function ImagesPage() {
                       <div className="relative aspect-video bg-slate-100 dark:bg-[#1E293B] overflow-hidden">
                         <img
                           src={resolveImageUrl(image.previewUrl)}
-                          crossOrigin="use-credentials"
                           onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE_DATA_URI; }}
                           alt={image.projectWorkName || 'Project work photo'}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -1224,7 +1222,6 @@ export default function ImagesPage() {
             <div className="rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center max-h-[420px]">
               <img
                 src={resolveImageUrl(previewImage.previewUrl)}
-                crossOrigin="use-credentials"
                 onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE_DATA_URI; }}
                 alt="Full preview"
                 className="max-h-[420px] w-auto object-contain mx-auto"
@@ -1456,7 +1453,6 @@ export default function ImagesPage() {
               <div className="w-16 h-12 rounded-lg overflow-hidden bg-slate-900 shrink-0">
                 <img
                   src={resolveImageUrl(removingImage.previewUrl)}
-                  crossOrigin="use-credentials"
                   onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE_DATA_URI; }}
                   alt={removingImage.projectWorkName || 'Project image'}
                   className="w-full h-full object-cover"

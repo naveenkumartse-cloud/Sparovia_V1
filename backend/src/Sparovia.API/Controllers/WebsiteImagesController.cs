@@ -807,11 +807,15 @@ public class ReplaceImageForm
 
     [HttpGet("{id:guid}/file")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetImageFile(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetImageFile(
+        Guid id,
+        [FromQuery] string? sig = null,
+        [FromQuery] long? exp = null,
+        CancellationToken cancellationToken = default)
     {
-        // 1. Try authenticated tenant session
+        // 1. Try authenticated tenant session (supports both JWT Bearer and Cookie)
         Guid? tenantId = null;
-        var authResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        var authResult = await HttpContext.AuthenticateAsync();
         if (authResult.Succeeded && authResult.Principal != null)
         {
             var tenantStr = authResult.Principal.FindFirst("TenantId")?.Value;
@@ -823,6 +827,21 @@ public class ReplaceImageForm
         else if (User.FindFirst("TenantId")?.Value is string tStr && Guid.TryParse(tStr, out var uTenantId))
         {
             tenantId = uTenantId;
+        }
+
+        // 2. Validate HMAC signed URL if provided
+        if (tenantId == null && !string.IsNullOrWhiteSpace(sig) && exp.HasValue)
+        {
+            var imgTenant = await _dbContext.Images
+                .AsNoTracking()
+                .Where(i => i.Id == id)
+                .Select(i => (Guid?)i.TenantId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (imgTenant.HasValue && _imageService.VerifyImageSignature(id, imgTenant.Value, exp.Value, sig))
+            {
+                tenantId = imgTenant.Value;
+            }
         }
 
         var isPublic = tenantId == null;
@@ -836,15 +855,21 @@ public class ReplaceImageForm
             ? "public, max-age=86400, immutable"
             : "private, max-age=3600";
 
-        return File(fileResult.Stream, fileResult.ContentType, fileResult.FileName);
+        // Return inline so <img> tags in browser render naturally without triggering file download
+        return File(fileResult.Stream, fileResult.ContentType);
     }
 
     [HttpGet("{id:guid}/variants/{variantId:guid}/file")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetVariantFile(Guid id, Guid variantId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetVariantFile(
+        Guid id,
+        Guid variantId,
+        [FromQuery] string? sig = null,
+        [FromQuery] long? exp = null,
+        CancellationToken cancellationToken = default)
     {
         Guid? tenantId = null;
-        var authResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        var authResult = await HttpContext.AuthenticateAsync();
         if (authResult.Succeeded && authResult.Principal != null)
         {
             var tenantStr = authResult.Principal.FindFirst("TenantId")?.Value;
@@ -858,6 +883,20 @@ public class ReplaceImageForm
             tenantId = uTenantId;
         }
 
+        if (tenantId == null && !string.IsNullOrWhiteSpace(sig) && exp.HasValue)
+        {
+            var imgTenant = await _dbContext.Images
+                .AsNoTracking()
+                .Where(i => i.Id == id)
+                .Select(i => (Guid?)i.TenantId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (imgTenant.HasValue && _imageService.VerifyImageSignature(variantId, imgTenant.Value, exp.Value, sig))
+            {
+                tenantId = imgTenant.Value;
+            }
+        }
+
         var isPublic = tenantId == null;
         var fileResult = await _imageService.GetImageFileAsync(tenantId, id, variantId, isPublic, cancellationToken);
         if (fileResult == null)
@@ -869,6 +908,6 @@ public class ReplaceImageForm
             ? "public, max-age=86400, immutable"
             : "private, max-age=3600";
 
-        return File(fileResult.Stream, fileResult.ContentType, fileResult.FileName);
+        return File(fileResult.Stream, fileResult.ContentType);
     }
 }
