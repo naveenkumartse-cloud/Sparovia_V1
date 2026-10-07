@@ -203,3 +203,17 @@ public class ProcessedImageResult
     public int Height { get; set; }
     public long FileSize { get; set; }
 }
+
+public class BulkImageActionRequest
+{
+    public List<Guid> ImageIds { get; set; } = new();
+}
+
+public class BulkImageOperationResult
+{
+    public bool Success { get; set; }
+    public int AffectedCount { get; set; }
+    public List<Guid> SucceededIds { get; set; } = new();
+    public List<Guid> FailedIds { get; set; } = new();
+    public string? Message { get; set; }
+}

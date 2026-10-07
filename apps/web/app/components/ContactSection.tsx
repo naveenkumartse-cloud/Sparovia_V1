@@ -57,10 +57,11 @@ export default function ContactSection() {
     }
 
     const phoneDigits = trimmedPhone.replace(/[^\d]/g, '');
-    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
-      setError('Please enter a valid phone number (at least 10 digits).');
+    if (phoneDigits.length !== 10 || !/^[6-9]\d{9}$/.test(phoneDigits)) {
+      setError('Please enter a valid 10-digit Indian phone number starting with 6, 7, 8, or 9.');
       return;
     }
+    const fullPhone = `+91${phoneDigits}`;
 
     if (trimmedEmail) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -98,7 +99,7 @@ export default function ContactSection() {
         signal: abortController.signal,
         body: JSON.stringify({
           name: trimmedName,
-          phone: trimmedPhone,
+          phone: fullPhone,
           email: trimmedEmail || null,
           areaOfInterest: trimmedArea,
           service: trimmedArea, // backward compatibility
@@ -212,22 +213,46 @@ export default function ContactSection() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="user-phone" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
-                        Phone Number *
-                      </label>
-                      <input
-                        id="user-phone"
-                        type="tel"
-                        required
-                        disabled={loading}
-                        placeholder="Enter your phone number"
-                        value={formData.phone}
-                        onChange={(e) => {
-                          setFormData({ ...formData, phone: e.target.value });
-                          if (error) setError(null);
-                        }}
-                        className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60"
-                      />
+                      <div className="flex items-center justify-between mb-2">
+                        <label htmlFor="user-phone" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold">
+                          Phone Number *
+                        </label>
+                        <span className="text-[11px] text-gray-500 font-medium">10-digit mobile</span>
+                      </div>
+                      <div className="relative flex items-center rounded-xl border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-charcoal-900 focus-within:border-charcoal-900">
+                        <span className="inline-flex items-center px-3.5 py-3.5 bg-gray-100 text-charcoal-800 font-semibold text-xs sm:text-sm select-none border-r border-gray-300">
+                          +91
+                        </span>
+                        <input
+                          id="user-phone"
+                          type="tel"
+                          inputMode="numeric"
+                          required
+                          disabled={loading}
+                          placeholder="9876543210"
+                          maxLength={10}
+                          value={formData.phone}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setFormData({ ...formData, phone: digits });
+                            if (error) setError(null);
+                          }}
+                          onPaste={(e) => {
+                            e.preventDefault();
+                            const pasted = e.clipboardData.getData('text');
+                            let cleaned = pasted.replace(/\D/g, '');
+                            if (cleaned.startsWith('91') && cleaned.length > 10) {
+                              cleaned = cleaned.slice(2);
+                            } else if (cleaned.startsWith('0') && cleaned.length > 10) {
+                              cleaned = cleaned.slice(1);
+                            }
+                            cleaned = cleaned.slice(0, 10);
+                            setFormData({ ...formData, phone: cleaned });
+                            if (error) setError(null);
+                          }}
+                          className="w-full px-4 py-3.5 bg-white text-charcoal-900 text-xs sm:text-sm outline-none border-0 focus:ring-0 disabled:opacity-60"
+                        />
+                      </div>
                     </div>
 
                     <div>

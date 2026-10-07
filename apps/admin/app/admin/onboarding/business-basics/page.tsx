@@ -335,27 +335,35 @@ export default function BusinessBasicsPage() {
               </label>
               <InfoTooltip content="Public contact phone number displayed for customer inquiries and lead calls." />
             </div>
-            <input 
-              id="businessPhone"
-              type="tel" 
-              inputMode="numeric"
-              autoComplete="tel"
-              maxLength={10}
-              required
-              value={formData.businessPhone || ''} 
-              onKeyDown={handlePhoneKeyDown}
-              onPaste={(e) => {
-                handlePhonePaste(e, (cleanVal) => {
-                  setFormData({ ...formData, businessPhone: cleanVal });
-                });
-              }}
-              onChange={e => {
-                const cleaned = cleanPhoneInput(e.target.value);
-                setFormData({ ...formData, businessPhone: cleaned });
-              }}
-              placeholder="9876543210"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
-            />
+            <div className="mt-1.5 flex items-stretch w-full rounded-xl border border-slate-200 dark:border-[#334155] bg-slate-50 dark:bg-[#0B1220] focus-within:ring-1 focus-within:ring-[#3B82F6] focus-within:border-[#3B82F6]">
+              <div
+                aria-hidden="true"
+                className="flex items-center justify-center px-3.5 py-2.5 bg-slate-100 dark:bg-[#1E293B]/70 text-slate-600 dark:text-slate-300 font-semibold text-sm select-none rounded-l-xl border-r border-slate-200 dark:border-[#334155]"
+              >
+                <span className="tracking-wide">+91</span>
+              </div>
+              <input 
+                id="businessPhone"
+                type="tel" 
+                inputMode="numeric"
+                autoComplete="tel"
+                maxLength={10}
+                required
+                value={formData.businessPhone || ''} 
+                onKeyDown={handlePhoneKeyDown}
+                onPaste={(e) => {
+                  handlePhonePaste(e, (cleanVal) => {
+                    setFormData({ ...formData, businessPhone: cleanVal });
+                  });
+                }}
+                onChange={e => {
+                  const cleaned = cleanPhoneInput(e.target.value);
+                  setFormData({ ...formData, businessPhone: cleaned });
+                }}
+                placeholder="9876543210"
+                className="w-full bg-transparent px-3.5 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none"
+              />
+            </div>
           </div>
 
           {/* 5. Email */}

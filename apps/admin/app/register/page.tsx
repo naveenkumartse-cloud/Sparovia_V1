@@ -206,9 +206,20 @@ export default function RegisterPage() {
                   10-digit mobile
                 </span>
               </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-[#64748B]">
-                  <Phone className="h-4 w-4" />
+              <div
+                className={`relative flex items-stretch w-full rounded-xl border bg-slate-50 dark:bg-[#0B1220] transition-colors focus-within:ring-1 focus-within:ring-[#3B82F6] focus-within:border-[#3B82F6] ${
+                  errors.phoneNumber
+                    ? 'border-red-500/60 dark:border-red-500/60'
+                    : isPhoneValid
+                    ? 'border-emerald-500/60 dark:border-emerald-500/60'
+                    : 'border-slate-200 dark:border-[#334155]'
+                }`}
+              >
+                <div
+                  aria-hidden="true"
+                  className="flex items-center justify-center px-3 py-2 bg-slate-100 dark:bg-[#1E293B]/70 text-slate-600 dark:text-slate-300 font-semibold text-xs sm:text-sm select-none rounded-l-xl border-r border-slate-200 dark:border-[#334155]"
+                >
+                  <span className="tracking-wide">+91</span>
                 </div>
                 <input
                   id="phoneNumber"
@@ -236,18 +247,12 @@ export default function RegisterPage() {
                       clearErrors('phoneNumber');
                     }
                   }}
-                  className={`block w-full pl-9 pr-9 py-2 bg-slate-50 dark:bg-[#0B1220] border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors ${
-                    errors.phoneNumber
-                      ? 'border-red-500/60 dark:border-red-500/60'
-                      : isPhoneValid
-                      ? 'border-emerald-500/60 dark:border-emerald-500/60'
-                      : 'border-slate-200 dark:border-[#334155]'
-                  }`}
+                  className="block w-full min-w-0 bg-transparent px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] focus:outline-none"
                   aria-invalid={errors.phoneNumber ? 'true' : 'false'}
                   aria-describedby={errors.phoneNumber ? 'phoneNumber-error' : undefined}
                 />
                 {isPhoneValid && !errors.phoneNumber && (
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-emerald-500">
+                  <div className="pr-3 flex items-center pointer-events-none text-emerald-500">
                     <CheckCircle2 className="h-4 w-4" />
                   </div>
                 )}

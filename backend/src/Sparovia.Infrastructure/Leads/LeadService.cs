@@ -153,7 +153,12 @@ public class LeadService : ILeadService
             return LeadOperationResult.Fail("VALIDATION_ERROR", "Phone number is required.");
         }
 
-        var normalizedPhone = PhoneNumberHelper.Normalize(rawPhone);
+        if (!PhoneNumberHelper.IsValidIndianPhoneNumber(rawPhone) && !PhoneNumberHelper.IsValidE164(rawPhone))
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Invalid phone number. Must be a valid 10-digit Indian phone number starting with 6, 7, 8, or 9.");
+        }
+
+        var normalizedPhone = PhoneNumberHelper.NormalizeIndianPhoneNumber(rawPhone) ?? PhoneNumberHelper.Normalize(rawPhone);
         if (normalizedPhone == null)
         {
             return LeadOperationResult.Fail("VALIDATION_ERROR", "Invalid phone number format. Please provide a valid phone number.");
@@ -269,7 +274,12 @@ public class LeadService : ILeadService
             return LeadOperationResult.Fail("VALIDATION_ERROR", "Phone number is required.");
         }
 
-        var normalizedPhone = PhoneNumberHelper.Normalize(rawPhone);
+        if (!PhoneNumberHelper.IsValidIndianPhoneNumber(rawPhone) && !PhoneNumberHelper.IsValidE164(rawPhone))
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Invalid phone number. Must be a valid 10-digit Indian phone number starting with 6, 7, 8, or 9.");
+        }
+
+        var normalizedPhone = PhoneNumberHelper.NormalizeIndianPhoneNumber(rawPhone) ?? PhoneNumberHelper.Normalize(rawPhone);
         if (normalizedPhone == null)
         {
             return LeadOperationResult.Fail("VALIDATION_ERROR", "Invalid phone number format. Please provide a valid phone number.");
@@ -517,7 +527,12 @@ public class LeadService : ILeadService
             return LeadOperationResult.Fail("VALIDATION_ERROR", "Phone number is required.");
         }
 
-        var normalizedPhone = PhoneNumberHelper.Normalize(rawPhone);
+        if (!PhoneNumberHelper.IsValidIndianPhoneNumber(rawPhone) && !PhoneNumberHelper.IsValidE164(rawPhone))
+        {
+            return LeadOperationResult.Fail("VALIDATION_ERROR", "Invalid phone number. Must be a valid 10-digit Indian phone number starting with 6, 7, 8, or 9.");
+        }
+
+        var normalizedPhone = PhoneNumberHelper.NormalizeIndianPhoneNumber(rawPhone) ?? PhoneNumberHelper.Normalize(rawPhone);
         if (normalizedPhone == null)
         {
             return LeadOperationResult.Fail("VALIDATION_ERROR", "Invalid phone number format. Please provide a valid phone number.");

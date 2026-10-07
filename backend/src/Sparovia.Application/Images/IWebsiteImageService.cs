@@ -13,6 +13,8 @@ public interface IWebsiteImageService
     Task<ImageOperationResult> PublishImageAsync(Guid tenantId, Guid imageId, Guid? variantId = null, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> RemoveFromWebsiteUsageAsync(Guid tenantId, Guid imageId, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> DeleteImageAsync(Guid tenantId, Guid imageId, Guid? userId = null, CancellationToken cancellationToken = default);
+    Task<BulkImageOperationResult> BulkDeleteImagesAsync(Guid tenantId, List<Guid> imageIds, Guid? userId = null, CancellationToken cancellationToken = default);
+    Task<BulkImageOperationResult> BulkPublishImagesAsync(Guid tenantId, List<Guid> imageIds, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<List<WorkCategoryDto>> GetWorkCategoriesAsync(Guid tenantId, Guid? websiteId = null, CancellationToken cancellationToken = default);
     Task<WorkCategoryDto> CreateWorkCategoryAsync(Guid tenantId, CreateWorkCategoryRequest request, CancellationToken cancellationToken = default);
     Task<WorkCategoryDto> UpdateWorkCategoryAsync(Guid tenantId, Guid categoryId, UpdateWorkCategoryRequest request, CancellationToken cancellationToken = default);

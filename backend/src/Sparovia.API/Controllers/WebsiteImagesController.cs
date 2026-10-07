@@ -441,6 +441,60 @@ public class ReplaceImageForm
         });
     }
 
+    [HttpPost("bulk-delete")]
+    [Authorize]
+    public async Task<IActionResult> BulkDeleteImages(
+        [FromBody] BulkImageActionRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError)) return authError!;
+
+        if (request?.ImageIds == null || request.ImageIds.Count == 0)
+        {
+            return BadRequest(new { Error = "No image IDs provided for deletion." });
+        }
+
+        var result = await _imageService.BulkDeleteImagesAsync(
+            tenantId,
+            request.ImageIds,
+            TryGetUserId(),
+            cancellationToken);
+
+        return Ok(new
+        {
+            data = result,
+            message = result.Message,
+            requestId = HttpContext.TraceIdentifier
+        });
+    }
+
+    [HttpPost("bulk-publish")]
+    [Authorize]
+    public async Task<IActionResult> BulkPublishImages(
+        [FromBody] BulkImageActionRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError)) return authError!;
+
+        if (request?.ImageIds == null || request.ImageIds.Count == 0)
+        {
+            return BadRequest(new { Error = "No image IDs provided for publishing." });
+        }
+
+        var result = await _imageService.BulkPublishImagesAsync(
+            tenantId,
+            request.ImageIds,
+            TryGetUserId(),
+            cancellationToken);
+
+        return Ok(new
+        {
+            data = result,
+            message = result.Message,
+            requestId = HttpContext.TraceIdentifier
+        });
+    }
+
     [HttpGet("/api/v1/website/categories")]
     [HttpGet("categories")]
     [Authorize]

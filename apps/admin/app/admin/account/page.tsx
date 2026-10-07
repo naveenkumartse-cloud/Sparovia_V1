@@ -8,6 +8,7 @@ import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
 import { apiClient } from '@/lib/api/client';
+import { cleanPhoneInput, handlePhoneKeyDown, handlePhonePaste, isValidIndianPhone } from '@/lib/validation/authValidation';
 import { 
   User, 
   Settings as SettingsIcon, 
@@ -127,7 +128,7 @@ export default function AccountPage() {
     try {
       const res = await apiClient.get<WhatsAppIntegration>('/integrations/whatsapp');
       setWaEnabled(Boolean(res.enabled));
-      setWaPhone(res.phoneNumber || '');
+      setWaPhone(cleanPhoneInput(res.phoneNumber || ''));
       setWaMessage(res.prefilledMessage || 'Hi, I would like to inquire about interior design services.');
       setWaStatus(res.status || (res.enabled ? 'Active' : 'Inactive'));
     } catch {
@@ -156,9 +157,9 @@ export default function AccountPage() {
     if (e) e.preventDefault();
     setWaError(null);
 
-    const cleanPhone = waPhone.replace(/\D/g, '');
-    if (waEnabled && cleanPhone.length < 10) {
-      setWaError('Please enter a valid phone number with at least 10 digits.');
+    const cleanPhone = cleanPhoneInput(waPhone);
+    if (waEnabled && (!cleanPhone || !isValidIndianPhone(cleanPhone))) {
+      setWaError('Enter a valid 10-digit mobile number.');
       return;
     }
 
@@ -166,11 +167,11 @@ export default function AccountPage() {
     try {
       const res = await apiClient.put<WhatsAppIntegration>('/integrations/whatsapp', {
         enabled: waEnabled,
-        phoneNumber: cleanPhone,
+        phoneNumber: cleanPhone ? `+91${cleanPhone}` : '',
         prefilledMessage: waMessage.trim(),
       });
       setWaEnabled(Boolean(res.enabled));
-      setWaPhone(res.phoneNumber || cleanPhone);
+      setWaPhone(cleanPhone);
       setWaMessage(res.prefilledMessage || waMessage);
       setWaStatus(res.status || (res.enabled ? 'Active' : 'Inactive'));
       toast.success(res.enabled ? 'WhatsApp button activated on live website.' : 'WhatsApp settings saved.');

@@ -73,9 +73,23 @@ public class SupabaseStorageProvider : IStorageProvider
         return bucket;
     }
 
-    private static string NormalizeObjectName(string objectName)
+    private string CleanStoragePath(string bucket, string objectName)
     {
-        return objectName.TrimStart('/');
+        var clean = objectName.Trim().TrimStart('/');
+        var targetBucket = ResolveBucket(bucket);
+        if (clean.StartsWith(targetBucket + "/", StringComparison.OrdinalIgnoreCase))
+        {
+            clean = clean.Substring(targetBucket.Length + 1);
+        }
+        else if (clean.StartsWith("sparovia-images/", StringComparison.OrdinalIgnoreCase))
+        {
+            clean = clean.Substring("sparovia-images/".Length);
+        }
+        else if (clean.StartsWith("images/", StringComparison.OrdinalIgnoreCase))
+        {
+            clean = clean.Substring("images/".Length);
+        }
+        return clean.TrimStart('/');
     }
 
     public async Task<string> UploadAsync(
@@ -86,7 +100,7 @@ public class SupabaseStorageProvider : IStorageProvider
         CancellationToken cancellationToken = default)
     {
         var targetBucket = ResolveBucket(bucket);
-        var cleanPath = NormalizeObjectName(objectName);
+        var cleanPath = CleanStoragePath(bucket, objectName);
         var key = $"{targetBucket}/{cleanPath}";
 
         using var ms = new MemoryStream();
@@ -115,33 +129,25 @@ public class SupabaseStorageProvider : IStorageProvider
         // 1. Upload to Supabase Storage if credentials are configured
         if (!string.IsNullOrWhiteSpace(_supabaseKey))
         {
-            try
-            {
-                var uploadUrl = $"{_supabaseUrl}/storage/v1/object/{targetBucket}/{cleanPath}";
-                using var request = new HttpRequestMessage(HttpMethod.Post, uploadUrl);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
-                request.Headers.Add("apikey", _supabaseKey);
-                request.Headers.Add("x-upsert", "true");
+            var uploadUrl = $"{_supabaseUrl}/storage/v1/object/{targetBucket}/{cleanPath}";
+            using var request = new HttpRequestMessage(HttpMethod.Post, uploadUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
+            request.Headers.Add("apikey", _supabaseKey);
+            request.Headers.Add("x-upsert", "true");
 
-                var content = new ByteArrayContent(bytes);
-                content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-                request.Content = content;
+            var content = new ByteArrayContent(bytes);
+            content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            request.Content = content;
 
-                var response = await _httpClient.SendAsync(request, cancellationToken);
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation("Successfully uploaded {ObjectName} to Supabase Storage bucket {Bucket}", cleanPath, targetBucket);
-                }
-                else
-                {
-                    var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
-                    _logger.LogWarning("Supabase Storage upload returned {StatusCode}: {Error}", response.StatusCode, errorBody);
-                }
-            }
-            catch (Exception ex)
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning(ex, "Supabase Storage upload encountered an exception for {ObjectName}", cleanPath);
+                var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogError("Supabase Storage upload returned {StatusCode}: {Error} for {ObjectName}", response.StatusCode, errorBody, cleanPath);
+                throw new InvalidOperationException($"Supabase Storage upload failed with status {response.StatusCode}: {errorBody}");
             }
+
+            _logger.LogInformation("Successfully uploaded {ObjectName} to Supabase Storage bucket {Bucket}", cleanPath, targetBucket);
         }
 
         // 2. Also persist to PostgreSQL StorageBlobs for resilience across restarts
@@ -179,7 +185,7 @@ public class SupabaseStorageProvider : IStorageProvider
         CancellationToken cancellationToken = default)
     {
         var targetBucket = ResolveBucket(bucket);
-        var cleanPath = NormalizeObjectName(objectName);
+        var cleanPath = CleanStoragePath(bucket, objectName);
         var key = $"{targetBucket}/{cleanPath}";
 
         // 0. Check in-memory store
@@ -195,26 +201,34 @@ public class SupabaseStorageProvider : IStorageProvider
         // 1. Try downloading from Supabase Storage if configured
         if (!string.IsNullOrWhiteSpace(_supabaseKey))
         {
-            try
+            var candidateUrls = new[]
             {
-                var downloadUrl = $"{_supabaseUrl}/storage/v1/object/authenticated/{targetBucket}/{cleanPath}";
-                using var request = new HttpRequestMessage(HttpMethod.Get, downloadUrl);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
-                request.Headers.Add("apikey", _supabaseKey);
+                $"{_supabaseUrl}/storage/v1/object/authenticated/{targetBucket}/{cleanPath}",
+                $"{_supabaseUrl}/storage/v1/object/{targetBucket}/{cleanPath}"
+            };
 
-                var response = await _httpClient.SendAsync(request, cancellationToken);
-                if (response.IsSuccessStatusCode)
-                {
-                    var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-                    var ms = new MemoryStream();
-                    await stream.CopyToAsync(ms, cancellationToken);
-                    ms.Seek(0, SeekOrigin.Begin);
-                    return ms;
-                }
-            }
-            catch (Exception ex)
+            foreach (var downloadUrl in candidateUrls)
             {
-                _logger.LogDebug(ex, "Supabase Storage direct download failed for {ObjectName}, trying fallback", cleanPath);
+                try
+                {
+                    using var request = new HttpRequestMessage(HttpMethod.Get, downloadUrl);
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
+                    request.Headers.Add("apikey", _supabaseKey);
+
+                    var response = await _httpClient.SendAsync(request, cancellationToken);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                        var ms = new MemoryStream();
+                        await stream.CopyToAsync(ms, cancellationToken);
+                        ms.Seek(0, SeekOrigin.Begin);
+                        return ms;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Supabase Storage direct download failed for {ObjectName} via {Url}", cleanPath, downloadUrl);
+                }
             }
         }
 
@@ -281,7 +295,7 @@ public class SupabaseStorageProvider : IStorageProvider
         }
 
         var targetBucket = ResolveBucket(bucket);
-        var cleanPath = NormalizeObjectName(objectName);
+        var cleanPath = CleanStoragePath(bucket, objectName);
 
         try
         {
@@ -319,7 +333,7 @@ public class SupabaseStorageProvider : IStorageProvider
         CancellationToken cancellationToken = default)
     {
         var targetBucket = ResolveBucket(bucket);
-        var cleanPath = NormalizeObjectName(objectName);
+        var cleanPath = CleanStoragePath(bucket, objectName);
         var key = $"{targetBucket}/{cleanPath}";
 
         _memoryStore.TryRemove(key, out _);

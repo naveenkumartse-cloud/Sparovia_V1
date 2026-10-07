@@ -202,18 +202,31 @@ public class WebsiteImageService : IWebsiteImageService
         // 2. Resolve connected website
         var website = await _contentService.GetOrCreateConnectedWebsiteAsync(tenantId, cancellationToken);
 
-        // 3. Generate server-controlled storage key (strictly tenant & website scoped, safe from client path traversal)
+        // 3. Generate server-controlled storage key (strictly tenant-scoped, safe from client path traversal)
         var imageId = Guid.NewGuid();
         var rawFileName = Path.GetFileName(fileName);
         var safeFileName = string.IsNullOrWhiteSpace(rawFileName) ? $"image_{imageId}{valResult.RecommendedExtension}" : rawFileName;
-        var storageKey = $"tenants/{tenantId}/websites/{website.Id}/images/{imageId}/original_{DateTime.UtcNow.Ticks}{valResult.RecommendedExtension}";
+        var storageKey = $"tenants/{tenantId}/images/original/{imageId}_{DateTime.UtcNow.Ticks}{valResult.RecommendedExtension}";
 
-        // 4. Store in storage provider
-        if (fileStream.CanSeek)
+        // 4. Store in storage provider (must physically succeed before DB record is committed)
+        try
         {
-            fileStream.Seek(0, SeekOrigin.Begin);
+            if (fileStream.CanSeek)
+            {
+                fileStream.Seek(0, SeekOrigin.Begin);
+            }
+            await _storageProvider.UploadAsync(ImageBucket, storageKey, fileStream, valResult.DetectedMimeType, cancellationToken);
         }
-        await _storageProvider.UploadAsync(ImageBucket, storageKey, fileStream, valResult.DetectedMimeType, cancellationToken);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Storage upload failed for TenantId={TenantId}, image={ImageId}", tenantId, imageId);
+            return new ImageOperationResult
+            {
+                Success = false,
+                ErrorCode = "STORAGE_UPLOAD_FAILED",
+                ErrorMessage = "Failed to upload image to storage provider. Please try again."
+            };
+        }
 
         // Track category in website work categories if provided
         if (!string.IsNullOrWhiteSpace(category))
@@ -313,13 +326,26 @@ public class WebsiteImageService : IWebsiteImageService
         var newImageId = Guid.NewGuid();
         var rawFileName = Path.GetFileName(fileName);
         var safeFileName = string.IsNullOrWhiteSpace(rawFileName) ? $"image_{newImageId}{valResult.RecommendedExtension}" : rawFileName;
-        var storageKey = $"tenants/{tenantId}/websites/{existingImage.WebsiteId}/images/{newImageId}/original_{DateTime.UtcNow.Ticks}{valResult.RecommendedExtension}";
+        var storageKey = $"tenants/{tenantId}/images/original/{newImageId}_{DateTime.UtcNow.Ticks}{valResult.RecommendedExtension}";
 
-        if (fileStream.CanSeek)
+        try
         {
-            fileStream.Seek(0, SeekOrigin.Begin);
+            if (fileStream.CanSeek)
+            {
+                fileStream.Seek(0, SeekOrigin.Begin);
+            }
+            await _storageProvider.UploadAsync(ImageBucket, storageKey, fileStream, valResult.DetectedMimeType, cancellationToken);
         }
-        await _storageProvider.UploadAsync(ImageBucket, storageKey, fileStream, valResult.DetectedMimeType, cancellationToken);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Storage upload failed for TenantId={TenantId}, replacement image={ImageId}", tenantId, newImageId);
+            return new ImageOperationResult
+            {
+                Success = false,
+                ErrorCode = "STORAGE_UPLOAD_FAILED",
+                ErrorMessage = "Failed to upload replacement image to storage provider. Please try again."
+            };
+        }
 
         var replacementSlot = existingImage.Slot;
         if (string.IsNullOrWhiteSpace(replacementSlot) && existingImage.UsageType == "ExploreOurWork")
@@ -1414,6 +1440,222 @@ public class WebsiteImageService : IWebsiteImageService
         CancellationToken cancellationToken = default)
     {
         return RemoveFromWebsiteUsageAsync(tenantId, imageId, userId, cancellationToken);
+    }
+
+    public async Task<BulkImageOperationResult> BulkDeleteImagesAsync(
+        Guid tenantId,
+        List<Guid> imageIds,
+        Guid? userId = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (imageIds == null || imageIds.Count == 0)
+        {
+            return new BulkImageOperationResult
+            {
+                Success = true,
+                AffectedCount = 0,
+                Message = "No images specified for deletion."
+            };
+        }
+
+        var uniqueIds = imageIds.Distinct().ToList();
+        var images = await _dbContext.Images
+            .Include(i => i.Variants)
+            .Where(i => i.TenantId == tenantId && uniqueIds.Contains(i.Id) && i.Status != "Deleted")
+            .ToListAsync(cancellationToken);
+
+        var succeeded = new List<Guid>();
+        var failed = new List<Guid>();
+
+        bool syncExploreNeeded = false;
+        Guid? websiteId = null;
+
+        foreach (var id in uniqueIds)
+        {
+            var image = images.FirstOrDefault(i => i.Id == id);
+            if (image == null)
+            {
+                failed.Add(id);
+                continue;
+            }
+
+            try
+            {
+                websiteId = image.WebsiteId;
+                image.IsActiveWebsiteUsage = false;
+                image.Status = "Unused";
+                image.UpdatedAt = DateTime.UtcNow;
+
+                await ClearImageFromWebsiteContentAsync(tenantId, image, cancellationToken);
+
+                if (image.UsageType == "ExploreOurWork")
+                {
+                    syncExploreNeeded = true;
+                }
+
+                succeeded.Add(id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to remove image {ImageId} in bulk delete for tenant {TenantId}", id, tenantId);
+                failed.Add(id);
+            }
+        }
+
+        if (syncExploreNeeded && websiteId.HasValue)
+        {
+            await SyncExploreOurWorkToWebsiteContentAsync(tenantId, websiteId.Value, cancellationToken);
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "AUDIT: BulkImagesDeleted. TenantId={TenantId}, UserId={UserId}, SucceededCount={SucceededCount}, FailedCount={FailedCount}",
+            tenantId, userId, succeeded.Count, failed.Count);
+
+        return new BulkImageOperationResult
+        {
+            Success = succeeded.Count > 0 || failed.Count == 0,
+            AffectedCount = succeeded.Count,
+            SucceededIds = succeeded,
+            FailedIds = failed,
+            Message = $"Successfully deleted {succeeded.Count} images."
+        };
+    }
+
+    public async Task<BulkImageOperationResult> BulkPublishImagesAsync(
+        Guid tenantId,
+        List<Guid> imageIds,
+        Guid? userId = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (imageIds == null || imageIds.Count == 0)
+        {
+            return new BulkImageOperationResult
+            {
+                Success = true,
+                AffectedCount = 0,
+                Message = "No images specified for publishing."
+            };
+        }
+
+        var uniqueIds = imageIds.Distinct().ToList();
+        var images = await _dbContext.Images
+            .Include(i => i.Variants)
+            .Where(i => i.TenantId == tenantId && uniqueIds.Contains(i.Id) && i.Status != "Deleted")
+            .ToListAsync(cancellationToken);
+
+        var succeeded = new List<Guid>();
+        var failed = new List<Guid>();
+
+        bool syncExploreNeeded = false;
+        Guid? websiteId = null;
+
+        foreach (var id in uniqueIds)
+        {
+            var image = images.FirstOrDefault(i => i.Id == id);
+            if (image == null)
+            {
+                failed.Add(id);
+                continue;
+            }
+
+            try
+            {
+                websiteId = image.WebsiteId;
+
+                var optVariant = image.Variants
+                    .Where(v => v.VariantType == "WebsiteOptimized" && (v.Status == "Approved" || v.Status == "Published"))
+                    .OrderByDescending(v => v.CreatedAt)
+                    .FirstOrDefault();
+
+                if (optVariant != null)
+                {
+                    optVariant.Status = "Published";
+                    optVariant.UpdatedAt = DateTime.UtcNow;
+
+                    foreach (var other in image.Variants.Where(v => v.Id != optVariant.Id && v.Status == "Published"))
+                    {
+                        other.Status = "Approved";
+                        other.UpdatedAt = DateTime.UtcNow;
+                    }
+                }
+
+                image.Status = "Published";
+                image.IsActiveWebsiteUsage = true;
+                image.UpdatedAt = DateTime.UtcNow;
+
+                if (!string.IsNullOrWhiteSpace(image.Slot) && image.Slot.StartsWith("replaces:"))
+                {
+                    if (Guid.TryParse(image.Slot["replaces:".Length..], out var oldId))
+                    {
+                        var oldImg = await _dbContext.Images.FirstOrDefaultAsync(i => i.Id == oldId && i.TenantId == tenantId, cancellationToken);
+                        if (oldImg != null)
+                        {
+                            oldImg.IsActiveWebsiteUsage = false;
+                            oldImg.Status = "Unused";
+                            oldImg.UpdatedAt = DateTime.UtcNow;
+                        }
+                    }
+                    image.Slot = null;
+                }
+                else if (!string.IsNullOrWhiteSpace(image.Slot))
+                {
+                    var otherImagesInSlot = await _dbContext.Images
+                        .Where(i => i.TenantId == tenantId && i.Slot == image.Slot && i.Id != image.Id && i.Status == "Published")
+                        .ToListAsync(cancellationToken);
+
+                    foreach (var other in otherImagesInSlot)
+                    {
+                        other.Status = "Approved";
+                        other.UpdatedAt = DateTime.UtcNow;
+                    }
+
+                    await SyncImageToWebsiteContentAsync(tenantId, image, optVariant, cancellationToken);
+                }
+
+                if (image.UsageType == "ExploreOurWork")
+                {
+                    syncExploreNeeded = true;
+                }
+
+                succeeded.Add(id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to publish image {ImageId} in bulk publish for tenant {TenantId}", id, tenantId);
+                failed.Add(id);
+            }
+        }
+
+        if (syncExploreNeeded && websiteId.HasValue)
+        {
+            await SyncExploreOurWorkToWebsiteContentAsync(tenantId, websiteId.Value, cancellationToken);
+        }
+
+        if (websiteId.HasValue)
+        {
+            var website = await _dbContext.Websites.FirstOrDefaultAsync(w => w.Id == websiteId.Value, cancellationToken);
+            if (website != null)
+            {
+                website.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "AUDIT: BulkImagesPublished. TenantId={TenantId}, UserId={UserId}, SucceededCount={SucceededCount}, FailedCount={FailedCount}",
+            tenantId, userId, succeeded.Count, failed.Count);
+
+        return new BulkImageOperationResult
+        {
+            Success = succeeded.Count > 0 || failed.Count == 0,
+            AffectedCount = succeeded.Count,
+            SucceededIds = succeeded,
+            FailedIds = failed,
+            Message = $"Successfully published {succeeded.Count} images."
+        };
     }
 
     public async Task<List<WorkCategoryDto>> GetWorkCategoriesAsync(
