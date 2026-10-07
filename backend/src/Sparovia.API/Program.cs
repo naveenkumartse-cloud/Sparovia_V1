@@ -354,65 +354,97 @@ using (var scope = app.Services.CreateScope())
         {
             dbContext.Database.Migrate();
 
-            var normalizedPhone = Sparovia.Application.Common.PhoneNumberHelper.NormalizeIndianPhoneNumber("9080437109") ?? "+919080437109";
-            var targetUser = dbContext.Users
-                .Include(u => u.Memberships)
-                .FirstOrDefault(u => u.PhoneNumberNormalized == normalizedPhone || u.PhoneNumber == "9080437109");
-
-            if (targetUser != null)
+            var defaultAdmins = new[]
             {
-                targetUser.PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword("Naveen@123");
-                targetUser.PhoneVerified = true;
-                targetUser.EmailVerified = true;
-                if (!targetUser.Memberships.Any())
+                (Phone: "9080437109", Name: "Naveen", Password: "Naveen@123"),
+                (Phone: "7603922493", Name: "Hari", Password: "Hari@123")
+            };
+
+            foreach (var admin in defaultAdmins)
+            {
+                var normalizedPhone = Sparovia.Application.Common.PhoneNumberHelper.NormalizeIndianPhoneNumber(admin.Phone) ?? $"+91{admin.Phone}";
+                var targetUser = dbContext.Users
+                    .Include(u => u.Memberships)
+                    .FirstOrDefault(u => u.PhoneNumberNormalized == normalizedPhone || u.PhoneNumber == admin.Phone);
+
+                Guid tenantId;
+                if (targetUser != null)
                 {
-                    var tenant = new Sparovia.Domain.Entities.Tenant { Name = $"{targetUser.FullName}'s Workspace" };
-                    dbContext.Tenants.Add(tenant);
-                    dbContext.Memberships.Add(new Sparovia.Domain.Entities.Membership
+                    targetUser.PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(admin.Password);
+                    targetUser.PhoneVerified = true;
+                    targetUser.EmailVerified = true;
+                    if (!targetUser.Memberships.Any())
                     {
-                        UserId = targetUser.Id,
-                        User = targetUser,
+                        var tenant = new Sparovia.Domain.Entities.Tenant { Name = $"{targetUser.FullName}'s Workspace" };
+                        dbContext.Tenants.Add(tenant);
+                        tenantId = tenant.Id;
+                        dbContext.Memberships.Add(new Sparovia.Domain.Entities.Membership
+                        {
+                            UserId = targetUser.Id,
+                            User = targetUser,
+                            TenantId = tenant.Id,
+                            Tenant = tenant,
+                            Role = "Owner"
+                        });
+                    }
+                    else
+                    {
+                        tenantId = targetUser.Memberships.First().TenantId;
+                    }
+                    dbContext.SaveChanges();
+                    Log.Information("Synchronized credentials for phone {Phone}", targetUser.PhoneNumber);
+                }
+                else
+                {
+                    var newUser = new Sparovia.Domain.Entities.User
+                    {
+                        FullName = admin.Name,
+                        PhoneNumber = admin.Phone,
+                        PhoneNumberNormalized = normalizedPhone,
+                        PhoneVerified = true,
+                        Email = $"{normalizedPhone.TrimStart('+')}@user.sparovia.com",
+                        NormalizedEmail = $"{normalizedPhone.TrimStart('+')}@user.sparovia.com".ToUpperInvariant(),
+                        PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(admin.Password),
+                        EmailVerified = true
+                    };
+                    dbContext.Users.Add(newUser);
+
+                    var tenant = new Sparovia.Domain.Entities.Tenant
+                    {
+                        Name = $"{admin.Name}'s Workspace"
+                    };
+                    dbContext.Tenants.Add(tenant);
+                    tenantId = tenant.Id;
+
+                    var membership = new Sparovia.Domain.Entities.Membership
+                    {
+                        UserId = newUser.Id,
+                        User = newUser,
                         TenantId = tenant.Id,
                         Tenant = tenant,
                         Role = "Owner"
-                    });
+                    };
+                    dbContext.Memberships.Add(membership);
+
+                    dbContext.SaveChanges();
+                    Log.Information("Provisioned account for phone {Phone}", newUser.PhoneNumber);
                 }
-                dbContext.SaveChanges();
-                Log.Information("Synchronized credentials for phone {Phone}", targetUser.PhoneNumber);
-            }
-            else
-            {
-                var newUser = new Sparovia.Domain.Entities.User
-                {
-                    FullName = "Naveen",
-                    PhoneNumber = "9080437109",
-                    PhoneNumberNormalized = normalizedPhone,
-                    PhoneVerified = true,
-                    Email = $"{normalizedPhone.TrimStart('+')}@user.sparovia.com",
-                    NormalizedEmail = $"{normalizedPhone.TrimStart('+')}@user.sparovia.com".ToUpperInvariant(),
-                    PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword("Naveen@123"),
-                    EmailVerified = true
-                };
-                dbContext.Users.Add(newUser);
 
-                var tenant = new Sparovia.Domain.Entities.Tenant
+                var existingContext = dbContext.BusinessContexts.FirstOrDefault(bc => bc.TenantId == tenantId);
+                if (existingContext == null)
                 {
-                    Name = "Naveen's Workspace"
-                };
-                dbContext.Tenants.Add(tenant);
-
-                var membership = new Sparovia.Domain.Entities.Membership
-                {
-                    UserId = newUser.Id,
-                    User = newUser,
-                    TenantId = tenant.Id,
-                    Tenant = tenant,
-                    Role = "Owner"
-                };
-                dbContext.Memberships.Add(membership);
-
-                dbContext.SaveChanges();
-                Log.Information("Provisioned account for phone {Phone}", newUser.PhoneNumber);
+                    dbContext.BusinessContexts.Add(new Sparovia.Domain.Entities.BusinessContext
+                    {
+                        TenantId = tenantId,
+                        BusinessName = $"{admin.Name} Interiors",
+                        BusinessType = "Interior Design",
+                        PrimaryCategory = "Residential",
+                        BusinessEmail = $"{normalizedPhone.TrimStart('+')}@user.sparovia.com",
+                        IsConfirmed = true,
+                        ConfirmedAt = DateTime.UtcNow
+                    });
+                    dbContext.SaveChanges();
+                }
             }
         }
         catch (Exception ex)
