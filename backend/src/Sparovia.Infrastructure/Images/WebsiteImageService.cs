@@ -892,6 +892,16 @@ public class WebsiteImageService : IWebsiteImageService
         try
         {
             originalStream = await _storageProvider.DownloadAsync(ImageBucket, image.StorageKey, cancellationToken);
+            if (originalStream == null || (originalStream.CanSeek && originalStream.Length == 0))
+            {
+                _logger.LogError("Downloaded stream for original image {ImageId} ({StorageKey}) is empty or null.", imageId, image.StorageKey);
+                return new ImageOperationResult
+                {
+                    Success = false,
+                    ErrorCode = "IMAGE_RETRIEVAL_FAILED",
+                    ErrorMessage = "Failed to retrieve the original image file from storage. The file appears to be missing or corrupted."
+                };
+            }
         }
         catch (Exception ex)
         {
@@ -917,11 +927,14 @@ public class WebsiteImageService : IWebsiteImageService
         ProcessedImageResult processedResult;
         try
         {
-            processedResult = await _imageProcessor.ProcessImageAsync(
-                originalStream,
-                $"QualityStudio:{request.Preset}",
-                options,
-                cancellationToken);
+            using (originalStream)
+            {
+                processedResult = await _imageProcessor.ProcessImageAsync(
+                    originalStream,
+                    $"QualityStudio:{request.Preset}",
+                    options,
+                    cancellationToken);
+            }
         }
         catch (Exception ex)
         {

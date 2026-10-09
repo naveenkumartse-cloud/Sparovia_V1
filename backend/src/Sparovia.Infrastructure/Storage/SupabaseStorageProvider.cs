@@ -257,7 +257,8 @@ public class SupabaseStorageProvider : IStorageProvider
         }
         catch { }
 
-        return new MemoryStream();
+        _logger.LogWarning("Storage download: object '{ObjectName}' was not found in bucket '{Bucket}'.", cleanPath, targetBucket);
+        throw new FileNotFoundException($"Object '{cleanPath}' was not found in bucket '{targetBucket}'.");
     }
 
     public async Task<string?> GetSignedUrlAsync(

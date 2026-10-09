@@ -136,6 +136,8 @@ export function ImageQualityStudioModal({
 
   // Active processed variant
   const [currentVariant, setCurrentVariant] = useState<ImageVariantDto | null>(null);
+  const [variantImgLoading, setVariantImgLoading] = useState<boolean>(false);
+  const [variantImgError, setVariantImgError] = useState<boolean>(false);
   const [processing, setProcessing] = useState<boolean>(false);
   const [approving, setApproving] = useState<boolean>(false);
   const [rejecting, setRejecting] = useState<boolean>(false);
@@ -158,8 +160,12 @@ export function ImageQualityStudioModal({
 
       if (existingQsVariant) {
         setCurrentVariant(existingQsVariant);
+        setVariantImgLoading(true);
+        setVariantImgError(false);
       } else {
         setCurrentVariant(null);
+        setVariantImgLoading(false);
+        setVariantImgError(false);
       }
 
       // Default back to Balanced preset
@@ -279,6 +285,8 @@ export function ImageQualityStudioModal({
       const res = await apiClient.post<any>(`/website/images/${image.id}/quality/process`, payload);
       if (res?.data) {
         setCurrentVariant(res.data);
+        setVariantImgLoading(true);
+        setVariantImgError(false);
         setHasUnsavedChanges(true);
 
         // Fetch refreshed image details
@@ -506,6 +514,37 @@ export function ImageQualityStudioModal({
 
           {/* VISUAL COMPARISON CANVAS */}
           <div className="rounded-2xl border border-slate-200 dark:border-[#1E293B] bg-slate-950 overflow-hidden relative select-none">
+            {/* Processing Overlay */}
+            {processing && (
+              <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-xs text-center p-4">
+                <RefreshCw className="w-8 h-8 text-orange-500 animate-spin mb-3" />
+                <p className="text-sm font-bold text-white tracking-wide">Enhancing Photograph...</p>
+                <p className="text-xs text-slate-300 mt-1 max-w-xs">
+                  Applying {selectedPreset} deterministic clarity, contrast & tone adjustments.
+                </p>
+              </div>
+            )}
+
+            {/* Variant Image Error State */}
+            {variantImgError && currentVariant && !processing && (
+              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-950/90 text-center p-6">
+                <AlertCircle className="w-10 h-10 text-rose-500 mb-3" />
+                <p className="text-sm font-bold text-white">Enhanced Preview Unavailable</p>
+                <p className="text-xs text-slate-400 mt-1.5 max-w-md">
+                  The processed variant image could not be loaded by your browser. The storage upload might still be finalizing or network access was interrupted.
+                </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleProcessImage}
+                  className="mt-4"
+                  leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                >
+                  Regenerate Preview
+                </Button>
+              </div>
+            )}
+
             {/* Split Screen View */}
             {viewMode === 'split' && (
               <div
@@ -525,6 +564,11 @@ export function ImageQualityStudioModal({
                     alt="Quality Studio Processed"
                     className="max-h-full max-w-full object-contain pointer-events-none"
                     draggable={false}
+                    onLoad={() => setVariantImgLoading(false)}
+                    onError={() => {
+                      setVariantImgLoading(false);
+                      if (currentVariant) setVariantImgError(true);
+                    }}
                   />
                 </div>
 
@@ -546,16 +590,23 @@ export function ImageQualityStudioModal({
                 </div>
 
                 {/* Floating Labels */}
-                <div className="absolute top-3 left-3 pointer-events-none">
+                <div className="absolute top-3 left-3 pointer-events-none z-10">
                   <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-slate-900/85 text-slate-200 border border-white/10 backdrop-blur-xs shadow-md">
                     Original
                   </span>
                 </div>
-                <div className="absolute top-3 right-3 pointer-events-none">
-                  <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-orange-600/90 text-white border border-orange-400/30 backdrop-blur-xs shadow-md flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    Quality Studio ({selectedPreset})
-                  </span>
+                <div className="absolute top-3 right-3 pointer-events-none z-10">
+                  {currentVariant ? (
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-orange-600/90 text-white border border-orange-400/30 backdrop-blur-xs shadow-md flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      Enhanced ({currentVariant.operation?.replace('QualityStudio:', '') || selectedPreset})
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-900/85 text-slate-300 border border-white/10 backdrop-blur-xs shadow-md flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-orange-400" />
+                      Original (Ready to Enhance)
+                    </span>
+                  )}
                 </div>
 
                 {/* Split Handle Divider */}
@@ -605,10 +656,17 @@ export function ImageQualityStudioModal({
                 {/* Right: Enhanced */}
                 <div className="relative h-full flex flex-col items-center justify-center p-3 overflow-hidden">
                   <div className="absolute top-3 right-3 z-10">
-                    <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-orange-600/90 text-white border border-orange-400/30 flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" />
-                      Quality Studio ({selectedPreset})
-                    </span>
+                    {currentVariant ? (
+                      <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-orange-600/90 text-white border border-orange-400/30 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        Enhanced ({currentVariant.operation?.replace('QualityStudio:', '') || selectedPreset})
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-900/85 text-slate-300 border border-white/10 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-orange-400" />
+                        Original (Ready to Enhance)
+                      </span>
+                    )}
                   </div>
                   <div
                     className="w-full h-full flex items-center justify-center overflow-hidden"
@@ -618,6 +676,11 @@ export function ImageQualityStudioModal({
                       src={variantUrl}
                       alt="Quality Studio Processed"
                       className="max-h-full max-w-full object-contain pointer-events-none"
+                      onLoad={() => setVariantImgLoading(false)}
+                      onError={() => {
+                        setVariantImgLoading(false);
+                        if (currentVariant) setVariantImgError(true);
+                      }}
                     />
                   </div>
                 </div>
@@ -637,11 +700,26 @@ export function ImageQualityStudioModal({
                 </div>
                 <div className="relative h-[220px] bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center">
                   <div className="absolute top-2 left-2 z-10">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-600/90 text-white">
-                      Quality Studio ({selectedPreset})
-                    </span>
+                    {currentVariant ? (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-600/90 text-white">
+                        Enhanced ({currentVariant.operation?.replace('QualityStudio:', '') || selectedPreset})
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-900 text-slate-300">
+                        Original (Ready to Enhance)
+                      </span>
+                    )}
                   </div>
-                  <img src={variantUrl} alt="Quality Studio" className="max-h-full max-w-full object-contain" />
+                  <img
+                    src={variantUrl}
+                    alt="Quality Studio"
+                    className="max-h-full max-w-full object-contain"
+                    onLoad={() => setVariantImgLoading(false)}
+                    onError={() => {
+                      setVariantImgLoading(false);
+                      if (currentVariant) setVariantImgError(true);
+                    }}
+                  />
                 </div>
               </div>
             )}
@@ -924,57 +1002,69 @@ export function ImageQualityStudioModal({
               Close
             </Button>
 
-            {/* Generate Preview / Apply Adjustments */}
-            <Button
-              type="button"
-              variant="secondary"
-              size="md"
-              onClick={handleProcessImage}
-              disabled={processing || approving || rejecting}
-              isLoading={processing}
-              loadingText="Processing Photo..."
-              leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-            >
-              {currentVariant ? 'Regenerate Preview' : 'Apply Adjustments'}
-            </Button>
-
-            {/* Reject Variant (Keep Original) */}
-            {currentVariant && currentVariant.status !== 'Rejected' && (
-              <Button
-                type="button"
-                variant="outline"
-                size="md"
-                onClick={handleRejectVariant}
-                disabled={processing || approving || rejecting}
-                isLoading={rejecting}
-                loadingText="Rejecting..."
-                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-rose-200 dark:border-rose-900"
-              >
-                Keep Original
-              </Button>
-            )}
-
-            {/* Approve Variant */}
-            {currentVariant && currentVariant.status !== 'Approved' && (
+            {!currentVariant ? (
               <Button
                 type="button"
                 variant="primary"
                 size="md"
-                onClick={handleApproveVariant}
-                disabled={processing || approving || rejecting}
-                isLoading={approving}
-                loadingText="Approving..."
-                leftIcon={<Check className="w-4 h-4 stroke-[2.5]" />}
+                onClick={handleProcessImage}
+                disabled={processing}
+                isLoading={processing}
+                loadingText="Enhancing Photograph..."
+                leftIcon={<Sparkles className="w-4 h-4 text-white" />}
               >
-                Approve Improved Version
+                Enhance Photograph ({selectedPreset})
               </Button>
-            )}
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="md"
+                  onClick={handleProcessImage}
+                  disabled={processing || approving || rejecting}
+                  isLoading={processing}
+                  loadingText="Processing Photo..."
+                  leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                >
+                  Regenerate Preview
+                </Button>
 
-            {currentVariant && currentVariant.status === 'Approved' && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                Approved Version Saved
-              </span>
+                {currentVariant.status !== 'Rejected' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="md"
+                    onClick={handleRejectVariant}
+                    disabled={processing || approving || rejecting}
+                    isLoading={rejecting}
+                    loadingText="Rejecting..."
+                    className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-rose-200 dark:border-rose-900"
+                  >
+                    Keep Original
+                  </Button>
+                )}
+
+                {currentVariant.status !== 'Approved' ? (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="md"
+                    onClick={handleApproveVariant}
+                    disabled={processing || approving || rejecting}
+                    isLoading={approving}
+                    loadingText="Approving..."
+                    leftIcon={<Check className="w-4 h-4 stroke-[2.5]" />}
+                  >
+                    Approve Improved Version
+                  </Button>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    Approved Version Saved
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>

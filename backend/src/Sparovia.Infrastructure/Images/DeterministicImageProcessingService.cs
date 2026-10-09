@@ -257,9 +257,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
 
         if (sourceBitmap == null)
         {
-            var fallbackW = options?.MaxWidth ?? 1200;
-            var fallbackH = options?.MaxHeight ?? (int)Math.Round(fallbackW * 9.0 / 16.0);
-            sourceBitmap = new SKBitmap(fallbackW, fallbackH, SKColorType.Rgba8888, SKAlphaType.Premul);
+            throw new InvalidOperationException("Failed to decode image data. The provided image stream is empty, corrupt, or in an unsupported format.");
         }
 
         using (sourceBitmap)
@@ -342,7 +340,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
 
                     // Step C: Brightness, Contrast, Saturation adjustments via Rec. 709 ColorMatrix
                     var cScale = 1.0f + (contrast / 100f);
-                    var bOffset = (brightness / 100f) * 128f;
+                    var bOffset = brightness / 100f; // Normalized [-0.5..0.5]
                     var sScale = 1.0f + (saturation / 100f);
 
                     var colorAdjusted = ApplyColorAdjustments(workingBitmap, cScale, bOffset, sScale);
@@ -353,7 +351,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
                 else if (string.Equals(normOp, "ImproveClarity", StringComparison.OrdinalIgnoreCase))
                 {
                     // Controlled contrast (+10%), mild brightness (+2%), restrained saturation (+4%), mild sharpening
-                    var processed = ApplyColorAdjustments(workingBitmap, contrast: 1.10f, brightnessOffset: 5f, saturation: 1.04f);
+                    var processed = ApplyColorAdjustments(workingBitmap, contrast: 1.10f, brightnessOffset: 0.02f, saturation: 1.04f);
                     var sharpened = ApplySharpening(processed, amount: 0.35f);
                     processed.Dispose();
                     workingBitmap = sharpened;
@@ -392,14 +390,14 @@ public class DeterministicImageProcessingService : IImageProcessingService
                 else if (string.Equals(normOp, "ClassicLook", StringComparison.OrdinalIgnoreCase))
                 {
                     // Subtle organic tone mapping, natural warmth and restrained saturation
-                    var processed = ApplyColorAdjustments(workingBitmap, contrast: 1.06f, brightnessOffset: 2f, saturation: 0.95f);
+                    var processed = ApplyColorAdjustments(workingBitmap, contrast: 1.06f, brightnessOffset: 0.02f, saturation: 0.95f);
                     workingBitmap = processed;
                     ownsWorkingBitmap = true;
                 }
                 else if (string.Equals(normOp, "ModernLook", StringComparison.OrdinalIgnoreCase))
                 {
                     // Contemporary architectural contrast and crisp clarity
-                    var processed = ApplyColorAdjustments(workingBitmap, contrast: 1.12f, brightnessOffset: 4f, saturation: 1.06f);
+                    var processed = ApplyColorAdjustments(workingBitmap, contrast: 1.12f, brightnessOffset: 0.04f, saturation: 1.06f);
                     var sharpened = ApplySharpening(processed, amount: 0.3f);
                     processed.Dispose();
                     workingBitmap = sharpened;
@@ -500,7 +498,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
         return dest;
     }
 
-    private static SKBitmap ApplyBlur(SKBitmap source, float sigma)
+    public static SKBitmap ApplyBlur(SKBitmap source, float sigma)
     {
         var dest = new SKBitmap(source.Width, source.Height, source.ColorType, source.AlphaType);
         using var canvas = new SKCanvas(dest);
@@ -513,7 +511,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
         return dest;
     }
 
-    private static SKBitmap ApplySharpening(SKBitmap source, float amount)
+    public static SKBitmap ApplySharpening(SKBitmap source, float amount)
     {
         // Unsharp mask via 3x3 convolution kernel:
         // center = 1 + 4*a, neighbors = -a
@@ -544,11 +542,12 @@ public class DeterministicImageProcessingService : IImageProcessingService
         return dest;
     }
 
-    private static SKBitmap ApplyColorAdjustments(SKBitmap source, float contrast, float brightnessOffset, float saturation)
+    public static SKBitmap ApplyColorAdjustments(SKBitmap source, float contrast, float brightnessOffset, float saturation)
     {
         // Construct 4x5 ColorFilter matrix combining contrast, saturation, and brightness offset
+        // In SkiaSharp, ColorMatrix translation components (5th column) operate on normalized [0..1] color space.
         var c = contrast;
-        var offset = 128f * (1f - c) + brightnessOffset;
+        var offset = 0.5f * (1f - c) + brightnessOffset;
 
         // Saturation weights (Rec 709)
         var s = saturation;
