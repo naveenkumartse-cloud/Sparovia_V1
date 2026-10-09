@@ -111,6 +111,39 @@ public class EnhanceImageRequest
     public required string Operation { get; set; }
 }
 
+public class QualityStudioProcessRequest
+{
+    /// <summary>
+    /// Preset: "Light" | "Balanced" (default) | "High" | "Custom"
+    /// </summary>
+    public string Preset { get; set; } = "Balanced";
+
+    /// <summary>
+    /// Brightness adjustment: -50% to +50%
+    /// </summary>
+    public int? Brightness { get; set; }
+
+    /// <summary>
+    /// Contrast adjustment: -50% to +50%
+    /// </summary>
+    public int? Contrast { get; set; }
+
+    /// <summary>
+    /// Sharpness adjustment: 0% to 100%
+    /// </summary>
+    public int? Sharpness { get; set; }
+
+    /// <summary>
+    /// Noise reduction adjustment: 0% to 100%
+    /// </summary>
+    public int? NoiseReduction { get; set; }
+
+    /// <summary>
+    /// Saturation adjustment: -50% to +50%
+    /// </summary>
+    public int? Saturation { get; set; }
+}
+
 public class OptimizeImageRequest
 {
     public Guid? ParentVariantId { get; set; }

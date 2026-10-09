@@ -104,4 +104,65 @@ public class DeterministicImageProcessingTests
         Assert.Equal(1200, result.Width);
         Assert.True(result.Bytes.Length > 0);
     }
+
+    [Theory]
+    [InlineData("Balanced")]
+    [InlineData("Light")]
+    [InlineData("High")]
+    public async Task ProcessImageAsync_QualityStudioPresets_ReturnValidProcessedResult(string preset)
+    {
+        var testBytes = CreateTestImageBytes(400, 300);
+        using var stream = new MemoryStream(testBytes);
+
+        var result = await _service.ProcessImageAsync(stream, $"QualityStudio:{preset}", new ImageProcessingOptions
+        {
+            Preset = preset
+        });
+
+        Assert.NotNull(result);
+        Assert.NotEmpty(result.Bytes);
+        Assert.True(result.FileSize > 0);
+        Assert.Equal(400, result.Width);
+        Assert.Equal(300, result.Height);
+    }
+
+    [Fact]
+    public async Task ProcessImageAsync_QualityStudioDefaultPresetIsBalanced()
+    {
+        var testBytes = CreateTestImageBytes(400, 300);
+        using var stream = new MemoryStream(testBytes);
+
+        // No preset specified, should default to Balanced
+        var result = await _service.ProcessImageAsync(stream, "QualityStudio", new ImageProcessingOptions());
+
+        Assert.NotNull(result);
+        Assert.NotEmpty(result.Bytes);
+        Assert.True(result.FileSize > 0);
+        Assert.Equal(400, result.Width);
+        Assert.Equal(300, result.Height);
+    }
+
+    [Fact]
+    public async Task ProcessImageAsync_QualityStudioCustomSliders_ClampsAndProcessesCorrectly()
+    {
+        var testBytes = CreateTestImageBytes(400, 300);
+        using var stream = new MemoryStream(testBytes);
+
+        // Pass out-of-bound slider values: Brightness = 120 (max 50), Contrast = -90 (min -50), Sharpness = 200 (max 100), NoiseReduction = -50 (min 0)
+        var result = await _service.ProcessImageAsync(stream, "QualityStudio:Custom", new ImageProcessingOptions
+        {
+            Preset = "Custom",
+            Brightness = 120,
+            Contrast = -90,
+            Sharpness = 200,
+            NoiseReduction = -50,
+            Saturation = 90
+        });
+
+        Assert.NotNull(result);
+        Assert.NotEmpty(result.Bytes);
+        Assert.True(result.FileSize > 0);
+        Assert.Equal(400, result.Width);
+        Assert.Equal(300, result.Height);
+    }
 }

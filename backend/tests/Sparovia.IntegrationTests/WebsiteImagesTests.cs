@@ -458,4 +458,71 @@ public class WebsiteImagesTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.NotEqual("/etc/custom_storage_key.jpg", imgEntity.StorageKey);
         Assert.StartsWith($"tenants/{imgEntity.TenantId}/", imgEntity.StorageKey);
     }
+
+    [Fact]
+    public async Task QualityStudio_ProcessAndApprove_PreservesOriginalAndEnforcesTenantIsolation()
+    {
+        var email = $"quality_studio_{Guid.NewGuid():N}@test.local";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Quality Studio Testing Co", email);
+
+        // 1. Upload an image
+        var form = CreateImageMultipartContent(CreateValidPngBytes(), "studio_work.png", "image/png", "WebsiteImage", "heroImage");
+        var uploadResp = await client.PostAsync("/api/v1/website/images", form);
+        Assert.Equal(HttpStatusCode.Created, uploadResp.StatusCode);
+        var uploadBody = await uploadResp.Content.ReadFromJsonAsync<JsonElement>();
+        var imageId = uploadBody.GetProperty("data").GetProperty("id").GetString();
+        var originalFileName = uploadBody.GetProperty("data").GetProperty("originalFileName").GetString();
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<SparoviaDbContext>();
+        var originalImgEntity = await db.Images.AsNoTracking().FirstOrDefaultAsync(i => i.Id == Guid.Parse(imageId!));
+        Assert.NotNull(originalImgEntity);
+        var originalStorageKey = originalImgEntity.StorageKey;
+
+        // 2. Process image via Quality Studio using default Balanced preset
+        var qsReq = new QualityStudioProcessRequest
+        {
+            Preset = "Balanced"
+        };
+        var processResp = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/quality/process", qsReq);
+        Assert.Equal(HttpStatusCode.Created, processResp.StatusCode);
+
+        var processBody = await processResp.Content.ReadFromJsonAsync<JsonElement>();
+        var variantData = processBody.GetProperty("data");
+        var variantId = variantData.GetProperty("id").GetString();
+        var variantType = variantData.GetProperty("variantType").GetString();
+        var operation = variantData.GetProperty("operation").GetString();
+        var status = variantData.GetProperty("status").GetString();
+
+        Assert.Equal("QualityStudio", variantType);
+        Assert.Equal("QualityStudio:Balanced", operation);
+        Assert.Equal("Enhanced", status);
+
+        // 3. Verify original image entity in database is NOT modified
+        var postImgEntity = await db.Images.AsNoTracking().FirstOrDefaultAsync(i => i.Id == Guid.Parse(imageId!));
+        Assert.NotNull(postImgEntity);
+        Assert.Equal(originalStorageKey, postImgEntity.StorageKey);
+
+        var origResp = await client.GetAsync($"/api/v1/website/images/{imageId}");
+        var origBody = await origResp.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(originalFileName, origBody.GetProperty("data").GetProperty("originalFileName").GetString());
+
+        // 4. Approve the variant
+        var approveResp = await client.PostAsync($"/api/v1/website/images/{imageId}/variants/{variantId}/approve", null);
+        Assert.Equal(HttpStatusCode.OK, approveResp.StatusCode);
+        var approveBody = await approveResp.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Approved", approveBody.GetProperty("data").GetProperty("status").GetString());
+
+        // 5. Test tenant isolation: another tenant cannot access or approve this variant
+        var otherEmail = $"other_tenant_{Guid.NewGuid():N}@test.local";
+        var otherClient = await GetAuthenticatedClientAsync(otherEmail);
+        await SetupAndConfirmBusinessContextAsync(otherClient, "Other Studio Co", otherEmail);
+
+        var unauthorizedProcessResp = await otherClient.PostAsJsonAsync($"/api/v1/website/images/{imageId}/quality/process", qsReq);
+        Assert.Equal(HttpStatusCode.NotFound, unauthorizedProcessResp.StatusCode);
+
+        var unauthorizedApproveResp = await otherClient.PostAsync($"/api/v1/website/images/{imageId}/variants/{variantId}/approve", null);
+        Assert.Equal(HttpStatusCode.NotFound, unauthorizedApproveResp.StatusCode);
+    }
 }

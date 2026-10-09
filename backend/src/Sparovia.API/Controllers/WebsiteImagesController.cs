@@ -763,6 +763,52 @@ public class ReplaceImageForm
         });
     }
 
+    [HttpPost("{id:guid}/quality/process")]
+    [Authorize]
+    public async Task<IActionResult> ProcessQualityStudio(
+        Guid id,
+        [FromBody] QualityStudioProcessRequest? request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError)) return authError!;
+
+        var isConfirmed = await IsOnboardingCompleteAsync(tenantId, cancellationToken);
+        if (!isConfirmed)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                Error = "Onboarding incomplete. Business Context must be confirmed before managing Website Images.",
+                Code = "ONBOARDING_REQUIRED",
+                RedirectUrl = "/admin/onboarding/business-basics"
+            });
+        }
+
+        request ??= new QualityStudioProcessRequest();
+
+        var result = await _imageService.ProcessQualityStudioAsync(
+            tenantId,
+            id,
+            request,
+            TryGetUserId(),
+            cancellationToken);
+
+        if (!result.Success)
+        {
+            if (result.ErrorCode == "IMAGE_NOT_FOUND")
+            {
+                return NotFound(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+            }
+            return BadRequest(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+        }
+
+        return StatusCode(StatusCodes.Status201Created, new
+        {
+            data = result.Variant,
+            message = "Quality Studio processed image successfully. Original image remains preserved.",
+            requestId = HttpContext.TraceIdentifier
+        });
+    }
+
     [HttpPost("{id:guid}/optimize")]
     [Authorize]
     public async Task<IActionResult> OptimizeImage(
@@ -855,6 +901,83 @@ public class ReplaceImageForm
             message = request.IsApproved
                 ? "Variant approved for website usage. Original image remains preserved."
                 : "Variant rejected. Original image remains preserved.",
+            requestId = HttpContext.TraceIdentifier
+        });
+    }
+
+    [HttpPost("{id:guid}/variants/{variantId:guid}/approve")]
+    [Authorize]
+    public async Task<IActionResult> ApproveVariant(
+        Guid id,
+        Guid variantId,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError)) return authError!;
+
+        var result = await _imageService.ApproveEnhancementAsync(
+            tenantId,
+            id,
+            variantId,
+            TryGetUserId(),
+            cancellationToken);
+
+        if (!result.Success)
+        {
+            if (result.ErrorCode == "VARIANT_NOT_FOUND")
+            {
+                return NotFound(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+            }
+            return BadRequest(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+        }
+
+        return Ok(new
+        {
+            data = new
+            {
+                imageId = id,
+                approvedVariantId = variantId,
+                status = "Approved"
+            },
+            message = "Variant approved successfully. Original image remains preserved.",
+            requestId = HttpContext.TraceIdentifier
+        });
+    }
+
+    [HttpPost("{id:guid}/variants/{variantId:guid}/reject")]
+    [Authorize]
+    public async Task<IActionResult> RejectVariant(
+        Guid id,
+        Guid variantId,
+        [FromBody] RejectEnhancementRequest? request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError)) return authError!;
+
+        var result = await _imageService.RejectEnhancementAsync(
+            tenantId,
+            id,
+            variantId,
+            TryGetUserId(),
+            cancellationToken);
+
+        if (!result.Success)
+        {
+            if (result.ErrorCode == "VARIANT_NOT_FOUND")
+            {
+                return NotFound(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+            }
+            return BadRequest(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+        }
+
+        return Ok(new
+        {
+            data = new
+            {
+                imageId = id,
+                rejectedVariantId = variantId,
+                status = "Rejected"
+            },
+            message = "Variant rejected. Original image remains unchanged.",
             requestId = HttpContext.TraceIdentifier
         });
     }

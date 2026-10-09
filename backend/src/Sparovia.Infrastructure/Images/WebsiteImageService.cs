@@ -849,6 +849,171 @@ public class WebsiteImageService : IWebsiteImageService
         return await _imageProcessor.AnalyzeImageAsync(stream, image.FileSize, image.MimeType, cancellationToken);
     }
 
+    public async Task<ImageOperationResult> ProcessQualityStudioAsync(
+        Guid tenantId,
+        Guid imageId,
+        QualityStudioProcessRequest request,
+        Guid? userId = null,
+        CancellationToken cancellationToken = default)
+    {
+        request ??= new QualityStudioProcessRequest();
+
+        var preset = string.IsNullOrWhiteSpace(request.Preset) ? "Balanced" : request.Preset.Trim();
+        var validPresets = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Light", "Balanced", "High", "Custom" };
+        if (!validPresets.Contains(preset))
+        {
+            preset = "Balanced";
+        }
+        request.Preset = preset;
+
+        // Clamp parameters safely
+        if (request.Brightness.HasValue) request.Brightness = Math.Clamp(request.Brightness.Value, -50, 50);
+        if (request.Contrast.HasValue) request.Contrast = Math.Clamp(request.Contrast.Value, -50, 50);
+        if (request.Sharpness.HasValue) request.Sharpness = Math.Clamp(request.Sharpness.Value, 0, 100);
+        if (request.NoiseReduction.HasValue) request.NoiseReduction = Math.Clamp(request.NoiseReduction.Value, 0, 100);
+        if (request.Saturation.HasValue) request.Saturation = Math.Clamp(request.Saturation.Value, -50, 50);
+
+        var image = await _dbContext.Images
+            .Include(i => i.Variants)
+            .FirstOrDefaultAsync(i => i.Id == imageId && i.TenantId == tenantId && i.Status != "Deleted", cancellationToken);
+
+        if (image == null)
+        {
+            return new ImageOperationResult
+            {
+                Success = false,
+                ErrorCode = "IMAGE_NOT_FOUND",
+                ErrorMessage = "The specified image was not found."
+            };
+        }
+
+        // Original image is NEVER modified. Download original stream (read-only)
+        Stream originalStream;
+        try
+        {
+            originalStream = await _storageProvider.DownloadAsync(ImageBucket, image.StorageKey, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to download original image {ImageId} from storage {StorageKey}", imageId, image.StorageKey);
+            return new ImageOperationResult
+            {
+                Success = false,
+                ErrorCode = "IMAGE_RETRIEVAL_FAILED",
+                ErrorMessage = "Failed to retrieve the original image file from storage."
+            };
+        }
+
+        var options = new ImageProcessingOptions
+        {
+            Preset = request.Preset,
+            Brightness = request.Brightness,
+            Contrast = request.Contrast,
+            Sharpness = request.Sharpness,
+            NoiseReduction = request.NoiseReduction,
+            Saturation = request.Saturation
+        };
+
+        ProcessedImageResult processedResult;
+        try
+        {
+            processedResult = await _imageProcessor.ProcessImageAsync(
+                originalStream,
+                $"QualityStudio:{request.Preset}",
+                options,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed QualityStudio processing for image {ImageId} with preset {Preset}", imageId, request.Preset);
+            return new ImageOperationResult
+            {
+                Success = false,
+                ErrorCode = "PROCESSING_FAILED",
+                ErrorMessage = $"Failed to process image in Quality Studio: {ex.Message}"
+            };
+        }
+
+        // Output Result Validation
+        if (processedResult.FileSize <= 0 || processedResult.Width <= 0 || processedResult.Height <= 0 || processedResult.Bytes.Length == 0)
+        {
+            return new ImageOperationResult
+            {
+                Success = false,
+                ErrorCode = "RESULT_VALIDATION_FAILED",
+                ErrorMessage = "The processed image output failed integrity validation. Original image remains preserved."
+            };
+        }
+
+        var variantId = Guid.NewGuid();
+        var variantStorageKey = $"tenants/{tenantId}/websites/{image.WebsiteId}/images/{imageId}/variants/{variantId}/quality_studio{processedResult.FileExtension}";
+
+        // Store variant bytes in Supabase Storage
+        using (var uploadStream = new MemoryStream(processedResult.Bytes))
+        {
+            await _storageProvider.UploadAsync(ImageBucket, variantStorageKey, uploadStream, processedResult.MimeType, cancellationToken);
+        }
+
+        var variant = new ImageVariant
+        {
+            Id = variantId,
+            TenantId = tenantId,
+            ImageId = imageId,
+            VariantType = "QualityStudio",
+            Operation = $"QualityStudio:{request.Preset}",
+            StorageKey = variantStorageKey,
+            MimeType = processedResult.MimeType,
+            FileSize = processedResult.FileSize,
+            Width = processedResult.Width,
+            Height = processedResult.Height,
+            Version = image.Variants.Count + 1,
+            Status = "Enhanced", // Ready for human Before/After review
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.ImageVariants.Add(variant);
+
+        // Audit deterministic processing operation for tracking and review status lifecycle
+        var aiRequest = new AIRequest
+        {
+            TenantId = tenantId,
+            UserId = userId,
+            OperationType = $"QualityStudio:{request.Preset}",
+            ResourceType = "Image",
+            ResourceId = imageId,
+            Status = AIRequestStatus.Succeeded,
+            ReviewStatus = AIReviewStatus.PendingReview,
+            ProviderReference = "Deterministic",
+            ModelReference = "QualityStudio",
+            CreatedAt = DateTime.UtcNow,
+            CompletedAt = DateTime.UtcNow
+        };
+        _dbContext.AIRequests.Add(aiRequest);
+
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to persist QualityStudio variant. Executing compensating delete on {StorageKey}", variantStorageKey);
+            try { await _storageProvider.DeleteAsync(ImageBucket, variantStorageKey, CancellationToken.None); } catch { }
+            throw;
+        }
+
+        _logger.LogInformation(
+            "AUDIT: ImageQualityStudioProcessed. TenantId={TenantId}, UserId={UserId}, ImageId={ImageId}, VariantId={VariantId}, Preset={Preset}",
+            tenantId, userId, imageId, variantId, request.Preset);
+
+        return new ImageOperationResult
+        {
+            Success = true,
+            Image = MapToDto(image),
+            Variant = MapVariantDto(variant, tenantId)
+        };
+    }
+
     public async Task<ImageOperationResult> EnhanceImageAsync(
         Guid tenantId,
         Guid imageId,

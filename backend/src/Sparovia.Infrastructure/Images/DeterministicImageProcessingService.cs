@@ -270,7 +270,87 @@ public class DeterministicImageProcessingService : IImageProcessingService
 
             try
             {
-                if (string.Equals(normOp, "ImproveClarity", StringComparison.OrdinalIgnoreCase))
+                if (normOp.StartsWith("QualityStudio", StringComparison.OrdinalIgnoreCase) ||
+                    options?.Preset != null ||
+                    options?.Brightness != null ||
+                    options?.Contrast != null ||
+                    options?.Sharpness != null ||
+                    options?.NoiseReduction != null ||
+                    options?.Saturation != null)
+                {
+                    // 1. Resolve preset (Default: Balanced)
+                    var preset = options?.Preset;
+                    if (string.IsNullOrWhiteSpace(preset) && normOp.Contains(':'))
+                    {
+                        preset = normOp.Substring(normOp.IndexOf(':') + 1).Trim();
+                    }
+                    if (string.IsNullOrWhiteSpace(preset))
+                    {
+                        preset = "Balanced";
+                    }
+
+                    // Default values for standard deterministic presets
+                    int defaultBrightness = 4;
+                    int defaultContrast = 10;
+                    int defaultSharpness = 35;
+                    int defaultNoiseReduction = 20;
+                    int defaultSaturation = 6;
+
+                    if (string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase))
+                    {
+                        defaultBrightness = 2;
+                        defaultContrast = 5;
+                        defaultSharpness = 15;
+                        defaultNoiseReduction = 10;
+                        defaultSaturation = 2;
+                    }
+                    else if (string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase))
+                    {
+                        defaultBrightness = 6;
+                        defaultContrast = 16;
+                        defaultSharpness = 60;
+                        defaultNoiseReduction = 35;
+                        defaultSaturation = 10;
+                    }
+
+                    // Safe clamping on fine-tune overrides (-50 to +50 for tone/color, 0 to 100 for filters)
+                    int brightness = Math.Clamp(options?.Brightness ?? defaultBrightness, -50, 50);
+                    int contrast = Math.Clamp(options?.Contrast ?? defaultContrast, -50, 50);
+                    int sharpness = Math.Clamp(options?.Sharpness ?? defaultSharpness, 0, 100);
+                    int noiseReduction = Math.Clamp(options?.NoiseReduction ?? defaultNoiseReduction, 0, 100);
+                    int saturation = Math.Clamp(options?.Saturation ?? defaultSaturation, -50, 50);
+
+                    // Step A: Noise reduction (gentle Gaussian smoothing preserving textures)
+                    if (noiseReduction > 0)
+                    {
+                        var sigma = Math.Min(1.2f, (noiseReduction / 100f) * 1.0f);
+                        var blurred = ApplyBlur(workingBitmap, sigma);
+                        if (ownsWorkingBitmap) workingBitmap.Dispose();
+                        workingBitmap = blurred;
+                        ownsWorkingBitmap = true;
+                    }
+
+                    // Step B: Controlled sharpening (unsharp mask with clamped amount to prevent edge halos)
+                    if (sharpness > 0)
+                    {
+                        var amount = Math.Min(0.75f, (sharpness / 100f) * 0.75f);
+                        var sharpened = ApplySharpening(workingBitmap, amount);
+                        if (ownsWorkingBitmap) workingBitmap.Dispose();
+                        workingBitmap = sharpened;
+                        ownsWorkingBitmap = true;
+                    }
+
+                    // Step C: Brightness, Contrast, Saturation adjustments via Rec. 709 ColorMatrix
+                    var cScale = 1.0f + (contrast / 100f);
+                    var bOffset = (brightness / 100f) * 128f;
+                    var sScale = 1.0f + (saturation / 100f);
+
+                    var colorAdjusted = ApplyColorAdjustments(workingBitmap, cScale, bOffset, sScale);
+                    if (ownsWorkingBitmap) workingBitmap.Dispose();
+                    workingBitmap = colorAdjusted;
+                    ownsWorkingBitmap = true;
+                }
+                else if (string.Equals(normOp, "ImproveClarity", StringComparison.OrdinalIgnoreCase))
                 {
                     // Controlled contrast (+10%), mild brightness (+2%), restrained saturation (+4%), mild sharpening
                     var processed = ApplyColorAdjustments(workingBitmap, contrast: 1.10f, brightnessOffset: 5f, saturation: 1.04f);

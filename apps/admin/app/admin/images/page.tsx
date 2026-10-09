@@ -24,6 +24,7 @@ import { apiClient } from '@/lib/api/client';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ImageQualityStudioModal } from '@/components/images/ImageQualityStudioModal';
 
 interface ImageVariantDto {
   id: string;
@@ -200,6 +201,15 @@ export default function ImagesPage() {
   const [categoryActionLoading, setCategoryActionLoading] = useState(false);
   const [categoryActionError, setCategoryActionError] = useState<string | null>(null);
   const [newCatInput, setNewCatInput] = useState('');
+
+  // Quality Studio Modal state
+  const [qualityStudioModalOpen, setQualityStudioModalOpen] = useState(false);
+  const [qualityStudioImage, setQualityStudioImage] = useState<ImageDto | null>(null);
+
+  const openQualityStudio = (img: ImageDto) => {
+    setQualityStudioImage(img);
+    setQualityStudioModalOpen(true);
+  };
 
   const fetchImages = async () => {
     try {
@@ -569,10 +579,10 @@ export default function ImagesPage() {
     }
   };
 
-  const handleOptimizeImage = async (image: ImageDto) => {
+  const handleOptimizeImage = async (image: ImageDto, parentVariantId?: string) => {
     setOptimizingImage(true);
     try {
-      await apiClient.post(`/website/images/${image.id}/optimize`, {});
+      await apiClient.post(`/website/images/${image.id}/optimize`, parentVariantId ? { parentVariantId } : {});
       await fetchImages();
       const updated = await apiClient.get<{ data: ImageDto }>(`/website/images/${image.id}`);
       if (updated?.data) setPreviewImage(updated.data);
@@ -908,6 +918,16 @@ export default function ImagesPage() {
                           >
                             Replace
                           </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openQualityStudio(assignedImage)}
+                            leftIcon={<SlidersHorizontal className="w-3.5 h-3.5 text-orange-500" />}
+                            title="Open Image Quality Studio"
+                          >
+                            Studio
+                          </Button>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -1148,6 +1168,16 @@ export default function ImagesPage() {
                             leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
                           >
                             Replace
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openQualityStudio(image)}
+                            leftIcon={<SlidersHorizontal className="w-3.5 h-3.5 text-orange-500" />}
+                            title="Open Image Quality Studio"
+                          >
+                            Studio
                           </Button>
                         </div>
 
@@ -1435,6 +1465,21 @@ export default function ImagesPage() {
             >
               Close
             </Button>
+            {previewImage && (
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={() => {
+                  setPreviewModalOpen(false);
+                  openQualityStudio(previewImage);
+                }}
+                leftIcon={<SlidersHorizontal className="w-4 h-4 text-orange-500" />}
+                className="w-full sm:w-auto"
+              >
+                Quality Studio
+              </Button>
+            )}
             {previewImage && !previewImage.variants?.some((v) => v.variantType === 'WebsiteOptimized') && (
               <Button
                 type="button"
@@ -1981,6 +2026,22 @@ export default function ImagesPage() {
           </div>
         </div>
       </Modal>
+
+      {/* MODAL 7: Image Quality Studio Modal */}
+      <ImageQualityStudioModal
+        isOpen={qualityStudioModalOpen}
+        onClose={() => setQualityStudioModalOpen(false)}
+        image={qualityStudioImage}
+        onImageUpdated={(updatedImg) => {
+          setImages((prev) => prev.map((img) => (img.id === updatedImg.id ? updatedImg : img)));
+          setQualityStudioImage(updatedImg);
+        }}
+        onOptimizeRequested={(img, variantId) => {
+          setQualityStudioModalOpen(false);
+          handleOptimizeImage(img, variantId);
+        }}
+        resolveImageUrl={resolveImageUrl}
+      />
     </div>
   );
 }
