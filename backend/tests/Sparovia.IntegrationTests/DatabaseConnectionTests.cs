@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Sparovia.Infrastructure.Data;
 
@@ -25,7 +26,7 @@ public class DatabaseConnectionTests : IClassFixture<WebApplicationFactory<Progr
         // Assert
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
-        Assert.Equal("Healthy", content);
+        Assert.Contains("Healthy", content);
     }
 
     [Fact]

@@ -206,7 +206,7 @@ public class WebsiteImageService : IWebsiteImageService
         var imageId = Guid.NewGuid();
         var rawFileName = Path.GetFileName(fileName);
         var safeFileName = string.IsNullOrWhiteSpace(rawFileName) ? $"image_{imageId}{valResult.RecommendedExtension}" : rawFileName;
-        var storageKey = $"tenants/{tenantId}/images/original/{imageId}_{DateTime.UtcNow.Ticks}{valResult.RecommendedExtension}";
+        var storageKey = $"tenants/{tenantId}/images/original/original_{imageId}_{DateTime.UtcNow.Ticks}{valResult.RecommendedExtension}";
 
         // 4. Store in storage provider (must physically succeed before DB record is committed)
         try
@@ -326,7 +326,7 @@ public class WebsiteImageService : IWebsiteImageService
         var newImageId = Guid.NewGuid();
         var rawFileName = Path.GetFileName(fileName);
         var safeFileName = string.IsNullOrWhiteSpace(rawFileName) ? $"image_{newImageId}{valResult.RecommendedExtension}" : rawFileName;
-        var storageKey = $"tenants/{tenantId}/images/original/{newImageId}_{DateTime.UtcNow.Ticks}{valResult.RecommendedExtension}";
+        var storageKey = $"tenants/{tenantId}/images/original/original_{newImageId}_{DateTime.UtcNow.Ticks}{valResult.RecommendedExtension}";
 
         try
         {

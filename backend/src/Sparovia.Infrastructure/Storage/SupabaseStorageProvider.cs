@@ -1,15 +1,15 @@
 namespace Sparovia.Infrastructure.Storage;
 
+using System.Collections.Concurrent;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 using Sparovia.Application.Common.Interfaces;
-
-using System.Collections.Concurrent;
 
 public class SupabaseStorageProvider : IStorageProvider
 {
@@ -17,37 +17,28 @@ public class SupabaseStorageProvider : IStorageProvider
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<SupabaseStorageProvider> _logger;
+    private readonly IHostEnvironment? _environment;
+
     private readonly string _supabaseUrl;
     private readonly string? _supabaseKey;
     private readonly string _defaultBucket;
-    private readonly string? _connectionString;
     private readonly string _storageDir;
 
     public SupabaseStorageProvider(
         HttpClient httpClient,
         IConfiguration configuration,
-        ILogger<SupabaseStorageProvider> logger)
+        ILogger<SupabaseStorageProvider> logger,
+        IHostEnvironment? environment = null)
     {
         _httpClient = httpClient;
         _configuration = configuration;
         _logger = logger;
+        _environment = environment;
 
-        _supabaseUrl = (_configuration["Supabase:Url"]
-            ?? Environment.GetEnvironmentVariable("SUPABASE_URL")
-            ?? "https://ejvpbjbehujqcnwllxby.supabase.co").TrimEnd('/');
-
-        _supabaseKey = _configuration["Supabase:Key"]
-            ?? Environment.GetEnvironmentVariable("SUPABASE_SERVICE_ROLE_KEY")
-            ?? Environment.GetEnvironmentVariable("SUPABASE_KEY")
-            ?? Environment.GetEnvironmentVariable("SUPABASE_ANON_KEY");
-
-        _defaultBucket = _configuration["Supabase:Bucket"]
-            ?? Environment.GetEnvironmentVariable("SUPABASE_BUCKET")
-            ?? "sparovia-images";
-
-        _connectionString = _configuration.GetConnectionString("DefaultConnection")
-            ?? Environment.GetEnvironmentVariable("DATABASE_URL")
-            ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        var options = SupabaseStorageOptions.FromConfiguration(configuration);
+        _supabaseUrl = options.Url;
+        _supabaseKey = options.Key;
+        _defaultBucket = options.Bucket;
 
         var envDir = Environment.GetEnvironmentVariable("STORAGE_PATH");
         _storageDir = !string.IsNullOrWhiteSpace(envDir)
@@ -75,20 +66,30 @@ public class SupabaseStorageProvider : IStorageProvider
 
     private string CleanStoragePath(string bucket, string objectName)
     {
-        var clean = objectName.Trim().TrimStart('/');
+        if (string.IsNullOrWhiteSpace(objectName)) return string.Empty;
+
+        var clean = objectName.Trim().Replace('\\', '/');
+        if (clean.StartsWith("storage://", StringComparison.OrdinalIgnoreCase))
+        {
+            clean = clean.Substring("storage://".Length);
+        }
+
+        clean = clean.TrimStart('/');
         var targetBucket = ResolveBucket(bucket);
+
         if (clean.StartsWith(targetBucket + "/", StringComparison.OrdinalIgnoreCase))
         {
             clean = clean.Substring(targetBucket.Length + 1);
         }
-        else if (clean.StartsWith("sparovia-images/", StringComparison.OrdinalIgnoreCase))
+        if (clean.StartsWith("sparovia-images/", StringComparison.OrdinalIgnoreCase))
         {
             clean = clean.Substring("sparovia-images/".Length);
         }
-        else if (clean.StartsWith("images/", StringComparison.OrdinalIgnoreCase))
+        if (clean.StartsWith("images/", StringComparison.OrdinalIgnoreCase))
         {
             clean = clean.Substring("images/".Length);
         }
+
         return clean.TrimStart('/');
     }
 
@@ -110,23 +111,8 @@ public class SupabaseStorageProvider : IStorageProvider
         }
         await data.CopyToAsync(ms, cancellationToken);
         var bytes = ms.ToArray();
-        _memoryStore[key] = bytes;
-        _memoryStore[$"{bucket}/{objectName}"] = bytes;
 
-        // 0. Write to local disk cache
-        try
-        {
-            var filePath = Path.Combine(_storageDir, key.Replace('/', Path.DirectorySeparatorChar));
-            var parentDir = Path.GetDirectoryName(filePath);
-            if (!string.IsNullOrEmpty(parentDir) && !Directory.Exists(parentDir))
-            {
-                Directory.CreateDirectory(parentDir);
-            }
-            await File.WriteAllBytesAsync(filePath, bytes, cancellationToken);
-        }
-        catch { }
-
-        // 1. Upload to Supabase Storage if credentials are configured
+        // 1. Production or when credentials are provided: upload to Supabase Storage
         if (!string.IsNullOrWhiteSpace(_supabaseKey))
         {
             var uploadUrl = $"{_supabaseUrl}/storage/v1/object/{targetBucket}/{cleanPath}";
@@ -136,45 +122,63 @@ public class SupabaseStorageProvider : IStorageProvider
             request.Headers.Add("x-upsert", "true");
 
             var content = new ByteArrayContent(bytes);
-            content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            if (MediaTypeHeaderValue.TryParse(contentType, out var parsedMediaType))
+            {
+                content.Headers.ContentType = parsedMediaType;
+            }
+            else
+            {
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            }
             request.Content = content;
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
-                _logger.LogError("Supabase Storage upload returned {StatusCode}: {Error} for {ObjectName}", response.StatusCode, errorBody, cleanPath);
-                throw new InvalidOperationException($"Supabase Storage upload failed with status {response.StatusCode}: {errorBody}");
+                _logger.LogError(
+                    "Supabase Storage upload failed. Bucket={Bucket}, Path={Path}, StatusCode={StatusCode}, Error={Error}",
+                    targetBucket, cleanPath, (int)response.StatusCode, errorBody);
+
+                var reason = response.StatusCode switch
+                {
+                    HttpStatusCode.Unauthorized => "Supabase Storage authentication failed (401). Verify SUPABASE_SERVICE_ROLE_KEY.",
+                    HttpStatusCode.Forbidden => "Supabase Storage permission denied (403). Ensure SUPABASE_SERVICE_ROLE_KEY has write permissions on the bucket.",
+                    HttpStatusCode.NotFound => $"Supabase Storage bucket '{targetBucket}' was not found (404).",
+                    HttpStatusCode.RequestEntityTooLarge => "Supabase Storage payload too large (413).",
+                    _ => $"Supabase Storage upload failed with status {(int)response.StatusCode}: {errorBody}"
+                };
+
+                throw new InvalidOperationException($"Storage upload failed: {reason}");
             }
 
             _logger.LogInformation("Successfully uploaded {ObjectName} to Supabase Storage bucket {Bucket}", cleanPath, targetBucket);
         }
-
-        // 2. Also persist to PostgreSQL StorageBlobs for resilience across restarts
-        if (!string.IsNullOrWhiteSpace(_connectionString))
+        else if (_environment?.IsProduction() == true)
         {
+            var err = "Supabase Storage credentials are missing in production. SUPABASE_SERVICE_ROLE_KEY or Supabase:Key must be configured in hosting environment.";
+            _logger.LogError("{ErrorMessage}", err);
+            throw new InvalidOperationException(err);
+        }
+        else
+        {
+            _logger.LogWarning("Uploading without Supabase credentials in non-production mode for {ObjectName}; saved to local/memory cache.", cleanPath);
             try
             {
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync(cancellationToken);
-                var sql = @"
-                    INSERT INTO ""StorageBlobs"" (""Key"", ""Bucket"", ""ContentType"", ""Data"", ""CreatedAt"")
-                    VALUES (@key, @bucket, @contentType, @data, @now)
-                    ON CONFLICT (""Key"") DO UPDATE
-                    SET ""Data"" = EXCLUDED.""Data"", ""ContentType"" = EXCLUDED.""ContentType"", ""CreatedAt"" = EXCLUDED.""CreatedAt"";";
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("key", key);
-                cmd.Parameters.AddWithValue("bucket", targetBucket);
-                cmd.Parameters.AddWithValue("contentType", contentType);
-                cmd.Parameters.AddWithValue("data", bytes);
-                cmd.Parameters.AddWithValue("now", DateTime.UtcNow);
-                await cmd.ExecuteNonQueryAsync(cancellationToken);
+                var filePath = Path.Combine(_storageDir, key.Replace('/', Path.DirectorySeparatorChar));
+                var parentDir = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(parentDir) && !Directory.Exists(parentDir))
+                {
+                    Directory.CreateDirectory(parentDir);
+                }
+                await File.WriteAllBytesAsync(filePath, bytes, cancellationToken);
             }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "StorageBlobs backup write completed or handled.");
-            }
+            catch { }
         }
+
+        // Cache in memory for instant delivery
+        _memoryStore[key] = bytes;
+        _memoryStore[$"{bucket}/{objectName}"] = bytes;
 
         return $"storage://{key}";
     }
@@ -221,6 +225,11 @@ public class SupabaseStorageProvider : IStorageProvider
                         var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
                         var ms = new MemoryStream();
                         await stream.CopyToAsync(ms, cancellationToken);
+                        var downloadedBytes = ms.ToArray();
+
+                        // Cache in memory store
+                        _memoryStore[key] = downloadedBytes;
+
                         ms.Seek(0, SeekOrigin.Begin);
                         return ms;
                     }
@@ -232,40 +241,7 @@ public class SupabaseStorageProvider : IStorageProvider
             }
         }
 
-        // 2. Check PostgreSQL StorageBlobs table with key normalization fallback
-        if (!string.IsNullOrWhiteSpace(_connectionString))
-        {
-            try
-            {
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync(cancellationToken);
-
-                var possibleKeys = new[]
-                {
-                    $"{targetBucket}/{cleanPath}",
-                    $"images/{cleanPath}",
-                    cleanPath
-                };
-
-                foreach (var k in possibleKeys)
-                {
-                    var sql = @"SELECT ""Data"" FROM ""StorageBlobs"" WHERE ""Key"" = @key LIMIT 1;";
-                    await using var cmd = new NpgsqlCommand(sql, conn);
-                    cmd.Parameters.AddWithValue("key", k);
-                    var result = await cmd.ExecuteScalarAsync(cancellationToken);
-                    if (result is byte[] dbBytes && dbBytes.Length > 0)
-                    {
-                        return new MemoryStream(dbBytes);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "StorageBlobs fallback read failed for {ObjectName}", cleanPath);
-            }
-        }
-
-        // 3. Check local disk cache
+        // 2. Check local disk cache
         try
         {
             var localPath = Path.Combine(_storageDir, key.Replace('/', Path.DirectorySeparatorChar));
@@ -274,6 +250,7 @@ public class SupabaseStorageProvider : IStorageProvider
                 var diskBytes = await File.ReadAllBytesAsync(localPath, cancellationToken);
                 if (diskBytes.Length > 0)
                 {
+                    _memoryStore[key] = diskBytes;
                     return new MemoryStream(diskBytes);
                 }
             }
@@ -315,7 +292,15 @@ public class SupabaseStorageProvider : IStorageProvider
                 var signedPath = node?["signedURL"]?.GetValue<string>();
                 if (!string.IsNullOrWhiteSpace(signedPath))
                 {
-                    return $"{_supabaseUrl}/storage/v1{signedPath}";
+                    if (signedPath.StartsWith("/storage/v1", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return $"{_supabaseUrl}{signedPath}";
+                    }
+                    if (signedPath.StartsWith("/"))
+                    {
+                        return $"{_supabaseUrl}/storage/v1{signedPath}";
+                    }
+                    return $"{_supabaseUrl}/storage/v1/{signedPath}";
                 }
             }
         }
@@ -338,6 +323,7 @@ public class SupabaseStorageProvider : IStorageProvider
 
         _memoryStore.TryRemove(key, out _);
         _memoryStore.TryRemove($"{bucket}/{objectName}", out _);
+
         try
         {
             var localPath = Path.Combine(_storageDir, key.Replace('/', Path.DirectorySeparatorChar));
@@ -353,27 +339,16 @@ public class SupabaseStorageProvider : IStorageProvider
                 using var request = new HttpRequestMessage(HttpMethod.Delete, deleteUrl);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _supabaseKey);
                 request.Headers.Add("apikey", _supabaseKey);
-                await _httpClient.SendAsync(request, cancellationToken);
+                var response = await _httpClient.SendAsync(request, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Supabase Storage delete returned {StatusCode} for {ObjectName}", response.StatusCode, cleanPath);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to delete {ObjectName} from Supabase Storage", cleanPath);
             }
-        }
-
-        if (!string.IsNullOrWhiteSpace(_connectionString))
-        {
-            try
-            {
-                await using var conn = new NpgsqlConnection(_connectionString);
-                await conn.OpenAsync(cancellationToken);
-                var sql = @"DELETE FROM ""StorageBlobs"" WHERE ""Key"" = @key OR ""Key"" = @altKey;";
-                await using var cmd = new NpgsqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("key", key);
-                cmd.Parameters.AddWithValue("altKey", $"images/{cleanPath}");
-                await cmd.ExecuteNonQueryAsync(cancellationToken);
-            }
-            catch { }
         }
     }
 }

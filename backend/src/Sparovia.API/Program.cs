@@ -127,6 +127,15 @@ else
 }
 
 // Storage, Email & SMS
+var storageOptions = Sparovia.Infrastructure.Storage.SupabaseStorageOptions.FromConfiguration(builder.Configuration);
+if (!string.IsNullOrWhiteSpace(storageOptions.Key))
+{
+    Log.Information("Supabase Storage configured for bucket '{Bucket}' at '{Url}'", storageOptions.Bucket, storageOptions.Url);
+}
+else if (builder.Environment.IsProduction())
+{
+    Log.Warning("Supabase Storage credentials (SUPABASE_SERVICE_ROLE_KEY) are missing in Production. Image uploads will require this environment variable.");
+}
 builder.Services.AddHttpClient<IStorageProvider, SupabaseStorageProvider>();
 
 // Phone OTP & SMS Services
