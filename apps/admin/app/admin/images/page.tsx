@@ -17,6 +17,7 @@ import {
   Layers,
   Info,
   Edit3,
+  Globe,
   Image as ImageIcon
 } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
@@ -493,7 +494,6 @@ export default function ImagesPage() {
               size="md"
               onClick={() => openUploadModal()}
               leftIcon={<Upload className="w-4 h-4" />}
-              className="bg-[#F97316] hover:bg-[#EA580C] text-white"
             >
               Add Project Image
             </Button>
@@ -547,9 +547,9 @@ export default function ImagesPage() {
 
       {/* Sticky Bulk Action Toolbar */}
       {selectedImageIds.size > 0 && (
-        <div className="sticky top-20 z-30 p-4 bg-slate-900 dark:bg-slate-800 text-white rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-4 border border-slate-700">
+        <div className="sticky top-20 z-30 p-3.5 sm:p-4 bg-[#172033] dark:bg-[#0F172A] text-white rounded-[8px] shadow-overlay flex flex-wrap items-center justify-between gap-4 border border-[#334155]">
           <div className="flex items-center gap-3">
-            <span className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+            <span className="w-6 h-6 rounded-[4px] bg-[#315FEA] text-white flex items-center justify-center text-xs font-bold shadow-xs">
               {selectedImageIds.size}
             </span>
             <span className="text-sm font-semibold">
@@ -813,14 +813,14 @@ export default function ImagesPage() {
       {!loading && !error && activeTab === 'explore' && (
         <div className="space-y-6">
           {exploreImages.length === 0 ? (
-            <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-8 sm:p-12 text-center shadow-sm">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto mb-4 border border-blue-100 dark:border-blue-900/50">
-                <Sparkles className="w-7 h-7" />
+            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-8 sm:p-12 text-center shadow-xs">
+              <div className="w-12 h-12 rounded-[8px] bg-blue-50 dark:bg-blue-950/40 text-[#315FEA] dark:text-blue-400 flex items-center justify-center mx-auto mb-4 border border-blue-100 dark:border-blue-900/50">
+                <Sparkles className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              <h3 className="text-base font-bold text-[#172033] dark:text-white">
                 Showcase your work
               </h3>
-              <p className="text-sm text-slate-500 dark:text-[#94A3B8] max-w-md mx-auto mt-1.5">
+              <p className="text-xs sm:text-sm text-[#475569] dark:text-[#94A3B8] max-w-md mx-auto mt-1.5 leading-relaxed">
                 Add genuine photos of your completed projects, architectural cabinetry, and installations to display on your public website portfolio.
               </p>
               <div className="mt-6">
@@ -830,7 +830,6 @@ export default function ImagesPage() {
                   size="md"
                   onClick={() => openUploadModal()}
                   leftIcon={<Upload className="w-4 h-4" />}
-                  className="bg-[#F97316] hover:bg-[#EA580C] text-white"
                 >
                   Add Project Image
                 </Button>
@@ -839,15 +838,16 @@ export default function ImagesPage() {
           ) : (
             <>
               {/* Category Filter Pills and Controls */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 bg-white dark:bg-[#0F172A] p-3 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs">
+                {/* Category Filter Buttons */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 max-w-full">
                   <button
                     type="button"
                     onClick={() => setCategoryFilter('All')}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+                    className={`px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-colors border ${
                       categoryFilter === 'All'
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'bg-white dark:bg-[#0F172A] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#1E293B] hover:border-blue-400'
+                        ? 'bg-[#315FEA] text-white border-[#315FEA] shadow-xs'
+                        : 'bg-[#F3F6FA] dark:bg-[#1E293B] text-[#475569] dark:text-[#94A3B8] border-[#E3E7ED] dark:border-[#334155] hover:border-[#315FEA] hover:text-[#172033] dark:hover:text-white'
                     }`}
                   >
                     All ({exploreImages.length})
@@ -863,15 +863,16 @@ export default function ImagesPage() {
                       const catCount = exploreImages.filter(
                         (img) => img.category?.trim().toLowerCase() === cat.name.trim().toLowerCase()
                       ).length;
+                      const isActive = categoryFilter.toLowerCase() === cat.name.toLowerCase();
                       return (
                         <button
                           key={cat.id}
                           type="button"
                           onClick={() => setCategoryFilter(cat.name)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-                            categoryFilter.toLowerCase() === cat.name.toLowerCase()
-                              ? 'bg-blue-600 text-white shadow-xs'
-                              : 'bg-white dark:bg-[#0F172A] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#1E293B] hover:border-blue-400'
+                          className={`px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-colors border ${
+                            isActive
+                              ? 'bg-[#315FEA] text-white border-[#315FEA] shadow-xs'
+                              : 'bg-[#F3F6FA] dark:bg-[#1E293B] text-[#475569] dark:text-[#94A3B8] border-[#E3E7ED] dark:border-[#334155] hover:border-[#315FEA] hover:text-[#172033] dark:hover:text-white'
                           }`}
                         >
                           {cat.name} ({catCount})
@@ -880,16 +881,16 @@ export default function ImagesPage() {
                     })}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {/* Search input */}
-                  <div className="relative w-48 sm:w-60">
-                    <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400 pointer-events-none" />
+                {/* Search & Selection Controls */}
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <div className="relative w-full sm:w-60">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#475569] dark:text-slate-400 pointer-events-none" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search projects..."
-                      className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-8 pr-3 py-1.5 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#315FEA] h-9"
                     />
                   </div>
 
@@ -899,6 +900,7 @@ export default function ImagesPage() {
                       variant="outline"
                       size="sm"
                       onClick={toggleSelectAll}
+                      className="whitespace-nowrap"
                     >
                       {isAllSelected ? 'Deselect All' : `Select All (${displayedExploreImages.length})`}
                     </Button>
@@ -907,166 +909,202 @@ export default function ImagesPage() {
               </div>
 
               {displayedExploreImages.length === 0 ? (
-                <div className="p-8 text-center bg-white dark:bg-[#0F172A] rounded-2xl border border-slate-200 dark:border-[#1E293B]">
-                  <p className="text-sm text-slate-500">No project images found in &quot;{categoryFilter}&quot;.</p>
+                <div className="p-8 text-center bg-white dark:bg-[#0F172A] rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs">
+                  <p className="text-xs sm:text-sm text-[#475569] dark:text-[#94A3B8]">
+                    No project images found in &quot;{categoryFilter}&quot;{searchQuery ? ` matching "${searchQuery}"` : ''}.
+                  </p>
                   <button
                     type="button"
                     onClick={() => {
                       setCategoryFilter('All');
                       setSearchQuery('');
                     }}
-                    className="mt-2 text-xs text-blue-600 font-semibold hover:underline"
+                    className="mt-2 text-xs text-[#315FEA] font-semibold hover:underline"
                   >
                     View all projects ({exploreImages.length})
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                  {displayedExploreImages.map((image) => (
-                    <div
-                      key={image.id}
-                      className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between group"
-                    >
-                      {/* Image Thumbnail with Overlay Badges */}
-                      <div className="relative aspect-video bg-slate-950 overflow-hidden">
-                        {/* Checkbox */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleSelectImage(image.id);
-                          }}
-                          className={`absolute top-2.5 left-2.5 z-20 w-6 h-6 rounded-md border flex items-center justify-center transition-all ${
-                            selectedImageIds.has(image.id)
-                              ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                              : 'bg-white/80 dark:bg-slate-900/80 border-slate-300 dark:border-slate-600 text-transparent hover:border-blue-500 backdrop-blur-xs'
-                          }`}
-                          aria-label="Select image"
-                        >
-                          <Check className="w-4 h-4 stroke-[3]" />
-                        </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 sm:gap-6">
+                  {displayedExploreImages.map((image) => {
+                    const isSelected = selectedImageIds.has(image.id);
+                    const isPublished = image.status === 'Published';
+                    const isApproved = image.status === 'Approved';
 
-                        {/* Image Preview */}
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={resolveImageUrl(image.previewUrl)}
-                          alt={image.projectWorkName || 'Project work photo'}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
-                          onClick={() => openPreviewModal(image)}
-                        />
-
-                        {/* Top-Right Badges */}
-                        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
-                          {image.category && (
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-900/80 text-white backdrop-blur-xs">
-                              {image.category}
-                            </span>
-                          )}
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-xs ${
-                              image.status === 'Published'
-                                ? 'bg-emerald-500/90 text-white'
-                                : image.status === 'Approved'
-                                ? 'bg-blue-500/90 text-white'
-                                : 'bg-slate-700/90 text-white'
-                            }`}
-                          >
-                            {image.status}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Card Details */}
-                      <div className="p-4 sm:p-5 space-y-2 flex-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <h4 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">
-                            {image.projectWorkName || 'Untitled Project'}
-                          </h4>
+                    return (
+                      <div
+                        key={image.id}
+                        className={`bg-white dark:bg-[#0F172A] border rounded-[8px] overflow-hidden shadow-xs hover:shadow-subtle transition-all duration-200 flex flex-col justify-between group ${
+                          isSelected
+                            ? 'border-[#315FEA] ring-1 ring-[#315FEA]/40'
+                            : 'border-[#CBD5E1] dark:border-[#1E293B] hover:border-[#315FEA]/70'
+                        }`}
+                      >
+                        {/* Image Thumbnail with Overlay Badges */}
+                        <div className="relative aspect-[16/10] bg-[#172033]/5 dark:bg-slate-900 overflow-hidden border-b border-[#E3E7ED] dark:border-[#1E293B]">
+                          {/* Checkbox */}
                           <button
                             type="button"
-                            onClick={() => openEditModal(image)}
-                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
-                            title="Edit Project Details"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSelectImage(image.id);
+                            }}
+                            className={`absolute top-2.5 left-2.5 z-20 w-6 h-6 rounded-[4px] border flex items-center justify-center transition-all ${
+                              isSelected
+                                ? 'bg-[#315FEA] border-[#315FEA] text-white shadow-xs'
+                                : 'bg-white/90 dark:bg-slate-900/90 border-[#CBD5E1] dark:border-slate-600 text-transparent hover:border-[#315FEA] backdrop-blur-xs'
+                            }`}
+                            aria-label={isSelected ? 'Deselect project image' : 'Select project image'}
                           >
-                            <Edit3 className="w-3.5 h-3.5" />
+                            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                           </button>
+
+                          {/* Image Preview */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={resolveImageUrl(image.previewUrl)}
+                            alt={image.projectWorkName || 'Project work photo'}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-102 cursor-pointer"
+                            onClick={() => openPreviewModal(image)}
+                          />
+
+                          {/* Top-Right Badges */}
+                          <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10 pointer-events-none">
+                            {image.category && (
+                              <span className="px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-[#172033]/85 text-white backdrop-blur-xs tracking-wide">
+                                {image.category}
+                              </span>
+                            )}
+                            <span
+                              className={`px-2 py-0.5 rounded-[4px] text-[10px] font-bold tracking-wider uppercase border backdrop-blur-xs flex items-center gap-1 ${
+                                isPublished
+                                  ? 'bg-emerald-50/95 text-[#15803D] border-emerald-200 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800'
+                                  : isApproved
+                                  ? 'bg-blue-50/95 text-[#1D4ED8] border-blue-200 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800'
+                                  : 'bg-slate-100/95 text-[#475569] border-slate-200 dark:bg-slate-800/90 dark:text-slate-300 dark:border-slate-700'
+                              }`}
+                            >
+                              {isPublished && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#15803D]" />
+                              )}
+                              {image.status}
+                            </span>
+                          </div>
                         </div>
 
-                        {image.caption ? (
-                          <p className="text-xs text-slate-500 dark:text-[#94A3B8] line-clamp-2 leading-relaxed">
-                            {image.caption}
-                          </p>
-                        ) : (
-                          <p className="text-xs text-slate-400 italic">No caption provided.</p>
-                        )}
+                        {/* Card Details */}
+                        <div className="p-4 space-y-2.5 flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-start justify-between gap-2">
+                              <h4
+                                className="text-sm font-semibold text-[#172033] dark:text-white line-clamp-1"
+                                title={image.projectWorkName || 'Untitled Project'}
+                              >
+                                {image.projectWorkName || 'Untitled Project'}
+                              </h4>
+                              <button
+                                type="button"
+                                onClick={() => openEditModal(image)}
+                                className="text-[#475569] hover:text-[#315FEA] dark:text-slate-400 dark:hover:text-blue-400 p-1 rounded-[4px] transition-colors shrink-0"
+                                title="Edit Project Details"
+                                aria-label={`Edit metadata for ${image.projectWorkName || 'project'}`}
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
 
-                        <div className="text-[11px] text-slate-400 pt-2 flex items-center justify-between">
-                          <span>
-                            {image.width} × {image.height} px
-                          </span>
-                          <span>{formatFileSize(image.fileSize)}</span>
+                            <div className="min-h-[2.25rem] mt-1">
+                              {image.caption ? (
+                                <p
+                                  className="text-xs text-[#475569] dark:text-[#94A3B8] line-clamp-2 leading-relaxed"
+                                  title={image.caption}
+                                >
+                                  {image.caption}
+                                </p>
+                              ) : (
+                                <p className="text-xs text-slate-400 dark:text-slate-500 italic">No description provided.</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="text-[11px] font-mono text-[#475569] dark:text-[#94A3B8] pt-2 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-between">
+                            <span>
+                              {image.width && image.height ? `${image.width} × ${image.height} px` : '—'}
+                            </span>
+                            <span>{formatFileSize(image.fileSize)}</span>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Card Actions Footer */}
-                      <div className="p-4 pt-3 flex items-center justify-between gap-2 border-t border-slate-100 dark:border-[#1E293B]/60 mt-auto">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="enhance"
-                            size="sm"
-                            onClick={() => handleOpenStudio(image)}
-                            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
-                            className="bg-[#F97316] hover:bg-[#EA580C] text-white"
-                          >
-                            Enhance
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => openUploadModal(undefined, image)}
-                            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-                          >
-                            Replace
-                          </Button>
-                          {image.status !== 'Published' ? (
+                        {/* Card Actions Footer */}
+                        <div className="p-3.5 pt-3 border-t border-[#E3E7ED] dark:border-[#1E293B] bg-[#F8FAFC] dark:bg-[#0B132B]/40 space-y-2 mt-auto">
+                          {/* Row 1: Workflow Actions (Enhance & Publish / Unpublish) */}
+                          <div className="grid grid-cols-2 gap-2">
                             <Button
                               type="button"
-                              variant="primary"
+                              variant="secondary"
                               size="sm"
-                              onClick={() => handlePublishImage(image)}
-                              className="bg-[#F97316] hover:bg-[#EA580C] text-white"
+                              onClick={() => handleOpenStudio(image)}
+                              leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#315FEA] dark:text-blue-400" />}
+                              className="w-full justify-center text-xs font-semibold"
+                              title="Open Image Studio for enhancement"
                             >
-                              Publish
+                              Enhance
                             </Button>
-                          ) : (
+                            {!isPublished ? (
+                              <Button
+                                type="button"
+                                variant="primary"
+                                size="sm"
+                                onClick={() => handlePublishImage(image)}
+                                leftIcon={<Globe className="w-3.5 h-3.5" />}
+                                className="w-full justify-center text-xs font-semibold"
+                                title="Publish to public portfolio"
+                              >
+                                Publish
+                              </Button>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUnpublishImage(image)}
+                                className="w-full justify-center text-xs font-medium text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
+                                title="Remove from public website"
+                              >
+                                Unpublish
+                              </Button>
+                            )}
+                          </div>
+
+                          {/* Row 2: Asset Maintenance Actions (Replace & Delete) */}
+                          <div className="flex items-center gap-2">
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={() => handleUnpublishImage(image)}
-                              className="text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
+                              onClick={() => openUploadModal(undefined, image)}
+                              leftIcon={<RefreshCw className="w-3.5 h-3.5 text-[#475569] dark:text-slate-400" />}
+                              className="flex-1 justify-center text-xs text-[#475569] hover:text-[#172033] dark:text-slate-300 dark:hover:text-white"
+                              title="Replace image file"
                             >
-                              Unpublish
+                              Replace
                             </Button>
-                          )}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => openRemoveModal(image)}
+                              aria-label="Delete project image"
+                              title="Delete image from media library"
+                              className="text-[#475569] hover:text-[#B91C1C] hover:bg-rose-50 dark:text-slate-400 dark:hover:text-rose-400 dark:hover:bg-rose-950/30 shrink-0"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
                         </div>
-
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => openRemoveModal(image)}
-                          aria-label="Delete image"
-                          title="Delete image"
-                          className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </>
@@ -1182,7 +1220,6 @@ export default function ImagesPage() {
                   isLoading={publishing}
                   loadingText="Publishing..."
                   onClick={() => handlePublishImage(previewImage)}
-                  className="bg-[#F97316] hover:bg-[#EA580C] text-white"
                 >
                   Publish to Website
                 </Button>
