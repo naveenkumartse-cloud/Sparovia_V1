@@ -784,7 +784,7 @@ public class WebsiteImageService : IWebsiteImageService
         {
             Success = true,
             Image = MapToDto(image),
-            Variant = targetVariant != null ? MapVariantDto(targetVariant) : null
+            Variant = targetVariant != null ? MapVariantDto(targetVariant, image.TenantId) : null
         };
     }
 
@@ -1439,7 +1439,7 @@ public class WebsiteImageService : IWebsiteImageService
             {
                 Success = true,
                 Image = variant.Image != null ? MapToDto(variant.Image) : null,
-                Variant = MapVariantDto(variant)
+                Variant = MapVariantDto(variant, tenantId)
             };
         }
 
@@ -1467,7 +1467,7 @@ public class WebsiteImageService : IWebsiteImageService
         {
             Success = true,
             Image = variant.Image != null ? MapToDto(variant.Image) : null,
-            Variant = MapVariantDto(variant)
+            Variant = MapVariantDto(variant, tenantId)
         };
     }
 
@@ -2408,6 +2408,10 @@ public class WebsiteImageService : IWebsiteImageService
     private ImageVariantDto MapVariantDto(ImageVariant variant, Guid? tenantId = null)
     {
         var tid = tenantId ?? variant.Image?.TenantId ?? Guid.Empty;
+        if (tid == Guid.Empty && variant.ImageId != Guid.Empty)
+        {
+            tid = _dbContext.Images.AsNoTracking().Where(i => i.Id == variant.ImageId).Select(i => i.TenantId).FirstOrDefault();
+        }
         return new ImageVariantDto
         {
             Id = variant.Id,

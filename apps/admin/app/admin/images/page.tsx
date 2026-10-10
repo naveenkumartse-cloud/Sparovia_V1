@@ -591,17 +591,6 @@ export default function ImagesPage() {
       {/* TAB 1: WEBSITE IMAGES (Four Large Columns Desktop Layout) */}
       {!loading && !error && activeTab === 'website' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Homepage Key Sections
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">
-                Assigned images appear in high-visibility showcase sections of your website.
-              </p>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {WEBSITE_SLOTS.map((slot) => {
               const assignedImage = websiteImages.find(
@@ -799,25 +788,32 @@ export default function ImagesPage() {
                   >
                     All ({exploreImages.length})
                   </button>
-                  {categories.map((cat) => {
-                    const catCount = exploreImages.filter(
-                      (img) => img.category?.trim().toLowerCase() === cat.name.trim().toLowerCase()
-                    ).length;
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setCategoryFilter(cat.name)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-                          categoryFilter.toLowerCase() === cat.name.toLowerCase()
-                            ? 'bg-blue-600 text-white shadow-xs'
-                            : 'bg-white dark:bg-[#0F172A] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#1E293B] hover:border-blue-400'
-                        }`}
-                      >
-                        {cat.name} ({catCount})
-                      </button>
-                    );
-                  })}
+                  {categories
+                    .filter((cat) => {
+                      const catCount = exploreImages.filter(
+                        (img) => img.category?.trim().toLowerCase() === cat.name.trim().toLowerCase()
+                      ).length;
+                      return catCount > 0 || categoryFilter.toLowerCase() === cat.name.toLowerCase();
+                    })
+                    .map((cat) => {
+                      const catCount = exploreImages.filter(
+                        (img) => img.category?.trim().toLowerCase() === cat.name.trim().toLowerCase()
+                      ).length;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setCategoryFilter(cat.name)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+                            categoryFilter.toLowerCase() === cat.name.toLowerCase()
+                              ? 'bg-blue-600 text-white shadow-xs'
+                              : 'bg-white dark:bg-[#0F172A] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#1E293B] hover:border-blue-400'
+                          }`}
+                        >
+                          {cat.name} ({catCount})
+                        </button>
+                      );
+                    })}
                 </div>
 
                 <div className="flex items-center gap-2">

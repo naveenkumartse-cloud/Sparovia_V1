@@ -890,10 +890,13 @@ export function ImageStudioWorkspace({
                   Select an adaptive enhancement operation calibrated for architectural & project photography:
                 </p>
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1.5">
                   {APPROVED_OPERATIONS.map((op) => {
                     const isSelected = selectedOp === op.id;
                     const IconComp = op.icon;
+                    const hasVariant = currentImage?.variants?.some(
+                      (v) => v.operation?.toLowerCase() === op.id.toLowerCase() && v.status !== 'Rejected'
+                    );
                     return (
                       <button
                         key={op.id}
@@ -902,52 +905,66 @@ export function ImageStudioWorkspace({
                         aria-checked={isSelected}
                         aria-label={op.name}
                         onClick={() => handleSelectOp(op.id)}
-                        className={`text-left p-2.5 rounded-[6px] border transition-all text-xs flex items-start gap-2.5 focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8] ${
+                        className={`text-left px-3 py-2 rounded-[6px] border transition-all text-xs flex items-center justify-between gap-2.5 focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8] ${
                           isSelected
                             ? 'bg-[#315FEA]/5 border-[#315FEA] text-[#172033] dark:text-white shadow-xs'
                             : 'bg-white dark:bg-[#1E293B] border-[#E3E7ED] dark:border-[#334155] text-[#475569] dark:text-slate-300 hover:border-[#CBD5E1]'
                         }`}
                       >
-                        <div
-                          className={`w-6 h-6 rounded-[4px] flex items-center justify-center shrink-0 mt-0.5 ${
-                            isSelected
-                              ? 'bg-[#315FEA] text-white'
-                              : 'bg-[#F3F6FA] dark:bg-[#0B1220] text-[#475569] dark:text-slate-400'
-                          }`}
-                        >
-                          <IconComp className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold text-xs text-[#172033] dark:text-white">
-                              {op.name}
-                            </span>
-                            {isSelected && (
-                              <Check className="w-3.5 h-3.5 text-[#315FEA] shrink-0" />
-                            )}
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-6 h-6 rounded-[4px] flex items-center justify-center shrink-0 ${
+                              isSelected
+                                ? 'bg-[#315FEA] text-white'
+                                : 'bg-[#F3F6FA] dark:bg-[#0B1220] text-[#475569] dark:text-slate-400'
+                            }`}
+                          >
+                            <IconComp className="w-3.5 h-3.5" />
                           </div>
-                          <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-0.5 line-clamp-2">
-                            {op.description}
-                          </p>
+                          <span className="font-semibold text-xs text-[#172033] dark:text-white truncate">
+                            {op.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {hasVariant && (
+                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-[3px] bg-emerald-50 text-[#15803D] border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800">
+                              Ready
+                            </span>
+                          )}
+                          {isSelected && (
+                            <Check className="w-3.5 h-3.5 text-[#315FEA] shrink-0" />
+                          )}
                         </div>
                       </button>
                     );
                   })}
                 </div>
 
-                <div className="mt-3">
+                {/* Active Selected Operation Details & Execution Card */}
+                <div className="mt-3 p-3 bg-white dark:bg-[#1E293B]/70 rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-[#172033] dark:text-white">
+                      {selectedOpDef.name}
+                    </span>
+                    <span className="text-[10px] text-[#475569] dark:text-[#94A3B8]">
+                      {selectedOpDef.tagline}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
+                    {selectedOpDef.description}
+                  </p>
                   <Button
                     variant="primary"
                     size="md"
-                    className="w-full justify-center"
+                    className="w-full justify-center mt-1"
                     isLoading={isProcessing}
                     loadingText={`Enhancing with ${selectedOpDef.name}...`}
                     onClick={handleRunEnhancement}
                     leftIcon={<Sparkles className="w-4 h-4" />}
                   >
-                    Execute {selectedOpDef.name}
+                    {matchingVariant ? `Re-execute ${selectedOpDef.name}` : `Execute ${selectedOpDef.name}`}
                   </Button>
-                  <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] text-center mt-1.5">
+                  <p className="text-[10px] text-[#475569] dark:text-[#94A3B8] text-center">
                     Original image remains strictly immutable on secure private storage.
                   </p>
                 </div>
