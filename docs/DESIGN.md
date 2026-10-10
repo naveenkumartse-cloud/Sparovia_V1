@@ -51,6 +51,7 @@ The following values are locked by the latest explicit theme approval.
 | `color.status.warning` | `#B45309` | Warning feedback |
 | `color.status.error` | `#B91C1C` | Error and danger feedback |
 | `color.status.info` | `#1D4ED8` | Informational feedback |
+| `color.integration.whatsapp` | `#25D366` | Reserved strictly for WhatsApp channel indicators |
 
 ### Color usage rules
 
@@ -62,10 +63,11 @@ The following values are locked by the latest explicit theme approval.
 6. Do not introduce additional palette colors without approval.
 7. Do not claim WCAG conformance until actual foreground/background and non-text combinations have been tested.
 8. The approved logo gradient is a specific exception documented in Section 7. It does not authorize other gradients.
+9. WhatsApp green (`#25D366`) is reserved strictly for WhatsApp channel indicators and badges; it must never be used as a general Sparovia brand color.
 
-### Legacy palette conflict
+### Historical palette migration
 
-An older `PILOT_V1_SPAROVIA_THEME.md` project file contains a previous palette, including orange primary CTA and different blue/purple values. The Editorial Cobalt palette above reflects the later, explicitly approved theme decisions recorded during the design approval workflow. This document records that later decision; it does not modify the older source file. Before implementation, reconcile the legacy document and existing code with this approved specification under explicit change control.
+The legacy specification `PILOT_V1_SPAROVIA_THEME.md` (which contained a previous palette with an orange primary CTA `#FF7043`, dark navy `#0B1220`, and legacy blue/purple accents) has been retired and removed from active documentation. The Editorial Cobalt palette above is the canonical, locked visual design authority for Sparovia's brand and platform UI. The valid requirement from the legacy specification reserving WhatsApp Green (`#25D366`) strictly for WhatsApp channel integrations has been incorporated into this design system.
 
 ## 4. Typography
 
@@ -302,7 +304,7 @@ When implementing, inspect the repository and identify the actual token source b
 - A change to a locked token or rule requires explicit product-owner approval and an update to the decision register.
 - Keep the theme specification separate from the implementation plan.
 - Do not claim that the theme is implemented or verified until the relevant code changes and checks have actually been completed.
-- Before implementation, reconcile the legacy theme document and existing code with this approved specification.
+- The legacy theme specification has been reconciled and retired; `DESIGN.md` serves as the authoritative visual baseline.
 - The next workflow phase is implementation planning. Implementation itself requires separate explicit authorization.
 
 ---

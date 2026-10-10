@@ -30,6 +30,8 @@ The model covers only the Pilot V1 scope:
 
 The model intentionally excludes future platform complexity.
 
+*(For the Image Quality Studio rebuild prompt, variant lifecycle, and adaptive enhancement operations, refer to [`BUILD_IMAGE_STUDIO_REBUILD.md`](BUILD_IMAGE_STUDIO_REBUILD.md). For platform visual design tokens, refer to [`DESIGN.md`](DESIGN.md).)*
+
 ---
 
 # 2. Domain Principles

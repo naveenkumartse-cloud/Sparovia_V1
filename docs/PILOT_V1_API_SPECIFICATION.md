@@ -34,6 +34,8 @@ It specifies:
 
 The API is intentionally limited to Pilot V1 capabilities.
 
+*(For detailed implementation guidelines and DTO integration for the Image Quality Studio rebuild, refer to [`BUILD_IMAGE_STUDIO_REBUILD.md`](BUILD_IMAGE_STUDIO_REBUILD.md). For platform visual design tokens, refer to [`DESIGN.md`](DESIGN.md).)*
+
 ---
 
 # 2. API Design Principles

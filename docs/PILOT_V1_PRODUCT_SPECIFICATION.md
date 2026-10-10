@@ -233,6 +233,8 @@ AI must not:
 
 The original image is always preserved.
 
+*(For detailed implementation requirements for the Image Quality Studio rebuild, refer to [`BUILD_IMAGE_STUDIO_REBUILD.md`](BUILD_IMAGE_STUDIO_REBUILD.md). Visual presentation follows [`DESIGN.md`](DESIGN.md).)*
+
 ---
 
 ### 3.7 Image Review and Approval
@@ -1180,6 +1182,17 @@ If an implementation question is not covered here:
 3. Preserve original data and safe failure behavior.
 4. Avoid introducing excluded platform complexity.
 5. Record genuinely unresolved decisions separately rather than silently expanding scope.
+
+### Canonical Document Relationships
+
+- **Visual Design Authority:** [`DESIGN.md`](DESIGN.md) (Editorial Cobalt design system and UI tokens)
+- **Image Studio Rebuild Prompt:** [`BUILD_IMAGE_STUDIO_REBUILD.md`](BUILD_IMAGE_STUDIO_REBUILD.md) (Image Quality Studio UI and adaptive processing rebuild)
+- **Domain Data Model:** [`PILOT_V1_DOMAIN_DATA_MODEL.md`](PILOT_V1_DOMAIN_DATA_MODEL.md) (Entities, invariants, and lifecycle rules)
+- **API Specification:** [`PILOT_V1_API_SPECIFICATION.md`](PILOT_V1_API_SPECIFICATION.md) (REST contracts and DTO schemas)
+- **UX & Screen Specification:** [`PILOT_V1_UX_SCREEN_SPECIFICATION.md`](PILOT_V1_UX_SCREEN_SPECIFICATION.md) (Screen structure and user journeys)
+- **Implementation Plan:** [`PILOT_V1_IMPLEMENTATION_PLAN.md`](PILOT_V1_IMPLEMENTATION_PLAN.md) (Phases, dependencies, and testing)
+
+*(Historical note: Legacy specifications `PILOT_V1_SPAROVIA_THEME.md` and `PILOT_V1_AI_IMAGE_SPECIFICATION.md` have been retired and superseded.)*
 
 **Pilot V1 status: 🔒 LOCKED FOR IMPLEMENTATION**
 

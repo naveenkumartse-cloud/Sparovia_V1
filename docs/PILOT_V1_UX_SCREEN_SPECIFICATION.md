@@ -33,6 +33,8 @@ It specifies:
 
 This document does not define database implementation, API contracts, infrastructure, or provider-specific implementation.
 
+*(Visual presentation and tokens follow [`DESIGN.md`](DESIGN.md). Detailed Image Quality Studio rebuild and before/after comparison controls follow [`BUILD_IMAGE_STUDIO_REBUILD.md`](BUILD_IMAGE_STUDIO_REBUILD.md).)*
+
 ---
 
 # 2. UX Principles
@@ -1064,6 +1066,8 @@ Web Optimize
 ```
 
 Each option should include concise `ⓘ` guidance where needed.
+ 
+*(For the full implementation specification of the Image Quality Studio rebuild, including responsive side-by-side / slider comparison and deterministic metadata, refer to [`BUILD_IMAGE_STUDIO_REBUILD.md`](BUILD_IMAGE_STUDIO_REBUILD.md).)*
 
 ---
 

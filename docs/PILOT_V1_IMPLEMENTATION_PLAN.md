@@ -12,7 +12,7 @@
 
 This document is the implementation authority for Sparovia Client Pilot V1.
 
-It converts the approved Pilot V1 product, UX, domain, API, security, and AI/image specifications into an executable engineering plan.
+It converts the approved Pilot V1 product ([`PILOT_V1_PRODUCT_SPECIFICATION.md`](PILOT_V1_PRODUCT_SPECIFICATION.md)), UX ([`PILOT_V1_UX_SCREEN_SPECIFICATION.md`](PILOT_V1_UX_SCREEN_SPECIFICATION.md)), domain ([`PILOT_V1_DOMAIN_DATA_MODEL.md`](PILOT_V1_DOMAIN_DATA_MODEL.md)), API ([`PILOT_V1_API_SPECIFICATION.md`](PILOT_V1_API_SPECIFICATION.md)), visual design ([`DESIGN.md`](DESIGN.md)), and Image Studio rebuild prompt ([`BUILD_IMAGE_STUDIO_REBUILD.md`](BUILD_IMAGE_STUDIO_REBUILD.md)) into an executable engineering plan.
 
 The implementation must prioritize:
 
@@ -643,6 +643,8 @@ Do not treat unsupported AI output as business truth.
 ## Objective
 
 Allow clients to improve their existing images without changing what the image represents.
+
+*(Canonical Implementation Authority: Refer to [`BUILD_IMAGE_STUDIO_REBUILD.md`](BUILD_IMAGE_STUDIO_REBUILD.md) for the approved Image Quality Studio rebuild prompt, adaptive deterministic enhancement pipeline, and before/after review workspace. Visual presentation adheres strictly to the Editorial Cobalt design system in [`DESIGN.md`](DESIGN.md).)*
 
 ## Supported Operations
 
@@ -1301,6 +1303,7 @@ Test:
 * Optimization
 * Storage failure
 * Processing failure
+* Benchmark suite regression (see 30-image benchmark suite in [`BUILD_IMAGE_STUDIO_REBUILD.md`](BUILD_IMAGE_STUDIO_REBUILD.md))
 
 ---
 

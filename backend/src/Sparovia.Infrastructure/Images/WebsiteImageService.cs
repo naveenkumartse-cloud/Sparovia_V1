@@ -2423,15 +2423,81 @@ public class WebsiteImageService : IWebsiteImageService
                 : $"/api/v1/website/images/{variant.ImageId}/variants/{variant.Id}/file",
             CreatedAt = variant.CreatedAt,
             AlgorithmVersion = "1.0.0-deterministic",
-            AppliedCorrections = (variant.VariantType == "QualityStudio" || (variant.Operation != null && variant.Operation.StartsWith("QualityStudio")))
-                ? new List<string>
-                {
-                    "Highlights protected against blow-out",
-                    "Tonal contrast and clarity balanced",
-                    "Controlled edge sharpness applied",
-                    "Authentic material colors preserved"
-                }
-                : new List<string>()
+            EffectiveProfile = variant.Operation ?? (variant.VariantType == "QualityStudio" ? "Balanced" : "Adaptive"),
+            AppliedCorrections = GetAppliedCorrectionsForOperation(variant.Operation, variant.VariantType)
         };
+    }
+
+    private static List<string> GetAppliedCorrectionsForOperation(string? operation, string variantType)
+    {
+        var op = operation?.Trim() ?? "";
+        if (op.Equals("ImproveClarity", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string>
+            {
+                "Tonal contrast expanded to remove haze",
+                "Natural edge sharpness enhanced",
+                "Authentic material colors preserved"
+            };
+        }
+        if (op.Equals("ImproveSharpness", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string>
+            {
+                "Controlled edge sharpness applied without halos",
+                "Structural edge definition refined"
+            };
+        }
+        if (op.Equals("ReduceNoise", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string>
+            {
+                "Texture-aware noise reduction applied",
+                "Subtle tonal smoothing preserving material grain"
+            };
+        }
+        if (op.Equals("Upscale", StringComparison.OrdinalIgnoreCase) || op.Equals("UpscaleResolution", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string>
+            {
+                "High-quality resolution interpolation applied",
+                "Edge definition refined for high-DPI display"
+            };
+        }
+        if (op.Equals("ClassicLook", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string>
+            {
+                "Subtle organic tone mapping applied",
+                "Natural warmth and balanced contrast refined"
+            };
+        }
+        if (op.Equals("ModernLook", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string>
+            {
+                "Contemporary architectural contrast applied",
+                "Crisp clarity and authentic color fidelity enhanced"
+            };
+        }
+        if (op.Equals("WebOptimize", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string>
+            {
+                "Optimized for fast web delivery",
+                "Modern WebP compression applied"
+            };
+        }
+        if (variantType == "QualityStudio" || op.StartsWith("QualityStudio", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string>
+            {
+                "Highlights protected against blow-out",
+                "Tonal contrast and clarity balanced",
+                "Controlled edge sharpness applied",
+                "Authentic material colors preserved"
+            };
+        }
+        return new List<string>();
     }
 }
