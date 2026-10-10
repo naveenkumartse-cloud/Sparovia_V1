@@ -1014,6 +1014,7 @@ public class ReplaceImageForm
         Guid id,
         [FromQuery] string? sig = null,
         [FromQuery] long? exp = null,
+        [FromQuery] string? token = null,
         CancellationToken cancellationToken = default)
     {
         // 1. Try authenticated tenant session (supports both JWT Bearer and Cookie)
@@ -1030,6 +1031,25 @@ public class ReplaceImageForm
         else if (User.FindFirst("TenantId")?.Value is string tStr && Guid.TryParse(tStr, out var uTenantId))
         {
             tenantId = uTenantId;
+        }
+
+        // 1b. Check query token if not authenticated
+        if (tenantId == null && !string.IsNullOrWhiteSpace(token))
+        {
+            try
+            {
+                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                if (handler.CanReadToken(token))
+                {
+                    var jwt = handler.ReadJwtToken(token);
+                    var tClaim = jwt.Claims.FirstOrDefault(c => c.Type == "TenantId" || c.Type == "tenant_id")?.Value;
+                    if (Guid.TryParse(tClaim, out var tokenTenantId))
+                    {
+                        tenantId = tokenTenantId;
+                    }
+                }
+            }
+            catch { }
         }
 
         // 2. Validate HMAC signed URL if provided
@@ -1069,6 +1089,7 @@ public class ReplaceImageForm
         Guid variantId,
         [FromQuery] string? sig = null,
         [FromQuery] long? exp = null,
+        [FromQuery] string? token = null,
         CancellationToken cancellationToken = default)
     {
         Guid? tenantId = null;
@@ -1084,6 +1105,24 @@ public class ReplaceImageForm
         else if (User.FindFirst("TenantId")?.Value is string tStr && Guid.TryParse(tStr, out var uTenantId))
         {
             tenantId = uTenantId;
+        }
+
+        if (tenantId == null && !string.IsNullOrWhiteSpace(token))
+        {
+            try
+            {
+                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                if (handler.CanReadToken(token))
+                {
+                    var jwt = handler.ReadJwtToken(token);
+                    var tClaim = jwt.Claims.FirstOrDefault(c => c.Type == "TenantId" || c.Type == "tenant_id")?.Value;
+                    if (Guid.TryParse(tClaim, out var tokenTenantId))
+                    {
+                        tenantId = tokenTenantId;
+                    }
+                }
+            }
+            catch { }
         }
 
         if (tenantId == null && !string.IsNullOrWhiteSpace(sig) && exp.HasValue)

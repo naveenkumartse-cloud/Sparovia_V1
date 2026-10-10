@@ -62,13 +62,34 @@ const WEBSITE_SLOTS = [
 ];
 
 function resolveImageUrl(url: string | null | undefined): string {
-  if (!url) return '';
+  if (!url || typeof url !== 'string') return '';
   if (url.startsWith('blob:') || url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) {
     return url;
   }
-  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5043/api/v1';
+  const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  let apiBase: string;
+  if (envUrl && envUrl.trim()) {
+    apiBase = envUrl.trim();
+  } else if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    apiBase = 'https://sparovia-api.onrender.com/api/v1';
+  } else {
+    apiBase = 'http://localhost:5043/api/v1';
+  }
   const origin = apiBase.replace(/\/api\/v1\/?$/, '');
-  return `${origin}${url.startsWith('/') ? '' : '/'}${url}`;
+  let fullUrl = `${origin}${url.startsWith('/') ? '' : '/'}${url}`;
+
+  // If client has an accessToken in localStorage and the URL is a relative /api/v1 endpoint without token or sig
+  if (typeof window !== 'undefined' && !fullUrl.includes('token=') && !fullUrl.includes('sig=')) {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        const separator = fullUrl.includes('?') ? '&' : '?';
+        fullUrl = `${fullUrl}${separator}token=${encodeURIComponent(token)}`;
+      }
+    } catch {}
+  }
+
+  return fullUrl;
 }
 
 function formatFileSize(bytes: number): string {
@@ -588,10 +609,10 @@ export default function ImagesPage() {
         </div>
       )}
 
-      {/* TAB 1: WEBSITE IMAGES (Four Large Columns Desktop Layout) */}
+      {/* TAB 1: WEBSITE IMAGES (Two Large Media Workspaces per Row - 12-Column Grid) */}
       {!loading && !error && activeTab === 'website' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8">
             {WEBSITE_SLOTS.map((slot) => {
               const assignedImage = websiteImages.find(
                 (img) => img.slot === slot.key && img.isActiveWebsiteUsage
@@ -601,13 +622,13 @@ export default function ImagesPage() {
               return (
                 <div
                   key={slot.key}
-                  className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:border-blue-500 transition-colors min-h-[440px]"
+                  className="col-span-1 md:col-span-1 lg:col-span-6 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-7 shadow-xs flex flex-col justify-between hover:border-[#315FEA] transition-colors min-h-[520px]"
                 >
                   <div className="space-y-3">
                     {/* Slot Header */}
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block truncate">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#315FEA] dark:text-blue-400 block truncate">
                           {slot.title.toUpperCase()}
                         </span>
                         <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 line-clamp-2 leading-relaxed min-h-[2.5rem]">
@@ -628,23 +649,39 @@ export default function ImagesPage() {
                       </span>
                     </div>
 
-                    {/* Image Preview Area - Extra Large Prominent Box */}
-                    <div className="relative rounded-xl overflow-hidden bg-slate-50 dark:bg-[#1E293B]/40 border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center min-h-[200px] aspect-4/3 group mt-2">
+                    {/* Image Preview Area - Large Workspace Viewport */}
+                    <div className="relative rounded-xl overflow-hidden bg-slate-900/5 dark:bg-[#1E293B]/40 border border-slate-200 dark:border-slate-800 flex items-center justify-center min-h-[260px] aspect-[16/10] group mt-3">
                       {assignedImage ? (
                         <>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={resolveImageUrl(assignedImage.previewUrl)}
                             alt={slot.title}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            onError={(e) => {
+                              // If image fails to load, gracefully display fallback without browser broken-image icon
+                              const target = e.currentTarget;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                const fb = parent.querySelector('.preview-error-fallback');
+                                if (fb) (fb as HTMLElement).style.display = 'flex';
+                              }
+                            }}
+                            className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-102"
                           />
+
+                          {/* Error Fallback */}
+                          <div className="preview-error-fallback hidden absolute inset-0 flex-col items-center justify-center p-4 text-center bg-slate-100 dark:bg-slate-800/80">
+                            <ImageIcon className="w-8 h-8 text-slate-400 mb-1" />
+                            <span className="text-xs text-slate-500">Preview temporarily unavailable</span>
+                          </div>
 
                           {/* Hover Overlay */}
                           <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                             <button
                               type="button"
                               onClick={() => openPreviewModal(assignedImage)}
-                              className="px-3.5 py-2 rounded-lg bg-white/95 text-slate-900 text-xs font-semibold hover:bg-white flex items-center gap-1.5 shadow-md"
+                              className="px-4 py-2 rounded-lg bg-white/95 text-slate-900 text-xs font-semibold hover:bg-white flex items-center gap-1.5 shadow-md transition-transform hover:scale-105"
                             >
                               <Eye className="w-3.5 h-3.5" />
                               View Preview
@@ -652,23 +689,26 @@ export default function ImagesPage() {
                           </div>
                         </>
                       ) : (
-                        <div className="text-center p-4">
-                          <ImageIcon className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" strokeWidth={1.5} />
-                          <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-                            Recommended: {slot.recommendedSize}
+                        <div className="text-center p-6 flex flex-col items-center justify-center">
+                          <ImageIcon className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-2" strokeWidth={1.5} />
+                          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                            Slot Empty · {slot.title}
+                          </p>
+                          <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                            Recommended dimensions: {slot.recommendedSize}
                           </p>
                         </div>
                       )}
                     </div>
 
                     {/* Metadata line if assigned */}
-                    <div className="min-h-[1.25rem] pt-1.5">
+                    <div className="min-h-[1.5rem] pt-2">
                       {assignedImage && (
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                           <span>
                             {assignedImage.width} × {assignedImage.height} px • {formatFileSize(assignedImage.fileSize)}
                           </span>
-                          <span className="truncate max-w-[120px]" title={assignedImage.originalFileName}>
+                          <span className="truncate max-w-[200px]" title={assignedImage.originalFileName}>
                             {assignedImage.originalFileName}
                           </span>
                         </div>
@@ -677,7 +717,7 @@ export default function ImagesPage() {
                   </div>
 
                   {/* Slot Actions Footer */}
-                  <div className="pt-4 mt-auto border-t border-slate-100 dark:border-[#1E293B] flex items-center justify-between gap-2">
+                  <div className="pt-4 mt-auto border-t border-slate-100 dark:border-[#1E293B] flex items-center justify-between gap-3">
                     {assignedImage ? (
                       <>
                         <div className="flex items-center gap-2">

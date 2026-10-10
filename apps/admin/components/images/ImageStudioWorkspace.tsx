@@ -221,6 +221,11 @@ export function ImageStudioWorkspace({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // In-canvas image loading and recovery states
+  const [originalLoadError, setOriginalLoadError] = useState<boolean>(false);
+  const [enhancedLoadError, setEnhancedLoadError] = useState<boolean>(false);
+  const [retryKey, setRetryKey] = useState<number>(0);
+
   // Split slider drag refs
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef<boolean>(false);
@@ -230,6 +235,14 @@ export function ImageStudioWorkspace({
       setCurrentImage(image);
     }
   }, [image]);
+
+  useEffect(() => {
+    setOriginalLoadError(false);
+  }, [currentImage?.previewUrl, retryKey]);
+
+  useEffect(() => {
+    setEnhancedLoadError(false);
+  }, [displayedVariant?.previewUrl, retryKey]);
 
   // Sync active variant when currentImage updates
   useEffect(() => {
@@ -482,8 +495,15 @@ export function ImageStudioWorkspace({
   };
 
   const effectiveImage = currentImage;
-  const originalUrl = effectiveImage ? resolveImageUrl(effectiveImage.previewUrl) : (pendingUpload?.previewUrl || '');
-  const enhancedUrl = displayedVariant ? resolveImageUrl(displayedVariant.previewUrl) : null;
+  const rawOriginalUrl = effectiveImage ? resolveImageUrl(effectiveImage.previewUrl) : (pendingUpload?.previewUrl || '');
+  const originalUrl = rawOriginalUrl && retryKey > 0
+    ? `${rawOriginalUrl}${rawOriginalUrl.includes('?') ? '&' : '?'}retry=${retryKey}`
+    : rawOriginalUrl;
+
+  const rawEnhancedUrl = displayedVariant ? resolveImageUrl(displayedVariant.previewUrl) : null;
+  const enhancedUrl = rawEnhancedUrl && retryKey > 0
+    ? `${rawEnhancedUrl}${rawEnhancedUrl.includes('?') ? '&' : '?'}retry=${retryKey}`
+    : rawEnhancedUrl;
   const isVariantPendingReview = displayedVariant && (displayedVariant.status === 'Enhanced' || displayedVariant.status === 'ReadyForReview');
   const isVariantApproved = displayedVariant && displayedVariant.status === 'Approved';
   const isImagePublished = effectiveImage?.status === 'Published';
@@ -694,12 +714,46 @@ export function ImageStudioWorkspace({
                   style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }}
                 >
                   {/* Under layer: Enhanced / Processed Variant */}
-                  {displayedVariant && enhancedUrl ? (
+                  {displayedVariant && enhancedUrl && enhancedLoadError ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950 text-slate-300 select-none z-10">
+                      <div className="w-12 h-12 rounded-[6px] bg-slate-900 border border-amber-900/60 text-amber-400 flex items-center justify-center mb-3">
+                        <AlertCircle className="w-6 h-6" />
+                      </div>
+                      <p className="text-sm font-semibold text-white">Enhanced Variant Preview Unavailable</p>
+                      <p className="text-xs text-slate-400 mt-1 max-w-sm leading-relaxed">
+                        Unable to load the processed variant preview from storage. You can retry loading or re-run the enhancement.
+                      </p>
+                      <div className="flex items-center gap-2 mt-3">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            setEnhancedLoadError(false);
+                            setRetryKey((k) => k + 1);
+                          }}
+                          leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                        >
+                          Retry Loading
+                        </Button>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={handleRunEnhancement}
+                          isLoading={isProcessing}
+                          leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+                        >
+                          Re-run {selectedOpDef.name}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : displayedVariant && enhancedUrl ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
+                      key={`enhanced-${retryKey}`}
                       src={enhancedUrl}
                       alt={`AFTER · ${selectedOpDef.name}`}
                       className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
+                      onError={() => setEnhancedLoadError(true)}
                     />
                   ) : (
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950 text-slate-400 select-none">
@@ -716,35 +770,63 @@ export function ImageStudioWorkspace({
                   )}
 
                   {/* Over layer: Original Image (Clipped precisely via CSS clipPath without scaling offsets) */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={originalUrl}
-                    alt="BEFORE · Original"
-                    className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
-                    style={{
-                      clipPath: `inset(0 ${100 - splitPos}% 0 0)`,
-                    }}
-                  />
+                  {originalLoadError ? (
+                    <div className="absolute inset-0 z-25 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center text-slate-300">
+                      <div className="w-12 h-12 rounded-[6px] bg-slate-900 border border-rose-900/60 text-rose-400 flex items-center justify-center mb-3">
+                        <AlertCircle className="w-6 h-6" />
+                      </div>
+                      <p className="text-sm font-semibold text-white">Original Image Unavailable</p>
+                      <p className="text-xs text-slate-400 mt-1 max-w-sm leading-relaxed">
+                        The original source image could not be loaded from storage.
+                      </p>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="mt-3"
+                        onClick={() => {
+                          setOriginalLoadError(false);
+                          setRetryKey((k) => k + 1);
+                        }}
+                        leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                      >
+                        Retry Loading
+                      </Button>
+                    </div>
+                  ) : originalUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      key={`orig-${retryKey}`}
+                      src={originalUrl}
+                      alt="BEFORE · Original"
+                      className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
+                      style={{
+                        clipPath: `inset(0 ${100 - splitPos}% 0 0)`,
+                      }}
+                      onError={() => setOriginalLoadError(true)}
+                    />
+                  ) : null}
 
                   {/* Divider Line & Draggable Handle */}
-                  <div
-                    className="absolute top-0 bottom-0 z-20 pointer-events-none flex items-center justify-center"
-                    style={{ left: `${splitPos}%` }}
-                  >
-                    <div className="w-0.5 h-full bg-white shadow-[0_0_8px_rgba(0,0,0,0.5)]" />
+                  {!originalLoadError && (
                     <div
-                      role="slider"
-                      tabIndex={0}
-                      aria-label="Before/after comparison split position"
-                      aria-valuenow={Math.round(splitPos)}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      onKeyDown={handleSliderKeyDown}
-                      className="pointer-events-auto absolute w-8 h-8 rounded-full bg-white text-[#172033] shadow-md border-2 border-[#315FEA] flex items-center justify-center cursor-ew-resize hover:scale-105 active:scale-95 transition-transform focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
+                      className="absolute top-0 bottom-0 z-20 pointer-events-none flex items-center justify-center"
+                      style={{ left: `${splitPos}%` }}
                     >
-                      <SplitSquareVertical className="w-4 h-4 text-[#315FEA]" />
+                      <div className="w-0.5 h-full bg-white shadow-[0_0_8px_rgba(0,0,0,0.5)]" />
+                      <div
+                        role="slider"
+                        tabIndex={0}
+                        aria-label="Before/after comparison split position"
+                        aria-valuenow={Math.round(splitPos)}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        onKeyDown={handleSliderKeyDown}
+                        className="pointer-events-auto absolute w-8 h-8 rounded-full bg-white text-[#172033] shadow-md border-2 border-[#315FEA] flex items-center justify-center cursor-ew-resize hover:scale-105 active:scale-95 transition-transform focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
+                      >
+                        <SplitSquareVertical className="w-4 h-4 text-[#315FEA]" />
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Persistent Labels */}
                   <div className="absolute top-3 left-3 z-10 pointer-events-none">
@@ -774,16 +856,74 @@ export function ImageStudioWorkspace({
                         BEFORE · Original
                       </span>
                     </div>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={originalUrl}
-                      alt="BEFORE · Original"
-                      className="max-h-full max-w-full object-contain"
-                    />
+                    {originalLoadError ? (
+                      <div className="flex flex-col items-center justify-center p-6 text-center text-slate-300">
+                        <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-rose-900/60 text-rose-400 flex items-center justify-center mb-2.5">
+                          <AlertCircle className="w-5 h-5" />
+                        </div>
+                        <p className="text-xs font-semibold text-white">Original Unavailable</p>
+                        <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
+                          Could not load original source from storage.
+                        </p>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="mt-2.5"
+                          onClick={() => {
+                            setOriginalLoadError(false);
+                            setRetryKey((k) => k + 1);
+                          }}
+                          leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                        >
+                          Retry Loading
+                        </Button>
+                      </div>
+                    ) : (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        key={`orig-${retryKey}`}
+                        src={originalUrl}
+                        alt="BEFORE · Original"
+                        className="max-h-full max-w-full object-contain"
+                        onError={() => setOriginalLoadError(true)}
+                      />
+                    )}
                   </div>
 
                   <div className="relative rounded-[6px] bg-slate-950 overflow-hidden flex items-center justify-center border border-[#315FEA]/30">
-                    {displayedVariant && enhancedUrl ? (
+                    {displayedVariant && enhancedUrl && enhancedLoadError ? (
+                      <div className="flex flex-col items-center justify-center p-6 text-center text-slate-300">
+                        <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-amber-900/60 text-amber-400 flex items-center justify-center mb-2.5">
+                          <AlertCircle className="w-5 h-5" />
+                        </div>
+                        <p className="text-xs font-semibold text-white">Enhanced Preview Unavailable</p>
+                        <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
+                          Failed to load processed variant preview from storage.
+                        </p>
+                        <div className="flex items-center gap-2 mt-2.5">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                              setEnhancedLoadError(false);
+                              setRetryKey((k) => k + 1);
+                            }}
+                            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                          >
+                            Retry
+                          </Button>
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={handleRunEnhancement}
+                            isLoading={isProcessing}
+                            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+                          >
+                            Re-run
+                          </Button>
+                        </div>
+                      </div>
+                    ) : displayedVariant && enhancedUrl ? (
                       <>
                         <div className="absolute top-3 left-3 z-10">
                           <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
@@ -792,14 +932,16 @@ export function ImageStudioWorkspace({
                         </div>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
+                          key={`enhanced-${retryKey}`}
                           src={enhancedUrl}
                           alt={`AFTER · ${selectedOpDef.name}`}
                           className="max-h-full max-w-full object-contain"
+                          onError={() => setEnhancedLoadError(true)}
                         />
                       </>
                     ) : (
                       <div className="flex flex-col items-center justify-center p-6 text-center max-w-xs text-slate-400">
-                        <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-2.5">
+                        <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-2.5">
                           <selectedOpDef.icon className="w-5 h-5" />
                         </div>
                         <span className="text-xs font-semibold text-slate-300">
@@ -826,16 +968,74 @@ export function ImageStudioWorkspace({
                         BEFORE · Original
                       </span>
                     </div>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={originalUrl}
-                      alt="BEFORE · Original"
-                      className="max-h-full max-w-full object-contain"
-                    />
+                    {originalLoadError ? (
+                      <div className="flex flex-col items-center justify-center p-6 text-center text-slate-300">
+                        <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-rose-900/60 text-rose-400 flex items-center justify-center mb-2.5">
+                          <AlertCircle className="w-5 h-5" />
+                        </div>
+                        <p className="text-xs font-semibold text-white">Original Unavailable</p>
+                        <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
+                          Could not load original source from storage.
+                        </p>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="mt-2.5"
+                          onClick={() => {
+                            setOriginalLoadError(false);
+                            setRetryKey((k) => k + 1);
+                          }}
+                          leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                        >
+                          Retry Loading
+                        </Button>
+                      </div>
+                    ) : (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        key={`orig-${retryKey}`}
+                        src={originalUrl}
+                        alt="BEFORE · Original"
+                        className="max-h-full max-w-full object-contain"
+                        onError={() => setOriginalLoadError(true)}
+                      />
+                    )}
                   </div>
 
                   <div className="relative min-h-[220px] flex-1 rounded-[6px] bg-slate-950 overflow-hidden flex items-center justify-center border border-[#315FEA]/30">
-                    {displayedVariant && enhancedUrl ? (
+                    {displayedVariant && enhancedUrl && enhancedLoadError ? (
+                      <div className="flex flex-col items-center justify-center p-6 text-center text-slate-300">
+                        <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-amber-900/60 text-amber-400 flex items-center justify-center mb-2.5">
+                          <AlertCircle className="w-5 h-5" />
+                        </div>
+                        <p className="text-xs font-semibold text-white">Enhanced Preview Unavailable</p>
+                        <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
+                          Failed to load processed variant preview from storage.
+                        </p>
+                        <div className="flex items-center gap-2 mt-2.5">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                              setEnhancedLoadError(false);
+                              setRetryKey((k) => k + 1);
+                            }}
+                            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                          >
+                            Retry
+                          </Button>
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={handleRunEnhancement}
+                            isLoading={isProcessing}
+                            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+                          >
+                            Re-run
+                          </Button>
+                        </div>
+                      </div>
+                    ) : displayedVariant && enhancedUrl ? (
                       <>
                         <div className="absolute top-3 left-3 z-10">
                           <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
@@ -844,14 +1044,16 @@ export function ImageStudioWorkspace({
                         </div>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
+                          key={`enhanced-${retryKey}`}
                           src={enhancedUrl}
                           alt={`AFTER · ${selectedOpDef.name}`}
                           className="max-h-full max-w-full object-contain"
+                          onError={() => setEnhancedLoadError(true)}
                         />
                       </>
                     ) : (
                       <div className="flex flex-col items-center justify-center p-6 text-center max-w-xs text-slate-400">
-                        <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-2.5">
+                        <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-2.5">
                           <selectedOpDef.icon className="w-5 h-5" />
                         </div>
                         <span className="text-xs font-semibold text-slate-300">
@@ -875,14 +1077,14 @@ export function ImageStudioWorkspace({
             )}
           </div>
 
-          {/* Right Control Rail */}
+          {/* Right Control Rail: 1-2-3 Calibrated Information Hierarchy */}
           <aside className="w-full lg:w-96 bg-white dark:bg-[#0F172A] border-t lg:border-t-0 lg:border-l border-[#E3E7ED] dark:border-[#1E293B] flex flex-col shrink-0 overflow-y-auto">
             <div className="p-5 flex flex-col gap-6">
-              {/* Enhancement Operation Selector */}
+              {/* SECTION 1: Operations Selector & Run Action */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#315FEA]" />
+                    <span className="w-4 h-4 rounded-full bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">1</span>
                     <span>Approved Enhancement Operations</span>
                   </h3>
                   <span className="text-[11px] font-mono text-[#475569] dark:text-[#94A3B8]">
@@ -890,7 +1092,7 @@ export function ImageStudioWorkspace({
                   </span>
                 </div>
                 <p className="text-xs text-[#475569] dark:text-[#94A3B8] mb-3">
-                  Select an adaptive enhancement operation calibrated for architectural & project photography:
+                  Select an adaptive enhancement operation calibrated for architectural &amp; project photography:
                 </p>
 
                 <div className="flex flex-col gap-1.5">
@@ -973,16 +1175,20 @@ export function ImageStudioWorkspace({
                 </div>
               </div>
 
-              {/* Enhancements Applied */}
+              {/* SECTION 2: Results & Applied Corrections */}
               <div className="p-3.5 bg-[#F3F6FA] dark:bg-[#1E293B] rounded-[8px] border border-[#E3E7ED] dark:border-[#334155]">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#315FEA]" />
+                    <span className="w-4 h-4 rounded-full bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">2</span>
                     <span>Enhancements Applied</span>
                   </h4>
-                  {displayedVariant && (
+                  {displayedVariant ? (
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#15803D] border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800">
                       Generated
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[4px] bg-slate-100 text-[#475569] border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
+                      Pending
                     </span>
                   )}
                 </div>
@@ -1000,7 +1206,7 @@ export function ImageStudioWorkspace({
                       </ul>
                     ) : (
                       <p className="text-xs text-[#475569] dark:text-[#94A3B8] mb-3">
-                        No correction details available for this result.
+                        No correction details recorded for this result.
                       </p>
                     )}
 
@@ -1028,7 +1234,7 @@ export function ImageStudioWorkspace({
                 ) : (
                   <div className="py-2 space-y-2">
                     <p className="text-xs text-[#475569] dark:text-[#94A3B8]">
-                      No enhanced variant generated for {selectedOpDef.name} yet. Click &quot;Execute {selectedOpDef.name}&quot; below to generate this variant.
+                      No enhanced variant generated for {selectedOpDef.name} yet. Click &quot;Execute {selectedOpDef.name}&quot; above to process this variant.
                     </p>
                     <div className="pt-2 border-t border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between text-[11px] text-[#475569] dark:text-[#94A3B8]">
                       <span>Original Resolution:</span>
@@ -1040,10 +1246,11 @@ export function ImageStudioWorkspace({
                 )}
               </div>
 
-              {/* Review, Approval & Separate Publishing Boundary */}
+              {/* SECTION 3: Review, Approval & Separate Publishing Boundary */}
               <div className="flex flex-col gap-2.5 pt-2 border-t border-[#E3E7ED] dark:border-[#1E293B]">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white">
-                  Review & Publishing Boundary
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                  <span>Review &amp; Publishing Boundary</span>
                 </h4>
 
                 {/* Variant Decision Actions */}

@@ -1580,49 +1580,73 @@ public class WebsiteImageService : IWebsiteImageService
             if (variant == null) return null;
             if (isPublicRequest && variant.Status != "Published") return null;
 
-            var variantStream = await _storageProvider.DownloadAsync(ImageBucket, variant.StorageKey, cancellationToken);
-            if (variantStream == null || (variantStream.CanSeek && variantStream.Length == 0))
+            try
+            {
+                var variantStream = await _storageProvider.DownloadAsync(ImageBucket, variant.StorageKey, cancellationToken);
+                if (variantStream == null || (variantStream.CanSeek && variantStream.Length == 0))
+                {
+                    return GenerateFallbackSvg(image.ProjectWorkName ?? image.OriginalFileName ?? "Project Image", image.UsageType);
+                }
+
+                var ext = variant.MimeType == "image/webp" ? ".webp" : (variant.MimeType == "image/jpeg" ? ".jpg" : ".png");
+                return new ImageFileStreamResult
+                {
+                    Stream = variantStream,
+                    ContentType = variant.MimeType,
+                    FileName = $"variant_{variant.Id}{ext}"
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not retrieve variant {VariantId} from storage; generating fallback SVG", variant.Id);
+                return GenerateFallbackSvg(image.ProjectWorkName ?? image.OriginalFileName ?? "Project Image", image.UsageType);
+            }
+        }
+
+        // Only return publishedVariant for public website requests. For admin/studio, return the original upload!
+        if (isPublicRequest)
+        {
+            var publishedVariant = image.Variants.FirstOrDefault(v => v.Status == "Published");
+            if (publishedVariant != null)
+            {
+                try
+                {
+                    var variantStream = await _storageProvider.DownloadAsync(ImageBucket, publishedVariant.StorageKey, cancellationToken);
+                    if (variantStream != null && (!variantStream.CanSeek || variantStream.Length > 0))
+                    {
+                        var ext = publishedVariant.MimeType == "image/webp" ? ".webp" : (publishedVariant.MimeType == "image/jpeg" ? ".jpg" : ".png");
+                        return new ImageFileStreamResult
+                        {
+                            Stream = variantStream,
+                            ContentType = publishedVariant.MimeType,
+                            FileName = $"variant_{publishedVariant.Id}{ext}"
+                        };
+                    }
+                }
+                catch { }
+            }
+        }
+
+        try
+        {
+            var originalStream = await _storageProvider.DownloadAsync(ImageBucket, image.StorageKey, cancellationToken);
+            if (originalStream == null || (originalStream.CanSeek && originalStream.Length == 0))
             {
                 return GenerateFallbackSvg(image.ProjectWorkName ?? image.OriginalFileName ?? "Project Image", image.UsageType);
             }
 
-            var ext = variant.MimeType == "image/webp" ? ".webp" : (variant.MimeType == "image/jpeg" ? ".jpg" : ".png");
             return new ImageFileStreamResult
             {
-                Stream = variantStream,
-                ContentType = variant.MimeType,
-                FileName = $"variant_{variant.Id}{ext}"
+                Stream = originalStream,
+                ContentType = image.MimeType,
+                FileName = image.OriginalFileName ?? $"image_{image.Id}.bin"
             };
         }
-
-        var publishedVariant = image.Variants.FirstOrDefault(v => v.Status == "Published");
-        if (publishedVariant != null)
+        catch (Exception ex)
         {
-            var variantStream = await _storageProvider.DownloadAsync(ImageBucket, publishedVariant.StorageKey, cancellationToken);
-            if (variantStream != null && (!variantStream.CanSeek || variantStream.Length > 0))
-            {
-                var ext = publishedVariant.MimeType == "image/webp" ? ".webp" : (publishedVariant.MimeType == "image/jpeg" ? ".jpg" : ".png");
-                return new ImageFileStreamResult
-                {
-                    Stream = variantStream,
-                    ContentType = publishedVariant.MimeType,
-                    FileName = $"variant_{publishedVariant.Id}{ext}"
-                };
-            }
-        }
-
-        var originalStream = await _storageProvider.DownloadAsync(ImageBucket, image.StorageKey, cancellationToken);
-        if (originalStream == null || (originalStream.CanSeek && originalStream.Length == 0))
-        {
+            _logger.LogWarning(ex, "Could not retrieve original image {ImageId} from storage; generating fallback SVG", image.Id);
             return GenerateFallbackSvg(image.ProjectWorkName ?? image.OriginalFileName ?? "Project Image", image.UsageType);
         }
-
-        return new ImageFileStreamResult
-        {
-            Stream = originalStream,
-            ContentType = image.MimeType,
-            FileName = image.OriginalFileName ?? $"image_{image.Id}.bin"
-        };
     }
 
     public Task<ImageOperationResult> DeleteImageAsync(
