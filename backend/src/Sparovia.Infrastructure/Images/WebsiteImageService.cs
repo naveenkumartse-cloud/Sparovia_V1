@@ -1195,11 +1195,16 @@ public class WebsiteImageService : IWebsiteImageService
             "AUDIT: ImageEnhancementRequested. TenantId={TenantId}, UserId={UserId}, ImageId={ImageId}, VariantId={VariantId}, Operation={Operation}",
             tenantId, userId, imageId, variantId, operation);
 
+        var variantDto = MapVariantDto(variant, tenantId);
+        variantDto.AlgorithmVersion = processedResult.AlgorithmVersion;
+        variantDto.EffectiveProfile = processedResult.EffectiveProfile;
+        variantDto.AppliedCorrections = processedResult.AppliedCorrections;
+
         return new ImageOperationResult
         {
             Success = true,
             Image = MapToDto(image),
-            Variant = MapVariantDto(variant, tenantId)
+            Variant = variantDto
         };
     }
 

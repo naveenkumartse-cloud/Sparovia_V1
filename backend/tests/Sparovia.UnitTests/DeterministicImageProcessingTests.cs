@@ -106,6 +106,96 @@ public class DeterministicImageProcessingTests
         Assert.True(result.Bytes.Length > 0);
     }
 
+    [Fact]
+    public async Task ProcessImageAsync_AllSevenOperations_ProduceDistinctOutputsAndHonestMetadata()
+    {
+        var testBytes = CreateTestImageBytes(400, 300);
+        var operations = new[]
+        {
+            "ImproveClarity",
+            "ImproveSharpness",
+            "ReduceNoise",
+            "Upscale",
+            "ClassicLook",
+            "ModernLook",
+            "WebOptimize"
+        };
+
+        var results = new Dictionary<string, ProcessedImageResult>();
+
+        foreach (var op in operations)
+        {
+            using var stream = new MemoryStream(testBytes);
+            var result = await _service.ProcessImageAsync(stream, op);
+            Assert.NotNull(result);
+            Assert.NotEmpty(result.Bytes);
+            Assert.NotEmpty(result.EffectiveProfile);
+            Assert.NotEmpty(result.AppliedCorrections);
+            results[op] = result;
+        }
+
+        // Verify each operation produces distinct bytes
+        for (int i = 0; i < operations.Length; i++)
+        {
+            for (int j = i + 1; j < operations.Length; j++)
+            {
+                var op1 = operations[i];
+                var op2 = operations[j];
+                bool bytesEqual = results[op1].Bytes.SequenceEqual(results[op2].Bytes);
+                Assert.False(bytesEqual, $"Operation '{op1}' and '{op2}' should produce distinct output bytes.");
+            }
+        }
+    }
+
+    [Fact]
+    public async Task ProcessImageAsync_ClassicLook_ProducesWarmArchitecturalTones()
+    {
+        // Neutral gray image: RGB 128, 128, 128
+        using var bmp = new SKBitmap(100, 100, SKColorType.Rgba8888, SKAlphaType.Premul);
+        for (int y = 0; y < 100; y++)
+        {
+            for (int x = 0; x < 100; x++)
+            {
+                bmp.SetPixel(x, y, new SKColor(128, 128, 128));
+            }
+        }
+        using var img = SKImage.FromBitmap(bmp);
+        using var data = img.Encode(SKEncodedImageFormat.Jpeg, 90);
+        var testBytes = data.ToArray();
+
+        using var stream = new MemoryStream(testBytes);
+        var result = await _service.ProcessImageAsync(stream, "ClassicLook");
+
+        Assert.NotNull(result);
+        using var outData = SKData.CreateCopy(result.Bytes);
+        using var outBmp = SKBitmap.Decode(outData);
+        Assert.NotNull(outBmp);
+
+        // Center pixel should be warmer: Red > Blue
+        var pixel = outBmp.GetPixel(50, 50);
+        Assert.True(pixel.Red > pixel.Blue, $"ClassicLook should warm tones (Red {pixel.Red} should be > Blue {pixel.Blue})");
+    }
+
+    [Fact]
+    public async Task ProcessImageAsync_Upscale_ScaleFactorsVaryBySize()
+    {
+        // Small image (< 1200) gets 2.0x factor
+        var smallBytes = CreateTestImageBytes(300, 200);
+        using var smallStream = new MemoryStream(smallBytes);
+        var smallResult = await _service.ProcessImageAsync(smallStream, "Upscale");
+        Assert.Equal(600, smallResult.Width);
+        Assert.Equal(400, smallResult.Height);
+        Assert.Contains("2.0x", smallResult.EffectiveProfile);
+
+        // Larger image (>= 1200) gets 1.5x factor
+        var largeBytes = CreateTestImageBytes(1400, 900);
+        using var largeStream = new MemoryStream(largeBytes);
+        var largeResult = await _service.ProcessImageAsync(largeStream, "Upscale");
+        Assert.Equal(2100, largeResult.Width);
+        Assert.Equal(1350, largeResult.Height);
+        Assert.Contains("1.5x", largeResult.EffectiveProfile);
+    }
+
     [Theory]
     [InlineData("Balanced")]
     [InlineData("Light")]

@@ -185,20 +185,23 @@ export function ImageStudioWorkspace({
 
   const selectedOpDef = APPROVED_OPERATIONS.find((o) => o.id === selectedOp) || APPROVED_OPERATIONS[0];
 
-  // Check if a variant matching selectedOp already exists
-  const matchingVariant = currentImage?.variants?.find(
-    (v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected'
-  ) || null;
+  // Check if a variant matching selectedOp already exists (sorted newest first)
+  const matchingVariant = [...(currentImage?.variants || [])]
+    .filter((v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected')
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] || null;
 
-  // Variant for current operation strictly matches selectedOp; null when not yet generated
-  const isCurrentOpGenerated = Boolean(matchingVariant);
-  const displayedVariant = matchingVariant;
+  // Variant for current operation strictly matches selectedOp; prefer newly active variant if matching
+  const displayedVariant = (activeVariant && activeVariant.operation?.toLowerCase() === selectedOp.toLowerCase() && activeVariant.status !== 'Rejected')
+    ? activeVariant
+    : matchingVariant;
+
+  const isCurrentOpGenerated = Boolean(displayedVariant);
 
   const handleSelectOp = (opId: string) => {
     setSelectedOp(opId);
-    const matching = currentImage?.variants?.find(
-      (v) => v.operation?.toLowerCase() === opId.toLowerCase() && v.status !== 'Rejected'
-    );
+    const matching = [...(currentImage?.variants || [])]
+      .filter((v) => v.operation?.toLowerCase() === opId.toLowerCase() && v.status !== 'Rejected')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] || null;
     setActiveVariant(matching || null);
   };
 
@@ -236,9 +239,9 @@ export function ImageStudioWorkspace({
           const found = currentImage.variants.find((v) => v.id === prev.id);
           if (found) return found;
         }
-        const matchingCurrent = currentImage.variants.find(
-          (v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected'
-        );
+        const matchingCurrent = [...currentImage.variants]
+          .filter((v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected')
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
         if (matchingCurrent) return matchingCurrent;
 
         const newest = [...currentImage.variants]

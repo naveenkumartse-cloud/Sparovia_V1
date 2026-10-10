@@ -45,7 +45,7 @@ const WEBSITE_SLOTS = [
     key: 'primaryImage',
     title: 'About Feature Image',
     description: 'Primary photograph introducing your company craftsmanship and executive story.',
-    recommendedSize: '1200 × 900 px (4:3)',
+    recommendedSize: '1200 × 800 px (3:2)',
   },
   {
     key: 'secondaryImage',
@@ -591,7 +591,7 @@ export default function ImagesPage() {
       {/* TAB 1: WEBSITE IMAGES (Four Large Columns Desktop Layout) */}
       {!loading && !error && activeTab === 'website' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {WEBSITE_SLOTS.map((slot) => {
               const assignedImage = websiteImages.find(
                 (img) => img.slot === slot.key && img.isActiveWebsiteUsage
@@ -601,7 +601,7 @@ export default function ImagesPage() {
               return (
                 <div
                   key={slot.key}
-                  className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:border-blue-500 transition-colors min-h-[420px]"
+                  className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-6 shadow-sm flex flex-col justify-between hover:border-blue-500 transition-colors min-h-[440px]"
                 >
                   <div className="space-y-3">
                     {/* Slot Header */}
@@ -610,7 +610,7 @@ export default function ImagesPage() {
                         <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block truncate">
                           {slot.title.toUpperCase()}
                         </span>
-                        <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 line-clamp-2 leading-relaxed min-h-[2.5rem]">
                           {slot.description}
                         </p>
                       </div>
@@ -662,16 +662,18 @@ export default function ImagesPage() {
                     </div>
 
                     {/* Metadata line if assigned */}
-                    {assignedImage && (
-                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1.5">
-                        <span>
-                          {assignedImage.width} × {assignedImage.height} px • {formatFileSize(assignedImage.fileSize)}
-                        </span>
-                        <span className="truncate max-w-[120px]" title={assignedImage.originalFileName}>
-                          {assignedImage.originalFileName}
-                        </span>
-                      </div>
-                    )}
+                    <div className="min-h-[1.25rem] pt-1.5">
+                      {assignedImage && (
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                          <span>
+                            {assignedImage.width} × {assignedImage.height} px • {formatFileSize(assignedImage.fileSize)}
+                          </span>
+                          <span className="truncate max-w-[120px]" title={assignedImage.originalFileName}>
+                            {assignedImage.originalFileName}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Slot Actions Footer */}

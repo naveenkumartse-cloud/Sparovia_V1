@@ -727,7 +727,6 @@ public class ReplaceImageForm
 
     [HttpPost("{id:guid}/enhance")]
     [Authorize]
-    [Consumes("application/json", "multipart/form-data", "application/x-www-form-urlencoded")]
     public async Task<IActionResult> EnhanceImage(
         Guid id,
         CancellationToken cancellationToken)
