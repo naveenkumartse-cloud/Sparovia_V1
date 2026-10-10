@@ -727,14 +727,41 @@ public class ReplaceImageForm
 
     [HttpPost("{id:guid}/enhance")]
     [Authorize]
+    [Consumes("application/json", "multipart/form-data", "application/x-www-form-urlencoded")]
     public async Task<IActionResult> EnhanceImage(
         Guid id,
-        [FromBody] EnhanceImageRequest request,
         CancellationToken cancellationToken)
     {
         if (!TryGetTenantId(out var tenantId, out var authError)) return authError!;
 
-        if (request == null || string.IsNullOrWhiteSpace(request.Operation))
+        string? operation = null;
+        if (Request.HasJsonContentType())
+        {
+            try
+            {
+                var body = await Request.ReadFromJsonAsync<EnhanceImageRequest>(cancellationToken: cancellationToken);
+                operation = body?.Operation;
+            }
+            catch
+            {
+                // Json parsing error
+            }
+        }
+        else if (Request.HasFormContentType)
+        {
+            operation = Request.Form["operation"].ToString();
+            if (string.IsNullOrWhiteSpace(operation))
+            {
+                operation = Request.Form["Operation"].ToString();
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(operation) && Request.Query.ContainsKey("operation"))
+        {
+            operation = Request.Query["operation"].ToString();
+        }
+
+        if (string.IsNullOrWhiteSpace(operation))
         {
             return BadRequest(new { Error = "Operation is required.", Code = "OPERATION_REQUIRED" });
         }
@@ -742,7 +769,7 @@ public class ReplaceImageForm
         var result = await _imageService.EnhanceImageAsync(
             tenantId,
             id,
-            request.Operation,
+            operation,
             TryGetUserId(),
             cancellationToken);
 

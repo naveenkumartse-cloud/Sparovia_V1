@@ -34,7 +34,8 @@ export class ApiClient {
 
   async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const headers: Record<string, string> = { ...(options?.headers as Record<string, string>) };
-    if (!(options?.body instanceof FormData) && !headers['Content-Type']) {
+    const isFormData = typeof FormData !== 'undefined' && options?.body instanceof FormData;
+    if (!isFormData && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';
     }
 
@@ -89,6 +90,8 @@ export class ApiClient {
           errorMsg = 'The requested resource was not found.';
         } else if (response.status === 409) {
           errorMsg = 'A conflict occurred. Please refresh and try again.';
+        } else if (response.status === 415) {
+          errorMsg = 'Unsupported media format. Please upload a standard JPG, PNG, or WebP image.';
         } else if (response.status === 429) {
           errorMsg = 'Too many requests. Please wait a moment and try again.';
         } else if (response.status >= 500) {
@@ -114,18 +117,20 @@ export class ApiClient {
   }
 
   async post<T>(endpoint: string, body?: any, options?: RequestInit): Promise<T> {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
     return this.fetch<T>(endpoint, {
       ...options,
       method: 'POST',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: isFormData ? body : (body !== undefined ? JSON.stringify(body) : undefined),
     });
   }
 
   async put<T>(endpoint: string, body: any, options?: RequestInit): Promise<T> {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
     return this.fetch<T>(endpoint, {
       ...options,
       method: 'PUT',
-      body: JSON.stringify(body),
+      body: isFormData ? body : (body !== undefined ? JSON.stringify(body) : undefined),
     });
   }
 

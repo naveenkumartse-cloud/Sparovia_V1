@@ -1220,7 +1220,7 @@ export default function ImagesPage() {
               onChange={(e) => setEditCategory(e.target.value)}
               className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">No Category</option>
+              <option value="">Select category</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.name}>
                   {c.name}

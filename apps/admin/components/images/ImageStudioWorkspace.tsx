@@ -188,25 +188,18 @@ export function ImageStudioWorkspace({
   // Check if a variant matching selectedOp already exists
   const matchingVariant = currentImage?.variants?.find(
     (v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected'
-  );
+  ) || null;
 
-  // If activeVariant matches selectedOp, or matchingVariant is found, that is our current op variant
-  const isCurrentOpGenerated = Boolean(
-    (activeVariant && activeVariant.operation?.toLowerCase() === selectedOp.toLowerCase()) || matchingVariant
-  );
-
-  const displayedVariant = isCurrentOpGenerated
-    ? (activeVariant && activeVariant.operation?.toLowerCase() === selectedOp.toLowerCase() ? activeVariant : matchingVariant)
-    : activeVariant;
+  // Variant for current operation strictly matches selectedOp; null when not yet generated
+  const isCurrentOpGenerated = Boolean(matchingVariant);
+  const displayedVariant = matchingVariant;
 
   const handleSelectOp = (opId: string) => {
     setSelectedOp(opId);
     const matching = currentImage?.variants?.find(
       (v) => v.operation?.toLowerCase() === opId.toLowerCase() && v.status !== 'Rejected'
     );
-    if (matching) {
-      setActiveVariant(matching);
-    }
+    setActiveVariant(matching || null);
   };
 
   // Comparison view mode
@@ -335,11 +328,11 @@ export function ImageStudioWorkspace({
 
         let uploadRes;
         if (pendingUpload.replacingImageId) {
-          uploadRes = await apiClient.post<{ data: ImageDto }>(`/website/images/${pendingUpload.replacingImageId}/replace`, formData);
+          uploadRes = await apiClient.postFormData<{ data: ImageDto }>(`/website/images/${pendingUpload.replacingImageId}/replace`, formData);
         } else if (pendingUpload.usageType === 'ExploreOurWork' && !pendingUpload.slot) {
-          uploadRes = await apiClient.post<{ data: ImageDto }>('/website/images/explore-our-work', formData);
+          uploadRes = await apiClient.postFormData<{ data: ImageDto }>('/website/images/explore-our-work', formData);
         } else {
-          uploadRes = await apiClient.post<{ data: ImageDto }>('/website/images', formData);
+          uploadRes = await apiClient.postFormData<{ data: ImageDto }>('/website/images', formData);
         }
 
         const uploadedImg = uploadRes?.data;
@@ -487,7 +480,7 @@ export function ImageStudioWorkspace({
 
   const effectiveImage = currentImage;
   const originalUrl = effectiveImage ? resolveImageUrl(effectiveImage.previewUrl) : (pendingUpload?.previewUrl || '');
-  const enhancedUrl = displayedVariant ? resolveImageUrl(displayedVariant.previewUrl) : originalUrl;
+  const enhancedUrl = displayedVariant ? resolveImageUrl(displayedVariant.previewUrl) : null;
   const isVariantPendingReview = displayedVariant && (displayedVariant.status === 'Enhanced' || displayedVariant.status === 'ReadyForReview');
   const isVariantApproved = displayedVariant && displayedVariant.status === 'Approved';
   const isImagePublished = effectiveImage?.status === 'Published';
@@ -698,12 +691,26 @@ export function ImageStudioWorkspace({
                   style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }}
                 >
                   {/* Under layer: Enhanced / Processed Variant */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={enhancedUrl}
-                    alt="AFTER · Enhanced"
-                    className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                  />
+                  {displayedVariant && enhancedUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={enhancedUrl}
+                      alt={`AFTER · ${selectedOpDef.name}`}
+                      className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950 text-slate-400">
+                      <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-3">
+                        <selectedOpDef.icon className="w-6 h-6" />
+                      </div>
+                      <p className="text-sm font-semibold text-slate-200">
+                        Enhancement Pending
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1 max-w-sm leading-relaxed">
+                        Execute &quot;{selectedOpDef.name}&quot; to preview deterministic quality enhancements against the original.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Over layer: Original Image (Clipped) */}
                   <div
@@ -750,11 +757,9 @@ export function ImageStudioWorkspace({
                   </div>
                   <div className="absolute top-3 right-3 z-10 pointer-events-none">
                     <span className="text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-[4px] bg-[#315FEA]/90 text-white backdrop-blur-xs border border-white/20 shadow-xs">
-                      {isCurrentOpGenerated && displayedVariant
+                      {displayedVariant
                         ? `AFTER · ${selectedOpDef.name}`
-                        : displayedVariant
-                        ? `AFTER · ${displayedVariant.operation} (Previous Result)`
-                        : 'AFTER · Original (Unenhanced)'}
+                        : 'AFTER · Pending Execution'}
                     </span>
                   </div>
                 </div>
@@ -781,21 +786,33 @@ export function ImageStudioWorkspace({
                   </div>
 
                   <div className="relative rounded-[6px] bg-slate-950 overflow-hidden flex items-center justify-center border border-[#315FEA]/30">
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
-                        {isCurrentOpGenerated && displayedVariant
-                          ? `AFTER · ${selectedOpDef.name}`
-                          : displayedVariant
-                          ? `AFTER · ${displayedVariant.operation} (Previous Result)`
-                          : 'AFTER · Original (Unenhanced)'}
-                      </span>
-                    </div>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={enhancedUrl}
-                      alt="AFTER · Enhanced"
-                      className="max-h-full max-w-full object-contain"
-                    />
+                    {displayedVariant && enhancedUrl ? (
+                      <>
+                        <div className="absolute top-3 left-3 z-10">
+                          <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
+                            AFTER · {selectedOpDef.name}
+                          </span>
+                        </div>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={enhancedUrl}
+                          alt={`AFTER · ${selectedOpDef.name}`}
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-6 text-center max-w-xs text-slate-400">
+                        <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-2.5">
+                          <selectedOpDef.icon className="w-5 h-5" />
+                        </div>
+                        <span className="text-xs font-semibold text-slate-300">
+                          Enhancement Pending
+                        </span>
+                        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                          Click &quot;Execute {selectedOpDef.name}&quot; to process and preview this enhancement.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -821,21 +838,33 @@ export function ImageStudioWorkspace({
                   </div>
 
                   <div className="relative min-h-[220px] flex-1 rounded-[6px] bg-slate-950 overflow-hidden flex items-center justify-center border border-[#315FEA]/30">
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
-                        {isCurrentOpGenerated && displayedVariant
-                          ? `AFTER · ${selectedOpDef.name}`
-                          : displayedVariant
-                          ? `AFTER · ${displayedVariant.operation} (Previous Result)`
-                          : 'AFTER · Original (Unenhanced)'}
-                      </span>
-                    </div>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={enhancedUrl}
-                      alt="AFTER · Enhanced"
-                      className="max-h-full max-w-full object-contain"
-                    />
+                    {displayedVariant && enhancedUrl ? (
+                      <>
+                        <div className="absolute top-3 left-3 z-10">
+                          <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
+                            AFTER · {selectedOpDef.name}
+                          </span>
+                        </div>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={enhancedUrl}
+                          alt={`AFTER · ${selectedOpDef.name}`}
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-6 text-center max-w-xs text-slate-400">
+                        <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-2.5">
+                          <selectedOpDef.icon className="w-5 h-5" />
+                        </div>
+                        <span className="text-xs font-semibold text-slate-300">
+                          Enhancement Pending
+                        </span>
+                        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                          Click &quot;Execute {selectedOpDef.name}&quot; to process and preview this enhancement.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -937,14 +966,14 @@ export function ImageStudioWorkspace({
                     <Sparkles className="w-3.5 h-3.5 text-[#315FEA]" />
                     <span>Enhancements Applied</span>
                   </h4>
-                  {isCurrentOpGenerated && displayedVariant && (
+                  {displayedVariant && (
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#15803D] border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800">
                       Generated
                     </span>
                   )}
                 </div>
 
-                {isCurrentOpGenerated && displayedVariant ? (
+                {displayedVariant ? (
                   <>
                     {displayedVariant.appliedCorrections && displayedVariant.appliedCorrections.length > 0 ? (
                       <ul className="flex flex-col gap-1.5 mb-3">
@@ -982,28 +1011,10 @@ export function ImageStudioWorkspace({
                       </details>
                     </div>
                   </>
-                ) : displayedVariant ? (
-                  <div className="space-y-2.5">
-                    <div className="p-2.5 rounded-[6px] bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#334155] text-xs">
-                      <p className="font-semibold text-[#172033] dark:text-white">
-                        {selectedOpDef.name} not yet executed
-                      </p>
-                      <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-0.5 leading-relaxed">
-                        Comparison preview currently shows previously generated {displayedVariant.operation} variant. Click &quot;Execute {selectedOpDef.name}&quot; to process this operation.
-                      </p>
-                    </div>
-
-                    <div className="pt-2 border-t border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between text-[11px] text-[#475569] dark:text-[#94A3B8]">
-                      <span>Source Resolution:</span>
-                      <span className="font-medium text-[#172033] dark:text-white">
-                        {displayWidth} × {displayHeight} px
-                      </span>
-                    </div>
-                  </div>
                 ) : (
                   <div className="py-2 space-y-2">
                     <p className="text-xs text-[#475569] dark:text-[#94A3B8]">
-                      No correction details available for this result. Click &quot;Execute {selectedOpDef.name}&quot; below to generate an enhanced variant.
+                      No enhanced variant generated for {selectedOpDef.name} yet. Click &quot;Execute {selectedOpDef.name}&quot; below to generate this variant.
                     </p>
                     <div className="pt-2 border-t border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between text-[11px] text-[#475569] dark:text-[#94A3B8]">
                       <span>Original Resolution:</span>

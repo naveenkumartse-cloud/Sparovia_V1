@@ -413,4 +413,130 @@ public class AIImageEnhancementTests : IClassFixture<WebApplicationFactory<Progr
             new { VariantId = Guid.Parse(variantIdA) });
         Assert.Equal(HttpStatusCode.NotFound, crossRejectRes.StatusCode);
     }
+
+    [Fact]
+    public async Task EnhanceImage_WithMultipartFormDataOrJson_DoesNotReturn415()
+    {
+        var email = $"media_type_{Guid.NewGuid():N}@sparovia.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Media Type Studio", email);
+
+        var uploadContent = CreateUploadContent(CreateValidJpegBytes(), "sample.jpg", "image/jpeg", "WebsiteImage", "hero");
+        var uploadRes = await client.PostAsync("/api/v1/website/images", uploadContent);
+        uploadRes.EnsureSuccessStatusCode();
+        var uploadJson = await uploadRes.Content.ReadFromJsonAsync<JsonElement>();
+        var imageId = uploadJson.GetProperty("data").GetProperty("id").GetString()!;
+
+        // 1. Send JSON payload
+        var jsonRes = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/enhance", new { Operation = "ImproveClarity" });
+        Assert.NotEqual(HttpStatusCode.UnsupportedMediaType, jsonRes.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, jsonRes.StatusCode);
+
+        // 2. Send FormUrlEncodedContent (simulating form post)
+        var formContent = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("operation", "ImproveSharpness")
+        });
+        var formRes = await client.PostAsync($"/api/v1/website/images/{imageId}/enhance", formContent);
+        Assert.NotEqual(HttpStatusCode.UnsupportedMediaType, formRes.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, formRes.StatusCode);
+
+        // 3. Send MultipartFormDataContent (simulating multipart post)
+        var multiContent = new MultipartFormDataContent();
+        multiContent.Add(new StringContent("ReduceNoise"), "operation");
+        var multiRes = await client.PostAsync($"/api/v1/website/images/{imageId}/enhance", multiContent);
+        Assert.NotEqual(HttpStatusCode.UnsupportedMediaType, multiRes.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, multiRes.StatusCode);
+
+        // 4. Missing operation should return 400 Bad Request, NOT 415
+        var emptyJsonRes = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/enhance", new { Operation = "" });
+        Assert.NotEqual(HttpStatusCode.UnsupportedMediaType, emptyJsonRes.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, emptyJsonRes.StatusCode);
+    }
+
+    [Fact]
+    public async Task EnhanceImage_AllSevenApprovedOperations_ExecuteAndPersistIndependently()
+    {
+        var email = $"all_seven_{Guid.NewGuid():N}@sparovia.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Seven Operations Studio", email);
+
+        var uploadContent = CreateUploadContent(CreateValidJpegBytes(), "architectural.jpg", "image/jpeg", "WebsiteImage", "about-feature");
+        var uploadRes = await client.PostAsync("/api/v1/website/images", uploadContent);
+        uploadRes.EnsureSuccessStatusCode();
+        var uploadJson = await uploadRes.Content.ReadFromJsonAsync<JsonElement>();
+        var imageId = uploadJson.GetProperty("data").GetProperty("id").GetString()!;
+
+        var operations = new[]
+        {
+            "ImproveClarity",
+            "ImproveSharpness",
+            "ReduceNoise",
+            "Upscale",
+            "ClassicLook",
+            "ModernLook",
+            "WebOptimize"
+        };
+
+        foreach (var op in operations)
+        {
+            var res = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/enhance", new { Operation = op });
+            Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+            var json = await res.Content.ReadFromJsonAsync<JsonElement>();
+            var data = json.GetProperty("data");
+
+            Assert.Equal(op, data.GetProperty("operation").GetString());
+            Assert.NotNull(data.GetProperty("id").GetString());
+            Assert.True(data.GetProperty("width").GetInt32() > 0);
+            Assert.True(data.GetProperty("height").GetInt32() > 0);
+            Assert.True(data.GetProperty("fileSize").GetInt64() > 0);
+
+            if (op == "WebOptimize")
+            {
+                Assert.Equal("image/webp", data.GetProperty("mimeType").GetString());
+            }
+
+            if (op == "Upscale")
+            {
+                // Verify upscale produced resolution greater than or equal to source
+                Assert.True(data.GetProperty("width").GetInt32() >= 800);
+            }
+        }
+
+        // Verify retrieval of all saved variants after page reload / fresh GET
+        var getRes = await client.GetAsync($"/api/v1/website/images/{imageId}");
+        getRes.EnsureSuccessStatusCode();
+        var getJson = await getRes.Content.ReadFromJsonAsync<JsonElement>();
+        var variants = getJson.GetProperty("data").GetProperty("variants");
+        Assert.True(variants.GetArrayLength() >= 7);
+    }
+
+    [Fact]
+    public async Task CategoryPlaceholder_SelectCategory_NotPersistedAsCategory()
+    {
+        var email = $"cat_placeholder_{Guid.NewGuid():N}@sparovia.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Category Validation Co", email);
+
+        // Upload with empty category (Select category placeholder selection)
+        var uploadContent = new MultipartFormDataContent();
+        var fileContent = new ByteArrayContent(CreateValidJpegBytes());
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+        uploadContent.Add(fileContent, "File", "portfolio.jpg");
+        uploadContent.Add(new StringContent("ExploreOurWork"), "UsageType");
+        uploadContent.Add(new StringContent("Kitchen Renovation"), "ProjectWorkName");
+        // Category left unset / empty
+
+        var uploadRes = await client.PostAsync("/api/v1/website/images/explore-our-work", uploadContent);
+        uploadRes.EnsureSuccessStatusCode();
+        var uploadJson = await uploadRes.Content.ReadFromJsonAsync<JsonElement>();
+        var imageId = uploadJson.GetProperty("data").GetProperty("id").GetString()!;
+
+        // Fetch image directly and assert category is null, not "Select category" or "No Category"
+        var getRes = await client.GetAsync($"/api/v1/website/images/{imageId}");
+        getRes.EnsureSuccessStatusCode();
+        var getJson = await getRes.Content.ReadFromJsonAsync<JsonElement>();
+        var catElement = getJson.GetProperty("data").GetProperty("category");
+        Assert.True(catElement.ValueKind == JsonValueKind.Null || string.IsNullOrEmpty(catElement.GetString()));
+    }
 }

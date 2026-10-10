@@ -1125,9 +1125,9 @@ public class AIController : ControllerBase
     [HttpPost("images/{imageId:guid}/enhance")]
     [Authorize]
     [EnableRateLimiting("AiOperations")]
+    [Consumes("application/json", "multipart/form-data", "application/x-www-form-urlencoded")]
     public async Task<IActionResult> EnhanceImage(
         Guid imageId,
-        [FromBody] EnhanceImageRequest request,
         CancellationToken cancellationToken)
     {
         if (!TryGetTenantId(out var tenantId, out var authError))
@@ -1135,13 +1135,40 @@ public class AIController : ControllerBase
             return authError!;
         }
 
-        if (request == null || string.IsNullOrWhiteSpace(request.Operation))
+        string? operation = null;
+        if (Request.HasJsonContentType())
+        {
+            try
+            {
+                var body = await Request.ReadFromJsonAsync<EnhanceImageRequest>(cancellationToken: cancellationToken);
+                operation = body?.Operation;
+            }
+            catch
+            {
+                // Json parsing error
+            }
+        }
+        else if (Request.HasFormContentType)
+        {
+            operation = Request.Form["operation"].ToString();
+            if (string.IsNullOrWhiteSpace(operation))
+            {
+                operation = Request.Form["Operation"].ToString();
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(operation) && Request.Query.ContainsKey("operation"))
+        {
+            operation = Request.Query["operation"].ToString();
+        }
+
+        if (string.IsNullOrWhiteSpace(operation))
         {
             return BadRequest(new { Error = "Enhancement operation is required.", Code = "OPERATION_REQUIRED" });
         }
 
         var userId = TryGetUserId();
-        var result = await _imageService.EnhanceImageAsync(tenantId, imageId, request.Operation, userId, cancellationToken);
+        var result = await _imageService.EnhanceImageAsync(tenantId, imageId, operation, userId, cancellationToken);
 
         if (!result.Success)
         {
@@ -1165,7 +1192,7 @@ public class AIController : ControllerBase
                 imageId = imageId,
                 variantId = result.Variant?.Id,
                 status = "Processing",
-                operation = request.Operation
+                operation = operation
             },
             requestId = HttpContext.TraceIdentifier
         });

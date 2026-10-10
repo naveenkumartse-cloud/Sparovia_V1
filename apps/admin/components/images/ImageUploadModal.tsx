@@ -211,7 +211,7 @@ export function ImageUploadModal({
     try {
       let res;
       if (replacingImage) {
-        res = await apiClient.post<{ data: ImageDto }>(
+        res = await apiClient.postFormData<{ data: ImageDto }>(
           `/website/images/${replacingImage.id}/replace`,
           formData
         );
@@ -220,7 +220,7 @@ export function ImageUploadModal({
         if (slot) {
           formData.append('slot', slot);
         }
-        res = await apiClient.post<{ data: ImageDto }>('/website/images', formData);
+        res = await apiClient.postFormData<{ data: ImageDto }>('/website/images', formData);
       }
 
       if (res?.data) {
@@ -353,7 +353,7 @@ export function ImageUploadModal({
                     }}
                     className="flex-1 px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
                   >
-                    <option value="">No Category</option>
+                    <option value="">Select category</option>
                     {categories.map((c) => (
                       <option key={c.id} value={c.name}>
                         {c.name}
