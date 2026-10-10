@@ -8,6 +8,7 @@ export type ButtonVariant =
   | 'primary'
   | 'cobalt'
   | 'enhance'
+  | 'studio'
   | 'secondary'
   | 'outline'
   | 'ghost'
@@ -54,6 +55,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent',
       enhance:
         'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-xs focus:ring-[#1D4ED8] border border-transparent',
+      studio:
+        'bg-gradient-to-r from-[#315FEA] to-[#7950B8] hover:from-[#254EDB] hover:to-[#683FA4] active:from-[#1E40AF] active:to-[#58338E] text-white shadow-xs hover:shadow-subtle focus:ring-[#315FEA] border border-transparent transition-all duration-200 motion-reduce:transition-none',
       secondary:
         'bg-[#F3F6FA] hover:bg-[#E3E7ED] dark:bg-[#1E293B] dark:hover:bg-[#334155] text-[#172033] dark:text-slate-100 border border-[#E3E7ED] dark:border-[#334155] focus:ring-[#1D4ED8]',
       outline:

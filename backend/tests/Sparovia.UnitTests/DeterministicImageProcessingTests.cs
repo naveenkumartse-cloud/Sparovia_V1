@@ -55,6 +55,7 @@ public class DeterministicImageProcessingTests
     [InlineData("ImproveClarity")]
     [InlineData("ImproveSharpness")]
     [InlineData("ReduceNoise")]
+    [InlineData("Upscale")]
     [InlineData("ClassicLook")]
     [InlineData("ModernLook")]
     [InlineData("WebOptimize")]

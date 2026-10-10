@@ -189,7 +189,7 @@ export function ImageUploadModal({
     if (caption.trim()) {
       formData.append('caption', caption.trim());
     }
-    if (selectedCategory.trim()) {
+    if (!slot && selectedCategory.trim()) {
       formData.append('category', selectedCategory.trim());
     }
 
@@ -308,50 +308,64 @@ export function ImageUploadModal({
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-[#172033] dark:text-slate-200 mb-1">
-              Work Category (Optional)
-            </label>
-            {!isCreatingCategory ? (
-              <div className="flex gap-2">
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => {
-                    if (e.target.value === '__new__') {
-                      setIsCreatingCategory(true);
-                    } else {
-                      setSelectedCategory(e.target.value);
-                    }
-                  }}
-                  className="flex-1 px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
-                >
-                  <option value="">No Category</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.name}>
-                      {c.name}
-                    </option>
-                  ))}
-                  <option value="__new__">+ Create New Category...</option>
-                </select>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newCatName}
-                  onChange={(e) => setNewCatName(e.target.value)}
-                  placeholder="New category name"
-                  className="flex-1 px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
-                />
-                <Button variant="secondary" size="sm" type="button" onClick={handleCreateCategory}>
-                  Add
-                </Button>
-                <Button variant="ghost" size="sm" type="button" onClick={() => setIsCreatingCategory(false)}>
-                  Cancel
-                </Button>
-              </div>
-            )}
-          </div>
+          {slot ? (
+            <div>
+              <label className="block text-xs font-semibold text-[#172033] dark:text-slate-200 mb-1">
+                Target Website Slot
+              </label>
+              <input
+                type="text"
+                readOnly
+                value={slot}
+                className="w-full px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-[#F3F6FA] dark:bg-[#1E293B] text-[#475569] dark:text-slate-300 font-mono"
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-xs font-semibold text-[#172033] dark:text-slate-200 mb-1">
+                Work Category (Optional)
+              </label>
+              {!isCreatingCategory ? (
+                <div className="flex gap-2">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => {
+                      if (e.target.value === '__new__') {
+                        setIsCreatingCategory(true);
+                      } else {
+                        setSelectedCategory(e.target.value);
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
+                  >
+                    <option value="">No Category</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                    <option value="__new__">+ Create New Category...</option>
+                  </select>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    placeholder="New category name"
+                    className="flex-1 px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
+                  />
+                  <Button variant="secondary" size="sm" type="button" onClick={handleCreateCategory}>
+                    Add
+                  </Button>
+                  <Button variant="ghost" size="sm" type="button" onClick={() => setIsCreatingCategory(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div>

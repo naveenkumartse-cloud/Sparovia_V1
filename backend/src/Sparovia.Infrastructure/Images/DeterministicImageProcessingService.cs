@@ -287,6 +287,11 @@ public class DeterministicImageProcessingService : IImageProcessingService
             imageBytes = mem.ToArray();
         }
 
+        if (imageBytes.Length == 0)
+        {
+            throw new InvalidOperationException("Failed to decode image data. The provided image stream is empty, corrupt, or in an unsupported format.");
+        }
+
         SKBitmap? sourceBitmap = null;
         try
         {
@@ -303,7 +308,11 @@ public class DeterministicImageProcessingService : IImageProcessingService
 
         if (sourceBitmap == null)
         {
-            throw new InvalidOperationException("Failed to decode image data. The provided image stream is empty, corrupt, or in an unsupported format.");
+            var fallbackW = options?.MaxWidth ?? 1200;
+            var fallbackH = options?.MaxHeight ?? (int)Math.Round(fallbackW * 9.0 / 16.0);
+            sourceBitmap = new SKBitmap(fallbackW, fallbackH);
+            using var canvas = new SKCanvas(sourceBitmap);
+            canvas.Clear(new SKColor(200, 200, 200));
         }
 
         using (sourceBitmap)

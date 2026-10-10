@@ -218,10 +218,16 @@ export default function ImagesPage() {
     }
   };
 
-  // Filtered images
-  const filteredImages = images.filter((img) => {
-    const matchesTab = activeTab === 'website' ? img.usageType === 'WebsiteImage' : img.usageType === 'ExploreOurWork';
-    if (!matchesTab) return false;
+  const handleTabChange = (tab: 'website' | 'explore') => {
+    setActiveTab(tab);
+    setSelectedCategoryFilter('All');
+    setSearchQuery('');
+    setSelectedIds(new Set());
+  };
+
+  // Scoped Explore Our Work collection filtering
+  const exploreImages = images.filter((img) => {
+    if (img.usageType !== 'ExploreOurWork') return false;
 
     if (selectedCategoryFilter !== 'All' && img.category !== selectedCategoryFilter) {
       return false;
@@ -230,13 +236,26 @@ export default function ImagesPage() {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchName = img.projectWorkName?.toLowerCase().includes(q);
-      const matchSlot = img.slot?.toLowerCase().includes(q);
       const matchCat = img.category?.toLowerCase().includes(q);
       const matchCaption = img.caption?.toLowerCase().includes(q);
-      if (!matchName && !matchSlot && !matchCat && !matchCaption) return false;
+      const matchFileName = img.originalFileName?.toLowerCase().includes(q);
+      if (!matchName && !matchCat && !matchCaption && !matchFileName) return false;
     }
 
     return true;
+  });
+
+  // Website Slots search filtering
+  const visibleSlots = WEBSITE_SLOTS.filter((slotDef) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const assigned = images.find((i) => i.slot === slotDef.key && i.status !== 'Unused');
+    return (
+      slotDef.title.toLowerCase().includes(q) ||
+      slotDef.key.toLowerCase().includes(q) ||
+      slotDef.description.toLowerCase().includes(q) ||
+      (assigned?.projectWorkName && assigned.projectWorkName.toLowerCase().includes(q))
+    );
   });
 
   return (
@@ -254,14 +273,16 @@ export default function ImagesPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={() => setManageCategoriesModalOpen(true)}
-            leftIcon={<FolderPlus className="w-4 h-4" />}
-          >
-            Manage Categories
-          </Button>
+          {activeTab === 'explore' && (
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => setManageCategoriesModalOpen(true)}
+              leftIcon={<FolderPlus className="w-4 h-4" />}
+            >
+              Manage Categories
+            </Button>
+          )}
 
           <Button
             variant="primary"
@@ -278,11 +299,11 @@ export default function ImagesPage() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Context Navigation Tabs */}
       <div className="flex items-center gap-1 border-b border-[#E3E7ED] dark:border-[#1E293B]">
         <button
           type="button"
-          onClick={() => setActiveTab('website')}
+          onClick={() => handleTabChange('website')}
           className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
             activeTab === 'website'
               ? 'border-[#315FEA] text-[#315FEA]'
@@ -294,7 +315,7 @@ export default function ImagesPage() {
 
         <button
           type="button"
-          onClick={() => setActiveTab('explore')}
+          onClick={() => handleTabChange('explore')}
           className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
             activeTab === 'explore'
               ? 'border-[#315FEA] text-[#315FEA]'
@@ -305,305 +326,369 @@ export default function ImagesPage() {
         </button>
       </div>
 
-      {/* Search & Category Filter Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-          <button
-            type="button"
-            onClick={() => setSelectedCategoryFilter('All')}
-            className={`px-3 py-1 text-xs rounded-[4px] font-medium border transition-colors shrink-0 ${
-              selectedCategoryFilter === 'All'
-                ? 'bg-[#315FEA] text-white border-[#315FEA]'
-                : 'bg-white dark:bg-[#1E293B] text-[#475569] dark:text-slate-300 border-[#CBD5E1] dark:border-[#334155] hover:border-[#315FEA]'
-            }`}
-          >
-            All Categories
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setSelectedCategoryFilter(cat.name)}
-              className={`px-3 py-1 text-xs rounded-[4px] font-medium border transition-colors shrink-0 ${
-                selectedCategoryFilter === cat.name
-                  ? 'bg-[#315FEA] text-white border-[#315FEA]'
-                  : 'bg-white dark:bg-[#1E293B] text-[#475569] dark:text-slate-300 border-[#CBD5E1] dark:border-[#334155] hover:border-[#315FEA]'
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </div>
+      {/* Website Slots Context View */}
+      {activeTab === 'website' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-[#172033] dark:text-white">
+                Assigned Website Showcase Placements
+              </h2>
+              <p className="text-xs text-[#475569] dark:text-[#94A3B8]">
+                Configure and enhance the 4 canonical billboard and story photographs published across your storefront.
+              </p>
+            </div>
+            {/* Search input scoped to slots */}
+            <div className="relative w-full sm:w-64">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#475569] dark:text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search slot placements..."
+                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
+              />
+            </div>
+          </div>
 
-        {/* Search input */}
-        <div className="relative w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#475569] dark:text-slate-400 pointer-events-none" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search images..."
-            className="w-full pl-8 pr-3 py-1.5 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
-          />
-        </div>
-      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {visibleSlots.map((slotDef) => {
+              const assigned = images.find((i) => i.slot === slotDef.key && i.status !== 'Unused');
+              const isAssignedPublished = assigned?.status === 'Published';
+              return (
+                <div
+                  key={slotDef.key}
+                  className="rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] bg-white dark:bg-[#0F172A] flex flex-col justify-between shadow-xs hover:border-[#315FEA] transition-colors overflow-hidden"
+                >
+                  {/* Image Preview Container */}
+                  <div className="relative aspect-16/10 bg-slate-950 overflow-hidden flex items-center justify-center border-b border-[#E3E7ED] dark:border-[#1E293B]">
+                    {assigned ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={resolveImageUrl(assigned.previewUrl)}
+                        alt={slotDef.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-4 text-[#475569] dark:text-[#94A3B8] select-none">
+                        <Sparkles className="w-6 h-6 text-[#94A3B8] mb-1 opacity-50" />
+                        <span className="text-[11px] font-medium">Slot Vacant</span>
+                      </div>
+                    )}
 
-      {/* Bulk Action Bar */}
-      {selectedIds.size > 0 && (
-        <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-[6px] flex items-center justify-between text-xs">
-          <span className="font-semibold text-[#1D4ED8] dark:text-blue-300">
-            {selectedIds.size} image(s) selected
-          </span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="destructive-outline"
-              size="sm"
-              isLoading={bulkActionLoading}
-              onClick={handleBulkDelete}
-              leftIcon={<Trash2 className="w-3.5 h-3.5" />}
-            >
-              Delete Selected
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedIds(new Set())}
-            >
-              Clear Selection
-            </Button>
+                    {/* Status Badge */}
+                    <div className="absolute top-2 left-2">
+                      <span
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] border ${
+                          assigned
+                            ? isAssignedPublished
+                              ? 'bg-emerald-50 text-[#15803D] border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800'
+                              : 'bg-blue-50 text-[#1D4ED8] border-blue-200 dark:bg-blue-950/40 dark:border-blue-800'
+                            : 'bg-[#F3F6FA] text-[#475569] border-[#E3E7ED] dark:bg-[#1E293B] dark:text-[#94A3B8]'
+                        }`}
+                      >
+                        {assigned ? (isAssignedPublished ? 'Published' : 'Assigned') : 'Vacant'}
+                      </span>
+                    </div>
+
+                    {/* Recommended Resolution Badge */}
+                    <div className="absolute bottom-2 right-2">
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-[3px] bg-black/60 text-white backdrop-blur-xs">
+                        {slotDef.recommendedSize.split(' ')[0]}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Slot Details */}
+                  <div className="p-3.5 flex flex-col justify-between flex-1 gap-3">
+                    <div>
+                      <h3 className="text-xs font-semibold text-[#172033] dark:text-white">
+                        {slotDef.title}
+                      </h3>
+                      <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-0.5 line-clamp-2">
+                        {slotDef.description}
+                      </p>
+                      {assigned && (
+                        <p className="text-[10px] font-mono text-[#315FEA] dark:text-blue-400 mt-1">
+                          {assigned.width} × {assigned.height} px • {formatBytes(assigned.fileSize)}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Slot Actions */}
+                    <div className="pt-2.5 border-t border-[#E3E7ED] dark:border-[#1E293B]">
+                      {assigned ? (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="studio"
+                            size="sm"
+                            className="flex-1 justify-center"
+                            onClick={() => handleOpenStudio(assigned)}
+                            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+                          >
+                            Studio
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                              setReplacingImage(assigned);
+                              setUploadTargetSlot(slotDef.key);
+                              setUploadModalOpen(true);
+                            }}
+                            title="Replace Slot Image"
+                          >
+                            Replace
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="w-full justify-center"
+                          onClick={() => {
+                            setReplacingImage(null);
+                            setUploadTargetSlot(slotDef.key);
+                            setUploadModalOpen(true);
+                          }}
+                          leftIcon={<Upload className="w-3.5 h-3.5" />}
+                        >
+                          Assign Image
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Website Slots Overview Section */}
-      {activeTab === 'website' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {WEBSITE_SLOTS.map((slotDef) => {
-            const assigned = images.find((i) => i.slot === slotDef.key && i.status !== 'Unused');
-            return (
-              <div
-                key={slotDef.key}
-                className="p-4 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] bg-white dark:bg-[#0F172A] flex flex-col justify-between shadow-xs hover:border-[#315FEA] transition-colors"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#315FEA]">
-                      Slot
-                    </span>
-                    <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] border ${
-                        assigned
-                          ? 'bg-emerald-50 text-[#15803D] border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800'
-                          : 'bg-[#F3F6FA] text-[#475569] border-[#E3E7ED] dark:bg-[#1E293B] dark:text-[#94A3B8]'
-                      }`}
-                    >
-                      {assigned ? (assigned.status === 'Published' ? 'Published' : 'Assigned') : 'Vacant'}
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-semibold text-[#172033] dark:text-white">
-                    {slotDef.title}
-                  </h3>
-                  <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 line-clamp-2">
-                    {slotDef.description}
-                  </p>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-[#E3E7ED] dark:border-[#1E293B]">
-                  {assigned ? (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        className="flex-1 justify-center"
-                        onClick={() => handleOpenStudio(assigned)}
-                        leftIcon={<Sparkles className="w-3.5 h-3.5" />}
-                      >
-                        Studio
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => {
-                          setReplacingImage(assigned);
-                          setUploadTargetSlot(slotDef.key);
-                          setUploadModalOpen(true);
-                        }}
-                        title="Replace Slot Image"
-                      >
-                        Replace
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="w-full justify-center"
-                      onClick={() => {
-                        setReplacingImage(null);
-                        setUploadTargetSlot(slotDef.key);
-                        setUploadModalOpen(true);
-                      }}
-                      leftIcon={<Upload className="w-3.5 h-3.5" />}
-                    >
-                      Assign Image
-                    </Button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Image Gallery Grid */}
-      {loading ? (
-        <div className="p-12 text-center text-[#475569] dark:text-[#94A3B8] flex flex-col items-center justify-center">
-          <RefreshCw className="w-6 h-6 animate-spin text-[#315FEA] mb-2" />
-          <p className="text-xs">Loading media collection...</p>
-        </div>
-      ) : filteredImages.length === 0 ? (
-        <EmptyState
-          icon={<Sparkles className="w-6 h-6 text-[#315FEA]" />}
-          title={activeTab === 'website' ? 'No website images found' : 'No portfolio images found'}
-          description="Upload architectural photographs to begin deterministic enhancement and website presentation."
-          action={
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => {
-                setUploadTargetSlot(null);
-                setReplacingImage(null);
-                setUploadModalOpen(true);
-              }}
-              leftIcon={<Upload className="w-3.5 h-3.5" />}
-            >
-              Upload Image
-            </Button>
-          }
-        />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredImages.map((img) => {
-            const hasVariants = img.variants && img.variants.length > 0;
-            const isPublished = img.status === 'Published';
-            const isApproved = img.status === 'Approved' || img.variants.some((v) => v.status === 'Approved');
-            const isPendingReview = img.variants.some((v) => v.status === 'Enhanced' || v.status === 'ReadyForReview');
-            const isSelected = selectedIds.has(img.id);
-
-            return (
-              <div
-                key={img.id}
-                className={`group rounded-[8px] border bg-white dark:bg-[#0F172A] overflow-hidden flex flex-col shadow-xs transition-all ${
-                  isSelected
-                    ? 'border-[#315FEA] ring-2 ring-[#315FEA]/20'
-                    : 'border-[#CBD5E1] dark:border-[#1E293B] hover:border-[#315FEA]'
+      {/* Explore Our Work Context View */}
+      {activeTab === 'explore' && (
+        <div className="space-y-4">
+          {/* Search & Category Filter Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            {/* Category Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              <button
+                type="button"
+                onClick={() => setSelectedCategoryFilter('All')}
+                className={`px-3 py-1 text-xs rounded-[4px] font-medium border transition-colors shrink-0 ${
+                  selectedCategoryFilter === 'All'
+                    ? 'bg-[#315FEA] text-white border-[#315FEA]'
+                    : 'bg-white dark:bg-[#1E293B] text-[#475569] dark:text-slate-300 border-[#CBD5E1] dark:border-[#334155] hover:border-[#315FEA]'
                 }`}
               >
-                {/* Image Thumbnail Container */}
-                <div className="relative aspect-4/3 bg-slate-950 overflow-hidden flex items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={resolveImageUrl(img.previewUrl)}
-                    alt={img.projectWorkName || 'Project image'}
-                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
-                  />
+                All Categories
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedCategoryFilter(cat.name)}
+                  className={`px-3 py-1 text-xs rounded-[4px] font-medium border transition-colors shrink-0 ${
+                    selectedCategoryFilter === cat.name
+                      ? 'bg-[#315FEA] text-white border-[#315FEA]'
+                      : 'bg-white dark:bg-[#1E293B] text-[#475569] dark:text-slate-300 border-[#CBD5E1] dark:border-[#334155] hover:border-[#315FEA]'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
 
-                  {/* Top Overlay Badges */}
-                  <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleSelect(img.id)}
-                      className="w-4 h-4 rounded-[4px] text-[#315FEA] border-[#CBD5E1] focus:ring-[#1D4ED8] cursor-pointer"
-                    />
-                    <span
-                      className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] border ${
-                        isPublished
-                          ? 'bg-emerald-50 text-[#15803D] border-emerald-200'
-                          : isApproved
-                          ? 'bg-blue-50 text-[#1D4ED8] border-blue-200'
-                          : isPendingReview
-                          ? 'bg-amber-50 text-[#B45309] border-amber-200'
-                          : 'bg-white/90 text-[#475569] border-[#E3E7ED]'
-                      }`}
-                    >
-                      {isPublished ? 'Published' : isApproved ? 'Approved' : isPendingReview ? 'Pending Review' : 'Uploaded'}
-                    </span>
-                  </div>
+            {/* Search input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#475569] dark:text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search portfolio..."
+                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
+              />
+            </div>
+          </div>
 
-                  {/* Top Right Slot / Variants Badge */}
-                  <div className="absolute top-2 right-2 flex items-center gap-1">
-                    {hasVariants && (
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[4px] bg-[#172033]/80 text-white border border-white/10 backdrop-blur-xs flex items-center gap-1">
-                        <Sparkles className="w-2.5 h-2.5 text-[#315FEA]" />
-                        <span>{img.variants.length} var</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Card Content */}
-                <div className="p-3.5 flex flex-col justify-between flex-1 gap-3">
-                  <div>
-                    <h4 className="text-xs font-semibold text-[#172033] dark:text-white truncate">
-                      {img.projectWorkName || img.originalFileName || (img.slot ? `Slot: ${img.slot}` : 'Untitled Image')}
-                    </h4>
-                    <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-0.5 flex items-center gap-1.5">
-                      <span>{img.width} × {img.height} px</span>
-                      <span>•</span>
-                      <span>{formatBytes(img.fileSize)}</span>
-                      {img.category && (
-                        <>
-                          <span>•</span>
-                          <span className="truncate">{img.category}</span>
-                        </>
-                      )}
-                    </p>
-                  </div>
-
-                  {/* Card Actions */}
-                  <div className="pt-2.5 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center gap-2">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="flex-1 justify-center"
-                      onClick={() => handleOpenStudio(img)}
-                      leftIcon={<Sparkles className="w-3.5 h-3.5" />}
-                    >
-                      Open in Studio
-                    </Button>
-
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        setReplacingImage(img);
-                        setUploadTargetSlot(img.slot || null);
-                        setUploadModalOpen(true);
-                      }}
-                      title="Replace Source Image"
-                    >
-                      Replace
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-[#B91C1C] hover:bg-rose-50"
-                      onClick={() => {
-                        setDeletingImage(img);
-                        setDeleteModalOpen(true);
-                      }}
-                      title="Delete Image"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                </div>
+          {/* Bulk Action Bar */}
+          {selectedIds.size > 0 && (
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-[6px] flex items-center justify-between text-xs">
+              <span className="font-semibold text-[#1D4ED8] dark:text-blue-300">
+                {selectedIds.size} image(s) selected
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="destructive-outline"
+                  size="sm"
+                  isLoading={bulkActionLoading}
+                  onClick={handleBulkDelete}
+                  leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+                >
+                  Delete Selected
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedIds(new Set())}
+                >
+                  Clear Selection
+                </Button>
               </div>
-            );
-          })}
+            </div>
+          )}
+
+          {/* Portfolio Image Grid */}
+          {loading ? (
+            <div className="p-12 text-center text-[#475569] dark:text-[#94A3B8] flex flex-col items-center justify-center">
+              <RefreshCw className="w-6 h-6 animate-spin text-[#315FEA] mb-2" />
+              <p className="text-xs">Loading media collection...</p>
+            </div>
+          ) : exploreImages.length === 0 ? (
+            <EmptyState
+              icon={<Sparkles className="w-6 h-6 text-[#315FEA]" />}
+              title="No portfolio images found"
+              description="Upload architectural photographs to begin deterministic enhancement and portfolio presentation."
+              action={
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setUploadTargetSlot(null);
+                    setReplacingImage(null);
+                    setUploadModalOpen(true);
+                  }}
+                  leftIcon={<Upload className="w-3.5 h-3.5" />}
+                >
+                  Upload Image
+                </Button>
+              }
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {exploreImages.map((img) => {
+                const hasVariants = img.variants && img.variants.length > 0;
+                const isPublished = img.status === 'Published';
+                const isApproved = img.status === 'Approved' || img.variants.some((v) => v.status === 'Approved');
+                const isPendingReview = img.variants.some((v) => v.status === 'Enhanced' || v.status === 'ReadyForReview');
+                const isSelected = selectedIds.has(img.id);
+
+                return (
+                  <div
+                    key={img.id}
+                    className={`group rounded-[8px] border bg-white dark:bg-[#0F172A] overflow-hidden flex flex-col shadow-xs transition-all ${
+                      isSelected
+                        ? 'border-[#315FEA] ring-2 ring-[#315FEA]/20'
+                        : 'border-[#CBD5E1] dark:border-[#1E293B] hover:border-[#315FEA]'
+                    }`}
+                  >
+                    {/* Image Thumbnail Container */}
+                    <div className="relative aspect-4/3 bg-slate-950 overflow-hidden flex items-center justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={resolveImageUrl(img.previewUrl)}
+                        alt={img.projectWorkName || 'Project image'}
+                        className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+                      />
+
+                      {/* Top Overlay Badges */}
+                      <div className="absolute top-2 left-2 flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelect(img.id)}
+                          className="w-4 h-4 rounded-[4px] text-[#315FEA] border-[#CBD5E1] focus:ring-[#1D4ED8] cursor-pointer"
+                        />
+                        <span
+                          className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] border ${
+                            isPublished
+                              ? 'bg-emerald-50 text-[#15803D] border-emerald-200'
+                              : isApproved
+                              ? 'bg-blue-50 text-[#1D4ED8] border-blue-200'
+                              : isPendingReview
+                              ? 'bg-amber-50 text-[#B45309] border-amber-200'
+                              : 'bg-white/90 text-[#475569] border-[#E3E7ED]'
+                          }`}
+                        >
+                          {isPublished ? 'Published' : isApproved ? 'Approved' : isPendingReview ? 'Pending Review' : 'Uploaded'}
+                        </span>
+                      </div>
+
+                      {/* Top Right Variants Badge */}
+                      <div className="absolute top-2 right-2 flex items-center gap-1">
+                        {hasVariants && (
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[4px] bg-[#172033]/80 text-white border border-white/10 backdrop-blur-xs flex items-center gap-1">
+                            <Sparkles className="w-2.5 h-2.5 text-[#315FEA]" />
+                            <span>{img.variants.length} var</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Card Content */}
+                    <div className="p-3.5 flex flex-col justify-between flex-1 gap-3">
+                      <div>
+                        <h4 className="text-xs font-semibold text-[#172033] dark:text-white truncate">
+                          {img.projectWorkName || img.originalFileName || 'Untitled Image'}
+                        </h4>
+                        <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-0.5 flex items-center gap-1.5">
+                          <span>{img.width} × {img.height} px</span>
+                          <span>•</span>
+                          <span>{formatBytes(img.fileSize)}</span>
+                          {img.category && (
+                            <>
+                              <span>•</span>
+                              <span className="truncate">{img.category}</span>
+                            </>
+                          )}
+                        </p>
+                      </div>
+
+                      {/* Card Actions */}
+                      <div className="pt-2.5 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center gap-2">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          className="flex-1 justify-center"
+                          onClick={() => handleOpenStudio(img)}
+                          leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+                        >
+                          Open in Studio
+                        </Button>
+
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            setReplacingImage(img);
+                            setUploadTargetSlot(null);
+                            setUploadModalOpen(true);
+                          }}
+                          title="Replace Source Image"
+                        >
+                          Replace
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-[#B91C1C] hover:bg-rose-50"
+                          onClick={() => {
+                            setDeletingImage(img);
+                            setDeleteModalOpen(true);
+                          }}
+                          title="Delete Image"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

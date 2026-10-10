@@ -167,6 +167,32 @@ export function ImageStudioWorkspace({
     return enhanced[0] || null;
   });
 
+  const selectedOpDef = APPROVED_OPERATIONS.find((o) => o.id === selectedOp) || APPROVED_OPERATIONS[0];
+
+  // Check if a variant matching selectedOp already exists
+  const matchingVariant = image.variants?.find(
+    (v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected'
+  );
+
+  // If activeVariant matches selectedOp, or matchingVariant is found, that is our current op variant
+  const isCurrentOpGenerated = Boolean(
+    (activeVariant && activeVariant.operation?.toLowerCase() === selectedOp.toLowerCase()) || matchingVariant
+  );
+
+  const displayedVariant = isCurrentOpGenerated
+    ? (activeVariant && activeVariant.operation?.toLowerCase() === selectedOp.toLowerCase() ? activeVariant : matchingVariant)
+    : activeVariant;
+
+  const handleSelectOp = (opId: string) => {
+    setSelectedOp(opId);
+    const matching = image.variants?.find(
+      (v) => v.operation?.toLowerCase() === opId.toLowerCase() && v.status !== 'Rejected'
+    );
+    if (matching) {
+      setActiveVariant(matching);
+    }
+  };
+
   // Comparison view mode
   const [viewMode, setViewMode] = useState<'split' | 'side-by-side' | 'stacked'>('split');
   const [splitPos, setSplitPos] = useState<number>(50); // percentage (0 - 100)
@@ -195,13 +221,18 @@ export function ImageStudioWorkspace({
           const found = image.variants.find((v) => v.id === prev.id);
           if (found) return found;
         }
+        const matchingCurrent = image.variants.find(
+          (v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected'
+        );
+        if (matchingCurrent) return matchingCurrent;
+
         const newest = [...image.variants]
           .filter((v) => v.status !== 'Rejected')
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
         return newest || null;
       });
     }
-  }, [image]);
+  }, [image, selectedOp]);
 
   // Draggable Split Divider Handlers
   const handleSplitMove = useCallback((clientX: number) => {
@@ -288,14 +319,14 @@ export function ImageStudioWorkspace({
 
   // Human Review: Approve Enhancement
   const handleApproveVariant = async () => {
-    if (!activeVariant || isApproving) return;
+    if (!displayedVariant || isApproving) return;
     setIsApproving(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
     try {
       const res = await apiClient.post<{ data: ImageVariantDto; message: string }>(
-        `/website/images/${image.id}/variants/${activeVariant.id}/approve`,
+        `/website/images/${image.id}/variants/${displayedVariant.id}/approve`,
         {}
       );
 
@@ -316,13 +347,13 @@ export function ImageStudioWorkspace({
 
   // Human Review: Reject Enhancement
   const handleRejectVariant = async () => {
-    if (!activeVariant || isRejecting) return;
+    if (!displayedVariant || isRejecting) return;
     setIsRejecting(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
     try {
-      await apiClient.post(`/website/images/${image.id}/variants/${activeVariant.id}/reject`, {
+      await apiClient.post(`/website/images/${image.id}/variants/${displayedVariant.id}/reject`, {
         reason: 'Discarded by user during before/after comparison',
       });
 
@@ -353,7 +384,7 @@ export function ImageStudioWorkspace({
 
     try {
       await apiClient.post(`/website/images/${image.id}/publish`, {
-        variantId: activeVariant?.status === 'Approved' ? activeVariant.id : undefined,
+        variantId: displayedVariant?.status === 'Approved' ? displayedVariant.id : undefined,
       });
 
       const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${image.id}`);
@@ -390,9 +421,9 @@ export function ImageStudioWorkspace({
   };
 
   const originalUrl = resolveImageUrl(image.previewUrl);
-  const enhancedUrl = activeVariant ? resolveImageUrl(activeVariant.previewUrl) : originalUrl;
-  const isVariantPendingReview = activeVariant && (activeVariant.status === 'Enhanced' || activeVariant.status === 'ReadyForReview');
-  const isVariantApproved = activeVariant && activeVariant.status === 'Approved';
+  const enhancedUrl = displayedVariant ? resolveImageUrl(displayedVariant.previewUrl) : originalUrl;
+  const isVariantPendingReview = displayedVariant && (displayedVariant.status === 'Enhanced' || displayedVariant.status === 'ReadyForReview');
+  const isVariantApproved = displayedVariant && displayedVariant.status === 'Approved';
   const isImagePublished = image.status === 'Published';
 
   return (
@@ -644,7 +675,11 @@ export function ImageStudioWorkspace({
                   </div>
                   <div className="absolute top-3 right-3 z-10 pointer-events-none">
                     <span className="text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-[4px] bg-[#315FEA]/90 text-white backdrop-blur-xs border border-white/20 shadow-xs">
-                      AFTER · {activeVariant ? activeVariant.operation || 'Enhanced' : 'Original'}
+                      {isCurrentOpGenerated && displayedVariant
+                        ? `AFTER · ${selectedOpDef.name}`
+                        : displayedVariant
+                        ? `AFTER · ${displayedVariant.operation} (Previous Result)`
+                        : 'AFTER · Original (Unenhanced)'}
                     </span>
                   </div>
                 </div>
@@ -673,7 +708,11 @@ export function ImageStudioWorkspace({
                   <div className="relative rounded-[6px] bg-slate-950 overflow-hidden flex items-center justify-center border border-[#315FEA]/30">
                     <div className="absolute top-3 left-3 z-10">
                       <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
-                        AFTER · {activeVariant ? activeVariant.operation || 'Enhanced' : 'Original'}
+                        {isCurrentOpGenerated && displayedVariant
+                          ? `AFTER · ${selectedOpDef.name}`
+                          : displayedVariant
+                          ? `AFTER · ${displayedVariant.operation} (Previous Result)`
+                          : 'AFTER · Original (Unenhanced)'}
                       </span>
                     </div>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -709,7 +748,11 @@ export function ImageStudioWorkspace({
                   <div className="relative min-h-[220px] flex-1 rounded-[6px] bg-slate-950 overflow-hidden flex items-center justify-center border border-[#315FEA]/30">
                     <div className="absolute top-3 left-3 z-10">
                       <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
-                        AFTER · {activeVariant ? activeVariant.operation || 'Enhanced' : 'Original'}
+                        {isCurrentOpGenerated && displayedVariant
+                          ? `AFTER · ${selectedOpDef.name}`
+                          : displayedVariant
+                          ? `AFTER · ${displayedVariant.operation} (Previous Result)`
+                          : 'AFTER · Original (Unenhanced)'}
                       </span>
                     </div>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -757,7 +800,10 @@ export function ImageStudioWorkspace({
                       <button
                         key={op.id}
                         type="button"
-                        onClick={() => setSelectedOp(op.id)}
+                        role="radio"
+                        aria-checked={isSelected}
+                        aria-label={op.name}
+                        onClick={() => handleSelectOp(op.id)}
                         className={`text-left p-2.5 rounded-[6px] border transition-all text-xs flex items-start gap-2.5 focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8] ${
                           isSelected
                             ? 'bg-[#315FEA]/5 border-[#315FEA] text-[#172033] dark:text-white shadow-xs'
@@ -797,11 +843,11 @@ export function ImageStudioWorkspace({
                     size="md"
                     className="w-full justify-center"
                     isLoading={isProcessing}
-                    loadingText="Processing Enhancement..."
+                    loadingText={`Enhancing with ${selectedOpDef.name}...`}
                     onClick={handleRunEnhancement}
                     leftIcon={<Sparkles className="w-4 h-4" />}
                   >
-                    Execute {APPROVED_OPERATIONS.find((o) => o.id === selectedOp)?.name || 'Enhancement'}
+                    Execute {selectedOpDef.name}
                   </Button>
                   <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] text-center mt-1.5">
                     Original image remains strictly immutable on secure private storage.
@@ -809,47 +855,89 @@ export function ImageStudioWorkspace({
                 </div>
               </div>
 
-              {/* Deterministic Corrections Applied */}
+              {/* Enhancements Applied */}
               <div className="p-3.5 bg-[#F3F6FA] dark:bg-[#1E293B] rounded-[8px] border border-[#E3E7ED] dark:border-[#334155]">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#15803D]" />
-                    <span>Deterministic Corrections Applied</span>
+                    <Sparkles className="w-3.5 h-3.5 text-[#315FEA]" />
+                    <span>Enhancements Applied</span>
                   </h4>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[4px] bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#334155] text-[#475569] dark:text-[#94A3B8]">
-                    {activeVariant?.algorithmVersion || '1.0.0-deterministic'}
-                  </span>
+                  {isCurrentOpGenerated && displayedVariant && (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#15803D] border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800">
+                      Generated
+                    </span>
+                  )}
                 </div>
 
-                {activeVariant?.appliedCorrections && activeVariant.appliedCorrections.length > 0 ? (
-                  <ul className="flex flex-col gap-1.5 mb-3">
-                    {activeVariant.appliedCorrections.map((corr, idx) => (
-                      <li key={idx} className="text-xs text-[#172033] dark:text-slate-200 flex items-start gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
-                        <span>{corr}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {isCurrentOpGenerated && displayedVariant ? (
+                  <>
+                    {displayedVariant.appliedCorrections && displayedVariant.appliedCorrections.length > 0 ? (
+                      <ul className="flex flex-col gap-1.5 mb-3">
+                        {displayedVariant.appliedCorrections.map((corr, idx) => (
+                          <li key={idx} className="text-xs text-[#172033] dark:text-slate-200 flex items-start gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
+                            <span>{corr}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-[#475569] dark:text-[#94A3B8] mb-3">
+                        No correction details available for this result.
+                      </p>
+                    )}
+
+                    <div className="pt-2.5 border-t border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between text-[11px] text-[#475569] dark:text-[#94A3B8]">
+                      <span>Output Resolution:</span>
+                      <span className="font-semibold text-[#172033] dark:text-white">
+                        {displayedVariant.width} × {displayedVariant.height} px
+                      </span>
+                    </div>
+
+                    <div className="pt-2">
+                      <details className="text-[11px] text-[#475569] dark:text-[#94A3B8] group">
+                        <summary className="cursor-pointer hover:text-[#172033] dark:hover:text-white flex items-center gap-1 select-none text-[10px]">
+                          <Info className="w-3 h-3 text-[#475569]" />
+                          <span>Technical Details</span>
+                        </summary>
+                        <div className="mt-1.5 p-2 bg-white dark:bg-[#0F172A] rounded-[4px] border border-[#CBD5E1] dark:border-[#334155] space-y-1 font-mono text-[10px]">
+                          <div>Algorithm: {displayedVariant.algorithmVersion || '1.0.0-deterministic'}</div>
+                          <div>Profile: {displayedVariant.effectiveProfile || displayedVariant.operation}</div>
+                          <div>Variant ID: {displayedVariant.id}</div>
+                        </div>
+                      </details>
+                    </div>
+                  </>
+                ) : displayedVariant ? (
+                  <div className="space-y-2.5">
+                    <div className="p-2.5 rounded-[6px] bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#334155] text-xs">
+                      <p className="font-semibold text-[#172033] dark:text-white">
+                        {selectedOpDef.name} not yet executed
+                      </p>
+                      <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-0.5 leading-relaxed">
+                        Comparison preview currently shows previously generated {displayedVariant.operation} variant. Click &quot;Execute {selectedOpDef.name}&quot; to process this operation.
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between text-[11px] text-[#475569] dark:text-[#94A3B8]">
+                      <span>Source Resolution:</span>
+                      <span className="font-medium text-[#172033] dark:text-white">
+                        {image.width} × {image.height} px
+                      </span>
+                    </div>
+                  </div>
                 ) : (
-                  <p className="text-xs text-[#475569] dark:text-[#94A3B8] mb-3 italic">
-                    Execute an enhancement operation above to inspect applied tone, clarity, and texture corrections.
-                  </p>
+                  <div className="py-2 space-y-2">
+                    <p className="text-xs text-[#475569] dark:text-[#94A3B8]">
+                      No correction details available for this result. Click &quot;Execute {selectedOpDef.name}&quot; below to generate an enhanced variant.
+                    </p>
+                    <div className="pt-2 border-t border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between text-[11px] text-[#475569] dark:text-[#94A3B8]">
+                      <span>Original Resolution:</span>
+                      <span className="font-medium text-[#172033] dark:text-white">
+                        {image.width} × {image.height} px
+                      </span>
+                    </div>
+                  </div>
                 )}
-
-                <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-[#E3E7ED] dark:border-[#334155] text-[11px]">
-                  <div>
-                    <span className="text-[#475569] dark:text-[#94A3B8] block">Engine Profile:</span>
-                    <span className="font-medium text-[#172033] dark:text-white truncate block">
-                      {activeVariant?.effectiveProfile || activeVariant?.operation || 'Raw Baseline'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[#475569] dark:text-[#94A3B8] block">Variant Resolution:</span>
-                    <span className="font-medium text-[#172033] dark:text-white">
-                      {activeVariant ? `${activeVariant.width} × ${activeVariant.height}` : `${image.width} × ${image.height}`} px
-                    </span>
-                  </div>
-                </div>
               </div>
 
               {/* Review, Approval & Separate Publishing Boundary */}
