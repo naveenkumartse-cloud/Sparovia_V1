@@ -31,9 +31,14 @@ public class ImageUploadOptions
 
     /// <summary>
     /// Maximum allowed total pixel count (Width * Height) to prevent decompression bombs.
-    /// Defaults to 50,000,000 pixels (50 MP).
+    /// Defaults to 25,000,000 pixels (25 MP) per Sparovia V1 specifications.
     /// </summary>
-    public long MaxPixelCount { get; set; } = 50_000_000;
+    public long MaxPixelCount { get; set; } = 25_000_000;
+
+    /// <summary>
+    /// Maximum number of images allowed per batch upload.
+    /// </summary>
+    public int MaxBatchSize { get; set; } = 10;
 
     /// <summary>
     /// Allowed file extensions (must include leading dot).

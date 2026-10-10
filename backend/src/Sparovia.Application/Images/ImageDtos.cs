@@ -38,6 +38,9 @@ public class ImageVariantDto
     public string Status { get; set; } = "Processing";
     public string PreviewUrl { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+    public string AlgorithmVersion { get; set; } = "1.0.0-deterministic";
+    public string? EffectiveProfile { get; set; }
+    public List<string> AppliedCorrections { get; set; } = new();
 }
 
 public class ImagePreviewDto
@@ -222,6 +225,8 @@ public class ImageAnalysisResult
     public double Contrast { get; set; }
     public double Sharpness { get; set; }
     public double NoiseLevel { get; set; }
+    public double ShadowRatio { get; set; }
+    public double HighlightRatio { get; set; }
     public bool IsLargeEnough { get; set; }
     public string RecommendedOperation { get; set; } = "ImproveSharpness";
     public string RecommendationReason { get; set; } = string.Empty;
@@ -235,6 +240,9 @@ public class ProcessedImageResult
     public int Width { get; set; }
     public int Height { get; set; }
     public long FileSize { get; set; }
+    public string AlgorithmVersion { get; set; } = "1.0.0-deterministic";
+    public string? EffectiveProfile { get; set; }
+    public List<string> AppliedCorrections { get; set; } = new();
 }
 
 public class BulkImageActionRequest

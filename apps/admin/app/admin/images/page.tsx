@@ -362,6 +362,11 @@ export default function ImagesPage() {
     // Read natural dimensions
     const img = new window.Image();
     img.onload = () => {
+      if (img.naturalWidth * img.naturalHeight > 25000000) {
+        setUploadError('This image exceeds the maximum supported resolution of 25 megapixels.');
+        handleClearSelectedFile();
+        return;
+      }
       setFileDimensions({ width: img.naturalWidth, height: img.naturalHeight });
     };
     img.onerror = () => {
