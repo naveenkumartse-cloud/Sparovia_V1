@@ -928,7 +928,7 @@ export default function ImagesPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => openQualityStudio(assignedImage)}
-                            leftIcon={<SlidersHorizontal className="w-3.5 h-3.5 text-orange-500" />}
+                            leftIcon={<SlidersHorizontal className="w-3.5 h-3.5 text-[#315FEA]" />}
                             title="Open Image Quality Studio"
                           >
                             Studio
@@ -1179,7 +1179,7 @@ export default function ImagesPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => openQualityStudio(image)}
-                            leftIcon={<SlidersHorizontal className="w-3.5 h-3.5 text-orange-500" />}
+                            leftIcon={<SlidersHorizontal className="w-3.5 h-3.5 text-[#315FEA]" />}
                             title="Open Image Quality Studio"
                           >
                             Studio
@@ -1479,7 +1479,7 @@ export default function ImagesPage() {
                   setPreviewModalOpen(false);
                   openQualityStudio(previewImage);
                 }}
-                leftIcon={<SlidersHorizontal className="w-4 h-4 text-orange-500" />}
+                leftIcon={<SlidersHorizontal className="w-4 h-4 text-[#315FEA]" />}
                 className="w-full sm:w-auto"
               >
                 Quality Studio

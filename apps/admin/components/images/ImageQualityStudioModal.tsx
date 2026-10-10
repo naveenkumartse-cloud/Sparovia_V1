@@ -373,22 +373,22 @@ export function ImageQualityStudioModal({
     >
       <div className="bg-white dark:bg-[#0B1120] border border-slate-200 dark:border-[#1E293B] rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* HEADER */}
-        <div className="px-5 py-4 border-b border-slate-200 dark:border-[#1E293B] flex items-center justify-between shrink-0 bg-slate-50/70 dark:bg-[#0F172A]/70 backdrop-blur-xs">
+        <div className="px-5 py-4 border-b border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-between shrink-0 bg-[#F3F6FA]/80 dark:bg-[#0F172A]/70 backdrop-blur-xs">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-md shadow-orange-500/20">
+            <div className="w-9 h-9 rounded-xl bg-[#315FEA] text-white flex items-center justify-center shadow-md shadow-[#315FEA]/20">
               <SlidersHorizontal className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 id="quality-studio-title" className="text-base font-bold text-slate-900 dark:text-white">
+                <h3 id="quality-studio-title" className="text-base font-bold text-[#172033] dark:text-white">
                   Image Quality Studio
                 </h3>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Deterministic (Non-AI)
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-[#475569] dark:text-slate-400 mt-0.5">
                 Targeted clarity, contrast & tone adjustments for real architectural photographs. Original image remains immutable.
               </p>
             </div>
@@ -520,7 +520,7 @@ export function ImageQualityStudioModal({
             {/* Processing Overlay */}
             {processing && (
               <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-xs text-center p-4">
-                <RefreshCw className="w-8 h-8 text-orange-500 animate-spin mb-3" />
+                <RefreshCw className="w-8 h-8 text-[#315FEA] animate-spin mb-3" />
                 <p className="text-sm font-bold text-white tracking-wide">Enhancing Photograph...</p>
                 <p className="text-xs text-slate-300 mt-1 max-w-xs">
                   Applying {selectedPreset} deterministic clarity, contrast & tone adjustments.
@@ -600,13 +600,13 @@ export function ImageQualityStudioModal({
                 </div>
                 <div className="absolute top-3 right-3 pointer-events-none z-10">
                   {currentVariant ? (
-                    <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-orange-600/90 text-white border border-orange-400/30 backdrop-blur-xs shadow-md flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" />
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-[#315FEA] text-white border border-[#315FEA]/40 backdrop-blur-xs shadow-md flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-white" />
                       Enhanced ({currentVariant.operation?.replace('QualityStudio:', '') || selectedPreset})
                     </span>
                   ) : (
                     <span className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-900/85 text-slate-300 border border-white/10 backdrop-blur-xs shadow-md flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-orange-400" />
+                      <Sparkles className="w-3 h-3 text-[#315FEA]" />
                       Original (Ready to Enhance)
                     </span>
                   )}
@@ -660,13 +660,13 @@ export function ImageQualityStudioModal({
                 <div className="relative h-full flex flex-col items-center justify-center p-3 overflow-hidden">
                   <div className="absolute top-3 right-3 z-10">
                     {currentVariant ? (
-                      <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-orange-600/90 text-white border border-orange-400/30 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
+                      <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-[#315FEA] text-white border border-[#315FEA]/40 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-white" />
                         Enhanced ({currentVariant.operation?.replace('QualityStudio:', '') || selectedPreset})
                       </span>
                     ) : (
                       <span className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-900/85 text-slate-300 border border-white/10 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-orange-400" />
+                        <Sparkles className="w-3 h-3 text-[#315FEA]" />
                         Original (Ready to Enhance)
                       </span>
                     )}
@@ -704,7 +704,7 @@ export function ImageQualityStudioModal({
                 <div className="relative h-[220px] bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center">
                   <div className="absolute top-2 left-2 z-10">
                     {currentVariant ? (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-600/90 text-white">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#315FEA] text-white">
                         Enhanced ({currentVariant.operation?.replace('QualityStudio:', '') || selectedPreset})
                       </span>
                     ) : (
@@ -758,7 +758,7 @@ export function ImageQualityStudioModal({
                       : currentVariant?.status === 'Rejected'
                       ? 'bg-rose-500'
                       : currentVariant
-                      ? 'bg-amber-500'
+                      ? 'bg-[#315FEA]'
                       : 'bg-slate-400'
                   }`}
                 />
@@ -812,7 +812,7 @@ export function ImageQualityStudioModal({
                 <button
                   type="button"
                   onClick={handleResetToPreset}
-                  className="text-xs text-orange-600 hover:text-orange-700 font-medium"
+                  className="text-xs text-[#315FEA] hover:text-[#254EDB] font-medium transition-colors"
                 >
                   Reset to Balanced
                 </button>
@@ -826,18 +826,18 @@ export function ImageQualityStudioModal({
                 onClick={() => handleSelectPreset('Balanced')}
                 className={`p-3.5 rounded-xl border text-left transition-all relative ${
                   selectedPreset === 'Balanced'
-                    ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/20 shadow-xs ring-1 ring-orange-500/30'
+                    ? 'border-[#315FEA] bg-[#315FEA]/5 dark:bg-[#315FEA]/10 shadow-xs ring-2 ring-[#315FEA]/20'
                     : 'border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#0F172A]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-bold text-slate-900 dark:text-white">Balanced</span>
-                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase bg-orange-500 text-white tracking-wider">
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-[#315FEA] text-white tracking-wider shadow-xs">
                       Recommended
                     </span>
                   </div>
-                  {selectedPreset === 'Balanced' && <Check className="w-4 h-4 text-orange-600" />}
+                  {selectedPreset === 'Balanced' && <Check className="w-4 h-4 text-[#315FEA]" />}
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                   Natural clarity and tone boost. Ideal for business showcases, interiors & project photography.
@@ -853,13 +853,13 @@ export function ImageQualityStudioModal({
                 onClick={() => handleSelectPreset('Light')}
                 className={`p-3.5 rounded-xl border text-left transition-all ${
                   selectedPreset === 'Light'
-                    ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/20 shadow-xs ring-1 ring-orange-500/30'
+                    ? 'border-[#315FEA] bg-[#315FEA]/5 dark:bg-[#315FEA]/10 shadow-xs ring-2 ring-[#315FEA]/20'
                     : 'border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#0F172A]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-bold text-slate-900 dark:text-white">Light</span>
-                  {selectedPreset === 'Light' && <Check className="w-4 h-4 text-orange-600" />}
+                  {selectedPreset === 'Light' && <Check className="w-4 h-4 text-[#315FEA]" />}
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                   Subtle touch-up for crisp, well-lit architectural photographs that need gentle finishing.
@@ -875,13 +875,13 @@ export function ImageQualityStudioModal({
                 onClick={() => handleSelectPreset('High')}
                 className={`p-3.5 rounded-xl border text-left transition-all ${
                   selectedPreset === 'High'
-                    ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/20 shadow-xs ring-1 ring-orange-500/30'
+                    ? 'border-[#315FEA] bg-[#315FEA]/5 dark:bg-[#315FEA]/10 shadow-xs ring-2 ring-[#315FEA]/20'
                     : 'border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#0F172A]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-bold text-slate-900 dark:text-white">High</span>
-                  {selectedPreset === 'High' && <Check className="w-4 h-4 text-orange-600" />}
+                  {selectedPreset === 'High' && <Check className="w-4 h-4 text-[#315FEA]" />}
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                   Stronger tone recovery for dim, flat, or hazy lighting conditions without artificial artifacts.
@@ -904,7 +904,7 @@ export function ImageQualityStudioModal({
                 <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
                 <span>Fine-tune Adjustments (Optional Advanced Controls)</span>
                 {selectedPreset === 'Custom' && (
-                  <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20">
                     Custom Values Active
                   </span>
                 )}
@@ -930,7 +930,7 @@ export function ImageQualityStudioModal({
                       step={1}
                       value={brightness}
                       onChange={(e) => updateSlider(setBrightness, parseInt(e.target.value, 10))}
-                      className="w-full accent-orange-600 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg"
+                      className="w-full accent-[#315FEA] cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg"
                     />
                   </div>
 
@@ -949,7 +949,7 @@ export function ImageQualityStudioModal({
                       step={1}
                       value={contrast}
                       onChange={(e) => updateSlider(setContrast, parseInt(e.target.value, 10))}
-                      className="w-full accent-orange-600 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg"
+                      className="w-full accent-[#315FEA] cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg"
                     />
                   </div>
 
@@ -966,7 +966,7 @@ export function ImageQualityStudioModal({
                       step={1}
                       value={sharpness}
                       onChange={(e) => updateSlider(setSharpness, parseInt(e.target.value, 10))}
-                      className="w-full accent-orange-600 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg"
+                      className="w-full accent-[#315FEA] cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg"
                     />
                   </div>
 
@@ -983,7 +983,7 @@ export function ImageQualityStudioModal({
                       step={1}
                       value={noiseReduction}
                       onChange={(e) => updateSlider(setNoiseReduction, parseInt(e.target.value, 10))}
-                      className="w-full accent-orange-600 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg"
+                      className="w-full accent-[#315FEA] cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg"
                     />
                   </div>
 
@@ -1002,7 +1002,7 @@ export function ImageQualityStudioModal({
                       step={1}
                       value={saturation}
                       onChange={(e) => updateSlider(setSaturation, parseInt(e.target.value, 10))}
-                      className="w-full accent-orange-600 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg"
+                      className="w-full accent-[#315FEA] cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg"
                     />
                   </div>
                 </div>
@@ -1011,7 +1011,7 @@ export function ImageQualityStudioModal({
                   <button
                     type="button"
                     onClick={handleResetToPreset}
-                    className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                    className="text-xs text-slate-500 hover:text-[#315FEA] dark:hover:text-[#315FEA] transition-colors"
                   >
                     Reset fine-tuning to preset defaults
                   </button>
@@ -1042,7 +1042,7 @@ export function ImageQualityStudioModal({
             {!currentVariant ? (
               <Button
                 type="button"
-                variant="primary"
+                variant="cobalt"
                 size="md"
                 onClick={handleProcessImage}
                 disabled={processing}
@@ -1085,7 +1085,7 @@ export function ImageQualityStudioModal({
                 {currentVariant.status !== 'Approved' ? (
                   <Button
                     type="button"
-                    variant="primary"
+                    variant="cobalt"
                     size="md"
                     onClick={handleApproveVariant}
                     disabled={processing || approving || rejecting}

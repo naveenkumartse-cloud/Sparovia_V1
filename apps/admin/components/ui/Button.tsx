@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 
 export type ButtonVariant =
   | 'primary'
+  | 'cobalt'
   | 'enhance'
   | 'secondary'
   | 'outline'
@@ -49,6 +50,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const variantStyles: Record<ButtonVariant, string> = {
       primary:
         'bg-[#FF7043] hover:bg-[#F4511E] active:bg-[#E64A19] text-white shadow-lg shadow-[#FF7043]/25 hover:shadow-xl hover:shadow-[#FF7043]/30 focus:ring-[#FF7043] border border-transparent',
+      cobalt:
+        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-md shadow-[#315FEA]/20 hover:shadow-lg hover:shadow-[#315FEA]/25 focus:ring-[#315FEA] border border-transparent',
       enhance:
         'bg-gradient-to-r from-[#FF7043] via-[#EC4899] to-[#8B5CF6] hover:from-[#F4511E] hover:via-[#DB2777] hover:to-[#7C3AED] text-white shadow-lg shadow-[#FF7043]/20 focus:ring-purple-400 border border-transparent',
       secondary:
