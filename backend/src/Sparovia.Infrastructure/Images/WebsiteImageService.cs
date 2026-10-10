@@ -788,7 +788,7 @@ public class WebsiteImageService : IWebsiteImageService
         };
     }
 
-    public async Task<ImageOperationResult> RemoveFromWebsiteUsageAsync(
+    public async Task<ImageOperationResult> UnpublishImageAsync(
         Guid tenantId,
         Guid imageId,
         Guid? userId = null,
@@ -797,6 +797,68 @@ public class WebsiteImageService : IWebsiteImageService
         var image = await _dbContext.Images
             .Include(i => i.Variants)
             .FirstOrDefaultAsync(i => i.Id == imageId && i.TenantId == tenantId, cancellationToken);
+
+        if (image == null)
+        {
+            return new ImageOperationResult
+            {
+                Success = false,
+                ErrorCode = "IMAGE_NOT_FOUND",
+                ErrorMessage = "The specified image was not found."
+            };
+        }
+
+        // Safe unpublish: Deactivate live website usage. Original source and variants remain preserved!
+        image.IsActiveWebsiteUsage = false;
+        if (image.Status == "Published")
+        {
+            image.Status = "Approved";
+        }
+        image.UpdatedAt = DateTime.UtcNow;
+
+        // Reset any published variants back to Approved so they are retained in media library and can be republished
+        foreach (var variant in image.Variants.Where(v => v.Status == "Published"))
+        {
+            variant.Status = "Approved";
+            variant.UpdatedAt = DateTime.UtcNow;
+        }
+
+        // Clean up from standard website content if referenced in a slot
+        await ClearImageFromWebsiteContentAsync(tenantId, image, cancellationToken);
+
+        if (image.UsageType == "ExploreOurWork")
+        {
+            await SyncExploreOurWorkToWebsiteContentAsync(tenantId, image.WebsiteId, cancellationToken);
+        }
+
+        var website = await _dbContext.Websites.FirstOrDefaultAsync(w => w.Id == image.WebsiteId, cancellationToken);
+        if (website != null)
+        {
+            website.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "AUDIT: ImageUnpublished. TenantId={TenantId}, UserId={UserId}, ImageId={ImageId}, Slot={Slot}",
+            tenantId, userId, imageId, image.Slot);
+
+        return new ImageOperationResult
+        {
+            Success = true,
+            Image = MapToDto(image)
+        };
+    }
+
+    public async Task<ImageOperationResult> RemoveFromWebsiteUsageAsync(
+        Guid tenantId,
+        Guid imageId,
+        Guid? userId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var image = await _dbContext.Images
+            .Include(i => i.Variants)
+            .FirstOrDefaultAsync(i => i.Id == imageId && i.TenantId == tenantId && i.Status != "Deleted", cancellationToken);
 
         if (image == null)
         {
@@ -819,6 +881,12 @@ public class WebsiteImageService : IWebsiteImageService
         if (image.UsageType == "ExploreOurWork")
         {
             await SyncExploreOurWorkToWebsiteContentAsync(tenantId, image.WebsiteId, cancellationToken);
+        }
+
+        var website = await _dbContext.Websites.FirstOrDefaultAsync(w => w.Id == image.WebsiteId, cancellationToken);
+        if (website != null)
+        {
+            website.UpdatedAt = DateTime.UtcNow;
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -1083,20 +1151,22 @@ public class WebsiteImageService : IWebsiteImageService
             return await OptimizeImageAsync(tenantId, imageId, null, "webp", 1200, null, userId, cancellationToken);
         }
 
-        // Idempotency: Protect against rapid double-clicks / repeated submissions
-        var recentVariant = image.Variants
-            .Where(v => string.Equals(v.Operation, operation, StringComparison.OrdinalIgnoreCase) && v.CreatedAt >= DateTime.UtcNow.AddSeconds(-15))
+        // Idempotency: Protect only against rapid double-clicks while an operation is currently processing
+        var inFlightVariant = image.Variants
+            .Where(v => string.Equals(v.Operation, operation, StringComparison.OrdinalIgnoreCase)
+                     && v.Status == "Processing"
+                     && v.CreatedAt >= DateTime.UtcNow.AddSeconds(-5))
             .OrderByDescending(v => v.CreatedAt)
             .FirstOrDefault();
 
-        if (recentVariant != null)
+        if (inFlightVariant != null)
         {
-            _logger.LogInformation("Idempotency: Reusing recent {Operation} variant {VariantId} for ImageId {ImageId}", operation, recentVariant.Id, imageId);
+            _logger.LogInformation("Idempotency: Reusing in-flight {Operation} variant {VariantId} for ImageId {ImageId}", operation, inFlightVariant.Id, imageId);
             return new ImageOperationResult
             {
                 Success = true,
                 Image = MapToDto(image),
-                Variant = MapVariantDto(recentVariant, tenantId)
+                Variant = MapVariantDto(inFlightVariant, tenantId)
             };
         }
 
@@ -1450,6 +1520,12 @@ public class WebsiteImageService : IWebsiteImageService
 
         variant.Status = isApproved ? "Approved" : "Rejected";
         variant.UpdatedAt = DateTime.UtcNow;
+
+        if (isApproved && variant.Image != null && variant.Image.Status != "Published")
+        {
+            variant.Image.Status = "Approved";
+            variant.Image.UpdatedAt = DateTime.UtcNow;
+        }
 
         var linkedAiRequest = await _dbContext.AIRequests
             .Where(r => r.TenantId == tenantId && r.ResourceType == "Image" && r.ResourceId == imageId && r.ReviewStatus == AIReviewStatus.PendingReview)

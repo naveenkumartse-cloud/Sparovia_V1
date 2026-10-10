@@ -11,6 +11,7 @@ public interface IWebsiteImageService
     Task<ImageOperationResult> ApproveImageAsync(Guid tenantId, Guid imageId, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> RejectImageAsync(Guid tenantId, Guid imageId, string? reason = null, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> PublishImageAsync(Guid tenantId, Guid imageId, Guid? variantId = null, Guid? userId = null, CancellationToken cancellationToken = default);
+    Task<ImageOperationResult> UnpublishImageAsync(Guid tenantId, Guid imageId, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> RemoveFromWebsiteUsageAsync(Guid tenantId, Guid imageId, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> DeleteImageAsync(Guid tenantId, Guid imageId, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<BulkImageOperationResult> BulkDeleteImagesAsync(Guid tenantId, List<Guid> imageIds, Guid? userId = null, CancellationToken cancellationToken = default);

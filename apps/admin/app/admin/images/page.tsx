@@ -257,6 +257,19 @@ export default function ImagesPage() {
     }
   };
 
+  // Unpublish image from live website
+  const handleUnpublishImage = async (image: ImageDto) => {
+    try {
+      await apiClient.post(`/website/images/${image.id}/unpublish`, {});
+      await fetchImages();
+      if (previewModalOpen && previewImage?.id === image.id) {
+        setPreviewImage({ ...previewImage, status: 'Approved', isActiveWebsiteUsage: false });
+      }
+    } catch (err: any) {
+      alert(err?.message || 'Failed to unpublish image from live website.');
+    }
+  };
+
   // Approve image
   const handleApproveImage = async (image: ImageDto) => {
     try {
@@ -755,16 +768,25 @@ export default function ImagesPage() {
                           ) : (
                             <Button
                               type="button"
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => openRemoveModal(assignedImage)}
-                              aria-label="Remove from website usage"
-                              title="Remove from website usage"
-                              className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleUnpublishImage(assignedImage)}
+                              className="text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              Unpublish
                             </Button>
                           )}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => openRemoveModal(assignedImage)}
+                            aria-label="Delete image"
+                            title="Delete image from media library"
+                            className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </>
                     ) : (
@@ -1008,7 +1030,7 @@ export default function ImagesPage() {
                           >
                             Replace
                           </Button>
-                          {image.status !== 'Published' && (
+                          {image.status !== 'Published' ? (
                             <Button
                               type="button"
                               variant="primary"
@@ -1017,6 +1039,16 @@ export default function ImagesPage() {
                               className="bg-[#F97316] hover:bg-[#EA580C] text-white"
                             >
                               Publish
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleUnpublishImage(image)}
+                              className="text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
+                            >
+                              Unpublish
                             </Button>
                           )}
                         </div>
@@ -1141,7 +1173,7 @@ export default function ImagesPage() {
                   Approve Image
                 </Button>
               )}
-              {previewImage && previewImage.status !== 'Published' && (
+              {previewImage && previewImage.status !== 'Published' ? (
                 <Button
                   type="button"
                   variant="primary"
@@ -1154,7 +1186,17 @@ export default function ImagesPage() {
                 >
                   Publish to Website
                 </Button>
-              )}
+              ) : previewImage ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="md"
+                  onClick={() => handleUnpublishImage(previewImage)}
+                  className="text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
+                >
+                  Remove from Live Website
+                </Button>
+              ) : null}
               <Button
                 type="button"
                 variant="ghost"

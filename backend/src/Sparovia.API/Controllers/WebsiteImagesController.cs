@@ -412,6 +412,37 @@ public class ReplaceImageForm
         });
     }
 
+    [HttpPost("{id:guid}/unpublish")]
+    [HttpPost("{id:guid}/remove-usage")]
+    [HttpDelete("{id:guid}/publish")]
+    [Authorize]
+    public async Task<IActionResult> UnpublishImage(Guid id, CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError)) return authError!;
+
+        var result = await _imageService.UnpublishImageAsync(
+            tenantId,
+            id,
+            TryGetUserId(),
+            cancellationToken);
+
+        if (!result.Success)
+        {
+            if (result.ErrorCode == "IMAGE_NOT_FOUND")
+            {
+                return NotFound(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+            }
+            return BadRequest(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+        }
+
+        return Ok(new
+        {
+            data = result.Image,
+            message = "Image safely removed from live website. Original source and variants remain preserved in media library.",
+            requestId = HttpContext.TraceIdentifier
+        });
+    }
+
     [HttpDelete("{id:guid}")]
     [Authorize]
     public async Task<IActionResult> RemoveFromWebsiteUsage(Guid id, CancellationToken cancellationToken)
@@ -646,12 +677,9 @@ public class ReplaceImageForm
 
         return Ok(new
         {
-            data = new
-            {
-                imageId = id,
-                approvedVariantId = request.VariantId,
-                status = "Approved"
-            },
+            data = result.Variant,
+            image = result.Image,
+            message = "Variant approved successfully. Original image remains preserved.",
             requestId = HttpContext.TraceIdentifier
         });
     }
@@ -688,12 +716,8 @@ public class ReplaceImageForm
 
         return Ok(new
         {
-            data = new
-            {
-                imageId = id,
-                rejectedVariantId = request.VariantId,
-                status = "Rejected"
-            },
+            data = result.Variant,
+            image = result.Image,
             message = "Enhancement variant rejected. Original image remains unchanged.",
             requestId = HttpContext.TraceIdentifier
         });
@@ -958,12 +982,8 @@ public class ReplaceImageForm
 
         return Ok(new
         {
-            data = new
-            {
-                imageId = id,
-                approvedVariantId = variantId,
-                status = "Approved"
-            },
+            data = result.Variant,
+            image = result.Image,
             message = "Variant approved successfully. Original image remains preserved.",
             requestId = HttpContext.TraceIdentifier
         });
@@ -997,12 +1017,8 @@ public class ReplaceImageForm
 
         return Ok(new
         {
-            data = new
-            {
-                imageId = id,
-                rejectedVariantId = variantId,
-                status = "Rejected"
-            },
+            data = result.Variant,
+            image = result.Image,
             message = "Variant rejected. Original image remains unchanged.",
             requestId = HttpContext.TraceIdentifier
         });

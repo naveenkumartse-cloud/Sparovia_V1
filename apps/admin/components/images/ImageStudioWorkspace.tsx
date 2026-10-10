@@ -244,24 +244,21 @@ export function ImageStudioWorkspace({
     setEnhancedLoadError(false);
   }, [displayedVariant?.previewUrl, retryKey]);
 
-  // Sync active variant when currentImage updates
+  // Sync active variant when currentImage updates or selectedOp changes
   useEffect(() => {
     if (currentImage?.variants?.length) {
       setActiveVariant((prev) => {
-        if (prev) {
+        if (prev && prev.operation?.toLowerCase() === selectedOp.toLowerCase()) {
           const found = currentImage.variants.find((v) => v.id === prev.id);
           if (found) return found;
         }
         const matchingCurrent = [...currentImage.variants]
           .filter((v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected')
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-        if (matchingCurrent) return matchingCurrent;
-
-        const newest = [...currentImage.variants]
-          .filter((v) => v.status !== 'Rejected')
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-        return newest || null;
+        return matchingCurrent || null;
       });
+    } else {
+      setActiveVariant(null);
     }
   }, [currentImage, selectedOp]);
 
@@ -377,8 +374,12 @@ export function ImageStudioWorkspace({
         if (updatedImgRes?.data) {
           setCurrentImage(updatedImgRes.data);
           onImageUpdated(updatedImgRes.data);
+          const freshNew = updatedImgRes.data.variants.find((v) => v.id === newVariant.id);
+          if (freshNew) {
+            setActiveVariant(freshNew);
+          }
         }
-        setSuccessMessage(`Enhanced with ${APPROVED_OPERATIONS.find((o) => o.id === selectedOp)?.name || selectedOp}. Original image preserved.`);
+        setSuccessMessage(`Enhanced with ${APPROVED_OPERATIONS.find((o) => o.id === selectedOp)?.name || selectedOp}. Candidate ready for human review.`);
       }
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to process enhancement. The original image remains safe and untouched.');
@@ -395,20 +396,28 @@ export function ImageStudioWorkspace({
     setSuccessMessage(null);
 
     try {
-      const res = await apiClient.post<{ data: ImageVariantDto; message: string }>(
+      const res = await apiClient.post<{ data: ImageVariantDto; image?: ImageDto; message: string }>(
         `/website/images/${currentImage.id}/variants/${displayedVariant.id}/approve`,
         {}
       );
 
-      if (res?.data) {
-        setActiveVariant(res.data);
-        const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${currentImage.id}`);
-        if (updatedImgRes?.data) {
-          setCurrentImage(updatedImgRes.data);
-          onImageUpdated(updatedImgRes.data);
-        }
-        setSuccessMessage('Variant approved for website usage. Note: Publishing remains an explicit, separate action.');
+      const approvedVariant = res?.data;
+      if (approvedVariant) {
+        setActiveVariant(approvedVariant);
       }
+
+      const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${currentImage.id}`);
+      if (updatedImgRes?.data) {
+        setCurrentImage(updatedImgRes.data);
+        onImageUpdated(updatedImgRes.data);
+        if (approvedVariant) {
+          const freshVariant = updatedImgRes.data.variants.find((v) => v.id === approvedVariant.id);
+          if (freshVariant) {
+            setActiveVariant(freshVariant);
+          }
+        }
+      }
+      setSuccessMessage('Variant approved for website usage. Note: Publishing remains an explicit, separate action.');
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to approve variant.');
     } finally {
@@ -433,9 +442,9 @@ export function ImageStudioWorkspace({
       if (updatedImgRes?.data) {
         setCurrentImage(updatedImgRes.data);
         onImageUpdated(updatedImgRes.data);
-        // Select next available non-rejected variant or null
+        // Select next available non-rejected variant for this op or null
         const nextVariant = [...updatedImgRes.data.variants]
-          .filter((v) => v.status !== 'Rejected')
+          .filter((v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected')
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
         setActiveVariant(nextVariant || null);
       }
@@ -455,14 +464,21 @@ export function ImageStudioWorkspace({
     setSuccessMessage(null);
 
     try {
+      const variantToPublish = displayedVariant?.status === 'Approved' ? displayedVariant.id : undefined;
       await apiClient.post(`/website/images/${currentImage.id}/publish`, {
-        variantId: displayedVariant?.status === 'Approved' ? displayedVariant.id : undefined,
+        variantId: variantToPublish,
       });
 
       const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${currentImage.id}`);
       if (updatedImgRes?.data) {
         setCurrentImage(updatedImgRes.data);
         onImageUpdated(updatedImgRes.data);
+        if (variantToPublish) {
+          const freshPublished = updatedImgRes.data.variants.find((v) => v.id === variantToPublish);
+          if (freshPublished) {
+            setActiveVariant(freshPublished);
+          }
+        }
       }
       setSuccessMessage('Image published to live website successfully.');
     } catch (err: any) {
@@ -472,7 +488,7 @@ export function ImageStudioWorkspace({
     }
   };
 
-  // Unpublish
+  // Unpublish: Explicit live website removal while retaining media library record
   const handleUnpublishImage = async () => {
     if (!currentImage || isUnpublishing) return;
     setIsUnpublishing(true);
@@ -485,8 +501,14 @@ export function ImageStudioWorkspace({
       if (updatedImgRes?.data) {
         setCurrentImage(updatedImgRes.data);
         onImageUpdated(updatedImgRes.data);
+        if (displayedVariant) {
+          const freshVariant = updatedImgRes.data.variants.find((v) => v.id === displayedVariant.id);
+          if (freshVariant) {
+            setActiveVariant(freshVariant);
+          }
+        }
       }
-      setSuccessMessage('Image removed from active website publishing.');
+      setSuccessMessage('Image safely removed from live website. Original source and variants remain preserved in media library.');
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to unpublish image.');
     } finally {
@@ -1253,13 +1275,17 @@ export function ImageStudioWorkspace({
                   <span>Review &amp; Publishing Boundary</span>
                 </h4>
 
-                {/* Variant Decision Actions */}
+                {/* State 1: Candidate Pending Review */}
                 {isVariantPendingReview && (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-xs text-[#475569] dark:text-[#94A3B8]">
-                      Human review required. Confirm fidelity before approving this variant for website usage:
+                  <div className="flex flex-col gap-2 p-2.5 rounded-[6px] bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                      <span>Candidate Generated · Human Review Required</span>
+                    </div>
+                    <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
+                      Confirm visual quality before approving this {selectedOpDef.name} candidate for website usage.
                     </p>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2 mt-0.5">
                       <Button
                         variant="success"
                         size="sm"
@@ -1268,7 +1294,7 @@ export function ImageStudioWorkspace({
                         onClick={handleApproveVariant}
                         leftIcon={<Check className="w-3.5 h-3.5" />}
                       >
-                        Approve
+                        Approve Candidate
                       </Button>
                       <Button
                         variant="destructive-outline"
@@ -1284,9 +1310,51 @@ export function ImageStudioWorkspace({
                   </div>
                 )}
 
-                {/* Explicit Separate Publishing Action */}
-                <div className="mt-1">
-                  {!isImagePublished ? (
+                {/* State 2: Candidate Approved (Eligible to Publish / Update Live Variant) */}
+                {displayedVariant?.status === 'Approved' && (
+                  <div className="flex flex-col gap-2 p-2.5 rounded-[6px] bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/60">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-800 dark:text-blue-300">
+                        <Check className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                        Candidate Approved · Ready for Publishing
+                      </span>
+                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200">
+                        {selectedOpDef.name}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
+                      This approved candidate is eligible to go live. Approval does not automatically publish.
+                    </p>
+                    <Button
+                      variant="primary"
+                      size="md"
+                      className="w-full justify-center mt-0.5"
+                      isLoading={isPublishing}
+                      loadingText="Publishing to Website..."
+                      onClick={handlePublishImage}
+                      leftIcon={<Globe className="w-4 h-4" />}
+                    >
+                      {isImagePublished ? `Update Live Website with ${selectedOpDef.name}` : `Publish ${selectedOpDef.name} to Live Website`}
+                    </Button>
+                  </div>
+                )}
+
+                {/* State 3: Variant is Currently Published on Live Website */}
+                {displayedVariant?.status === 'Published' && (
+                  <div className="flex items-center justify-between p-2.5 rounded-[6px] bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Active Live on Website
+                    </span>
+                    <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200">
+                      {selectedOpDef.name}
+                    </span>
+                  </div>
+                )}
+
+                {/* State 4: Initial Un-enhanced Image Ready to Publish */}
+                {!displayedVariant && !isImagePublished && effectiveImage?.status === 'Approved' && (
+                  <div className="mt-1">
                     <Button
                       variant="primary"
                       size="md"
@@ -1298,22 +1366,28 @@ export function ImageStudioWorkspace({
                     >
                       Publish to Live Website
                     </Button>
-                  ) : (
+                  </div>
+                )}
+
+                {/* Live Website Removal Action (Available whenever image is actively published) */}
+                {isImagePublished && (
+                  <div className="pt-1">
                     <Button
                       variant="outline"
-                      size="md"
-                      className="w-full justify-center text-[#B91C1C] hover:bg-rose-50 border-rose-200"
+                      size="sm"
+                      className="w-full justify-center text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
                       isLoading={isUnpublishing}
                       loadingText="Unpublishing..."
                       onClick={handleUnpublishImage}
                     >
                       Remove from Live Website
                     </Button>
-                  )}
-                  <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-1.5 leading-relaxed">
-                    Publishing updates the tenant website layout. Approval does not automatically publish.
-                  </p>
-                </div>
+                  </div>
+                )}
+
+                <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
+                  Publishing updates the tenant website layout. Original uploads remain permanently immutable.
+                </p>
 
                 {/* Additional Media Management Actions */}
                 <div className="flex items-center gap-2 pt-2 border-t border-[#E3E7ED] dark:border-[#1E293B]">
