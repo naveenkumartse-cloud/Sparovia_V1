@@ -154,19 +154,19 @@ function SidebarView({
                   href={item.href}
                   title={item.name}
                   className={`
-                    group relative flex items-center justify-center rounded-xl p-2.5 text-xs font-medium transition-all
+                    group relative flex items-center justify-center rounded-[6px] p-2.5 text-xs font-medium transition-all
                     ${isActive 
-                      ? 'bg-blue-50/80 dark:bg-[#1E293B] text-blue-600 dark:text-white shadow-sm border border-blue-200/60 dark:border-[#334155]/60 font-semibold' 
-                      : 'text-slate-600 dark:text-[#94A3B8] hover:bg-slate-100 dark:hover:bg-[#1E293B]/50 hover:text-slate-900 dark:hover:text-white'}
+                      ? 'bg-[#315FEA]/10 dark:bg-[#1E293B] text-[#315FEA] dark:text-white shadow-xs border border-[#315FEA]/20 dark:border-[#334155]/60 font-semibold' 
+                      : 'text-[#475569] dark:text-[#94A3B8] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B]/50 hover:text-[#172033] dark:hover:text-white'}
                   `}
                   onClick={onNavigate}
                 >
                   <item.icon
-                    className={`h-5 w-5 shrink-0 transition-colors ${isActive ? 'text-[#3B82F6]' : 'text-slate-400 dark:text-[#64748B] group-hover:text-[#3B82F6]'}`}
+                    className={`h-5 w-5 shrink-0 transition-colors ${isActive ? 'text-[#315FEA]' : 'text-[#64748B] group-hover:text-[#315FEA]'}`}
                     aria-hidden="true"
                   />
                   {isActive && (
-                    <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
+                    <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#315FEA]" />
                   )}
                 </Link>
               );
@@ -177,23 +177,23 @@ function SidebarView({
                 key={item.name}
                 href={item.href}
                 className={`
-                  group flex items-center rounded-xl px-3.5 py-2.5 text-xs font-medium transition-all
+                  group flex items-center rounded-[6px] px-3.5 py-2.5 text-xs font-medium transition-all
                   ${isActive 
-                    ? 'bg-blue-50/80 dark:bg-[#1E293B] text-blue-600 dark:text-white shadow-sm border border-blue-200/60 dark:border-[#334155]/60 font-semibold' 
-                    : 'text-slate-600 dark:text-[#94A3B8] hover:bg-slate-100 dark:hover:bg-[#1E293B]/50 hover:text-slate-900 dark:hover:text-white'}
+                    ? 'bg-[#315FEA]/10 dark:bg-[#1E293B] text-[#315FEA] dark:text-white shadow-xs border border-[#315FEA]/20 dark:border-[#334155]/60 font-semibold' 
+                    : 'text-[#475569] dark:text-[#94A3B8] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B]/50 hover:text-[#172033] dark:hover:text-white'}
                 `}
                 onClick={onNavigate}
               >
                 <item.icon
                   className={`
                     mr-3 h-4 w-4 flex-shrink-0 transition-colors
-                    ${isActive ? 'text-[#3B82F6]' : 'text-slate-400 dark:text-[#64748B] group-hover:text-[#3B82F6]'}
+                    ${isActive ? 'text-[#315FEA]' : 'text-[#64748B] group-hover:text-[#315FEA]'}
                   `}
                   aria-hidden="true"
                 />
                 <span className="truncate">{item.name}</span>
                 {isActive && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#315FEA]" />
                 )}
               </Link>
             );
@@ -413,9 +413,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setTheme('light')}
-                className={`p-1.5 rounded-lg text-xs transition-colors ${
+                className={`p-1.5 rounded-[6px] text-xs transition-colors ${
                   theme === 'light' 
-                    ? 'bg-white text-[#3B82F6] shadow-sm font-semibold' 
+                    ? 'bg-white text-[#315FEA] shadow-xs font-semibold' 
                     : 'text-slate-400 hover:text-slate-700 dark:text-[#64748B] dark:hover:text-white'
                 }`}
                 aria-label="Set light theme"
@@ -425,9 +425,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setTheme('dark')}
-                className={`p-1.5 rounded-lg text-xs transition-colors ${
+                className={`p-1.5 rounded-[6px] text-xs transition-colors ${
                   theme === 'dark' 
-                    ? 'bg-[#0B1220] text-[#3B82F6] shadow-sm font-semibold' 
+                    ? 'bg-[#0B1220] text-[#315FEA] shadow-xs font-semibold' 
                     : 'text-slate-400 hover:text-slate-700 dark:text-[#64748B] dark:hover:text-white'
                 }`}
                 aria-label="Set dark theme"
@@ -437,9 +437,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setTheme('system')}
-                className={`p-1.5 rounded-lg text-xs transition-colors ${
+                className={`p-1.5 rounded-[6px] text-xs transition-colors ${
                   theme === 'system' 
-                    ? 'bg-white dark:bg-[#0B1220] text-[#3B82F6] shadow-sm font-semibold' 
+                    ? 'bg-white dark:bg-[#0B1220] text-[#315FEA] shadow-xs font-semibold' 
                     : 'text-slate-400 hover:text-slate-700 dark:text-[#64748B] dark:hover:text-white'
                 }`}
                 aria-label="Set system theme"
@@ -450,7 +450,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
             <button
               onClick={handleLogout}
-              className="flex items-center text-xs font-medium text-slate-500 dark:text-[#94A3B8] hover:text-[#FF7043] dark:hover:text-[#FF7043] transition-colors py-1.5 px-3 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1E293B]"
+              className="flex items-center text-xs font-medium text-slate-500 dark:text-[#94A3B8] hover:text-[#B91C1C] dark:hover:text-[#B91C1C] transition-colors py-1.5 px-3 rounded-[6px] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B]"
             >
               <LogOut className="mr-1.5 h-3.5 w-3.5" />
               <span className="hidden sm:inline">Sign Out</span>

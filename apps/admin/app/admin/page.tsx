@@ -57,18 +57,16 @@ export default function AdminDashboard() {
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Welcome Banner */}
       <div className="bg-white dark:bg-[#0F172A] p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-[#1E293B] shadow-sm dark:shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#3B82F6]/10 to-[#8B3FD1]/10 rounded-full blur-3xl pointer-events-none" />
-        
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20 mb-3">
+            <div className="inline-flex items-center px-2.5 py-1 rounded-[4px] text-xs font-semibold bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20 mb-3">
               <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
               Authenticated Workspace
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#172033] dark:text-white tracking-tight">
               Welcome back, {user?.fullName || 'Business Owner'}
             </h1>
-            <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
+            <p className="text-sm text-[#475569] dark:text-[#94A3B8] mt-1">
               Tenant context: <span className="font-mono text-slate-700 dark:text-[#CBD5E1]">{user?.tenantId}</span>
             </p>
           </div>
@@ -76,7 +74,7 @@ export default function AdminDashboard() {
           <div className="shrink-0">
             <Link
               href={isConfirmed ? "/admin/business-context" : "/admin/onboarding/business-basics"}
-              className="inline-flex items-center justify-center h-10 min-h-[40px] px-5 rounded-xl text-sm font-semibold text-white bg-[#FF7043] hover:bg-[#F4511E] active:bg-[#E64A19] transition-all shadow-lg shadow-[#FF7043]/25 hover:shadow-xl hover:shadow-[#FF7043]/30"
+              className="inline-flex items-center justify-center h-10 min-h-[40px] px-5 rounded-[6px] text-sm font-semibold text-white bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] transition-all shadow-xs hover:shadow-subtle"
             >
               {isConfirmed ? 'Manage Business Context' : 'Complete Onboarding'}
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -88,35 +86,35 @@ export default function AdminDashboard() {
       {/* Grid of Key Status Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Business Context Card */}
-        <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border border-slate-200 dark:border-[#1E293B] shadow-sm dark:shadow-lg flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#0F172A] p-6 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-xl bg-[#3B82F6]/10 border border-[#3B82F6]/20 flex items-center justify-center text-[#3B82F6]">
+              <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 border border-[#315FEA]/20 flex items-center justify-center text-[#315FEA]">
                 <Building2 className="w-5 h-5" />
               </div>
               {isConfirmed ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shrink-0">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#15803D]/10 text-[#15803D] border border-[#15803D]/20 whitespace-nowrap shrink-0">
                   <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                   <span>Approved</span>
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap shrink-0">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#B45309]/10 text-[#B45309] border border-[#B45309]/20 whitespace-nowrap shrink-0">
                   <Clock className="w-3.5 h-3.5 shrink-0" />
                   <span>Pending</span>
                 </span>
               )}
             </div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Business Context</h2>
-            <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 leading-relaxed">
+            <h2 className="text-base font-bold text-[#172033] dark:text-white">Business Context</h2>
+            <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
               {isConfirmed 
                 ? 'Your approved facts, services, and differentiators are locked and trusted.' 
                 : 'Complete the onboarding steps to establish your trusted business facts.'}
             </p>
           </div>
-          <div className="mt-6 pt-4 border-t border-slate-100 dark:border-[#1E293B]">
+          <div className="mt-6 pt-4 border-t border-[#E3E7ED] dark:border-[#1E293B]">
             <Link 
               href="/admin/business-context" 
-              className="inline-flex items-center text-xs font-semibold text-[#3B82F6] hover:text-[#60A5FA] transition-colors"
+              className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
             >
               Review facts <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Link>
@@ -124,25 +122,25 @@ export default function AdminDashboard() {
         </div>
 
         {/* Website Content Card */}
-        <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border border-slate-200 dark:border-[#1E293B] shadow-sm dark:shadow-lg flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#0F172A] p-6 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-xl bg-[#8B3FD1]/10 border border-[#8B3FD1]/20 flex items-center justify-center text-[#8B3FD1]">
+              <div className="w-10 h-10 rounded-[6px] bg-[#7950B8]/10 border border-[#7950B8]/20 flex items-center justify-center text-[#7950B8]">
                 <Laptop2 className="w-5 h-5" />
               </div>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20">
                 Connected
               </span>
             </div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Connected Website</h2>
-            <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 leading-relaxed">
+            <h2 className="text-base font-bold text-[#172033] dark:text-white">Connected Website</h2>
+            <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
               Manage supported website sections and copy with AI assistance inside controlled boundaries.
             </p>
           </div>
-          <div className="mt-6 pt-4 border-t border-slate-100 dark:border-[#1E293B]">
+          <div className="mt-6 pt-4 border-t border-[#E3E7ED] dark:border-[#1E293B]">
             <Link 
               href="/admin/content" 
-              className="inline-flex items-center text-xs font-semibold text-[#3B82F6] hover:text-[#60A5FA] transition-colors"
+              className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
             >
               Manage content <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Link>
@@ -150,18 +148,18 @@ export default function AdminDashboard() {
         </div>
 
         {/* Leads Intake Card */}
-        <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border border-slate-200 dark:border-[#1E293B] shadow-sm dark:shadow-lg flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#0F172A] p-6 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-xl bg-[#FF7043]/10 border border-[#FF7043]/20 flex items-center justify-center text-[#FF7043]">
+              <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 border border-[#315FEA]/20 flex items-center justify-center text-[#315FEA]">
                 <Users className="w-5 h-5" />
               </div>
               {newLeadsCount !== null && newLeadsCount > 0 ? (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#15803D]/10 text-[#15803D] border border-[#15803D]/20">
                   {newLeadsCount} New {newLeadsCount === 1 ? 'Lead' : 'Leads'}
                 </span>
               ) : (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8]">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#F3F6FA] dark:bg-[#1E293B] text-[#475569] dark:text-[#94A3B8]">
                   Intake Active
                 </span>
               )}

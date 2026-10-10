@@ -21,21 +21,21 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'p-8 text-center rounded-2xl border border-slate-200 dark:border-[#1E293B]',
-        'bg-slate-50/50 dark:bg-[#0B1220]/70 transition-colors',
+        'p-8 text-center rounded-[8px] border border-[#E3E7ED] dark:border-[#1E293B]',
+        'bg-[#F3F6FA]/50 dark:bg-[#0B1220]/70 transition-colors',
         className
       )}
     >
       {icon && (
-        <div className="w-12 h-12 rounded-2xl bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20 flex items-center justify-center mx-auto mb-3.5">
+        <div className="w-12 h-12 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20 flex items-center justify-center mx-auto mb-3.5">
           {icon}
         </div>
       )}
-      <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+      <h3 className="text-sm font-semibold text-[#172033] dark:text-white">
         {title}
       </h3>
       {description && (
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-[#94A3B8] mt-1.5 max-w-sm mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm text-[#475569] dark:text-[#94A3B8] mt-1.5 max-w-sm mx-auto leading-relaxed">
           {description}
         </p>
       )}

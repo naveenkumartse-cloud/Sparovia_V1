@@ -36,13 +36,13 @@ export function FormField({
           <label
             htmlFor={id}
             className={cn(
-              'block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0] select-none break-words',
+              'block text-xs sm:text-sm font-medium text-[#172033] dark:text-[#E2E8F0] select-none break-words',
               labelClassName
             )}
           >
             {label}
             {required && (
-              <span className="text-[#FF7043] ml-1" aria-hidden="true">
+              <span className="text-[#B91C1C] ml-1" aria-hidden="true">
                 *
               </span>
             )}
@@ -55,7 +55,7 @@ export function FormField({
       <div>{children}</div>
 
       {helperText && !error && (
-        <p className="mt-1 text-xs text-slate-500 dark:text-[#94A3B8] leading-tight">
+        <p className="mt-1 text-xs text-[#475569] dark:text-[#94A3B8] leading-tight">
           {helperText}
         </p>
       )}
@@ -64,7 +64,7 @@ export function FormField({
         <p
           id={id ? `${id}-error` : undefined}
           role="alert"
-          className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-1"
+          className="mt-1.5 text-xs font-medium text-[#B91C1C] dark:text-red-400 flex items-center gap-1"
         >
           {error}
         </p>

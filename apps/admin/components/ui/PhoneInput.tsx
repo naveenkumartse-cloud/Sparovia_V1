@@ -60,10 +60,10 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     <div className={`w-full ${className}`}>
       {label && (
         <div className="flex items-center justify-between mb-1.5">
-          <label htmlFor={id} className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
-            {label} {required && <span className="text-[#FF7043]">*</span>}
+          <label htmlFor={id} className="block text-xs sm:text-sm font-medium text-[#172033] dark:text-[#E2E8F0]">
+            {label} {required && <span className="text-[#B91C1C]">*</span>}
           </label>
-          <span className="text-[11px] text-slate-400 dark:text-[#64748B]">
+          <span className="text-[11px] text-[#475569] dark:text-[#64748B]">
             10-digit mobile
           </span>
         </div>
@@ -71,18 +71,18 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
 
       {/* Input Group with Fixed +91 Prefix */}
       <div
-        className={`relative flex items-stretch w-full rounded-xl border bg-slate-50 dark:bg-[#0B1220] transition-colors focus-within:ring-1 focus-within:ring-[#3B82F6] focus-within:border-[#3B82F6] ${
+        className={`relative flex items-stretch w-full rounded-[6px] border bg-white dark:bg-[#0B1220] transition-colors focus-within:ring-1 focus-within:ring-[#315FEA] focus-within:border-[#315FEA] ${
           error
-            ? 'border-red-500/60 dark:border-red-500/60'
+            ? 'border-[#B91C1C]/60 dark:border-[#B91C1C]/60'
             : isValid
-            ? 'border-emerald-500/60 dark:border-emerald-500/60'
-            : 'border-slate-200 dark:border-[#334155]'
+            ? 'border-[#15803D]/60 dark:border-[#15803D]/60'
+            : 'border-[#CBD5E1] dark:border-[#334155]'
         } ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
       >
         {/* Fixed, Disabled +91 Country Code Badge */}
         <div
           aria-hidden="true"
-          className="flex items-center justify-center px-3 py-2 bg-slate-100 dark:bg-[#1E293B]/70 text-slate-600 dark:text-slate-300 font-semibold text-xs sm:text-sm select-none rounded-l-xl border-r border-slate-200 dark:border-[#334155]"
+          className="flex items-center justify-center px-3 py-2 bg-[#F3F6FA] dark:bg-[#1E293B]/70 text-[#475569] dark:text-slate-300 font-semibold text-xs sm:text-sm select-none rounded-l-[6px] border-r border-[#CBD5E1] dark:border-[#334155]"
         >
           <span className="tracking-wide">+91</span>
         </div>
@@ -104,14 +104,14 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
           onPaste={handlePaste}
           onChange={handleInputChange}
           onBlur={onBlur}
-          className="block w-full min-w-0 bg-transparent px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] focus:outline-none disabled:cursor-not-allowed"
+          className="block w-full min-w-0 bg-transparent px-3 py-2 text-xs sm:text-sm text-[#172033] dark:text-white placeholder-[#64748B] focus:outline-none disabled:cursor-not-allowed"
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error ? `${id}-error` : helperText ? `${id}-helper` : undefined}
         />
       </div>
 
       {error ? (
-        <p id={`${id}-error`} className="mt-1.5 text-xs text-red-500 dark:text-red-400" role="alert">
+        <p id={`${id}-error`} className="mt-1.5 text-xs text-[#B91C1C] dark:text-red-400" role="alert">
           {error}
         </p>
       ) : helperText ? (

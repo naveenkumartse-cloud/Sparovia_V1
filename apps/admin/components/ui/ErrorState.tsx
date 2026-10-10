@@ -28,20 +28,20 @@ export function ErrorState({
     <div
       role="alert"
       className={cn(
-        'p-8 text-center rounded-2xl border border-red-500/20 dark:border-red-500/30',
+        'p-8 text-center rounded-[8px] border border-[#B91C1C]/20 dark:border-[#B91C1C]/30',
         'bg-red-50/50 dark:bg-red-950/10 transition-colors',
         className
       )}
     >
-      <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 flex items-center justify-center mx-auto mb-3.5">
+      <div className="w-12 h-12 rounded-[6px] bg-[#B91C1C]/10 text-[#B91C1C] border border-[#B91C1C]/20 flex items-center justify-center mx-auto mb-3.5">
         <AlertCircle className="w-6 h-6" />
       </div>
 
-      <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+      <h3 className="text-sm font-semibold text-[#172033] dark:text-white">
         {title}
       </h3>
 
-      <p className="text-xs sm:text-sm text-slate-600 dark:text-[#94A3B8] mt-1.5 max-w-md mx-auto leading-relaxed">
+      <p className="text-xs sm:text-sm text-[#475569] dark:text-[#94A3B8] mt-1.5 max-w-md mx-auto leading-relaxed">
         {displayMessage}
       </p>
 

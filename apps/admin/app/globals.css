@@ -4,18 +4,46 @@
 
 :root {
   --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Approved DESIGN.md Design System Tokens */
+  --color-brand-primary: #315FEA;
+  --color-brand-secondary: #7950B8;
+  --color-text-primary: #172033;
+  --color-text-secondary: #475569;
+  --color-surface-main: #FFFFFF;
+  --color-surface-supporting: #F3F6FA;
+  --color-surface-brand-tint: #F5F0FB;
+  --color-border-subtle: #E3E7ED;
+  --color-border-default: #CBD5E1;
+  --color-border-strong: #64748B;
+  --color-action-primary: #315FEA;
+  --color-action-hover: #254EDB;
+  --color-action-pressed: #1E40AF;
+  --color-focus-selected: #1D4ED8;
+  --color-status-success: #15803D;
+  --color-status-warning: #B45309;
+  --color-status-error: #B91C1C;
+  --color-status-info: #1D4ED8;
+
+  --radius-indicator: 4px;
+  --radius-control: 6px;
+  --radius-panel: 8px;
+  --radius-dialog: 10px;
+
+  --shadow-subtle: 0 1px 2px rgb(23 32 51 / 6%);
+  --shadow-overlay: 0 12px 32px rgb(23 32 51 / 16%);
 }
 
 html {
   color-scheme: light;
   background-color: #ffffff;
-  color: #0f172a;
+  color: #172033;
 }
 
 body {
   font-family: var(--font-inter);
   background-color: #ffffff;
-  color: #0f172a;
+  color: #172033;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -71,11 +99,12 @@ html.dark body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #7c3aed;
+  background: #315FEA;
 }
 
 /* Design System Utilities */
 @layer utilities {
+  /* Approved logo wordmark exception (DESIGN.md Section 7) */
   .text-brand-gradient {
     background: linear-gradient(135deg, #3B82F6 0%, #8B3FD1 100%);
     -webkit-background-clip: text;
@@ -87,17 +116,22 @@ html.dark body {
   }
 
   .bg-brand-cta {
-    background-color: #FF7043;
+    background-color: #315FEA;
   }
 
   .btn-cta {
-    background-color: #FF7043;
+    background-color: #315FEA;
     color: #FFFFFF;
-    transition: background-color 0.2s ease, transform 0.1s ease;
+    border-radius: 6px;
+    transition: background-color 0.15s ease, transform 0.1s ease;
   }
 
   .btn-cta:hover:not(:disabled) {
-    background-color: #F4511E;
+    background-color: #254EDB;
+  }
+
+  .btn-cta:active:not(:disabled) {
+    background-color: #1E40AF;
   }
 
   .btn-cta:disabled {
@@ -106,12 +140,12 @@ html.dark body {
   }
 
   .badge-purple {
-    background-color: #f5f3ff;
-    color: #8b3fd1;
-    border: 1px solid #ddd6fe;
+    background-color: #F5F0FB;
+    color: #7950B8;
+    border: 1px solid #E3E7ED;
   }
 
   .focus-ring {
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1220];
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#0B1220];
   }
 }

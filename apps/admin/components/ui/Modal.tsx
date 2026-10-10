@@ -79,24 +79,24 @@ export function Modal({
       <div
         ref={modalRef}
         className={cn(
-          'relative flex flex-col max-h-[calc(100dvh-20px)] sm:max-h-[85vh] my-auto bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl shadow-2xl z-10 overflow-hidden transform transition-all',
+          'relative flex flex-col max-h-[calc(100dvh-20px)] sm:max-h-[85vh] my-auto bg-white dark:bg-[#0F172A] border border-[#E3E7ED] dark:border-[#1E293B] rounded-[10px] shadow-[0_12px_32px_rgb(23_32_51_/_16%)] z-10 overflow-hidden transform transition-all',
           maxWidthMap[maxWidth] || maxWidthMap.md,
           className
         )}
       >
         {/* Header - Fixed at Top */}
-        <div className="px-4 py-3.5 sm:px-6 sm:py-5 border-b border-slate-100 dark:border-[#1E293B] flex items-start justify-between gap-3 shrink-0 bg-white dark:bg-[#0F172A]">
+        <div className="px-4 py-3.5 sm:px-6 sm:py-5 border-b border-[#E3E7ED] dark:border-[#1E293B] flex items-start justify-between gap-3 shrink-0 bg-white dark:bg-[#0F172A]">
           <div className="min-w-0 pr-1">
             <h3
               id="modal-title"
-              className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight break-words"
+              className="text-base sm:text-lg font-bold text-[#172033] dark:text-white tracking-tight break-words"
             >
               {title}
             </h3>
             {description && (
               <p
                 id="modal-description"
-                className="text-xs sm:text-sm text-slate-500 dark:text-[#94A3B8] mt-1 leading-relaxed break-words"
+                className="text-xs sm:text-sm text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed break-words"
               >
                 {description}
               </p>
@@ -105,7 +105,7 @@ export function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors shrink-0 -mr-1 -mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-[6px] text-[#475569] hover:text-[#172033] dark:hover:text-slate-200 hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] transition-colors shrink-0 -mr-1 -mt-1 focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]"
             aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
@@ -123,7 +123,7 @@ export function Modal({
         {footer && (
           <div
             className={cn(
-              'px-4 py-3.5 sm:px-6 sm:py-4 bg-slate-50/95 dark:bg-[#0B1120]/95 border-t border-slate-100 dark:border-[#1E293B] shrink-0 w-full flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3',
+              'px-4 py-3.5 sm:px-6 sm:py-4 bg-[#F3F6FA]/95 dark:bg-[#0B1120]/95 border-t border-[#E3E7ED] dark:border-[#1E293B] shrink-0 w-full flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3',
               footerClassName
             )}
           >

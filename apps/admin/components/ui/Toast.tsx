@@ -127,40 +127,40 @@ function ToastCard({ toast, onClose }: { toast: ToastItem; onClose: () => void }
       role={isError ? 'alert' : 'status'}
       aria-live={isError ? 'assertive' : 'polite'}
       className={cn(
-        'pointer-events-auto flex items-start gap-3 p-3.5 sm:p-4 rounded-xl shadow-lg border backdrop-blur-md transition-colors',
-        'bg-white dark:bg-[#0F172A] border-slate-200 dark:border-[#1E293B]',
-        toast.type === 'success' && 'border-emerald-500/30 dark:border-emerald-500/30',
-        toast.type === 'error' && 'border-red-500/30 dark:border-red-500/30',
-        toast.type === 'warning' && 'border-amber-500/30 dark:border-amber-500/30',
-        toast.type === 'info' && 'border-blue-500/30 dark:border-blue-500/30'
+        'pointer-events-auto flex items-start gap-3 p-3.5 sm:p-4 rounded-[8px] shadow-[0_12px_32px_rgb(23_32_51_/_16%)] border backdrop-blur-md transition-colors',
+        'bg-white dark:bg-[#0F172A] border-[#E3E7ED] dark:border-[#1E293B]',
+        toast.type === 'success' && 'border-[#15803D]/30 dark:border-[#15803D]/30',
+        toast.type === 'error' && 'border-[#B91C1C]/30 dark:border-[#B91C1C]/30',
+        toast.type === 'warning' && 'border-[#B45309]/30 dark:border-[#B45309]/30',
+        toast.type === 'info' && 'border-[#1D4ED8]/30 dark:border-[#1D4ED8]/30'
       )}
     >
       {/* Icon */}
       <div className="shrink-0 mt-0.5">
         {toast.type === 'success' && (
-          <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+          <div className="p-1 rounded-full bg-[#15803D]/10 text-[#15803D]">
             <CheckCircle2 className="w-4 h-4" />
           </div>
         )}
         {toast.type === 'error' && (
-          <div className="p-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400">
+          <div className="p-1 rounded-full bg-[#B91C1C]/10 text-[#B91C1C]">
             <AlertCircle className="w-4 h-4" />
           </div>
         )}
         {toast.type === 'warning' && (
-          <div className="p-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+          <div className="p-1 rounded-full bg-[#B45309]/10 text-[#B45309]">
             <AlertTriangle className="w-4 h-4" />
           </div>
         )}
         {toast.type === 'info' && (
-          <div className="p-1 rounded-full bg-blue-500/10 text-[#3B82F6]">
+          <div className="p-1 rounded-full bg-[#1D4ED8]/10 text-[#1D4ED8]">
             <Info className="w-4 h-4" />
           </div>
         )}
       </div>
 
       {/* Message content */}
-      <div className="flex-1 text-xs sm:text-sm font-medium leading-snug text-slate-900 dark:text-white pt-0.5">
+      <div className="flex-1 text-xs sm:text-sm font-medium leading-snug text-[#172033] dark:text-white pt-0.5">
         {toast.message}
       </div>
 

@@ -92,7 +92,7 @@ function VerifyEmailContent() {
           </div>
           <button
             onClick={() => router.push('/admin/onboarding/business-basics')}
-            className="w-full flex justify-center items-center py-3 px-4 rounded-xl text-sm font-semibold text-white bg-[#FF7043] hover:bg-[#F4511E] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#FF7043] focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-[#0F172A] transition-all shadow-lg shadow-[#FF7043]/20"
+            className="w-full flex justify-center items-center py-3 px-4 rounded-[6px] text-sm font-semibold text-white bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-[#0F172A] transition-all shadow-xs hover:shadow-subtle"
           >
             Continue to Business Onboarding
             <ArrowRight className="ml-2 h-4 w-4" />
