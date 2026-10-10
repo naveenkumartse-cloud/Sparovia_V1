@@ -1870,12 +1870,15 @@ public class WebsiteImageService : IWebsiteImageService
             .ToListAsync(cancellationToken);
 
         // Count approved/published ExploreOurWork images per category
-        var imageCounts = await _dbContext.Images
+        var imagesWithCategory = await _dbContext.Images
             .AsNoTracking()
             .Where(i => i.TenantId == tenantId && i.UsageType == "ExploreOurWork" && i.Status != "Deleted" && i.Status != "Unused" && i.Category != null)
-            .GroupBy(i => i.Category!)
-            .Select(g => new { Category = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(g => g.Category, g => g.Count, StringComparer.OrdinalIgnoreCase, cancellationToken);
+            .Select(i => i.Category!)
+            .ToListAsync(cancellationToken);
+
+        var imageCounts = imagesWithCategory
+            .GroupBy(c => c.Trim(), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
 
         return categories.Select(c => new WorkCategoryDto
         {
@@ -1886,7 +1889,7 @@ public class WebsiteImageService : IWebsiteImageService
             Slug = c.Slug,
             DisplayOrder = c.DisplayOrder,
             IsActive = c.IsActive,
-            ImageCount = imageCounts.TryGetValue(c.Name, out var count) ? count : 0,
+            ImageCount = imageCounts.TryGetValue(c.Name.Trim(), out var count) ? count : 0,
             CreatedAt = c.CreatedAt
         }).ToList();
     }

@@ -525,4 +525,39 @@ public class WebsiteImagesTests : IClassFixture<WebApplicationFactory<Program>>
         var unauthorizedApproveResp = await otherClient.PostAsync($"/api/v1/website/images/{imageId}/variants/{variantId}/approve", null);
         Assert.Equal(HttpStatusCode.NotFound, unauthorizedApproveResp.StatusCode);
     }
+
+    [Fact]
+    public async Task GetCategories_MatchesActualExploreOurWorkImagesCount_CaseAndWhitespaceInsensitive()
+    {
+        var email = $"cat_count_{Guid.NewGuid():N}@test.local";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Category Count Design Ltd", email);
+
+        // 1. Create category "Modular Kitchens"
+        var createCatReq = new { name = "Modular Kitchens" };
+        var catResp = await client.PostAsJsonAsync("/api/v1/website/categories", createCatReq);
+        Assert.Equal(HttpStatusCode.Created, catResp.StatusCode);
+
+        // 2. Upload an ExploreOurWork image with Category with whitespace and casing variance
+        var form = new MultipartFormDataContent();
+        var fileContent = new ByteArrayContent(CreateValidPngBytes());
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        form.Add(fileContent, "file", "kitchen_showcase.png");
+        form.Add(new StringContent("ExploreOurWork"), "usageType");
+        form.Add(new StringContent("Modern Villa Kitchen"), "projectWorkName");
+        form.Add(new StringContent("  Modular Kitchens  "), "category");
+
+        var uploadResp = await client.PostAsync("/api/v1/website/images", form);
+        Assert.Equal(HttpStatusCode.Created, uploadResp.StatusCode);
+
+        // 3. Query categories and verify imageCount is 1
+        var listResp = await client.GetAsync("/api/v1/website/categories");
+        Assert.Equal(HttpStatusCode.OK, listResp.StatusCode);
+
+        var listBody = await listResp.Content.ReadFromJsonAsync<JsonElement>();
+        var cats = listBody.GetProperty("data").EnumerateArray().ToList();
+        var modularCat = cats.FirstOrDefault(c => c.GetProperty("name").GetString() == "Modular Kitchens");
+        Assert.True(modularCat.ValueKind == JsonValueKind.Object);
+        Assert.Equal(1, modularCat.GetProperty("imageCount").GetInt32());
+    }
 }

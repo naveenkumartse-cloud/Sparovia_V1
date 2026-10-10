@@ -696,10 +696,10 @@ export function ImageStudioWorkspace({
                     <img
                       src={enhancedUrl}
                       alt={`AFTER · ${selectedOpDef.name}`}
-                      className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                      className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
                     />
                   ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950 text-slate-400">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950 text-slate-400 select-none">
                       <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-3">
                         <selectedOpDef.icon className="w-6 h-6" />
                       </div>
@@ -712,22 +712,16 @@ export function ImageStudioWorkspace({
                     </div>
                   )}
 
-                  {/* Over layer: Original Image (Clipped) */}
-                  <div
-                    className="absolute inset-0 overflow-hidden pointer-events-none"
-                    style={{ width: `${splitPos}%` }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={originalUrl}
-                      alt="BEFORE · Original"
-                      className="absolute inset-0 w-full h-full object-contain"
-                      style={{
-                        width: containerRef.current ? `${containerRef.current.clientWidth}px` : '100%',
-                        maxWidth: 'none',
-                      }}
-                    />
-                  </div>
+                  {/* Over layer: Original Image (Clipped precisely via CSS clipPath without scaling offsets) */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={originalUrl}
+                    alt="BEFORE · Original"
+                    className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
+                    style={{
+                      clipPath: `inset(0 ${100 - splitPos}% 0 0)`,
+                    }}
+                  />
 
                   {/* Divider Line & Draggable Handle */}
                   <div
