@@ -9,7 +9,8 @@ import {
   Image as ImageIcon,
   Plus,
   Loader2,
-  FileCheck
+  FileCheck,
+  Sparkles
 } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
@@ -24,10 +25,23 @@ export interface WorkCategoryDto {
   imageCount: number;
 }
 
+export interface PendingUploadData {
+  file: File;
+  previewUrl: string;
+  dimensions: { width: number; height: number };
+  slot?: string | null;
+  usageType: 'WebsiteImage' | 'ExploreOurWork';
+  projectWorkName?: string;
+  caption?: string;
+  category?: string;
+  replacingImageId?: string;
+}
+
 export interface ImageUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (newImage: ImageDto) => void;
+  onOpenStudio?: (pending: PendingUploadData) => void;
   slot?: string | null;
   usageType?: 'WebsiteImage' | 'ExploreOurWork';
   replacingImage?: ImageDto | null;
@@ -51,6 +65,7 @@ export function ImageUploadModal({
   isOpen,
   onClose,
   onSuccess,
+  onOpenStudio,
   slot,
   usageType = 'WebsiteImage',
   replacingImage,
@@ -382,21 +397,49 @@ export function ImageUploadModal({
         </div>
 
         {/* Modal Actions */}
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#E3E7ED] dark:border-[#1E293B]">
-          <Button variant="ghost" size="md" type="button" onClick={onClose} disabled={isUploading}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            size="md"
-            type="submit"
-            isLoading={isUploading}
-            loadingText={replacingImage ? 'Replacing...' : 'Uploading...'}
-            disabled={!selectedFile}
-            leftIcon={<Upload className="w-4 h-4" />}
-          >
-            {replacingImage ? 'Confirm Replacement' : 'Upload Image'}
-          </Button>
+        <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#E3E7ED] dark:border-[#1E293B]">
+          <div>
+            {selectedFile && dimensions && localPreviewUrl && onOpenStudio && (
+              <Button
+                variant="studio"
+                size="md"
+                type="button"
+                onClick={() => {
+                  onOpenStudio({
+                    file: selectedFile,
+                    previewUrl: localPreviewUrl,
+                    dimensions,
+                    slot,
+                    usageType: slot ? 'WebsiteImage' : usageType,
+                    projectWorkName: projectWorkName.trim(),
+                    caption: caption.trim(),
+                    category: !slot && selectedCategory.trim() ? selectedCategory.trim() : undefined,
+                    replacingImageId: replacingImage?.id,
+                  });
+                  onClose();
+                }}
+                leftIcon={<Sparkles className="w-4 h-4" />}
+              >
+                Enhance in Studio
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="md" type="button" onClick={onClose} disabled={isUploading}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              type="submit"
+              isLoading={isUploading}
+              loadingText={replacingImage ? 'Replacing...' : 'Uploading...'}
+              disabled={!selectedFile}
+              leftIcon={<Upload className="w-4 h-4" />}
+            >
+              {replacingImage ? 'Confirm Replacement' : 'Upload Image'}
+            </Button>
+          </div>
         </div>
       </form>
     </Modal>

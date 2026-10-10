@@ -71,8 +71,21 @@ export interface ImageDto {
   variants: ImageVariantDto[];
 }
 
+export interface PendingUploadData {
+  file: File;
+  previewUrl: string;
+  dimensions: { width: number; height: number };
+  slot?: string | null;
+  usageType: 'WebsiteImage' | 'ExploreOurWork';
+  projectWorkName?: string;
+  caption?: string;
+  category?: string;
+  replacingImageId?: string;
+}
+
 export interface ImageStudioWorkspaceProps {
-  image: ImageDto;
+  image?: ImageDto | null;
+  pendingUpload?: PendingUploadData | null;
   onClose: () => void;
   onImageUpdated: (updatedImage: ImageDto) => void;
   resolveImageUrl: (url: string | null | undefined) => string;
@@ -150,18 +163,21 @@ function formatBytes(bytes: number): string {
 
 export function ImageStudioWorkspace({
   image,
+  pendingUpload,
   onClose,
   onImageUpdated,
   resolveImageUrl,
   onReplaceRequested,
   onDeleteRequested,
 }: ImageStudioWorkspaceProps) {
+  const [currentImage, setCurrentImage] = useState<ImageDto | null>(image || null);
+
   // Selected operation for processing
   const [selectedOp, setSelectedOp] = useState<string>('ImproveClarity');
 
   // Currently inspected variant (defaults to newest enhanced variant if one exists)
   const [activeVariant, setActiveVariant] = useState<ImageVariantDto | null>(() => {
-    const enhanced = [...(image.variants || [])]
+    const enhanced = [...(image?.variants || [])]
       .filter((v) => v.status !== 'Rejected')
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return enhanced[0] || null;
@@ -170,7 +186,7 @@ export function ImageStudioWorkspace({
   const selectedOpDef = APPROVED_OPERATIONS.find((o) => o.id === selectedOp) || APPROVED_OPERATIONS[0];
 
   // Check if a variant matching selectedOp already exists
-  const matchingVariant = image.variants?.find(
+  const matchingVariant = currentImage?.variants?.find(
     (v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected'
   );
 
@@ -185,7 +201,7 @@ export function ImageStudioWorkspace({
 
   const handleSelectOp = (opId: string) => {
     setSelectedOp(opId);
-    const matching = image.variants?.find(
+    const matching = currentImage?.variants?.find(
       (v) => v.operation?.toLowerCase() === opId.toLowerCase() && v.status !== 'Rejected'
     );
     if (matching) {
@@ -213,26 +229,32 @@ export function ImageStudioWorkspace({
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef<boolean>(false);
 
-  // Sync active variant when image prop updates
   useEffect(() => {
-    if (image?.variants?.length) {
+    if (image) {
+      setCurrentImage(image);
+    }
+  }, [image]);
+
+  // Sync active variant when currentImage updates
+  useEffect(() => {
+    if (currentImage?.variants?.length) {
       setActiveVariant((prev) => {
         if (prev) {
-          const found = image.variants.find((v) => v.id === prev.id);
+          const found = currentImage.variants.find((v) => v.id === prev.id);
           if (found) return found;
         }
-        const matchingCurrent = image.variants.find(
+        const matchingCurrent = currentImage.variants.find(
           (v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected'
         );
         if (matchingCurrent) return matchingCurrent;
 
-        const newest = [...image.variants]
+        const newest = [...currentImage.variants]
           .filter((v) => v.status !== 'Rejected')
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
         return newest || null;
       });
     }
-  }, [image, selectedOp]);
+  }, [currentImage, selectedOp]);
 
   // Draggable Split Divider Handlers
   const handleSplitMove = useCallback((clientX: number) => {
@@ -295,8 +317,46 @@ export function ImageStudioWorkspace({
     setSuccessMessage(null);
 
     try {
+      let targetImage = currentImage;
+
+      // If this is an initial unpersisted upload from the upload modal
+      if (!targetImage && pendingUpload) {
+        const formData = new FormData();
+        formData.append('file', pendingUpload.file);
+        if (pendingUpload.projectWorkName) formData.append('projectWorkName', pendingUpload.projectWorkName);
+        if (pendingUpload.caption) formData.append('caption', pendingUpload.caption);
+        if (pendingUpload.category) formData.append('category', pendingUpload.category);
+        if (pendingUpload.slot) {
+          formData.append('usageType', 'WebsiteImage');
+          formData.append('slot', pendingUpload.slot);
+        } else {
+          formData.append('usageType', pendingUpload.usageType);
+        }
+
+        let uploadRes;
+        if (pendingUpload.replacingImageId) {
+          uploadRes = await apiClient.post<{ data: ImageDto }>(`/website/images/${pendingUpload.replacingImageId}/replace`, formData);
+        } else if (pendingUpload.usageType === 'ExploreOurWork' && !pendingUpload.slot) {
+          uploadRes = await apiClient.post<{ data: ImageDto }>('/website/images/explore-our-work', formData);
+        } else {
+          uploadRes = await apiClient.post<{ data: ImageDto }>('/website/images', formData);
+        }
+
+        const uploadedImg = uploadRes?.data;
+        if (!uploadedImg) {
+          throw new Error('Failed to persist image upload.');
+        }
+        targetImage = uploadedImg;
+        setCurrentImage(uploadedImg);
+        onImageUpdated(uploadedImg);
+      }
+
+      if (!targetImage) {
+        throw new Error('No image available to enhance.');
+      }
+
       const res = await apiClient.post<{ data: ImageVariantDto; message: string }>(
-        `/website/images/${image.id}/enhance`,
+        `/website/images/${targetImage.id}/enhance`,
         { operation: selectedOp }
       );
 
@@ -304,8 +364,9 @@ export function ImageStudioWorkspace({
       if (newVariant) {
         setActiveVariant(newVariant);
         // Refresh entire image to get updated variants list
-        const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${image.id}`);
+        const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${targetImage.id}`);
         if (updatedImgRes?.data) {
+          setCurrentImage(updatedImgRes.data);
           onImageUpdated(updatedImgRes.data);
         }
         setSuccessMessage(`Enhanced with ${APPROVED_OPERATIONS.find((o) => o.id === selectedOp)?.name || selectedOp}. Original image preserved.`);
@@ -319,21 +380,22 @@ export function ImageStudioWorkspace({
 
   // Human Review: Approve Enhancement
   const handleApproveVariant = async () => {
-    if (!displayedVariant || isApproving) return;
+    if (!currentImage || !displayedVariant || isApproving) return;
     setIsApproving(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
     try {
       const res = await apiClient.post<{ data: ImageVariantDto; message: string }>(
-        `/website/images/${image.id}/variants/${displayedVariant.id}/approve`,
+        `/website/images/${currentImage.id}/variants/${displayedVariant.id}/approve`,
         {}
       );
 
       if (res?.data) {
         setActiveVariant(res.data);
-        const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${image.id}`);
+        const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${currentImage.id}`);
         if (updatedImgRes?.data) {
+          setCurrentImage(updatedImgRes.data);
           onImageUpdated(updatedImgRes.data);
         }
         setSuccessMessage('Variant approved for website usage. Note: Publishing remains an explicit, separate action.');
@@ -347,19 +409,20 @@ export function ImageStudioWorkspace({
 
   // Human Review: Reject Enhancement
   const handleRejectVariant = async () => {
-    if (!displayedVariant || isRejecting) return;
+    if (!currentImage || !displayedVariant || isRejecting) return;
     setIsRejecting(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
     try {
-      await apiClient.post(`/website/images/${image.id}/variants/${displayedVariant.id}/reject`, {
+      await apiClient.post(`/website/images/${currentImage.id}/variants/${displayedVariant.id}/reject`, {
         reason: 'Discarded by user during before/after comparison',
       });
 
       // Fetch updated image
-      const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${image.id}`);
+      const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${currentImage.id}`);
       if (updatedImgRes?.data) {
+        setCurrentImage(updatedImgRes.data);
         onImageUpdated(updatedImgRes.data);
         // Select next available non-rejected variant or null
         const nextVariant = [...updatedImgRes.data.variants]
@@ -377,18 +440,19 @@ export function ImageStudioWorkspace({
 
   // Publishing: Explicit separate action
   const handlePublishImage = async () => {
-    if (isPublishing) return;
+    if (!currentImage || isPublishing) return;
     setIsPublishing(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
     try {
-      await apiClient.post(`/website/images/${image.id}/publish`, {
+      await apiClient.post(`/website/images/${currentImage.id}/publish`, {
         variantId: displayedVariant?.status === 'Approved' ? displayedVariant.id : undefined,
       });
 
-      const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${image.id}`);
+      const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${currentImage.id}`);
       if (updatedImgRes?.data) {
+        setCurrentImage(updatedImgRes.data);
         onImageUpdated(updatedImgRes.data);
       }
       setSuccessMessage('Image published to live website successfully.');
@@ -401,15 +465,16 @@ export function ImageStudioWorkspace({
 
   // Unpublish
   const handleUnpublishImage = async () => {
-    if (isUnpublishing) return;
+    if (!currentImage || isUnpublishing) return;
     setIsUnpublishing(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
     try {
-      await apiClient.post(`/website/images/${image.id}/unpublish`, {});
-      const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${image.id}`);
+      await apiClient.post(`/website/images/${currentImage.id}/unpublish`, {});
+      const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${currentImage.id}`);
       if (updatedImgRes?.data) {
+        setCurrentImage(updatedImgRes.data);
         onImageUpdated(updatedImgRes.data);
       }
       setSuccessMessage('Image removed from active website publishing.');
@@ -420,11 +485,21 @@ export function ImageStudioWorkspace({
     }
   };
 
-  const originalUrl = resolveImageUrl(image.previewUrl);
+  const effectiveImage = currentImage;
+  const originalUrl = effectiveImage ? resolveImageUrl(effectiveImage.previewUrl) : (pendingUpload?.previewUrl || '');
   const enhancedUrl = displayedVariant ? resolveImageUrl(displayedVariant.previewUrl) : originalUrl;
   const isVariantPendingReview = displayedVariant && (displayedVariant.status === 'Enhanced' || displayedVariant.status === 'ReadyForReview');
   const isVariantApproved = displayedVariant && displayedVariant.status === 'Approved';
-  const isImagePublished = image.status === 'Published';
+  const isImagePublished = effectiveImage?.status === 'Published';
+  const displayName = effectiveImage
+    ? (effectiveImage.projectWorkName || effectiveImage.originalFileName || effectiveImage.slot || 'Image Workspace')
+    : (pendingUpload?.projectWorkName || pendingUpload?.file.name || pendingUpload?.slot || 'New Image');
+  const displayWidth = effectiveImage?.width || pendingUpload?.dimensions.width || 0;
+  const displayHeight = effectiveImage?.height || pendingUpload?.dimensions.height || 0;
+  const displaySize = effectiveImage?.fileSize || pendingUpload?.file.size || 0;
+  const displayMime = (effectiveImage?.mimeType || pendingUpload?.file.type || 'image/jpeg').replace('image/', '').toUpperCase();
+  const displayCategory = effectiveImage?.category || pendingUpload?.category;
+  const displaySlot = effectiveImage?.slot || pendingUpload?.slot;
 
   return (
     <div className="fixed inset-0 z-50 bg-[#172033]/70 backdrop-blur-xs flex flex-col items-center justify-center p-3 sm:p-5 overflow-hidden">
@@ -439,7 +514,7 @@ export function ImageStudioWorkspace({
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-semibold text-[#172033] dark:text-white truncate">
-                  {image.projectWorkName || image.originalFileName || image.slot || 'Image Workspace'}
+                  {displayName}
                 </h2>
                 <span
                   className={`text-[11px] font-medium px-2 py-0.5 rounded-[4px] border shrink-0 ${
@@ -452,24 +527,24 @@ export function ImageStudioWorkspace({
                       : 'bg-[#F3F6FA] text-[#475569] border-[#E3E7ED] dark:bg-[#1E293B] dark:text-[#94A3B8]'
                   }`}
                 >
-                  {isImagePublished ? 'Published' : isVariantApproved ? 'Approved' : isVariantPendingReview ? 'Pending Review' : image.status}
+                  {isImagePublished ? 'Published' : isVariantApproved ? 'Approved' : isVariantPendingReview ? 'Pending Review' : (effectiveImage?.status || 'Draft')}
                 </span>
-                {image.slot && (
+                {displaySlot && (
                   <span className="text-[11px] text-[#475569] dark:text-slate-400 bg-[#F3F6FA] dark:bg-[#1E293B] px-2 py-0.5 rounded-[4px] border border-[#E3E7ED] dark:border-[#334155]">
-                    Slot: {image.slot}
+                    Slot: {displaySlot}
                   </span>
                 )}
               </div>
               <p className="text-xs text-[#475569] dark:text-[#94A3B8] flex items-center gap-2 mt-0.5">
-                <span>{image.width} × {image.height} px</span>
+                <span>{displayWidth} × {displayHeight} px</span>
                 <span>•</span>
-                <span>{formatBytes(image.fileSize)}</span>
+                <span>{formatBytes(displaySize)}</span>
                 <span>•</span>
-                <span>{image.mimeType.replace('image/', '').toUpperCase()}</span>
-                {image.category && (
+                <span>{displayMime}</span>
+                {displayCategory && (
                   <>
                     <span>•</span>
-                    <span>Category: {image.category}</span>
+                    <span>Category: {displayCategory}</span>
                   </>
                 )}
               </p>
@@ -921,7 +996,7 @@ export function ImageStudioWorkspace({
                     <div className="pt-2 border-t border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between text-[11px] text-[#475569] dark:text-[#94A3B8]">
                       <span>Source Resolution:</span>
                       <span className="font-medium text-[#172033] dark:text-white">
-                        {image.width} × {image.height} px
+                        {displayWidth} × {displayHeight} px
                       </span>
                     </div>
                   </div>
@@ -933,7 +1008,7 @@ export function ImageStudioWorkspace({
                     <div className="pt-2 border-t border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between text-[11px] text-[#475569] dark:text-[#94A3B8]">
                       <span>Original Resolution:</span>
                       <span className="font-medium text-[#172033] dark:text-white">
-                        {image.width} × {image.height} px
+                        {displayWidth} × {displayHeight} px
                       </span>
                     </div>
                   </div>
@@ -1010,23 +1085,23 @@ export function ImageStudioWorkspace({
 
                 {/* Additional Media Management Actions */}
                 <div className="flex items-center gap-2 pt-2 border-t border-[#E3E7ED] dark:border-[#1E293B]">
-                  {onReplaceRequested && (
+                  {onReplaceRequested && currentImage && (
                     <Button
                       variant="secondary"
                       size="sm"
                       className="flex-1 justify-center"
-                      onClick={() => onReplaceRequested(image)}
+                      onClick={() => onReplaceRequested(currentImage)}
                       leftIcon={<Upload className="w-3.5 h-3.5" />}
                     >
                       Replace Source
                     </Button>
                   )}
-                  {onDeleteRequested && (
+                  {onDeleteRequested && currentImage && (
                     <Button
                       variant="ghost"
                       size="sm"
                       className="text-[#B91C1C] hover:bg-rose-50"
-                      onClick={() => onDeleteRequested(image)}
+                      onClick={() => onDeleteRequested(currentImage)}
                       title="Delete Image"
                     >
                       <Trash2 className="w-4 h-4" />
