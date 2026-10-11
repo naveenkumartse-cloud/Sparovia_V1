@@ -53,16 +53,16 @@ Templates are written by the client. **AI-generated messages are not part of thi
 
 Validate required fields and lengths using existing conventions. Validate/normalize the phone number safely. Encode message text correctly for a WhatsApp URL. Reject unsafe URL schemes and untrusted destinations.
 
-### 3.2 Public website behavior
+### 3.2 Public website behavior — Floating contact icon
 
-- Show the configured WhatsApp contact choices in the appropriate existing website contact area.
-- Display only active, valid templates.
-- Visitors may select **any template independently**; no prior template selection is required.
-- Selecting a template opens WhatsApp for the tenant's configured business number with the selected message prefilled.
-- The visitor decides whether to send the message.
-- Do not claim that a message was sent, received, or that an enquiry was completed.
-- If WhatsApp is not configured or no valid templates are active, do not render broken actions. Follow the existing safe fallback and make configuration state clear in Admin.
-- Preserve existing contact sections and responsive/accessibility behavior.
+- Do **not** insert a “Quick WhatsApp Choices” panel or template list above/inside the public enquiry form.
+- Keep the existing Contact section and enquiry form focused on the genuine website form submission journey.
+- Show WhatsApp through the configured public floating contact icon/group. Clicking the WhatsApp icon opens a small, accessible selector containing only active, valid client-authored templates.
+- Visitors may select **any template independently**; no prior template selection is required and there is no sequential questionnaire.
+- Selecting a template opens WhatsApp for the tenant's configured business number with that template's correctly URL-encoded message prefilled in the compose area.
+- The visitor reviews and explicitly sends the message. A standard click-to-chat link cannot send a message automatically or insert a message into an already-open conversation.
+- If WhatsApp is disabled in Admin, do not render its floating icon. If enabled but its number or active templates are missing/invalid, do not render a broken action; expose a clear configuration warning in Admin and use an accessible public fallback (hide/disable the unavailable action).
+- Preserve existing contact sections, form fields, validation, submission behavior, responsive layout, and accessibility.
 
 These choices are not a sequential questionnaire, chatbot, automated reply flow, campaign, inbox, or conversation manager.
 
@@ -70,11 +70,12 @@ These choices are not a sequential questionnaire, chatbot, automated reply flow,
 
 Selecting a template or opening WhatsApp is **not** a completed lead. A simple outbound link cannot prove the visitor sent the message or that the business received it. Do not create/update a Lead or change Lead status/count because of a click.
 
-## 4. Facebook and Instagram: Outbound Profile Links
+## 4. Facebook and Instagram: Floating Outbound Profile Links
 
 For V1:
 - Clients can configure Facebook page/profile and Instagram profile URLs using existing settings where possible.
-- Public website links appear only when the URL is valid and enabled.
+- Display these as icons in the same configured floating contact/social group as WhatsApp, not as an extra panel inserted into the enquiry form.
+- Public icons appear only when the corresponding Admin setting is enabled and its URL is valid.
 - Clicking redirects to the configured external profile.
 - No social API connection, publishing, message capture, inbox, synchronization, or paid integration is included.
 - Do not add LinkedIn, TikTok, YouTube, or other platforms unless existing approved scope already supports them or the product owner separately approves them.
@@ -83,11 +84,16 @@ For V1:
 
 ## 5. Contact Activity
 
-### 5.1 Placement
+### 5.1 Purpose and placement
 
-Add lightweight activity tracking within existing Admin surfaces:
-- Compact Contact Activity summary on the existing dashboard, if a suitable surface exists.
-- Detailed Contact Activity within the existing Leads area or closest established navigation location.
+Contact Activity is a lightweight record of observable outbound link interactions, **not a customer conversation log, incoming-message feed, or list of confirmed enquiries**.
+
+- Keep genuine website form submissions under Customer Leads.
+- If outbound click activity is shown in the existing Leads area, label it clearly as outbound link activity and visually separate it from Leads.
+- A compact summary may show counts by channel, but only when backed by real stored events and clearly labelled as clicks.
+- Detailed records should provide the useful context actually available: timestamp, channel, event, selected WhatsApp template (where applicable), and source page (where available).
+- Do not display generic “message received”, “customer contacted”, or “enquiry” labels for outbound clicks. Do not fabricate customer identity, message content, delivery state, or conversation outcome.
+- If a click-only list does not provide actionable context beyond an event, keep it as clearly labelled outbound analytics rather than presenting it as customer contact history.
 
 Do not build a full analytics platform or CRM.
 
@@ -147,7 +153,14 @@ Before changing it:
 4. Do not claim outbound link tracking implements inbound capture.
 5. If absent, do not invent a paid provider or silently expand scope. Report the gap and preserve the existing contract unless separately approved.
 
-## 8. UX and Design
+## 8. Floating Icon Configuration and UX
+
+- Admin must expose explicit enable/disable controls for each supported floating action: WhatsApp, Facebook, and Instagram.
+- A saved setting must persist and control actual public rendering; it must not be a UI-only toggle.
+- Enabled icons render only when their required configuration is valid. Disabled icons remain hidden even if a URL/number exists.
+- Verify the full path: Admin edit → save/API → persisted configuration → public configuration response → rendered floating group. Account for the existing cache/revalidation mechanism so updates become visible without requiring unrelated manual code changes.
+- The floating group must not cover form controls, submit buttons, mobile navigation, or other important content. Provide accessible names, keyboard support, visible focus, and appropriate external-link security attributes.
+- WhatsApp opens the active-template selector; Facebook and Instagram open their configured profile URLs.
 
 Use `DESIGN.md` as the visual authority:
 - Primary cobalt `#315FEA`
@@ -171,20 +184,21 @@ Reuse existing tokens and shared components. Do not redesign the entire Admin Pa
 
 1. Admin can create/edit 3–4 client-authored templates.
 2. Admin can activate/deactivate and order templates.
-3. Public website displays only active valid templates.
-4. Each template independently opens the correct WhatsApp number with correctly encoded text.
-5. No sequential selection is required.
-6. Facebook and Instagram redirect only to configured valid URLs.
-7. Missing/invalid configuration does not create broken links.
-8. Contact clicks are recorded as Contact Activity, not Leads.
-9. Website form submissions continue creating Leads.
-10. UI does not imply clicks prove messages were sent or enquiries completed.
-11. Tracking failure does not block external navigation.
-12. Tenant isolation is verified.
-13. Existing incoming WhatsApp intake is preserved if implemented.
-14. Relevant tests/builds run and actual results are reported.
-15. Responsive, keyboard, and accessible states are reviewed.
-16. No paid integration or out-of-scope feature is introduced.
+3. The public enquiry form does not contain an inserted “Quick WhatsApp Choices” panel.
+4. The WhatsApp floating icon opens an accessible selector containing only active, valid templates.
+5. Each selected template independently opens the correct WhatsApp number with correctly encoded prefilled text; the visitor must send it.
+6. No sequential selection is required.
+7. WhatsApp, Facebook, and Instagram each have persistent Admin enable/disable settings that demonstrably control public floating-icon visibility.
+8. Facebook and Instagram redirect only to configured valid URLs and appear only when enabled.
+9. Missing/invalid configuration does not create broken links; Admin receives a clear configuration state.
+10. Outbound click records are clearly labelled as clicks and show available relevant context; they are never presented as received messages, conversations, or confirmed enquiries.
+11. Outbound clicks never create/update Leads or inflate lead counts; website form submissions continue creating genuine Leads.
+12. No unverified incoming-message activity is fabricated. Existing incoming WhatsApp intake is preserved if implemented.
+13. Tracking failure does not block external navigation.
+14. Tenant isolation is verified.
+15. Relevant tests/builds run and actual results are reported.
+16. Responsive, keyboard, and accessible states are reviewed.
+17. No paid integration or out-of-scope feature is introduced.
 
 ## 10. Out of Scope
 

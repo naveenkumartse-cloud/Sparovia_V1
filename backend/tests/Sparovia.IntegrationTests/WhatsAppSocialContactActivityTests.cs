@@ -429,4 +429,100 @@ public class WhatsAppSocialContactActivityTests : IClassFixture<WebApplicationFa
         Assert.Equal(0, summaryB.FacebookClicks);
         Assert.Equal(1, summaryB.InstagramClicks);
     }
+
+    [Fact]
+    public async Task AdminToggleSettings_ControlPublicWebsiteVisibilityPipeline()
+    {
+        var email = $"toggle-{Guid.NewGuid():N}@test.sparovia.com";
+        var domain = $"toggle-{Guid.NewGuid():N}.com";
+        var (client, tenantId, websiteId) = await SetupTenantAsync(email, "Toggle Interiors", domain);
+
+        var publicClient = _factory.CreateClient();
+        publicClient.DefaultRequestHeaders.Host = domain;
+
+        // 1. Initially WhatsApp and Social are disabled
+        var initContentRes = await publicClient.GetAsync($"/api/v1/website/published-content?domain={domain}");
+        Assert.Equal(HttpStatusCode.OK, initContentRes.StatusCode);
+        var initContent = await initContentRes.Content.ReadFromJsonAsync<JsonElement>();
+        var initSections = initContent.GetProperty("sections");
+        var initWa = initSections.GetProperty("whatsapp");
+        Assert.False(initWa.GetProperty("enabled").GetBoolean());
+        var initSocial = initSections.GetProperty("social");
+        Assert.False(initSocial.GetProperty("facebookEnabled").GetBoolean());
+        Assert.False(initSocial.GetProperty("instagramEnabled").GetBoolean());
+
+        // 2. Enable WhatsApp with phone and templates
+        var waReq = new UpdateWhatsAppIntegrationRequest
+        {
+            Enabled = true,
+            PhoneNumber = "9876543210",
+            PrefilledMessage = "Need consultation",
+            Templates = new List<WhatsAppTemplateDto>
+            {
+                new WhatsAppTemplateDto { Id = "t-1", Title = "Kitchen", MessageText = "Kitchen info", DisplayOrder = 1, IsActive = true },
+                new WhatsAppTemplateDto { Id = "t-2", Title = "Living", MessageText = "Living info", DisplayOrder = 2, IsActive = false }
+            }
+        };
+        var waSaveRes = await client.PutAsJsonAsync("/api/v1/integrations/whatsapp", waReq);
+        Assert.Equal(HttpStatusCode.OK, waSaveRes.StatusCode);
+
+        // 3. Enable Facebook only, keep Instagram disabled
+        var socialReq = new UpdateSocialLinksIntegrationRequest
+        {
+            FacebookUrl = "https://facebook.com/toggleinteriors",
+            FacebookEnabled = true,
+            InstagramUrl = "",
+            InstagramEnabled = false
+        };
+        var socialSaveRes = await client.PutAsJsonAsync("/api/v1/integrations/social", socialReq);
+        Assert.Equal(HttpStatusCode.OK, socialSaveRes.StatusCode);
+
+        // 4. Verify public published content reflects enabled WhatsApp and Facebook, but disabled Instagram
+        var pubRes1 = await publicClient.GetAsync($"/api/v1/website/published-content?domain={domain}");
+        Assert.Equal(HttpStatusCode.OK, pubRes1.StatusCode);
+        var pubContent1 = await pubRes1.Content.ReadFromJsonAsync<JsonElement>();
+        var sections1 = pubContent1.GetProperty("sections");
+        var wa1 = sections1.GetProperty("whatsapp");
+        Assert.True(wa1.GetProperty("enabled").GetBoolean());
+        Assert.Equal("919876543210", wa1.GetProperty("phoneNumber").GetString());
+
+        var social1 = sections1.GetProperty("social");
+        Assert.True(social1.GetProperty("facebookEnabled").GetBoolean());
+        Assert.Equal("https://facebook.com/toggleinteriors", social1.GetProperty("facebookUrl").GetString());
+        Assert.False(social1.GetProperty("instagramEnabled").GetBoolean());
+
+        // 5. Admin explicitly disables WhatsApp and Facebook
+        var waDisableReq = new UpdateWhatsAppIntegrationRequest
+        {
+            Enabled = false,
+            PhoneNumber = "9876543210",
+            Templates = new List<WhatsAppTemplateDto>
+            {
+                new WhatsAppTemplateDto { Id = "t-1", Title = "Kitchen", MessageText = "Kitchen info", DisplayOrder = 1, IsActive = true }
+            }
+        };
+        var waDisableRes = await client.PutAsJsonAsync("/api/v1/integrations/whatsapp", waDisableReq);
+        Assert.Equal(HttpStatusCode.OK, waDisableRes.StatusCode);
+
+        var socialDisableReq = new UpdateSocialLinksIntegrationRequest
+        {
+            FacebookUrl = "https://facebook.com/toggleinteriors",
+            FacebookEnabled = false,
+            InstagramUrl = "",
+            InstagramEnabled = false
+        };
+        var socialDisableRes = await client.PutAsJsonAsync("/api/v1/integrations/social", socialDisableReq);
+        Assert.Equal(HttpStatusCode.OK, socialDisableRes.StatusCode);
+
+        // 6. Verify public published content strictly reflects disabled status
+        var pubRes2 = await publicClient.GetAsync($"/api/v1/website/published-content?domain={domain}");
+        Assert.Equal(HttpStatusCode.OK, pubRes2.StatusCode);
+        var pubContent2 = await pubRes2.Content.ReadFromJsonAsync<JsonElement>();
+        var sections2 = pubContent2.GetProperty("sections");
+        var wa2 = sections2.GetProperty("whatsapp");
+        Assert.False(wa2.GetProperty("enabled").GetBoolean());
+        var social2 = sections2.GetProperty("social");
+        Assert.False(social2.GetProperty("facebookEnabled").GetBoolean());
+        Assert.False(social2.GetProperty("instagramEnabled").GetBoolean());
+    }
 }

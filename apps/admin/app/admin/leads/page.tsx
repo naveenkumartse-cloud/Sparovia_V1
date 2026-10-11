@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
 import { 
   Users, 
   Search, 
@@ -17,14 +16,7 @@ import {
   AlertCircle,
   Plus,
   Pencil,
-  Trash2,
-  MousePointerClick,
-  ExternalLink,
-  MessageCircle,
-  Facebook,
-  Instagram,
-  Info,
-  Share2
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -33,34 +25,6 @@ import { Modal } from '@/components/ui/Modal';
 import { toast } from '@/components/ui/Toast';
 import { apiClient } from '@/lib/api/client';
 import { cleanPhoneInput, handlePhoneKeyDown, handlePhonePaste, isValidIndianPhone } from '@/lib/validation/authValidation';
-
-export interface ContactActivityItem {
-  id: string;
-  tenantId: string;
-  websiteId: string;
-  channel: 'WhatsApp' | 'Facebook' | 'Instagram' | string;
-  eventType: string;
-  templateId?: string;
-  templateTitle?: string;
-  source?: string;
-  correlationId?: string;
-  createdAt: string;
-}
-
-export interface ContactActivitySummary {
-  totalClicks: number;
-  whatsAppClicks: number;
-  facebookClicks: number;
-  instagramClicks: number;
-}
-
-export interface ContactActivityListResponse {
-  items: ContactActivityItem[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
 
 export interface Lead {
   id: string;
@@ -189,72 +153,6 @@ export default function LeadsPage() {
     fetchLeads();
   }, [fetchLeads]);
 
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const tabParam = searchParams.get('tab');
-  const [activeMainTab, setActiveMainTab] = useState<'leads' | 'activity'>(
-    tabParam === 'activity' ? 'activity' : 'leads'
-  );
-
-  // Contact Activity State
-  const [activityChannelFilter, setActivityChannelFilter] = useState<string>('All');
-  const [activityPage, setActivityPage] = useState(1);
-  const [activityPageSize] = useState(15);
-  const [activities, setActivities] = useState<ContactActivityItem[]>([]);
-  const [activityTotalCount, setActivityTotalCount] = useState(0);
-  const [activityTotalPages, setActivityTotalPages] = useState(1);
-  const [activitySummary, setActivitySummary] = useState<ContactActivitySummary | null>(null);
-  const [isActivityLoading, setIsActivityLoading] = useState(false);
-  const [activityError, setActivityError] = useState<string | null>(null);
-
-  const fetchActivitySummary = useCallback(async () => {
-    try {
-      const summary = await apiClient.get<ContactActivitySummary>('/contact-activity/summary');
-      setActivitySummary(summary);
-    } catch {
-      // Non-blocking
-    }
-  }, []);
-
-  const fetchActivities = useCallback(async () => {
-    setIsActivityLoading(true);
-    setActivityError(null);
-    try {
-      let url = `/contact-activity?page=${activityPage}&pageSize=${activityPageSize}`;
-      if (activityChannelFilter !== 'All') {
-        url += `&channel=${encodeURIComponent(activityChannelFilter)}`;
-      }
-      const data = await apiClient.get<ContactActivityListResponse>(url);
-      setActivities(data.items || []);
-      setActivityTotalCount(data.totalCount || 0);
-      setActivityTotalPages(data.totalPages || 1);
-    } catch (err: any) {
-      setActivityError(err.message || 'Failed to load contact activities.');
-    } finally {
-      setIsActivityLoading(false);
-    }
-  }, [activityPage, activityPageSize, activityChannelFilter]);
-
-  useEffect(() => {
-    fetchActivitySummary();
-  }, [fetchActivitySummary]);
-
-  useEffect(() => {
-    if (activeMainTab === 'activity') {
-      fetchActivities();
-    }
-  }, [activeMainTab, fetchActivities]);
-
-  useEffect(() => {
-    if (tabParam === 'activity' || tabParam === 'leads') {
-      setActiveMainTab(tabParam);
-    }
-  }, [tabParam]);
-
-  const handleTabSwitch = (tab: 'leads' | 'activity') => {
-    setActiveMainTab(tab);
-    router.replace(`/admin/leads?tab=${tab}`, { scroll: false });
-  };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -493,88 +391,36 @@ export default function LeadsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#172033] dark:text-white tracking-tight">
-            {activeMainTab === 'leads' ? 'Customer Leads' : 'Contact Activity'}
+            Customer Leads
           </h1>
           <p className="text-sm text-[#475569] dark:text-[#94A3B8] mt-1">
-            {activeMainTab === 'leads'
-              ? 'Review and manage customer enquiries captured through your website contact forms and verified channels.'
-              : 'Monitor observable visitor clicks on WhatsApp templates, Facebook, and Instagram outbound links.'}
+            Review and manage customer enquiries captured through your website contact forms and verified channels.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          {activeMainTab === 'leads' ? (
-            <>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-1.5 rounded-[6px]"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Lead</span>
-              </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-1.5 rounded-[6px]"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Lead</span>
+          </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchLeads}
-                disabled={isLoading}
-                className="flex items-center gap-1.5 rounded-[6px]"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
-              </Button>
-            </>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                fetchActivities();
-                fetchActivitySummary();
-              }}
-              disabled={isActivityLoading}
-              className="flex items-center gap-1.5 rounded-[6px]"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isActivityLoading ? 'animate-spin' : ''}`} />
-              <span>Refresh Activity</span>
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchLeads}
+            disabled={isLoading}
+            className="flex items-center gap-1.5 rounded-[6px]"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </Button>
         </div>
       </div>
-
-      {/* Main Tab Navigation */}
-      <div className="flex border-b border-[#CBD5E1] dark:border-[#1E293B] gap-6">
-        <button
-          type="button"
-          onClick={() => handleTabSwitch('leads')}
-          className={`pb-3 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
-            activeMainTab === 'leads'
-              ? 'border-[#315FEA] text-[#315FEA]'
-              : 'border-transparent text-[#475569] dark:text-[#94A3B8] hover:text-[#172033] dark:hover:text-white'
-          }`}
-        >
-          <Users className="w-4 h-4" />
-          <span>Customer Leads ({totalCount})</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => handleTabSwitch('activity')}
-          className={`pb-3 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
-            activeMainTab === 'activity'
-              ? 'border-[#315FEA] text-[#315FEA]'
-              : 'border-transparent text-[#475569] dark:text-[#94A3B8] hover:text-[#172033] dark:hover:text-white'
-          }`}
-        >
-          <MousePointerClick className="w-4 h-4" />
-          <span>Contact Activity ({activitySummary?.totalClicks ?? 0})</span>
-        </button>
-      </div>
-
-      {/* TAB 1: CUSTOMER LEADS */}
-      {activeMainTab === 'leads' && (
-        <>
       {/* Filter and Search Bar */}
       <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-4 shadow-xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -882,258 +728,6 @@ export default function LeadsPage() {
               </Button>
             </div>
           </div>
-        </div>
-      )}
-      </>
-      )}
-
-      {/* TAB 2: CONTACT ACTIVITY */}
-      {activeMainTab === 'activity' && (
-        <div className="space-y-6 animate-in fade-in duration-150">
-          {/* Informational Notice Banner */}
-          <div className="p-4 rounded-[8px] bg-[#F3F6FA] dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#1E293B] flex items-start gap-3">
-            <Info className="w-5 h-5 text-[#315FEA] shrink-0 mt-0.5" />
-            <div className="text-xs text-[#475569] dark:text-[#94A3B8] leading-relaxed">
-              <strong className="text-[#172033] dark:text-white font-semibold">Strict Separation from Leads:</strong> Outbound Contact Activity records observable visitor link clicks on WhatsApp templates, Facebook profile, and Instagram profile. Clicking an outbound link is best-effort external engagement and does <span className="underline font-medium">not</span> prove that a message was sent or received. Genuine enquiries submitted via website forms appear under <strong>Customer Leads</strong>.
-            </div>
-          </div>
-
-          {/* 4 Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-[#0F172A] p-5 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8]">
-                Total Outbound Clicks
-              </p>
-              <p className="text-2xl font-extrabold text-[#172033] dark:text-white mt-1">
-                {activitySummary?.totalClicks ?? 0}
-              </p>
-              <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-1">
-                Across all external channels
-              </p>
-            </div>
-
-            <div className="bg-white dark:bg-[#0F172A] p-5 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8]">
-                  WhatsApp Clicks
-                </p>
-                <div className="w-6 h-6 rounded-[4px] bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800">
-                  <MessageCircle className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
-                {activitySummary?.whatsAppClicks ?? 0}
-              </p>
-              <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-1">
-                Template &amp; chat links
-              </p>
-            </div>
-
-            <div className="bg-white dark:bg-[#0F172A] p-5 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8]">
-                  Facebook Clicks
-                </p>
-                <div className="w-6 h-6 rounded-[4px] bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200 dark:bg-blue-950/40 dark:border-blue-800">
-                  <Facebook className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">
-                {activitySummary?.facebookClicks ?? 0}
-              </p>
-              <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-1">
-                Profile page visits
-              </p>
-            </div>
-
-            <div className="bg-white dark:bg-[#0F172A] p-5 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8]">
-                  Instagram Clicks
-                </p>
-                <div className="w-6 h-6 rounded-[4px] bg-pink-50 text-pink-600 flex items-center justify-center border border-pink-200 dark:bg-pink-950/40 dark:border-pink-800">
-                  <Instagram className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <p className="text-2xl font-extrabold text-pink-600 dark:text-pink-400 mt-1">
-                {activitySummary?.instagramClicks ?? 0}
-              </p>
-              <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-1">
-                Profile page visits
-              </p>
-            </div>
-          </div>
-
-          {/* Channel Filter & Refresh Bar */}
-          <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold text-[#475569] dark:text-[#94A3B8] mr-1">
-                Filter Channel:
-              </span>
-              {(['All', 'WhatsApp', 'Facebook', 'Instagram'] as const).map((ch) => (
-                <button
-                  key={ch}
-                  type="button"
-                  onClick={() => {
-                    setActivityChannelFilter(ch);
-                    setActivityPage(1);
-                  }}
-                  className={`px-3 py-1.5 rounded-[6px] text-xs font-semibold transition-colors border ${
-                    activityChannelFilter === ch
-                      ? 'bg-[#315FEA] text-white border-[#315FEA]'
-                      : 'bg-white dark:bg-[#0B1220] text-[#475569] dark:text-[#94A3B8] border-[#CBD5E1] dark:border-[#334155] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B]'
-                  }`}
-                >
-                  {ch}
-                  <span className="ml-1.5 text-[10px] opacity-80">
-                    {ch === 'All'
-                      ? `(${activitySummary?.totalClicks ?? 0})`
-                      : ch === 'WhatsApp'
-                      ? `(${activitySummary?.whatsAppClicks ?? 0})`
-                      : ch === 'Facebook'
-                      ? `(${activitySummary?.facebookClicks ?? 0})`
-                      : `(${activitySummary?.instagramClicks ?? 0})`}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                fetchActivities();
-                fetchActivitySummary();
-              }}
-              disabled={isActivityLoading}
-              className="flex items-center gap-1.5 rounded-[6px]"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isActivityLoading ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
-            </Button>
-          </div>
-
-          {/* Activities Table */}
-          {isActivityLoading && activities.length === 0 ? (
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-12 text-center text-xs text-[#475569] dark:text-[#94A3B8]">
-              <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#315FEA] mb-2" />
-              Loading contact activity logs...
-            </div>
-          ) : activityError ? (
-            <ErrorState
-              title="Failed to Load Activities"
-              error={activityError}
-              onRetry={fetchActivities}
-            />
-          ) : activities.length === 0 ? (
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-12 text-center">
-              <MousePointerClick className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-              <h3 className="text-sm font-bold text-[#172033] dark:text-white">
-                No Contact Activity Logged Yet
-              </h3>
-              <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 max-w-md mx-auto">
-                When visitors click WhatsApp templates or social links on your live website, events will be recorded here in real time.
-              </p>
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] shadow-xs overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-[#F3F6FA] dark:bg-[#0B1220] border-b border-[#E3E7ED] dark:border-[#1E293B] text-[#475569] dark:text-[#94A3B8] uppercase text-[10px] tracking-wider">
-                      <th className="py-3 px-4 font-semibold">Timestamp</th>
-                      <th className="py-3 px-4 font-semibold">Channel</th>
-                      <th className="py-3 px-4 font-semibold">Action / Event</th>
-                      <th className="py-3 px-4 font-semibold">Target / Template</th>
-                      <th className="py-3 px-4 font-semibold">Source Page</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E3E7ED] dark:divide-[#1E293B]">
-                    {activities.map((act) => {
-                      const isWa = act.channel === 'WhatsApp';
-                      const isFb = act.channel === 'Facebook';
-                      const isIg = act.channel === 'Instagram';
-
-                      return (
-                        <tr
-                          key={act.id}
-                          className="hover:bg-slate-50/50 dark:hover:bg-[#1E293B]/30 transition-colors"
-                        >
-                          <td className="py-3 px-4 text-[#172033] dark:text-white font-mono whitespace-nowrap">
-                            {formatDate(act.createdAt)}
-                          </td>
-                          <td className="py-3 px-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-[11px] font-semibold border ${
-                              isWa
-                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
-                                : isFb
-                                ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border-blue-200 dark:border-blue-800'
-                                : 'bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-400 border-pink-200 dark:border-pink-800'
-                            }`}>
-                              {isWa && <MessageCircle className="w-3 h-3 text-emerald-600" />}
-                              {isFb && <Facebook className="w-3 h-3 text-blue-600" />}
-                              {isIg && <Instagram className="w-3 h-3 text-pink-600" />}
-                              <span>{act.channel}</span>
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-[#475569] dark:text-[#94A3B8] font-medium whitespace-nowrap">
-                            <span className="inline-flex items-center gap-1">
-                              <MousePointerClick className="w-3 h-3 text-slate-400" />
-                              <span>{act.eventType || 'ContactLinkClicked'}</span>
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-[#172033] dark:text-white font-semibold">
-                            {act.templateTitle
-                              ? act.templateTitle
-                              : isWa
-                              ? 'Direct WhatsApp Chat'
-                              : isFb
-                              ? 'Facebook Profile Link'
-                              : 'Instagram Profile Link'}
-                          </td>
-                          <td className="py-3 px-4 text-[#475569] dark:text-[#94A3B8] font-mono text-[11px]">
-                            {act.source || 'Website'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Activity Pagination */}
-              {activityTotalPages > 1 && (
-                <div className="p-4 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-between text-xs text-[#475569] dark:text-[#94A3B8]">
-                  <span>
-                    Showing {activities.length} of {activityTotalCount} events
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setActivityPage((p) => Math.max(1, p - 1))}
-                      disabled={activityPage <= 1}
-                      className="rounded-[6px]"
-                    >
-                      <ChevronLeft className="w-3.5 h-3.5" />
-                    </Button>
-                    <span className="px-2 font-medium">
-                      Page {activityPage} of {activityTotalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setActivityPage((p) => Math.min(activityTotalPages, p + 1))}
-                      disabled={activityPage >= activityTotalPages}
-                      className="rounded-[6px]"
-                    >
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )}
 
