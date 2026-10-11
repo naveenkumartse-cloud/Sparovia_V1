@@ -57,10 +57,10 @@ export default function Footer() {
                         source: 'Footer',
                       });
                     }}
-                    className="w-8 h-8 rounded-lg bg-charcoal-800 hover:bg-brand-600 border border-charcoal-700 flex items-center justify-center text-gray-300 hover:text-white transition-all cursor-pointer"
+                    className="w-9 h-9 rounded-full bg-[#1877F2] hover:bg-[#166fe5] flex items-center justify-center text-white shadow-md transition-all cursor-pointer hover:scale-105"
                     aria-label="Visit our Facebook page"
                   >
-                    <Facebook className="w-4 h-4" />
+                    <Facebook className="w-4.5 h-4.5 text-white" />
                   </a>
                 )}
                 {hasInstagram && (
@@ -74,10 +74,10 @@ export default function Footer() {
                         source: 'Footer',
                       });
                     }}
-                    className="w-8 h-8 rounded-lg bg-charcoal-800 hover:bg-brand-600 border border-charcoal-700 flex items-center justify-center text-gray-300 hover:text-white transition-all cursor-pointer"
+                    className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] hover:opacity-95 flex items-center justify-center text-white shadow-md transition-all cursor-pointer hover:scale-105"
                     aria-label="Visit our Instagram profile"
                   >
-                    <Instagram className="w-4 h-4" />
+                    <Instagram className="w-4.5 h-4.5 text-white" />
                   </a>
                 )}
               </div>

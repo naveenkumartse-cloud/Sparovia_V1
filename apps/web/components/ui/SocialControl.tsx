@@ -243,7 +243,7 @@ export function SocialControl() {
       ref={containerRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="fixed bottom-6 right-6 z-50 flex flex-col items-end pb-[env(safe-area-inset-bottom,0px)] pr-[env(safe-area-inset-right,0px)] pointer-events-auto"
+      className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end pb-[env(safe-area-inset-bottom,0px)] pr-[env(safe-area-inset-right,0px)] pointer-events-auto"
     >
       {/* Expandable Unified Contact & Social Panel */}
       <AnimatePresence>
@@ -256,22 +256,22 @@ export function SocialControl() {
             role="dialog"
             aria-modal="false"
             aria-label="Contact and Social channels"
-            className="mb-2.5 w-76 sm:w-80 max-w-[calc(100vw-2.5rem)] rounded-[8px] bg-white dark:bg-[#0F172A] p-3.5 shadow-2xl border border-slate-200/90 dark:border-[#1E293B] text-left"
+            className="mb-3 w-[calc(100vw-2rem)] sm:w-80 max-w-sm rounded-2xl bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-md p-4 shadow-2xl border border-slate-200/90 dark:border-slate-800 text-left overflow-hidden"
           >
             {/* VIEW 1: All Enabled Channels */}
             {panelView === 'channels' && (
               <div>
                 {/* Header */}
-                <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100 dark:border-[#1E293B]">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center shrink-0">
-                      <MessageCircle className="w-3.5 h-3.5" />
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center shrink-0">
+                      <MessageCircle className="w-4 h-4" />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-[#172033] dark:text-white block">
+                      <span className="text-xs font-bold text-[#172033] dark:text-white block leading-tight">
                         Get in Touch
                       </span>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block leading-tight">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 block leading-tight mt-0.5">
                         {enabledCount} contact channel{enabledCount > 1 ? 's' : ''} available
                       </span>
                     </div>
@@ -279,26 +279,26 @@ export function SocialControl() {
                   <button
                     type="button"
                     onClick={() => setIsOpen(false)}
-                    className="p-1 rounded-[4px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors"
+                    className="p-1 rounded-[6px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     aria-label="Close contact options"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Vertical Channel Options */}
-                <div className="space-y-1.5" role="menu">
+                <div className="space-y-2" role="menu">
                   {/* WhatsApp Option */}
                   {hasWhatsApp && (
                     <button
                       type="button"
                       role="menuitem"
                       onClick={handleWhatsAppChannelSelect}
-                      className="w-full text-left p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#1E293B]/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/80 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
+                      className="w-full text-left p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/70 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-7 h-7 rounded-full bg-[#25D366]/15 text-[#25D366] flex items-center justify-center shrink-0">
-                          <WhatsAppIcon className="w-4 h-4" />
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <WhatsAppIcon className="w-5 h-5 text-white" />
                         </div>
                         <div className="min-w-0">
                           <p className="font-semibold text-[#172033] dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate">
@@ -327,11 +327,11 @@ export function SocialControl() {
                       type="button"
                       role="menuitem"
                       onClick={() => handleSocialClick('Instagram', instagramUrl)}
-                      className="w-full text-left p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#1E293B]/60 hover:bg-pink-50 dark:hover:bg-pink-950/30 border border-slate-200/80 dark:border-slate-700/60 hover:border-pink-300 dark:hover:border-pink-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
+                      className="w-full text-left p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 hover:bg-pink-50 dark:hover:bg-pink-950/30 border border-slate-200/70 dark:border-slate-700/60 hover:border-pink-300 dark:hover:border-pink-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-7 h-7 rounded-full bg-[#E1306C]/15 text-[#E1306C] flex items-center justify-center shrink-0">
-                          <Instagram className="w-4 h-4" />
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <Instagram className="w-5 h-5 text-white" />
                         </div>
                         <div className="min-w-0">
                           <p className="font-semibold text-[#172033] dark:text-white group-hover:text-pink-700 dark:group-hover:text-pink-300 truncate">
@@ -352,11 +352,11 @@ export function SocialControl() {
                       type="button"
                       role="menuitem"
                       onClick={() => handleSocialClick('Facebook', facebookUrl)}
-                      className="w-full text-left p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#1E293B]/60 hover:bg-blue-50 dark:hover:bg-blue-950/30 border border-slate-200/80 dark:border-slate-700/60 hover:border-blue-300 dark:hover:border-blue-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
+                      className="w-full text-left p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 hover:bg-blue-50 dark:hover:bg-blue-950/30 border border-slate-200/70 dark:border-slate-700/60 hover:border-blue-300 dark:hover:border-blue-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-7 h-7 rounded-full bg-[#1877F2]/15 text-[#1877F2] flex items-center justify-center shrink-0">
-                          <Facebook className="w-4 h-4" />
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-[#1877F2] text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <Facebook className="w-5 h-5 text-white" />
                         </div>
                         <div className="min-w-0">
                           <p className="font-semibold text-[#172033] dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 truncate">
@@ -378,13 +378,13 @@ export function SocialControl() {
             {panelView === 'whatsapp-templates' && (
               <div>
                 {/* Header with Back button */}
-                <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100 dark:border-[#1E293B]">
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2">
                     {!onlyWhatsAppWithTemplates && (
                       <button
                         type="button"
                         onClick={() => setPanelView('channels')}
-                        className="p-1 -ml-1 rounded-[4px] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors flex items-center gap-1 text-[11px] font-semibold"
+                        className="p-1 -ml-1 rounded-[6px] text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1 text-[11px] font-semibold"
                         aria-label="Back to channels"
                       >
                         <ArrowLeft className="w-3.5 h-3.5" />
@@ -392,8 +392,8 @@ export function SocialControl() {
                       </button>
                     )}
                     {onlyWhatsAppWithTemplates && (
-                      <div className="w-6 h-6 rounded-full bg-[#25D366]/15 text-[#25D366] flex items-center justify-center shrink-0">
-                        <WhatsAppIcon className="w-3.5 h-3.5" />
+                      <div className="w-7 h-7 rounded-full bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <WhatsAppIcon className="w-4 h-4 text-white" />
                       </div>
                     )}
                     <span className="text-xs font-bold text-[#172033] dark:text-white">
@@ -406,10 +406,10 @@ export function SocialControl() {
                       setIsOpen(false);
                       setPanelView('channels');
                     }}
-                    className="p-1 rounded-[4px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors"
+                    className="p-1 rounded-[6px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     aria-label="Close WhatsApp topics"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
 
@@ -427,7 +427,7 @@ export function SocialControl() {
                         type="button"
                         role="menuitem"
                         onClick={() => handleTemplateClick(t)}
-                        className="w-full text-left p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#1E293B]/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/80 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer"
+                        className="w-full text-left p-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/70 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-semibold text-[#172033] dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate">
@@ -435,7 +435,7 @@ export function SocialControl() {
                           </span>
                           <div className="flex items-center gap-1 shrink-0">
                             {t.category && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded-[3px] bg-emerald-100/70 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 font-medium">
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100/70 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 font-medium">
                                 {t.category}
                               </span>
                             )}
@@ -473,31 +473,30 @@ export function SocialControl() {
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         title="Contact and Social channels"
-        className={`relative w-13 h-13 sm:w-14 sm:h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 focus-ring ${
+        className={`relative w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 focus-ring ${
           isOpen
             ? 'bg-[#172033] text-white hover:bg-black dark:bg-[#1E293B] dark:hover:bg-slate-800'
-            : hasWhatsApp && !hasFacebook && !hasInstagram
-            ? 'bg-[#25D366] hover:bg-[#20ba59] text-white shadow-[#25D366]/25 hover:shadow-[#25D366]/40'
-            : 'bg-[#172033] hover:bg-[#232F48] text-white dark:bg-[#315FEA] dark:hover:bg-[#254EDB] shadow-black/20'
+            : hasWhatsApp
+            ? 'bg-[#25D366] hover:bg-[#20ba59] text-white shadow-[#25D366]/40'
+            : 'bg-[#315FEA] hover:bg-[#254EDB] text-white shadow-[#315FEA]/40'
         }`}
       >
         {isOpen ? (
-          <X className="w-6 h-6" />
-        ) : hasWhatsApp && !hasFacebook && !hasInstagram ? (
-          <WhatsAppIcon className="w-7 h-7" />
-        ) : (
+          <X className="w-6 h-6 text-white" />
+        ) : hasWhatsApp ? (
           <>
-            <MessageCircle className="w-6 h-6 sm:w-6.5 sm:h-6.5" />
-            {hasWhatsApp && (
+            <WhatsAppIcon className="w-7 h-7 text-white" />
+            {(hasFacebook || hasInstagram) && (
               <span 
-                className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center"
-                title="Live WhatsApp connected"
+                className="absolute -top-0.5 -right-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#172033] text-white border-2 border-white dark:border-[#0F172A] text-[9px] font-bold shadow-xs"
+                title={`${enabledCount} channels available`}
               >
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#25D366] opacity-60" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#25D366] ring-2 ring-white dark:ring-[#0F172A]" />
+                {enabledCount}
               </span>
             )}
           </>
+        ) : (
+          <MessageCircle className="w-6 h-6 text-white" />
         )}
       </button>
     </div>
