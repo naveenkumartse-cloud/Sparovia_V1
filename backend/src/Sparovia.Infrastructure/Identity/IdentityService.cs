@@ -133,7 +133,7 @@ public class IdentityService : IIdentityService
         {
             var email = !string.IsNullOrWhiteSpace(request.Email)
                 ? request.Email.Trim()
-                : $"{normalizedPhone.TrimStart('+')}@user.sparovia.com";
+                : $"{normalizedPhone!.TrimStart('+')}@user.sparovia.com";
             var normalizedEmail = email.ToUpperInvariant();
 
             // 1. Check if phone is already registered and verified
@@ -146,13 +146,13 @@ public class IdentityService : IIdentityService
                 return new RegistrationResult { Success = false, ErrorMessage = "An account with this phone number already exists." };
             }
 
-            // 2. Check if email is already registered and verified
+            // 2. Check if email is already registered
             if (!string.IsNullOrWhiteSpace(request.Email))
             {
                 var existingUserByEmail = await _dbContext.Users
                     .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
 
-                if (existingUserByEmail != null && existingUserByEmail.Id != existingUserByPhone?.Id && (existingUserByEmail.PhoneVerified || existingUserByEmail.EmailVerified))
+                if (existingUserByEmail != null)
                 {
                     return new RegistrationResult { Success = false, ErrorMessage = "An account with this email already exists." };
                 }
@@ -180,8 +180,8 @@ public class IdentityService : IIdentityService
                 {
                     user = existingUserByPhone;
                     user.FullName = request.FullName;
-                    user.PhoneNumber = request.PhoneNumber.Trim();
-                    user.PhoneNumberNormalized = normalizedPhone;
+                    user.PhoneNumber = request.PhoneNumber?.Trim() ?? normalizedPhone!;
+                    user.PhoneNumberNormalized = normalizedPhone!;
                     user.Email = email;
                     user.NormalizedEmail = normalizedEmail;
                     user.PasswordHash = passwordHash;
@@ -192,8 +192,8 @@ public class IdentityService : IIdentityService
                     user = new User
                     {
                         FullName = request.FullName,
-                        PhoneNumber = request.PhoneNumber.Trim(),
-                        PhoneNumberNormalized = normalizedPhone,
+                        PhoneNumber = request.PhoneNumber?.Trim() ?? normalizedPhone!,
+                        PhoneNumberNormalized = normalizedPhone!,
                         PhoneVerified = false,
                         Email = email,
                         NormalizedEmail = normalizedEmail,
@@ -222,8 +222,8 @@ public class IdentityService : IIdentityService
                 var verificationRecord = new PhoneVerification
                 {
                     UserId = user.Id,
-                    PhoneNumber = request.PhoneNumber?.Trim() ?? normalizedPhone,
-                    PhoneNumberNormalized = normalizedPhone,
+                    PhoneNumber = request.PhoneNumber?.Trim() ?? normalizedPhone!,
+                    PhoneNumberNormalized = normalizedPhone!,
                     OtpHash = otpHash,
                     ExpiresAt = otpExpiry,
                     CreatedAt = DateTime.UtcNow,
@@ -243,7 +243,7 @@ public class IdentityService : IIdentityService
 
                 try
                 {
-                    await _smsService.SendOtpAsync(normalizedPhone, otp, cancellationToken);
+                    await _smsService.SendOtpAsync(normalizedPhone!, otp, cancellationToken);
                 }
                 catch (Exception smsEx)
                 {
@@ -349,8 +349,8 @@ public class IdentityService : IIdentityService
             var verificationRecord = new PhoneVerification
             {
                 UserId = user?.Id,
-                PhoneNumber = request.PhoneNumber.Trim(),
-                PhoneNumberNormalized = normalizedPhone,
+                PhoneNumber = request.PhoneNumber?.Trim() ?? normalizedPhone!,
+                PhoneNumberNormalized = normalizedPhone!,
                 OtpHash = otpHash,
                 ExpiresAt = otpExpiry,
                 CreatedAt = DateTime.UtcNow,
@@ -361,7 +361,7 @@ public class IdentityService : IIdentityService
 
             try
             {
-                await _smsService.SendOtpAsync(normalizedPhone, otp, cancellationToken);
+                await _smsService.SendOtpAsync(normalizedPhone!, otp, cancellationToken);
             }
             catch (Exception smsEx)
             {

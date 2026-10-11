@@ -158,6 +158,7 @@ public class CompleteE2EFlowTests : IClassFixture<WebApplicationFactory<Program>
         Assert.NotNull(summary);
         Assert.Equal("Apex Glazing Systems", summary.BusinessName);
         Assert.False(summary.IsConfirmed);
+        Assert.NotNull(summary.Services);
         Assert.Single(summary.Services);
 
         // 12. CONFIRM BUSINESS CONTEXT

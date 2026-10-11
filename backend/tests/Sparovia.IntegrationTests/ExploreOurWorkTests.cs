@@ -291,7 +291,7 @@ public class ExploreOurWorkTests : IClassFixture<WebApplicationFactory<Program>>
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<SparoviaDbContext>();
-            var img = await db.Images.SingleAsync(i => i.Id == Guid.Parse(imageId));
+            var img = await db.Images.SingleAsync(i => i.Id == Guid.Parse(imageId!));
             img.Status = "Uploaded";
             await db.SaveChangesAsync();
         }
@@ -338,7 +338,7 @@ public class ExploreOurWorkTests : IClassFixture<WebApplicationFactory<Program>>
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<SparoviaDbContext>();
-            var img = await db.Images.SingleAsync(i => i.Id == Guid.Parse(imageId));
+            var img = await db.Images.SingleAsync(i => i.Id == Guid.Parse(imageId!));
             img.Status = "Uploaded";
             await db.SaveChangesAsync();
         }
@@ -360,7 +360,7 @@ public class ExploreOurWorkTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal("image/jpeg", pubFileResp.Content.Headers.ContentType?.MediaType);
 
         // 5. Public website published-content API should include the new published image in our-work section
-        var contentResp = await publicAnonClient.GetAsync("/api/v1/website/published-content");
+        var contentResp = await publicAnonClient.GetAsync("/api/v1/website/published-content?domain=example.com");
         Assert.Equal(HttpStatusCode.OK, contentResp.StatusCode);
         var contentBody = await contentResp.Content.ReadFromJsonAsync<JsonElement>();
 

@@ -129,7 +129,7 @@ public class DeterministicImageProcessingTests
             var result = await _service.ProcessImageAsync(stream, op);
             Assert.NotNull(result);
             Assert.NotEmpty(result.Bytes);
-            Assert.NotEmpty(result.EffectiveProfile);
+            Assert.NotEmpty(result.EffectiveProfile!);
             Assert.NotEmpty(result.AppliedCorrections);
             results[op] = result;
         }

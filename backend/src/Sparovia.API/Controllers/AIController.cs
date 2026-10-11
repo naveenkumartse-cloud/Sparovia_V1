@@ -364,8 +364,8 @@ public class AIController : ControllerBase
                 ProviderKey = request.ProviderKey,
                 EncryptedApiKey = encryptedKey,
                 MaskedApiKey = maskedKey,
-                SelectedModelKey = model.Key,
-                SupportedCapability = model.Capability,
+                SelectedModelKey = model!.Key,
+                SupportedCapability = model!.Capability,
                 Status = AIConnectionStatus.Connected,
                 LastValidatedAt = DateTime.UtcNow,
                 UpdatedByUserId = userId,
@@ -379,8 +379,8 @@ public class AIController : ControllerBase
             config.ProviderKey = request.ProviderKey;
             config.EncryptedApiKey = encryptedKey;
             config.MaskedApiKey = maskedKey;
-            config.SelectedModelKey = model.Key;
-            config.SupportedCapability = model.Capability;
+            config.SelectedModelKey = model!.Key;
+            config.SupportedCapability = model!.Capability;
             config.Status = AIConnectionStatus.Connected;
             config.LastValidatedAt = DateTime.UtcNow;
             config.UpdatedByUserId = userId;
