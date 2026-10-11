@@ -124,7 +124,7 @@ public class IntegrationsController : ControllerBase
             {
                 Id = "template-1",
                 Title = "Plan a New Project",
-                MessageText = "Hi, I am planning a new interior project and would like to discuss design concepts and pricing.",
+                MessageText = "Hello! I am planning a new interior project and would like to schedule a personalized design consultation to review layout concepts, budget, and timelines.",
                 DisplayOrder = 1,
                 IsActive = true,
                 Category = "Full Home Interior",
@@ -133,18 +133,18 @@ public class IntegrationsController : ControllerBase
             new WhatsAppTemplateDto
             {
                 Id = "template-2",
-                Title = "Modular Kitchen & Wardrobe",
-                MessageText = "Hello, I am interested in modular kitchen and wardrobe solutions for my home. Could you share details?",
+                Title = "Modular Kitchen & Wardrobes",
+                MessageText = "Hello! I am interested in bespoke modular kitchen and wardrobe solutions. Could you share layout options, material finishes, and consultation availability?",
                 DisplayOrder = 2,
                 IsActive = true,
-                Category = "Kitchen & Wardrobes",
+                Category = "Modular Kitchen",
                 Intent = "Product Consultation"
             },
             new WhatsAppTemplateDto
             {
                 Id = "template-3",
-                Title = "Request Estimate & Floorplan",
-                MessageText = "Hi, I have floorplans ready and would like to request an estimate and timeline for my space.",
+                Title = "Request Project Estimate",
+                MessageText = "Hello! I have architectural floorplans ready and would like to request a comprehensive project estimate and execution schedule for our space.",
                 DisplayOrder = 3,
                 IsActive = true,
                 Category = "Consultation & Estimate",
@@ -274,7 +274,7 @@ public class IntegrationsController : ControllerBase
         {
             Enabled = false,
             PhoneNumber = defaultPhone,
-            PrefilledMessage = "Hi, I would like to inquire about interior design services.",
+            PrefilledMessage = "Hello! I am exploring interior design and execution services for my property. Could we connect with a design consultant to discuss possibilities?",
             Status = "Inactive",
             Templates = GetDefaultTemplates()
         });
@@ -315,7 +315,7 @@ public class IntegrationsController : ControllerBase
         }
 
         var prefilledMessage = string.IsNullOrWhiteSpace(request.PrefilledMessage)
-            ? "Hi, I would like to inquire about interior design services."
+            ? "Hello! I am exploring interior design and execution services for my property. Could we connect with a design consultant to discuss possibilities?"
             : request.PrefilledMessage.Trim();
 
         var templates = new List<WhatsAppTemplateDto>();

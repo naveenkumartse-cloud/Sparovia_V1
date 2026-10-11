@@ -109,14 +109,14 @@ export default function AccountPage() {
   const [waSaving, setWaSaving] = useState(false);
   const [waEnabled, setWaEnabled] = useState(false);
   const [waPhone, setWaPhone] = useState('');
-  const [waMessage, setWaMessage] = useState('Hi, I would like to inquire about interior design services.');
+  const [waMessage, setWaMessage] = useState('Hello! I am exploring interior design and execution services for my property. Could we connect with a design consultant to discuss possibilities?');
   const [waStatus, setWaStatus] = useState('Inactive');
   const [waError, setWaError] = useState<string | null>(null);
   const [waTemplates, setWaTemplates] = useState<WhatsAppTemplateItem[]>([
     {
       id: 'template-1',
       title: 'Plan a New Project',
-      messageText: 'Hi, I am planning a new interior project and would like to discuss design concepts and pricing.',
+      messageText: 'Hello! I am planning a new interior project and would like to schedule a personalized design consultation to review layout concepts, budget, and timelines.',
       displayOrder: 1,
       isActive: true,
       category: 'Full Home Interior',
@@ -124,17 +124,17 @@ export default function AccountPage() {
     },
     {
       id: 'template-2',
-      title: 'Modular Kitchen & Wardrobe',
-      messageText: 'Hello, I am interested in modular kitchen and wardrobe solutions for my home. Could you share details?',
+      title: 'Modular Kitchen & Wardrobes',
+      messageText: 'Hello! I am interested in bespoke modular kitchen and wardrobe solutions. Could you share layout options, material finishes, and consultation availability?',
       displayOrder: 2,
       isActive: true,
-      category: 'Kitchen & Wardrobes',
+      category: 'Modular Kitchen',
       intent: 'Product Consultation',
     },
     {
       id: 'template-3',
-      title: 'Request Estimate & Floorplan',
-      messageText: 'Hi, I have floorplans ready and would like to request an estimate and timeline for my space.',
+      title: 'Request Project Estimate',
+      messageText: 'Hello! I have architectural floorplans ready and would like to request a comprehensive project estimate and execution schedule for our space.',
       displayOrder: 3,
       isActive: true,
       category: 'Consultation & Estimate',
@@ -220,7 +220,7 @@ export default function AccountPage() {
       const res = await apiClient.get<WhatsAppIntegration>('/integrations/whatsapp');
       setWaEnabled(Boolean(res.enabled));
       setWaPhone(cleanPhoneInput(res.phoneNumber || ''));
-      setWaMessage(res.prefilledMessage || 'Hi, I would like to inquire about interior design services.');
+      setWaMessage(res.prefilledMessage || 'Hello! I am exploring interior design and execution services for my property. Could we connect with a design consultant to discuss possibilities?');
       setWaStatus(res.status || (res.enabled ? 'Active' : 'Inactive'));
       if (res.templates && Array.isArray(res.templates) && res.templates.length > 0) {
         setWaTemplates(res.templates);
@@ -282,22 +282,22 @@ export default function AccountPage() {
     {
       title: 'Plan a New Project',
       category: 'Full Home Interior',
-      messageText: 'Hello, I am planning a new interior project and would like to discuss concept designs, timelines, and pricing.',
+      messageText: 'Hello! I am planning a new interior project and would like to schedule a personalized design consultation to review layout concepts, budget, and timelines.',
     },
     {
       title: 'Modular Kitchen & Wardrobes',
-      category: 'Modular Systems',
-      messageText: 'Hi, I am interested in custom modular kitchen and wardrobe solutions for my home. Could you share details?',
+      category: 'Modular Kitchen',
+      messageText: 'Hello! I am interested in bespoke modular kitchen and wardrobe solutions. Could you share layout options, material finishes, and consultation availability?',
     },
     {
       title: 'Request Project Estimate',
-      category: 'Cost Estimate',
-      messageText: 'Hi, I have floorplans ready and would like to request an estimate and timeline for interior execution.',
+      category: 'Consultation & Estimate',
+      messageText: 'Hello! I have architectural floorplans ready and would like to request a comprehensive project estimate and execution schedule for our space.',
     },
     {
       title: 'Book Design Consultation',
-      category: 'Consultation',
-      messageText: 'Hello, I would like to schedule a personalized design consultation with your lead designer.',
+      category: 'Design Consultation',
+      messageText: 'Hello! I would like to schedule an in-depth design consultation with a senior interior architect to discuss our project aspirations.',
     },
   ];
 
@@ -1060,7 +1060,7 @@ export default function AccountPage() {
                   rows={2}
                   value={waMessage}
                   onChange={(e) => setWaMessage(e.target.value)}
-                  placeholder="Hi, I would like to inquire about interior design services."
+                  placeholder="Hello! I am exploring interior design and execution services for my property. Could we connect with a design consultant to discuss possibilities?"
                   className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-4 py-2 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] transition-all resize-none"
                 />
               </div>

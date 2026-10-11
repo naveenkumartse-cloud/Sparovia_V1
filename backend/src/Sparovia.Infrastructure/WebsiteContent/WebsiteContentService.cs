@@ -694,13 +694,13 @@ public class WebsiteContentService : IWebsiteContentService
             {
                 enabled = false,
                 phoneNumber = "",
-                prefilledMessage = "Hi, I would like to inquire about interior design services.",
+                prefilledMessage = "Hello! I am exploring interior design and execution services for my property. Could we connect with a design consultant to discuss possibilities?",
                 status = "Inactive",
                 templates = new[]
                 {
-                    new { id = "template-1", title = "General Enquiry", messageText = "Hi, I would like to inquire about interior design services for my space.", displayOrder = 1, isActive = true },
-                    new { id = "template-2", title = "Design Consultation", messageText = "Hello, I am interested in scheduling a personalized design consultation.", displayOrder = 2, isActive = true },
-                    new { id = "template-3", title = "Request a Quote", messageText = "Hi, I have floorplans ready and would like to request an estimate for interior work.", displayOrder = 3, isActive = true }
+                    new { id = "template-1", title = "Plan a New Project", messageText = "Hello! I am planning a new interior project and would like to schedule a personalized design consultation to review layout concepts, budget, and timelines.", displayOrder = 1, isActive = true, category = "Full Home Interior", intent = "New Project" },
+                    new { id = "template-2", title = "Modular Kitchen & Wardrobes", messageText = "Hello! I am interested in bespoke modular kitchen and wardrobe solutions. Could you share layout options, material finishes, and consultation availability?", displayOrder = 2, isActive = true, category = "Modular Kitchen", intent = "Product Consultation" },
+                    new { id = "template-3", title = "Request Project Estimate", messageText = "Hello! I have architectural floorplans ready and would like to request a comprehensive project estimate and execution schedule for our space.", displayOrder = 3, isActive = true, category = "Consultation & Estimate", intent = "Price Estimate" }
                 }
             };
             using var waDoc = JsonDocument.Parse(JsonSerializer.Serialize(defaultWa));
@@ -716,9 +716,9 @@ public class WebsiteContentService : IWebsiteContentService
                 {
                     var defaultTemplates = new[]
                     {
-                        new { id = "template-1", title = "General Enquiry", messageText = "Hi, I would like to inquire about interior design services for my space.", displayOrder = 1, isActive = true },
-                        new { id = "template-2", title = "Design Consultation", messageText = "Hello, I am interested in scheduling a personalized design consultation.", displayOrder = 2, isActive = true },
-                        new { id = "template-3", title = "Request a Quote", messageText = "Hi, I have floorplans ready and would like to request an estimate for interior work.", displayOrder = 3, isActive = true }
+                        new { id = "template-1", title = "Plan a New Project", messageText = "Hello! I am planning a new interior project and would like to schedule a personalized design consultation to review layout concepts, budget, and timelines.", displayOrder = 1, isActive = true, category = "Full Home Interior", intent = "New Project" },
+                        new { id = "template-2", title = "Modular Kitchen & Wardrobes", messageText = "Hello! I am interested in bespoke modular kitchen and wardrobe solutions. Could you share layout options, material finishes, and consultation availability?", displayOrder = 2, isActive = true, category = "Modular Kitchen", intent = "Product Consultation" },
+                        new { id = "template-3", title = "Request Project Estimate", messageText = "Hello! I have architectural floorplans ready and would like to request a comprehensive project estimate and execution schedule for our space.", displayOrder = 3, isActive = true, category = "Consultation & Estimate", intent = "Price Estimate" }
                     };
                     waNode["templates"] = JsonSerializer.SerializeToNode(defaultTemplates);
                     sectionsMap["whatsapp"] = JsonDocument.Parse(waNode.ToJsonString()).RootElement.Clone();

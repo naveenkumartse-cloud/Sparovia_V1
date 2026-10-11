@@ -438,7 +438,7 @@ export function adaptTemplateContent(
   const whatsapp: WhatsAppContent = {
     enabled: Boolean(rawWa.enabled && rawWa.phoneNumber && String(rawWa.phoneNumber).trim().length > 0),
     phoneNumber: rawWa.phoneNumber ? String(rawWa.phoneNumber).trim() : '',
-    prefilledMessage: rawWa.prefilledMessage ? String(rawWa.prefilledMessage) : 'Hi, I would like to inquire about interior design services.',
+    prefilledMessage: rawWa.prefilledMessage ? String(rawWa.prefilledMessage) : 'Hello! I am exploring interior design and execution services for my property. Could we connect with a design consultant to discuss possibilities?',
     status: rawWa.status || (rawWa.enabled ? 'Active' : 'Inactive'),
     templates: templatesList,
   };

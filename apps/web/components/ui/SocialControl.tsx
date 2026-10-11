@@ -8,6 +8,7 @@ import {
   X, 
   ExternalLink, 
   MessageCircle, 
+  MessageSquareMore,
   ChevronRight, 
   ArrowLeft 
 } from 'lucide-react';
@@ -265,7 +266,7 @@ export function SocialControl() {
                 <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-full bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center shrink-0">
-                      <MessageCircle className="w-4 h-4" />
+                      <MessageSquareMore className="w-4 h-4" />
                     </div>
                     <div>
                       <span className="text-xs font-bold text-[#172033] dark:text-white block leading-tight">
@@ -473,30 +474,27 @@ export function SocialControl() {
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         title="Contact and Social channels"
-        className={`relative w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 focus-ring ${
+        className={`group relative w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 focus-ring ${
           isOpen
             ? 'bg-[#172033] text-white hover:bg-black dark:bg-[#1E293B] dark:hover:bg-slate-800'
-            : hasWhatsApp
-            ? 'bg-[#25D366] hover:bg-[#20ba59] text-white shadow-[#25D366]/40'
-            : 'bg-[#315FEA] hover:bg-[#254EDB] text-white shadow-[#315FEA]/40'
+            : 'bg-[#315FEA] hover:bg-[#254EDB] text-white shadow-xl shadow-[#315FEA]/35 ring-4 ring-[#315FEA]/15'
         }`}
       >
         {isOpen ? (
           <X className="w-6 h-6 text-white" />
-        ) : hasWhatsApp ? (
-          <>
-            <WhatsAppIcon className="w-7 h-7 text-white" />
-            {(hasFacebook || hasInstagram) && (
-              <span 
-                className="absolute -top-0.5 -right-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[#172033] text-white border-2 border-white dark:border-[#0F172A] text-[9px] font-bold shadow-xs"
-                title={`${enabledCount} channels available`}
-              >
-                {enabledCount}
-              </span>
-            )}
-          </>
         ) : (
-          <MessageCircle className="w-6 h-6 text-white" />
+          <>
+            <MessageSquareMore className="w-6 h-6 text-white" />
+            {/* Live presence online indicator */}
+            <span className="absolute top-1 right-1 flex h-3 w-3" aria-hidden="true">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-[#25D366] border-2 border-white dark:border-[#0F172A]" />
+            </span>
+            {/* Desktop hover pill tooltip */}
+            <span className="hidden sm:group-hover:inline-flex opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150 absolute right-16 top-1/2 -translate-y-1/2 items-center px-2.5 py-1 rounded-md bg-[#172033]/90 text-white text-[11px] font-medium whitespace-nowrap shadow-md pointer-events-none">
+              Chat &amp; Social
+            </span>
+          </>
         )}
       </button>
     </div>
