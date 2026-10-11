@@ -15,6 +15,7 @@ public record WhatsAppTemplateDto
     public int DisplayOrder { get; init; }
     public bool IsActive { get; init; } = true;
     public string? Category { get; init; }
+    public string? CategoryId { get; init; }
     public string? Intent { get; init; }
 }
 
@@ -222,6 +223,7 @@ public class IntegrationsController : ControllerBase
                         var order = item.TryGetProperty("displayOrder", out var orderProp) && orderProp.TryGetInt32(out var oVal) ? oVal : templates.Count + 1;
                         var active = !item.TryGetProperty("isActive", out var activeProp) || activeProp.GetBoolean();
                         var category = item.TryGetProperty("category", out var catProp) ? catProp.GetString() : null;
+                        var categoryId = item.TryGetProperty("categoryId", out var catIdProp) ? catIdProp.GetString() : null;
                         var intent = item.TryGetProperty("intent", out var intentProp) ? intentProp.GetString() : null;
 
                         if (!string.IsNullOrWhiteSpace(title) || !string.IsNullOrWhiteSpace(text))
@@ -234,6 +236,7 @@ public class IntegrationsController : ControllerBase
                                 DisplayOrder = order,
                                 IsActive = active,
                                 Category = category,
+                                CategoryId = categoryId,
                                 Intent = intent
                             });
                         }
@@ -349,6 +352,8 @@ public class IntegrationsController : ControllerBase
                     return BadRequest(new { Error = $"Template #{i + 1} category cannot exceed 100 characters." });
                 }
 
+                var categoryId = !string.IsNullOrWhiteSpace(t.CategoryId) ? t.CategoryId.Trim() : null;
+
                 var intent = !string.IsNullOrWhiteSpace(t.Intent) ? t.Intent.Trim() : null;
                 if (intent != null && intent.Length > 100)
                 {
@@ -363,6 +368,7 @@ public class IntegrationsController : ControllerBase
                     DisplayOrder = t.DisplayOrder > 0 ? t.DisplayOrder : i + 1,
                     IsActive = t.IsActive,
                     Category = category,
+                    CategoryId = categoryId,
                     Intent = intent
                 });
             }

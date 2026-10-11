@@ -26,6 +26,31 @@ const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/**
+ * Composes a clean, independent WhatsApp prefilled message string incorporating category context
+ * without duplicating category mentions or greeting prefixes.
+ */
+export function composeWhatsAppMessage(messageText: string, category?: string): string {
+  const trimmedMsg = (messageText || '').trim();
+  const trimmedCat = (category || '').trim();
+  if (!trimmedCat) return trimmedMsg;
+  if (!trimmedMsg) return `Hi, regarding ${trimmedCat}.`;
+
+  if (trimmedMsg.toLowerCase().includes(trimmedCat.toLowerCase())) {
+    return trimmedMsg;
+  }
+
+  const greetingMatch = trimmedMsg.match(/^(hi|hello|hey)[,.]?\s*/i);
+  if (greetingMatch) {
+    const greeting = greetingMatch[1];
+    const rest = trimmedMsg.slice(greetingMatch[0].length);
+    const capGreeting = greeting.charAt(0).toUpperCase() + greeting.slice(1).toLowerCase();
+    return `${capGreeting}, regarding ${trimmedCat} — ${rest}`;
+  }
+
+  return `Regarding ${trimmedCat}: ${trimmedMsg}`;
+}
+
 export function SocialControl() {
   const [isOpen, setIsOpen] = useState(false);
   const [panelView, setPanelView] = useState<'channels' | 'whatsapp-templates'>('channels');
@@ -144,7 +169,8 @@ export function SocialControl() {
     });
     setIsOpen(false);
     setPanelView('channels');
-    const encoded = encodeURIComponent(t.messageText);
+    const composed = composeWhatsAppMessage(t.messageText, t.category);
+    const encoded = encodeURIComponent(composed);
     window.open(`https://wa.me/${cleanPhone}?text=${encoded}`, '_blank', 'noopener,noreferrer');
   };
 
@@ -160,7 +186,8 @@ export function SocialControl() {
       });
       setIsOpen(false);
       setPanelView('channels');
-      const encoded = encodeURIComponent(single.messageText);
+      const composed = composeWhatsAppMessage(single.messageText, single.category);
+      const encoded = encodeURIComponent(composed);
       window.open(`https://wa.me/${cleanPhone}?text=${encoded}`, '_blank', 'noopener,noreferrer');
     } else {
       recordContactActivity({
@@ -392,34 +419,37 @@ export function SocialControl() {
 
                 {/* Template Choices */}
                 <div className="space-y-1.5 max-h-60 overflow-y-auto pr-0.5" role="menu">
-                  {activeTemplates.map(t => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      role="menuitem"
-                      onClick={() => handleTemplateClick(t)}
-                      className="w-full text-left p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#1E293B]/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/80 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-[#172033] dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate">
-                          {t.title}
-                        </span>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {t.category && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-[3px] bg-emerald-100/70 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 font-medium">
-                              {t.category}
-                            </span>
-                          )}
-                          <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 shrink-0" />
+                  {activeTemplates.map(t => {
+                    const composedPreview = composeWhatsAppMessage(t.messageText, t.category);
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        role="menuitem"
+                        onClick={() => handleTemplateClick(t)}
+                        className="w-full text-left p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#1E293B]/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/80 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-[#172033] dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate">
+                            {t.title}
+                          </span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {t.category && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-[3px] bg-emerald-100/70 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 font-medium">
+                                {t.category}
+                              </span>
+                            )}
+                            <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 shrink-0" />
+                          </div>
                         </div>
-                      </div>
-                      {t.messageText && (
-                        <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] line-clamp-1 mt-0.5 font-normal">
-                          {t.messageText}
-                        </p>
-                      )}
-                    </button>
-                  ))}
+                        {composedPreview && (
+                          <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] line-clamp-1 mt-0.5 font-normal">
+                            {composedPreview}
+                          </p>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <p className="text-[10px] text-slate-400 dark:text-slate-500 pt-2 text-center">
@@ -443,12 +473,12 @@ export function SocialControl() {
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         title="Contact and Social channels"
-        className={`w-13 h-13 sm:w-14 sm:h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 focus-ring ${
+        className={`relative w-13 h-13 sm:w-14 sm:h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 focus-ring ${
           isOpen
             ? 'bg-[#172033] text-white hover:bg-black dark:bg-[#1E293B] dark:hover:bg-slate-800'
             : hasWhatsApp && !hasFacebook && !hasInstagram
-            ? 'bg-[#25D366] hover:bg-[#20ba59] text-white hover:shadow-[#25D366]/30'
-            : 'bg-[#172033] hover:bg-[#232F48] text-white dark:bg-[#315FEA] dark:hover:bg-[#254EDB]'
+            ? 'bg-[#25D366] hover:bg-[#20ba59] text-white shadow-[#25D366]/25 hover:shadow-[#25D366]/40'
+            : 'bg-[#172033] hover:bg-[#232F48] text-white dark:bg-[#315FEA] dark:hover:bg-[#254EDB] shadow-black/20'
         }`}
       >
         {isOpen ? (
@@ -456,7 +486,18 @@ export function SocialControl() {
         ) : hasWhatsApp && !hasFacebook && !hasInstagram ? (
           <WhatsAppIcon className="w-7 h-7" />
         ) : (
-          <MessageCircle className="w-6 h-6 sm:w-6.5 sm:h-6.5" />
+          <>
+            <MessageCircle className="w-6 h-6 sm:w-6.5 sm:h-6.5" />
+            {hasWhatsApp && (
+              <span 
+                className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center"
+                title="Live WhatsApp connected"
+              >
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#25D366] opacity-60" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#25D366] ring-2 ring-white dark:ring-[#0F172A]" />
+              </span>
+            )}
+          </>
         )}
       </button>
     </div>

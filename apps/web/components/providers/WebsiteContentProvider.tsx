@@ -137,6 +137,7 @@ export interface WhatsAppTemplate {
   displayOrder: number;
   isActive: boolean;
   category?: string;
+  categoryId?: string;
   intent?: string;
 }
 

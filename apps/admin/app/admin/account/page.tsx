@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
@@ -46,7 +47,29 @@ export interface WhatsAppTemplateItem {
   displayOrder: number;
   isActive: boolean;
   category?: string;
+  categoryId?: string;
   intent?: string;
+}
+
+function composeWhatsAppMessage(messageText: string, category?: string): string {
+  const trimmedMsg = (messageText || '').trim();
+  const trimmedCat = (category || '').trim();
+  if (!trimmedCat) return trimmedMsg;
+  if (!trimmedMsg) return `Hi, regarding ${trimmedCat}.`;
+
+  if (trimmedMsg.toLowerCase().includes(trimmedCat.toLowerCase())) {
+    return trimmedMsg;
+  }
+
+  const greetingMatch = trimmedMsg.match(/^(hi|hello|hey)[,.]?\s*/i);
+  if (greetingMatch) {
+    const greeting = greetingMatch[1];
+    const rest = trimmedMsg.slice(greetingMatch[0].length);
+    const capGreeting = greeting.charAt(0).toUpperCase() + greeting.slice(1).toLowerCase();
+    return `${capGreeting}, regarding ${trimmedCat} — ${rest}`;
+  }
+
+  return `Regarding ${trimmedCat}: ${trimmedMsg}`;
 }
 
 interface WhatsAppIntegration {
@@ -76,6 +99,10 @@ export default function AccountPage() {
   );
 
   const [copiedTenantId, setCopiedTenantId] = useState(false);
+
+  // Dynamic tenant categories state
+  const [tenantCategories, setTenantCategories] = useState<{ id: string; name: string; slug?: string }[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
 
   // WhatsApp Integration State
   const [waLoading, setWaLoading] = useState(false);
@@ -221,9 +248,23 @@ export default function AccountPage() {
     }
   };
 
+  const fetchTenantCategories = async () => {
+    setLoadingCategories(true);
+    try {
+      const res: any = await apiClient.get('/website/categories');
+      const list = Array.isArray(res) ? res : (res?.data || []);
+      setTenantCategories(list);
+    } catch (err) {
+      console.error('Failed to load categories for integrations:', err);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
   useEffect(() => {
     fetchWhatsAppSettings();
     fetchSocialSettings();
+    fetchTenantCategories();
   }, []);
 
   useEffect(() => {
@@ -262,14 +303,35 @@ export default function AccountPage() {
 
   const handleApplyPreset = (index: number, preset: typeof TEMPLATE_PRESETS[0]) => {
     const updated = [...waTemplates];
+    const matchedCategory = tenantCategories.find(
+      (c) => c.name.toLowerCase() === preset.category.toLowerCase()
+    );
     updated[index] = {
       ...updated[index],
       title: preset.title,
-      category: preset.category,
+      category: matchedCategory ? matchedCategory.name : preset.category,
+      categoryId: matchedCategory ? matchedCategory.id : undefined,
       messageText: preset.messageText,
     };
     setWaTemplates(updated);
     toast.success(`Applied "${preset.title}" preset.`);
+  };
+
+  const handleUpdateTemplateCategory = (index: number, categoryName: string) => {
+    const updated = [...waTemplates];
+    if (!categoryName) {
+      updated[index] = { ...updated[index], category: '', categoryId: undefined };
+    } else {
+      const matched = tenantCategories.find(
+        (c) => c.name.toLowerCase() === categoryName.toLowerCase()
+      );
+      updated[index] = {
+        ...updated[index],
+        category: categoryName,
+        categoryId: matched?.id,
+      };
+    }
+    setWaTemplates(updated);
   };
 
   const handleAddTemplate = () => {
@@ -373,6 +435,7 @@ export default function AccountPage() {
           ...t,
           displayOrder: idx + 1,
           category: t.category?.trim() || undefined,
+          categoryId: t.categoryId?.trim() || undefined,
           intent: t.intent?.trim() || undefined,
         })),
       });
@@ -1033,7 +1096,8 @@ export default function AccountPage() {
                   {waTemplates.map((template, idx) => {
                     const cleanDigits = waPhone.replace(/\D/g, '');
                     const phoneWithCode = cleanDigits.length === 10 ? `91${cleanDigits}` : cleanDigits;
-                    const encodedMsg = encodeURIComponent(template.messageText);
+                    const composedMsg = composeWhatsAppMessage(template.messageText, template.category);
+                    const encodedMsg = encodeURIComponent(composedMsg);
                     const testUrl = phoneWithCode ? `https://wa.me/${phoneWithCode}?text=${encodedMsg}` : '';
 
                     return (
@@ -1144,23 +1208,68 @@ export default function AccountPage() {
                           <div>
                             <div className="flex justify-between items-center mb-1">
                               <label className="text-[11px] font-semibold text-[#475569] dark:text-[#94A3B8]">
-                                Customer Intent / Category (Optional)
+                                Service Category / Intent (Optional)
                               </label>
-                              <span className="text-[10px] text-slate-400">
-                                {(template.category || '').length}/100
-                              </span>
+                              {tenantCategories.length > 0 && (
+                                <span className="text-[10px] text-slate-400">
+                                  {tenantCategories.length} categories available
+                                </span>
+                              )}
                             </div>
-                            <input
-                              type="text"
-                              value={template.category || ''}
-                              maxLength={100}
-                              onChange={(e) => handleUpdateTemplate(idx, 'category', e.target.value)}
-                              placeholder="e.g. Modular Systems, Full Home Interior"
-                              className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
-                            />
-                            <p className="text-[10px] text-slate-400 mt-1">
-                              Optional badge clarifying the service or reason for contact.
-                            </p>
+                            {tenantCategories.length > 0 ? (
+                              <div>
+                                <select
+                                  value={template.category || ''}
+                                  onChange={(e) => handleUpdateTemplateCategory(idx, e.target.value)}
+                                  className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+                                >
+                                  <option value="">None / General Inquiry</option>
+                                  {template.category && !tenantCategories.some((c) => c.name.toLowerCase() === template.category?.toLowerCase()) && (
+                                    <option value={template.category}>
+                                      {template.category} (Custom / Legacy)
+                                    </option>
+                                  )}
+                                  {tenantCategories.map((cat) => (
+                                    <option key={cat.id} value={cat.name}>
+                                      {cat.name}
+                                    </option>
+                                  ))}
+                                </select>
+                                <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
+                                  <span>Dynamic categories from your offerings.</span>
+                                  <Link
+                                    href="/admin/images"
+                                    className="text-[#315FEA] hover:underline font-medium inline-flex items-center gap-0.5"
+                                  >
+                                    <span>Manage in Images</span>
+                                    <ExternalLink className="w-2.5 h-2.5" />
+                                  </Link>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-[10px] text-amber-600 dark:text-amber-400">
+                                    No categories configured yet
+                                  </span>
+                                  <Link
+                                    href="/admin/images"
+                                    className="text-[10px] text-[#315FEA] hover:underline font-medium inline-flex items-center gap-0.5"
+                                  >
+                                    <span>Configure in Images</span>
+                                    <ExternalLink className="w-2.5 h-2.5" />
+                                  </Link>
+                                </div>
+                                <input
+                                  type="text"
+                                  value={template.category || ''}
+                                  maxLength={100}
+                                  onChange={(e) => handleUpdateTemplate(idx, 'category', e.target.value)}
+                                  placeholder="e.g. Modular Systems, Full Home Interior"
+                                  className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+                                />
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -1231,7 +1340,7 @@ export default function AccountPage() {
                           {/* Message Bubble */}
                           <div className="max-w-[92%] ml-auto bg-[#D9FDD3] dark:bg-[#005C4B] rounded-[7.5px] rounded-tr-none px-3 py-2 shadow-xs text-[#111B21] dark:text-white text-xs leading-relaxed">
                             <p className="whitespace-pre-wrap break-words text-[11px]">
-                              {template.messageText || '(Empty message)'}
+                              {composedMsg || '(Empty message)'}
                             </p>
                             <div className="flex items-center justify-end gap-1 mt-1 text-[9px] text-[#667781] dark:text-emerald-200/80">
                               <span>10:30 AM</span>
