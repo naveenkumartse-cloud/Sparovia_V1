@@ -14,6 +14,7 @@ import {
   Clock, 
   FileEdit,
   ShieldCheck,
+  Activity,
   Image as ImageIcon
 } from 'lucide-react';
 
@@ -21,6 +22,7 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const [contextSummary, setContextSummary] = useState<any>(null);
   const [newLeadsCount, setNewLeadsCount] = useState<number | null>(null);
+  const [activityTotalClicks, setActivityTotalClicks] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -29,11 +31,18 @@ export default function AdminDashboard() {
         const data = await apiClient.get('/onboarding/summary');
         setContextSummary(data);
 
-        // Fetch leads summary count if confirmed
+        // Fetch leads summary and contact activity count if confirmed
         if ((data as any)?.isConfirmed) {
           try {
             const leadsData = await apiClient.get<any>('/leads?pageSize=1&status=New');
             setNewLeadsCount(leadsData?.totalCount ?? 0);
+          } catch {
+            // Non-blocking for dashboard
+          }
+
+          try {
+            const activityData = await apiClient.get<any>('/contact-activity/summary');
+            setActivityTotalClicks(activityData?.totalClicks ?? 0);
           } catch {
             // Non-blocking for dashboard
           }
@@ -56,7 +65,7 @@ export default function AdminDashboard() {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Welcome Banner */}
-      <div className="bg-white dark:bg-[#0F172A] p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-[#1E293B] shadow-sm dark:shadow-xl relative overflow-hidden">
+      <div className="bg-white dark:bg-[#0F172A] p-6 sm:p-8 rounded-[8px] border border-slate-200 dark:border-[#1E293B] shadow-xs relative overflow-hidden">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
             <div className="inline-flex items-center px-2.5 py-1 rounded-[4px] text-xs font-semibold bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20 mb-3">
@@ -74,7 +83,7 @@ export default function AdminDashboard() {
           <div className="shrink-0">
             <Link
               href={isConfirmed ? "/admin/business-context" : "/admin/onboarding/business-basics"}
-              className="inline-flex items-center justify-center h-10 min-h-[40px] px-5 rounded-[6px] text-sm font-semibold text-white bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] transition-all shadow-xs hover:shadow-subtle"
+              className="inline-flex items-center justify-center h-10 min-h-[40px] px-5 rounded-[6px] text-sm font-semibold text-white bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] transition-all shadow-xs"
             >
               {isConfirmed ? 'Manage Business Context' : 'Complete Onboarding'}
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -83,8 +92,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Grid of Key Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Grid of Key Status Cards (4-column responsive grid) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Business Context Card */}
         <div className="bg-white dark:bg-[#0F172A] p-6 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs flex flex-col justify-between">
           <div>
@@ -166,27 +175,59 @@ export default function AdminDashboard() {
             </div>
             <h2 className="text-base font-bold text-[#172033] dark:text-white">Customer Leads</h2>
             <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
-              Direct inquiries submitted through your connected website contact form and lead widgets.
+              Direct inquiries submitted through your connected website contact form.
             </p>
           </div>
           <div className="mt-6 pt-4 border-t border-[#E3E7ED] dark:border-[#1E293B]">
             <Link 
-              href="/admin/leads" 
+              href="/admin/leads?tab=leads" 
               className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
             >
               View lead list <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Link>
           </div>
         </div>
+
+        {/* Contact Activity Card */}
+        <div className="bg-white dark:bg-[#0F172A] p-6 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 rounded-[6px] bg-[#7950B8]/10 border border-[#7950B8]/20 flex items-center justify-center text-[#7950B8]">
+                <Activity className="w-5 h-5" />
+              </div>
+              {activityTotalClicks !== null && activityTotalClicks > 0 ? (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#7950B8]/10 text-[#7950B8] border border-[#7950B8]/20">
+                  {activityTotalClicks} {activityTotalClicks === 1 ? 'Click' : 'Clicks'}
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#F3F6FA] dark:bg-[#1E293B] text-[#475569] dark:text-[#94A3B8]">
+                  Tracking Active
+                </span>
+              )}
+            </div>
+            <h2 className="text-base font-bold text-[#172033] dark:text-white">Contact Activity</h2>
+            <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
+              Outbound clicks on WhatsApp templates and social profile links.
+            </p>
+          </div>
+          <div className="mt-6 pt-4 border-t border-[#E3E7ED] dark:border-[#1E293B]">
+            <Link 
+              href="/admin/leads?tab=activity" 
+              className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
+            >
+              View activity log <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Quick Action Guidance Panel */}
-      <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border border-slate-200 dark:border-[#1E293B] shadow-sm dark:shadow-lg">
-        <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Recommended Next Steps</h2>
+      <div className="bg-white dark:bg-[#0F172A] p-6 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs">
+        <h2 className="text-sm font-semibold text-[#172033] dark:text-white mb-4">Recommended Next Steps</h2>
         <div className="space-y-3">
-          <div className="flex items-start justify-between p-3.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200/80 dark:border-[#1E293B] rounded-xl">
+          <div className="flex items-start justify-between p-3.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200/80 dark:border-[#1E293B] rounded-[6px]">
             <div className="flex items-start space-x-3">
-              <div className="p-1.5 rounded-lg bg-[#3B82F6]/10 text-[#3B82F6] shrink-0 mt-0.5">
+              <div className="p-1.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] shrink-0 mt-0.5">
                 <FileEdit className="w-4 h-4" />
               </div>
               <div>
@@ -198,19 +239,19 @@ export default function AdminDashboard() {
             </div>
             <Link 
               href="/admin/business-context" 
-              className="text-xs text-[#3B82F6] hover:underline font-medium shrink-0 ml-4"
+              className="text-xs text-[#315FEA] hover:text-[#254EDB] font-medium shrink-0 ml-4"
             >
               Open
             </Link>
           </div>
 
-          <div className="flex items-start justify-between p-3.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200/80 dark:border-[#1E293B] rounded-xl">
+          <div className="flex items-start justify-between p-3.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200/80 dark:border-[#1E293B] rounded-[6px]">
             <div className="flex items-start space-x-3">
-              <div className="p-1.5 rounded-lg bg-[#8B3FD1]/10 text-[#8B3FD1] shrink-0 mt-0.5">
+              <div className="p-1.5 rounded-[4px] bg-[#7950B8]/10 text-[#7950B8] shrink-0 mt-0.5">
                 <Laptop2 className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-900 dark:text-white">Step 2: Connect & Review Website Content</p>
+                <p className="text-xs font-medium text-slate-900 dark:text-white">Step 2: Connect &amp; Review Website Content</p>
                 <p className="text-[11px] text-slate-500 dark:text-[#94A3B8] mt-0.5">
                   Ensure supported sections match your active services and differentiators.
                 </p>
@@ -218,15 +259,15 @@ export default function AdminDashboard() {
             </div>
             <Link 
               href="/admin/content" 
-              className="text-xs text-[#3B82F6] hover:underline font-medium shrink-0 ml-4"
+              className="text-xs text-[#315FEA] hover:text-[#254EDB] font-medium shrink-0 ml-4"
             >
               Open
             </Link>
           </div>
 
-          <div className="flex items-start justify-between p-3.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200/80 dark:border-[#1E293B] rounded-xl">
+          <div className="flex items-start justify-between p-3.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200/80 dark:border-[#1E293B] rounded-[6px]">
             <div className="flex items-start space-x-3">
-              <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 shrink-0 mt-0.5">
+              <div className="p-1.5 rounded-[4px] bg-emerald-500/10 text-emerald-500 shrink-0 mt-0.5">
                 <ImageIcon className="w-4 h-4" />
               </div>
               <div>
@@ -238,7 +279,7 @@ export default function AdminDashboard() {
             </div>
             <Link 
               href="/admin/images" 
-              className="text-xs text-[#3B82F6] hover:underline font-medium shrink-0 ml-4"
+              className="text-xs text-[#315FEA] hover:text-[#254EDB] font-medium shrink-0 ml-4"
             >
               Open
             </Link>

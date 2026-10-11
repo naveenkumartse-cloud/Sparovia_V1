@@ -86,6 +86,11 @@ public class AuthController : ControllerBase
             data["devOtp"] = result.DevOtp;
         }
 
+        if (!string.IsNullOrEmpty(result.VerificationLink) && !_environment.IsProduction())
+        {
+            data["devVerificationUrl"] = result.VerificationLink;
+        }
+
         return Ok(new
         {
             data,

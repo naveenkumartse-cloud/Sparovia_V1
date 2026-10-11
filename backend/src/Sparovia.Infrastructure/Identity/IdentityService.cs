@@ -222,7 +222,7 @@ public class IdentityService : IIdentityService
                 var verificationRecord = new PhoneVerification
                 {
                     UserId = user.Id,
-                    PhoneNumber = request.PhoneNumber.Trim(),
+                    PhoneNumber = request.PhoneNumber?.Trim() ?? normalizedPhone,
                     PhoneNumberNormalized = normalizedPhone,
                     OtpHash = otpHash,
                     ExpiresAt = otpExpiry,
@@ -230,6 +230,14 @@ public class IdentityService : IIdentityService
                     Status = "Pending"
                 };
                 _dbContext.PhoneVerifications.Add(verificationRecord);
+
+                string? rawEmailToken = null;
+                if (!string.IsNullOrWhiteSpace(request.Email))
+                {
+                    rawEmailToken = GenerateToken();
+                    user.VerificationTokenHash = HashToken(rawEmailToken);
+                    user.VerificationTokenExpiresAt = DateTime.UtcNow.AddHours(24);
+                }
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -242,14 +250,30 @@ public class IdentityService : IIdentityService
                     _logger.LogWarning(smsEx, "SMS dispatch failed for phone {Phone}. Continuing registration with simulated OTP.", PhoneNumberHelper.Mask(normalizedPhone));
                 }
 
+                string? verificationLink = null;
+                if (!string.IsNullOrWhiteSpace(request.Email) && rawEmailToken != null)
+                {
+                    var adminBaseUrl = GetAdminBaseUrl();
+                    verificationLink = $"{adminBaseUrl}/verify-email?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(rawEmailToken)}";
+                    try
+                    {
+                        await _emailService.SendVerificationEmailAsync(user.Email, verificationLink, cancellationToken);
+                    }
+                    catch (Exception emailEx)
+                    {
+                        _logger.LogWarning(emailEx, "Email dispatch failed during registration for {Email}. Continuing with registration.", user.Email);
+                    }
+                }
+
                 await transaction.CommitAsync(cancellationToken);
 
                 return new RegistrationResult
                 {
                     Success = true,
-                    PhoneNumber = request.PhoneNumber.Trim(),
+                    PhoneNumber = request.PhoneNumber?.Trim() ?? normalizedPhone,
                     PhoneNumberNormalized = normalizedPhone,
-                    DevOtp = otp
+                    DevOtp = otp,
+                    VerificationLink = verificationLink
                 };
             }
             catch (Exception ex)
