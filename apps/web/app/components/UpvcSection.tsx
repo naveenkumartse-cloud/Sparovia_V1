@@ -31,7 +31,7 @@ function ArchitecturalHero() {
     <FadeIn direction="up" delay={0.2} duration={0.8}>
       <div
         ref={imageRef}
-        className="relative w-full rounded-2xl overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9]"
+        className="relative w-full rounded-panel overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9]"
       >
         <motion.div
           className="absolute inset-0"
@@ -107,7 +107,7 @@ function DesktopHorizontalGallery() {
             className="flex-shrink-0 group"
             style={{ width: 'clamp(320px, 30vw, 480px)' }}
           >
-            <div className="relative rounded-2xl overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3]">
+            <div className="relative rounded-panel overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3]">
               <Image
                 src={item.src}
                 alt={item.alt}
@@ -145,7 +145,7 @@ function MobileSwipeGallery() {
             className="flex-shrink-0 snap-start"
             style={{ width: '80vw', maxWidth: '360px' }}
           >
-            <div className="relative rounded-xl overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3]">
+            <div className="relative rounded-panel overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3]">
               <Image
                 src={item.src}
                 alt={item.alt}

@@ -33,7 +33,7 @@ export function ImageFrame({
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl bg-surface border border-gray-100 shadow-soft-sm group',
+        'relative overflow-hidden rounded-panel bg-surface border border-gray-100 shadow-soft-sm group',
         aspectClasses[aspectRatio],
         className
       )}

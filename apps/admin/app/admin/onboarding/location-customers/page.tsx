@@ -129,7 +129,7 @@ export default function LocationCustomersPage() {
     <div>
       <div className="mb-6">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
-          <MapPin className="w-5 h-5 mr-2 text-[#3B82F6]" />
+          <MapPin className="w-5 h-5 mr-2 text-[#315FEA]" />
           Location & Target Customers
         </h2>
         <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
@@ -138,7 +138,7 @@ export default function LocationCustomersPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 dark:text-red-300 text-sm" role="alert">
+        <div className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 rounded-[8px] text-red-600 dark:text-red-300 text-sm" role="alert">
           {error}
         </div>
       )}
@@ -161,7 +161,7 @@ export default function LocationCustomersPage() {
                 value={formData.addressLine1 || ''}
                 onChange={e => setFormData({ ...formData, addressLine1: e.target.value })}
                 placeholder="123 Commerce Way"
-                className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+                className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
               />
             </div>
 
@@ -178,7 +178,7 @@ export default function LocationCustomersPage() {
                 value={formData.addressLine2 || ''}
                 onChange={e => setFormData({ ...formData, addressLine2: e.target.value })}
                 placeholder="Suite 400"
-                className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+                className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
               />
             </div>
 
@@ -192,7 +192,7 @@ export default function LocationCustomersPage() {
                 value={formData.city || ''}
                 onChange={e => setFormData({ ...formData, city: e.target.value })}
                 placeholder="San Francisco"
-                className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+                className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
               />
             </div>
 
@@ -206,7 +206,7 @@ export default function LocationCustomersPage() {
                 value={formData.state || ''}
                 onChange={e => setFormData({ ...formData, state: e.target.value })}
                 placeholder="CA"
-                className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+                className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
               />
             </div>
 
@@ -220,7 +220,7 @@ export default function LocationCustomersPage() {
                 value={formData.postalCode || ''}
                 onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
                 placeholder="94105"
-                className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+                className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
               />
             </div>
 
@@ -234,7 +234,7 @@ export default function LocationCustomersPage() {
                 value={formData.country || ''}
                 onChange={e => setFormData({ ...formData, country: e.target.value })}
                 placeholder="United States"
-                className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+                className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
               />
             </div>
           </div>
@@ -259,7 +259,7 @@ export default function LocationCustomersPage() {
               value={serviceAreasInput}
               onChange={e => setServiceAreasInput(e.target.value)}
               placeholder="e.g. San Francisco, Oakland, San Jose"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             />
           </div>
 
@@ -280,7 +280,7 @@ export default function LocationCustomersPage() {
               value={targetCustomersInput}
               onChange={e => setTargetCustomersInput(e.target.value)}
               placeholder="e.g. Residential Homeowners, General Contractors, Architects"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             />
           </div>
         </div>

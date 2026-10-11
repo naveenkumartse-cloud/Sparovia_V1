@@ -235,7 +235,7 @@ export function SocialControl() {
             role="dialog"
             aria-modal="false"
             aria-label="Contact and Social channels"
-            className="mb-3 w-[calc(100vw-2rem)] sm:w-80 max-w-sm rounded-2xl bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-md p-4 shadow-2xl border border-slate-200/90 dark:border-slate-800 text-left overflow-hidden"
+            className="mb-3 w-[calc(100vw-2rem)] sm:w-80 max-w-sm rounded-[8px] bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-md p-4 shadow-2xl border border-slate-200/90 dark:border-slate-800 text-left overflow-hidden"
           >
             {/* VIEW 1: All Enabled Channels */}
             {panelView === 'channels' && (
@@ -273,7 +273,7 @@ export function SocialControl() {
                       type="button"
                       role="menuitem"
                       onClick={handleWhatsAppChannelSelect}
-                      className="w-full text-left p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/70 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
+                      className="w-full text-left p-3 rounded-[6px] bg-slate-50/80 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/70 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-9 h-9 rounded-full bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -306,7 +306,7 @@ export function SocialControl() {
                       type="button"
                       role="menuitem"
                       onClick={() => handleSocialClick('Instagram', instagramUrl)}
-                      className="w-full text-left p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 hover:bg-pink-50 dark:hover:bg-pink-950/30 border border-slate-200/70 dark:border-slate-700/60 hover:border-pink-300 dark:hover:border-pink-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
+                      className="w-full text-left p-3 rounded-[6px] bg-slate-50/80 dark:bg-slate-800/60 hover:bg-pink-50 dark:hover:bg-pink-950/30 border border-slate-200/70 dark:border-slate-700/60 hover:border-pink-300 dark:hover:border-pink-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -331,7 +331,7 @@ export function SocialControl() {
                       type="button"
                       role="menuitem"
                       onClick={() => handleSocialClick('Facebook', facebookUrl)}
-                      className="w-full text-left p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 hover:bg-blue-50 dark:hover:bg-blue-950/30 border border-slate-200/70 dark:border-slate-700/60 hover:border-blue-300 dark:hover:border-blue-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
+                      className="w-full text-left p-3 rounded-[6px] bg-slate-50/80 dark:bg-slate-800/60 hover:bg-blue-50 dark:hover:bg-blue-950/30 border border-slate-200/70 dark:border-slate-700/60 hover:border-blue-300 dark:hover:border-blue-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-9 h-9 rounded-full bg-[#1877F2] text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -406,7 +406,7 @@ export function SocialControl() {
                         type="button"
                         role="menuitem"
                         onClick={() => handleTemplateClick(t)}
-                        className="w-full text-left p-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/70 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer"
+                        className="w-full text-left p-2.5 rounded-[6px] bg-slate-50/80 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/70 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-semibold text-[#172033] dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate">
@@ -414,7 +414,7 @@ export function SocialControl() {
                           </span>
                           <div className="flex items-center gap-1 shrink-0">
                             {t.category && (
-                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100/70 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 font-medium">
+                              <span className="text-[10px] px-2 py-0.5 rounded-[4px] bg-emerald-100/70 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 font-medium">
                                 {t.category}
                               </span>
                             )}

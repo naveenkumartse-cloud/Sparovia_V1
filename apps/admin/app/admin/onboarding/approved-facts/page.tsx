@@ -134,7 +134,7 @@ export default function ApprovedFactsPage() {
     <div>
       <div className="mb-6">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
-          <Award className="w-5 h-5 mr-2 text-[#3B82F6]" />
+          <Award className="w-5 h-5 mr-2 text-[#315FEA]" />
           Approved Facts & Claims
         </h2>
         <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
@@ -143,7 +143,7 @@ export default function ApprovedFactsPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 dark:text-red-300 text-sm" role="alert">
+        <div className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 rounded-[8px] text-red-600 dark:text-red-300 text-sm" role="alert">
           {error}
         </div>
       )}
@@ -166,7 +166,7 @@ export default function ApprovedFactsPage() {
               value={formData.yearsInBusiness ?? ''} 
               onChange={e => setFormData({ ...formData, yearsInBusiness: e.target.value })}
               placeholder="e.g. 12"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             />
           </div>
 
@@ -188,7 +188,7 @@ export default function ApprovedFactsPage() {
               value={getListFieldValue('certifications')} 
               onChange={e => handleListFieldChange('certifications', e.target.value)}
               placeholder="e.g. ISO 9001, AAMA Certified"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             />
           </div>
 
@@ -210,7 +210,7 @@ export default function ApprovedFactsPage() {
               value={getListFieldValue('awards')} 
               onChange={e => handleListFieldChange('awards', e.target.value)}
               placeholder="e.g. Best of Houzz 2023, Architectural Excellence 2024"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             />
           </div>
 
@@ -232,7 +232,7 @@ export default function ApprovedFactsPage() {
               value={getListFieldValue('accreditations')} 
               onChange={e => handleListFieldChange('accreditations', e.target.value)}
               placeholder="e.g. BBB Accredited A+, Energy Star Partner"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             />
           </div>
 
@@ -254,7 +254,7 @@ export default function ApprovedFactsPage() {
               value={getListFieldValue('warranties')} 
               onChange={e => handleListFieldChange('warranties', e.target.value)}
               placeholder="e.g. 10-Year Frame Warranty, Lifetime Hardware"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             />
           </div>
 
@@ -276,7 +276,7 @@ export default function ApprovedFactsPage() {
               value={getListFieldValue('authorizedStatuses')} 
               onChange={e => handleListFieldChange('authorizedStatuses', e.target.value)}
               placeholder="e.g. Authorized Schuco Partner, Certified Installer"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             />
           </div>
 
@@ -298,7 +298,7 @@ export default function ApprovedFactsPage() {
               value={getListFieldValue('otherClaims')} 
               onChange={e => handleListFieldChange('otherClaims', e.target.value)}
               placeholder="e.g. Zero Subcontractors, Over 5,000 Installations Completed"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             />
           </div>
         </div>

@@ -157,9 +157,9 @@ export default function ProjectGallerySection() {
                       setActiveFilter(cat);
                       setSelectedIndex(null);
                     }}
-                    className={`px-5 py-2.5 rounded-full text-xs uppercase tracking-widest font-semibold transition-all duration-300 focus-ring cursor-pointer ${
+                    className={`px-5 py-2.5 rounded-[6px] text-xs uppercase tracking-wider font-semibold transition-colors duration-200 focus-ring cursor-pointer shadow-xs ${
                       isActive
-                        ? 'bg-brand-600 text-white shadow-purple-glow'
+                        ? 'bg-brand-600 text-white'
                         : 'bg-white text-charcoal-700 hover:text-brand-600 border border-gray-200/80 hover:border-brand-200'
                     }`}
                   >
@@ -192,7 +192,7 @@ export default function ProjectGallerySection() {
                     triggerRef.current = e.currentTarget as HTMLElement;
                     setSelectedIndex(index);
                   }}
-                  className="relative w-full h-full rounded-2xl overflow-hidden bg-surface border border-gray-100 shadow-soft-sm group cursor-pointer"
+                  className="relative w-full h-full rounded-panel overflow-hidden bg-surface border border-gray-100 shadow-soft-sm group cursor-pointer"
                   tabIndex={0}
                   role="button"
                   aria-label={`View ${item.label} project image`}
@@ -218,13 +218,13 @@ export default function ProjectGallerySection() {
 
                   {/* Category Pill Badge (Top Left) */}
                   <div className="absolute top-4 left-4 z-10">
-                    <span className="px-3 py-1 rounded-full badge-purple text-[10px] uppercase tracking-widest font-bold shadow-soft-sm">
+                    <span className="px-2.5 py-1 rounded-[4px] badge-purple text-[10px] uppercase tracking-wider font-bold shadow-soft-sm">
                       {item.category}
                     </span>
                   </div>
 
                   {/* View Icon Button (Top Right) */}
-                  <div className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-charcoal-900 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-300 shadow-sm">
+                  <div className="absolute top-4 right-4 z-10 w-8 h-8 rounded-[6px] bg-white/90 backdrop-blur-md flex items-center justify-center text-charcoal-900 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 shadow-xs">
                     <Maximize2 className="w-4 h-4 text-brand-600" />
                   </div>
 
@@ -265,7 +265,7 @@ export default function ProjectGallerySection() {
             <button
               ref={closeButtonRef}
               onClick={() => setSelectedIndex(null)}
-              className="absolute top-5 right-5 z-20 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors focus-ring cursor-pointer"
+              className="absolute top-5 right-5 z-20 w-10 h-10 rounded-[6px] bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors focus-ring cursor-pointer"
               aria-label="Close image lightbox"
             >
               <X className="w-5 h-5" />
@@ -275,7 +275,7 @@ export default function ProjectGallerySection() {
             {filteredItems.length > 1 && (
               <button
                 onClick={navigatePrev}
-                className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors focus-ring cursor-pointer"
+                className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-[6px] bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors focus-ring cursor-pointer"
                 aria-label="Previous image"
               >
                 <ChevronLeft className="w-6 h-6" />
@@ -286,7 +286,7 @@ export default function ProjectGallerySection() {
             {filteredItems.length > 1 && (
               <button
                 onClick={navigateNext}
-                className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors focus-ring cursor-pointer"
+                className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-[6px] bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors focus-ring cursor-pointer"
                 aria-label="Next image"
               >
                 <ChevronRight className="w-6 h-6" />
@@ -299,7 +299,7 @@ export default function ProjectGallerySection() {
               animate={{ opacity: 1, scale: 1 }}
               exit={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
-              className="relative z-10 max-w-4xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl border border-gray-100 flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]"
+              className="relative z-10 max-w-4xl w-full bg-white rounded-dialog overflow-hidden shadow-2xl border border-gray-100 flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]"
             >
               {/* Image View */}
               <div className="relative h-[220px] sm:h-[300px] md:h-auto md:flex-1 md:min-h-[500px] bg-charcoal-900 flex-shrink-0">

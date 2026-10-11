@@ -153,21 +153,21 @@ export default function OnboardingReviewPage() {
       </div>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3.5 text-red-600 dark:text-red-400 text-xs">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-[8px] p-3.5 text-red-600 dark:text-red-400 text-xs">
           {error}
         </div>
       )}
 
       {/* 1. Business Basics */}
-      <section className="bg-slate-50/50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-xl p-4 sm:p-5 space-y-3">
+      <section className="bg-slate-50/50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-4 sm:p-5 space-y-3">
         <div className="flex justify-between items-center border-b border-slate-200/60 dark:border-[#1E293B] pb-2.5">
           <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-semibold text-sm">
-            <Building2 className="w-4 h-4 text-[#3B82F6]" />
+            <Building2 className="w-4 h-4 text-[#315FEA]" />
             <span>1. Business Basics</span>
           </div>
           <Link
             href="/admin/onboarding/business-basics"
-            className="inline-flex items-center text-xs text-[#3B82F6] hover:text-[#60A5FA] font-medium"
+            className="inline-flex items-center text-xs text-[#315FEA] hover:text-[#254EDB] font-medium"
           >
             <Edit3 className="w-3 h-3 mr-1" /> Edit
           </Link>
@@ -179,7 +179,7 @@ export default function OnboardingReviewPage() {
           </div>
           <div>
             <span className="text-slate-500 dark:text-[#64748B] block">Industry Domain / Category</span>
-            <span className="text-[#3B82F6] font-medium">{data.primaryCategory || '—'}</span>
+            <span className="text-[#315FEA] font-medium">{data.primaryCategory || '—'}</span>
           </div>
           <div>
             <span className="text-slate-500 dark:text-[#64748B] block">Operating Type</span>
@@ -201,15 +201,15 @@ export default function OnboardingReviewPage() {
       </section>
 
       {/* 2. Services */}
-      <section className="bg-slate-50/50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-xl p-4 sm:p-5 space-y-3">
+      <section className="bg-slate-50/50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-4 sm:p-5 space-y-3">
         <div className="flex justify-between items-center border-b border-slate-200/60 dark:border-[#1E293B] pb-2.5">
           <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-semibold text-sm">
-            <Layers className="w-4 h-4 text-[#8B3FD1]" />
+            <Layers className="w-4 h-4 text-[#7950B8]" />
             <span>2. Approved Services ({data.services?.length || 0})</span>
           </div>
           <Link
             href="/admin/onboarding/services"
-            className="inline-flex items-center text-xs text-[#3B82F6] hover:text-[#60A5FA] font-medium"
+            className="inline-flex items-center text-xs text-[#315FEA] hover:text-[#254EDB] font-medium"
           >
             <Edit3 className="w-3 h-3 mr-1" /> Edit
           </Link>
@@ -217,7 +217,7 @@ export default function OnboardingReviewPage() {
         {data.services && data.services.length > 0 ? (
           <div className="space-y-2">
             {data.services.map((svc) => (
-              <div key={svc.id} className="p-2.5 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-lg">
+              <div key={svc.id} className="p-2.5 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[6px]">
                 <p className="text-xs font-semibold text-slate-900 dark:text-white">{svc.serviceName}</p>
                 {svc.serviceDescription && (
                   <p className="text-[11px] text-slate-500 dark:text-[#94A3B8] mt-0.5">{svc.serviceDescription}</p>
@@ -231,7 +231,7 @@ export default function OnboardingReviewPage() {
       </section>
 
       {/* 3. Location & Customers */}
-      <section className="bg-slate-50/50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-xl p-4 sm:p-5 space-y-3">
+      <section className="bg-slate-50/50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-4 sm:p-5 space-y-3">
         <div className="flex justify-between items-center border-b border-slate-200/60 dark:border-[#1E293B] pb-2.5">
           <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-semibold text-sm">
             <MapPin className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
@@ -239,7 +239,7 @@ export default function OnboardingReviewPage() {
           </div>
           <Link
             href="/admin/onboarding/location-customers"
-            className="inline-flex items-center text-xs text-[#3B82F6] hover:text-[#60A5FA] font-medium"
+            className="inline-flex items-center text-xs text-[#315FEA] hover:text-[#254EDB] font-medium"
           >
             <Edit3 className="w-3 h-3 mr-1" /> Edit
           </Link>
@@ -267,7 +267,7 @@ export default function OnboardingReviewPage() {
       </section>
 
       {/* 4. Business Description */}
-      <section className="bg-slate-50/50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-xl p-4 sm:p-5 space-y-3">
+      <section className="bg-slate-50/50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-4 sm:p-5 space-y-3">
         <div className="flex justify-between items-center border-b border-slate-200/60 dark:border-[#1E293B] pb-2.5">
           <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-semibold text-sm">
             <FileText className="w-4 h-4 text-amber-500 dark:text-amber-400" />
@@ -275,7 +275,7 @@ export default function OnboardingReviewPage() {
           </div>
           <Link
             href="/admin/onboarding/business-description"
-            className="inline-flex items-center text-xs text-[#3B82F6] hover:text-[#60A5FA] font-medium"
+            className="inline-flex items-center text-xs text-[#315FEA] hover:text-[#254EDB] font-medium"
           >
             <Edit3 className="w-3 h-3 mr-1" /> Edit
           </Link>
@@ -293,15 +293,15 @@ export default function OnboardingReviewPage() {
       </section>
 
       {/* 5. Approved Facts & Credentials */}
-      <section className="bg-slate-50/50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-xl p-4 sm:p-5 space-y-3">
+      <section className="bg-slate-50/50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-4 sm:p-5 space-y-3">
         <div className="flex justify-between items-center border-b border-slate-200/60 dark:border-[#1E293B] pb-2.5">
           <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-semibold text-sm">
-            <Award className="w-4 h-4 text-[#FF7043]" />
+            <Award className="w-4 h-4 text-[#315FEA]" />
             <span>5. Approved Facts & Claims</span>
           </div>
           <Link
             href="/admin/onboarding/approved-facts"
-            className="inline-flex items-center text-xs text-[#3B82F6] hover:text-[#60A5FA] font-medium"
+            className="inline-flex items-center text-xs text-[#315FEA] hover:text-[#254EDB] font-medium"
           >
             <Edit3 className="w-3 h-3 mr-1" /> Edit
           </Link>
@@ -339,7 +339,7 @@ export default function OnboardingReviewPage() {
       </section>
 
       {/* Explicit Confirmation Block */}
-      <section className="bg-slate-50 dark:bg-[#0F172A] border border-blue-200 dark:border-[#3B82F6]/40 rounded-xl p-5 sm:p-6 shadow-md dark:shadow-xl space-y-4">
+      <section className="bg-slate-50 dark:bg-[#0F172A] border border-[#315FEA]/30 dark:border-[#315FEA]/40 rounded-[8px] p-5 sm:p-6 shadow-sm space-y-4">
         <div className="flex items-start">
           <div className="flex items-center h-5 mt-0.5">
             <input
@@ -351,7 +351,7 @@ export default function OnboardingReviewPage() {
                 setHasConfirmedCheckbox(e.target.checked);
                 if (e.target.checked) setError('');
               }}
-              className="w-4 h-4 bg-white dark:bg-[#0B1220] border-slate-300 dark:border-[#334155] rounded text-[#3B82F6] focus:ring-[#3B82F6] focus:ring-offset-white dark:focus:ring-offset-[#0F172A] cursor-pointer"
+              className="w-4 h-4 bg-white dark:bg-[#0B1220] border-slate-300 dark:border-[#334155] rounded-[4px] text-[#315FEA] focus:ring-[#315FEA] focus:ring-offset-white dark:focus:ring-offset-[#0F172A] cursor-pointer"
             />
           </div>
           <div className="ml-3">

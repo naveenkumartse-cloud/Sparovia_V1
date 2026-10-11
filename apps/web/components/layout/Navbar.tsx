@@ -68,9 +68,9 @@ export default function Navbar() {
           onClick={closeMobileMenu}
         >
           <div
-            className={`px-2.5 h-8 rounded-lg flex items-center justify-center font-sans font-extrabold text-xs tracking-wider transition-all duration-500 ${
+            className={`px-2.5 h-8 rounded-[6px] flex items-center justify-center font-sans font-extrabold text-xs tracking-wider transition-all duration-300 ${
               scrolled
-                ? 'bg-brand-600 text-white shadow-purple-glow'
+                ? 'bg-brand-600 text-white shadow-subtle'
                 : 'bg-brand-600 text-white'
             }`}
           >

@@ -322,10 +322,10 @@ export default function AiConnectionsPage() {
       {/* Main Content Area */}
       {loading ? (
         <div className="space-y-6 animate-pulse" aria-busy="true" aria-label="Loading AI connections">
-          <div className="h-44 bg-slate-100 dark:bg-[#1E293B]/50 rounded-2xl border border-slate-200 dark:border-[#334155]" />
+          <div className="h-44 bg-slate-100 dark:bg-[#1E293B]/50 rounded-[8px] border border-slate-200 dark:border-[#334155]" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="h-48 bg-slate-100 dark:bg-[#1E293B]/50 rounded-2xl border border-slate-200 dark:border-[#334155]" />
-            <div className="h-48 bg-slate-100 dark:bg-[#1E293B]/50 rounded-2xl border border-slate-200 dark:border-[#334155]" />
+            <div className="h-48 bg-slate-100 dark:bg-[#1E293B]/50 rounded-[8px] border border-slate-200 dark:border-[#334155]" />
+            <div className="h-48 bg-slate-100 dark:bg-[#1E293B]/50 rounded-[8px] border border-slate-200 dark:border-[#334155]" />
           </div>
         </div>
       ) : error ? (
@@ -338,11 +338,11 @@ export default function AiConnectionsPage() {
         /* CONNECTED STATE */
         <div className="space-y-6">
           {/* CURRENT ACTIVE CONNECTION SUMMARY CARD */}
-          <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl overflow-hidden shadow-sm">
+          <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] overflow-hidden shadow-sm">
             {/* Top Row: Provider / Model & Status */}
             <div className="px-6 py-4 border-b border-slate-100 dark:border-[#1E293B] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50 dark:bg-[#0F172A]/50">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#3B82F6]/10 text-[#3B82F6] dark:bg-[#3B82F6]/20 flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] dark:bg-[#315FEA]/20 flex items-center justify-center shrink-0">
                   <Bot className="w-5 h-5" />
                 </div>
                 <div>
@@ -362,17 +362,17 @@ export default function AiConnectionsPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Connected
                 </span>
                 {(connection.isFreeTier || activeModel?.isFreeTier) && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                     Free Tier
                   </span>
                 )}
                 {activeModel?.capability === 'Both' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-xs font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20">
                     <Sparkles className="w-3 h-3" />
                     Multimodal
                   </span>
@@ -388,7 +388,7 @@ export default function AiConnectionsPage() {
                   API Credential
                 </dt>
                 <dd className="mt-1.5">
-                  <div className="flex items-center gap-2 font-mono text-xs text-slate-800 dark:text-[#CBD5E1] bg-slate-50 dark:bg-[#0B1220] px-3 py-1.5 rounded-lg border border-slate-200 dark:border-[#334155] w-fit">
+                  <div className="flex items-center gap-2 font-mono text-xs text-slate-800 dark:text-[#CBD5E1] bg-slate-50 dark:bg-[#0B1220] px-3 py-1.5 rounded-[6px] border border-slate-200 dark:border-[#334155] w-fit">
                     <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span>{connection.maskedApiKey || '••••••••••••••••'}</span>
                   </div>
@@ -453,7 +453,7 @@ export default function AiConnectionsPage() {
                     setPendingModelKey(connection.selectedModelKey || '');
                     setIsChangeModelModalOpen(true);
                   }}
-                  leftIcon={<Cpu className="w-3.5 h-3.5 text-[#3B82F6]" />}
+                  leftIcon={<Cpu className="w-3.5 h-3.5 text-[#315FEA]" />}
                   className="text-xs"
                 >
                   Change Model
@@ -503,9 +503,9 @@ export default function AiConnectionsPage() {
                 return (
                   <div
                     key={model.key}
-                    className={`rounded-2xl p-5 border transition-all flex flex-col justify-between ${
+                    className={`rounded-[8px] p-5 border transition-all flex flex-col justify-between ${
                       isSelected
-                        ? 'bg-blue-50/40 dark:bg-[#0B1220] border-[#3B82F6] ring-1 ring-[#3B82F6]/30 shadow-sm'
+                        ? 'bg-[#315FEA]/5 dark:bg-[#0B1220] border-[#315FEA] ring-1 ring-[#315FEA]/30 shadow-xs'
                         : 'bg-white dark:bg-[#0F172A] border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-[#334155]'
                     }`}
                   >
@@ -517,25 +517,25 @@ export default function AiConnectionsPage() {
                             {model.displayName}
                           </h3>
                           {model.isRecommended && (
-                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                               <Sparkles className="w-2.5 h-2.5" />
                               Recommended
                             </span>
                           )}
                           {model.isFreeTier && (
-                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                               Free Tier
                             </span>
                           )}
                         </div>
 
                         {isSelected ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[4px] text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
                             <Check className="w-3 h-3" />
                             Active
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium text-emerald-600 dark:text-emerald-400 shrink-0">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[11px] font-medium text-emerald-600 dark:text-emerald-400 shrink-0">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                             Available
                           </span>
@@ -584,9 +584,9 @@ export default function AiConnectionsPage() {
         /* NOT CONNECTED / GUIDED CONNECTION WORKFLOW */
         <div className="space-y-6">
           {/* Connection Status Banner */}
-          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl">
+          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px]">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-[6px] bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
                 <AlertCircle className="w-4 h-4" />
               </div>
               <div>
@@ -598,7 +598,7 @@ export default function AiConnectionsPage() {
                 </span>
               </div>
             </div>
-            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+            <span className={`px-3 py-1 text-xs font-semibold rounded-[4px] ${
               testingConnection
                 ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
                 : testResult?.success
@@ -612,9 +612,9 @@ export default function AiConnectionsPage() {
           </div>
 
           {/* STEP 1: CHOOSE PROVIDER */}
-          <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-6 shadow-sm space-y-4">
+          <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-6 shadow-sm space-y-4">
             <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#3B82F6]/10 text-[#3B82F6] dark:bg-[#3B82F6]/20 font-bold text-xs flex items-center justify-center shrink-0">
+              <span className="w-6 h-6 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] dark:bg-[#315FEA]/20 font-bold text-xs flex items-center justify-center shrink-0">
                 1
               </span>
               <h2 className="text-base font-bold text-slate-900 dark:text-white">
@@ -637,9 +637,9 @@ export default function AiConnectionsPage() {
                       setSelectedProviderKey(provider.key);
                       setTestResult(null);
                     }}
-                    className={`rounded-xl p-4 text-left border transition-all flex flex-col justify-between h-full ${
+                    className={`rounded-[8px] p-4 text-left border transition-all flex flex-col justify-between h-full ${
                       isSelected
-                        ? 'border-[#3B82F6] bg-blue-50/50 dark:bg-[#0B1220] ring-1 ring-[#3B82F6] shadow-sm'
+                        ? 'border-[#315FEA] bg-[#315FEA]/5 dark:bg-[#0B1220] ring-1 ring-[#315FEA] shadow-xs'
                         : 'border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1220]/40 hover:border-slate-300 dark:hover:border-[#334155]'
                     }`}
                   >
@@ -649,7 +649,7 @@ export default function AiConnectionsPage() {
                           {provider.displayName}
                         </span>
                         {isSelected && (
-                          <CheckCircle2 className="w-4 h-4 text-[#3B82F6] shrink-0" />
+                          <CheckCircle2 className="w-4 h-4 text-[#315FEA] shrink-0" />
                         )}
                       </div>
                       <p className="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed mb-3">
@@ -660,7 +660,7 @@ export default function AiConnectionsPage() {
                     <div className="pt-2 border-t border-slate-100 dark:border-[#1E293B] text-[11px] text-slate-500 dark:text-[#64748B] mt-auto flex items-center justify-between">
                       <span>Capabilities: Content &amp; Vision</span>
                       {(provider.key === 'openrouter' || provider.key === 'nvidianim') && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-[4px] text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                           Free Tier
                         </span>
                       )}
@@ -672,9 +672,9 @@ export default function AiConnectionsPage() {
           </section>
 
           {/* STEP 2: ENTER API KEY */}
-          <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-6 shadow-sm space-y-4">
+          <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-6 shadow-sm space-y-4">
             <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#3B82F6]/10 text-[#3B82F6] dark:bg-[#3B82F6]/20 font-bold text-xs flex items-center justify-center shrink-0">
+              <span className="w-6 h-6 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] dark:bg-[#315FEA]/20 font-bold text-xs flex items-center justify-center shrink-0">
                 2
               </span>
               <h2 className="text-base font-bold text-slate-900 dark:text-white">
@@ -701,7 +701,7 @@ export default function AiConnectionsPage() {
                       href={activeProvider.documentationUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-[#3B82F6] hover:underline inline-flex items-center gap-1 font-medium"
+                      className="text-xs text-[#315FEA] hover:underline inline-flex items-center gap-1 font-medium"
                     >
                       Get API Key <ExternalLink className="w-3 h-3" />
                     </a>
@@ -718,7 +718,7 @@ export default function AiConnectionsPage() {
                       setTestResult(null);
                     }}
                     placeholder={activeProvider?.placeholder || 'sk-...'}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-xs font-mono text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B82F6] transition-all pr-10"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] text-xs font-mono text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] transition-all pr-10"
                     autoComplete="off"
                     spellCheck="false"
                   />
@@ -745,7 +745,7 @@ export default function AiConnectionsPage() {
                     testingConnection ? (
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                     ) : (
-                      <Zap className="w-3.5 h-3.5 text-[#3B82F6]" />
+                      <Zap className="w-3.5 h-3.5 text-[#315FEA]" />
                     )
                   }
                   className="text-xs"
@@ -770,9 +770,9 @@ export default function AiConnectionsPage() {
           </section>
 
           {/* STEP 3: SELECT MODEL */}
-          <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-6 shadow-sm space-y-4">
+          <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-6 shadow-sm space-y-4">
             <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#3B82F6]/10 text-[#3B82F6] dark:bg-[#3B82F6]/20 font-bold text-xs flex items-center justify-center shrink-0">
+              <span className="w-6 h-6 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] dark:bg-[#315FEA]/20 font-bold text-xs flex items-center justify-center shrink-0">
                 3
               </span>
               <h2 className="text-base font-bold text-slate-900 dark:text-white">
@@ -797,9 +797,9 @@ export default function AiConnectionsPage() {
                       setSelectedModelKey(model.key);
                       setTestResult(null);
                     }}
-                    className={`rounded-2xl p-5 text-left border transition-all flex flex-col justify-between h-full ${
+                    className={`rounded-[8px] p-5 text-left border transition-all flex flex-col justify-between h-full ${
                       isSelected
-                        ? 'border-[#3B82F6] bg-blue-50/40 dark:bg-[#0B1220] ring-1 ring-[#3B82F6] shadow-sm'
+                        ? 'border-[#315FEA] bg-[#315FEA]/5 dark:bg-[#0B1220] ring-1 ring-[#315FEA] shadow-xs'
                         : 'border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1220]/40 hover:border-slate-300 dark:hover:border-[#334155]'
                     }`}
                   >
@@ -810,20 +810,20 @@ export default function AiConnectionsPage() {
                             {model.displayName}
                           </span>
                           {model.isRecommended && (
-                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                               <Sparkles className="w-2.5 h-2.5" />
                               Recommended
                             </span>
                           )}
                           {model.isFreeTier && (
-                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                               Free Tier
                             </span>
                           )}
                         </div>
 
                         {isSelected && (
-                          <CheckCircle2 className="w-4 h-4 text-[#3B82F6] shrink-0" />
+                          <CheckCircle2 className="w-4 h-4 text-[#315FEA] shrink-0" />
                         )}
                       </div>
 
@@ -837,11 +837,11 @@ export default function AiConnectionsPage() {
                         Capability: <strong className="font-semibold text-slate-700 dark:text-[#CBD5E1]">{model.capability}</strong>
                       </span>
                       {isMultimodal ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[11px] font-medium bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20">
                           Content + Image
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[11px] font-medium bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20">
                           Content Only
                         </span>
                       )}
@@ -876,8 +876,8 @@ export default function AiConnectionsPage() {
       )}
 
       {/* Security & Privacy Guarantee Footer Card */}
-      <section className="bg-slate-50 dark:bg-[#0B1220]/70 border border-slate-200 dark:border-[#1E293B] rounded-2xl p-5 flex items-start gap-3.5">
-        <ShieldCheck className="w-5 h-5 text-[#3B82F6] shrink-0 mt-0.5" />
+      <section className="bg-slate-50 dark:bg-[#0B1220]/70 border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-5 flex items-start gap-3.5">
+        <ShieldCheck className="w-5 h-5 text-[#315FEA] shrink-0 mt-0.5" />
         <div className="text-xs leading-relaxed text-slate-600 dark:text-[#94A3B8]">
           <strong className="font-semibold text-slate-900 dark:text-white block mb-0.5">
             Enterprise Tenant Isolation &amp; Security
@@ -915,7 +915,7 @@ export default function AiConnectionsPage() {
                 value={rotateApiKeyInput}
                 onChange={(e) => setRotateApiKeyInput(e.target.value)}
                 placeholder="sk-..."
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#3B82F6] pr-10"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA] pr-10"
                 autoComplete="off"
               />
               <button
@@ -970,9 +970,9 @@ export default function AiConnectionsPage() {
                   key={model.key}
                   type="button"
                   onClick={() => setPendingModelKey(model.key)}
-                  className={`w-full p-3.5 rounded-xl border text-left transition-all ${
+                  className={`w-full p-3.5 rounded-[8px] border text-left transition-all ${
                     isSelected
-                      ? 'border-[#3B82F6] bg-blue-50/50 dark:bg-[#0B1220] ring-1 ring-[#3B82F6]'
+                      ? 'border-[#315FEA] bg-[#315FEA]/5 dark:bg-[#0B1220] ring-1 ring-[#315FEA]'
                       : 'border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-[#334155]'
                   }`}
                 >
@@ -982,12 +982,12 @@ export default function AiConnectionsPage() {
                         {model.displayName}
                       </span>
                       {model.isFreeTier && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-[4px] text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                           Free Tier
                         </span>
                       )}
                     </div>
-                    {isSelected && <Check className="w-4 h-4 text-[#3B82F6] shrink-0" />}
+                    {isSelected && <Check className="w-4 h-4 text-[#315FEA] shrink-0" />}
                   </div>
                   <p className="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed">
                     {model.description}
@@ -1031,7 +1031,7 @@ export default function AiConnectionsPage() {
             Are you sure you want to disconnect <strong>{connection?.providerDisplayName || 'your provider'}</strong>?
           </p>
 
-          <div className="p-3.5 bg-rose-50 dark:bg-rose-950/30 rounded-xl border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-400 space-y-1.5">
+          <div className="p-3.5 bg-rose-50 dark:bg-rose-950/30 rounded-[8px] border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-400 space-y-1.5">
             <p>• Stored encrypted API credentials will be permanently cleared.</p>
             <p>• Content AI and Image AI assistance will be unavailable until a provider is reconnected.</p>
             <p>• Your published website content and images will NOT be affected.</p>

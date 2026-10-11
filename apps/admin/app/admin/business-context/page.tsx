@@ -151,12 +151,12 @@ export default function BusinessContextManagementPage() {
         </div>
         <div className="shrink-0 self-start sm:self-center w-fit">
           {data.isConfirmed ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shrink-0 w-fit max-w-max leading-normal">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shrink-0 w-fit max-w-max leading-normal">
               <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
               <span>Confirmed &amp; Approved</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap shrink-0 w-fit max-w-max leading-normal">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap shrink-0 w-fit max-w-max leading-normal">
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />
               <span>Pending Re-confirmation</span>
             </span>
@@ -165,14 +165,14 @@ export default function BusinessContextManagementPage() {
       </div>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 text-red-600 dark:text-red-400 text-sm">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-[8px] p-4 text-red-600 dark:text-red-400 text-sm">
           {error}
         </div>
       )}
 
       {/* Confirmation Banner if Unconfirmed */}
       {!data.isConfirmed && (
-        <section className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl p-5 sm:p-6 shadow-sm">
+        <section className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-[8px] p-5 sm:p-6 shadow-sm">
           <div className="flex items-start space-x-3">
             <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <div>
@@ -188,15 +188,15 @@ export default function BusinessContextManagementPage() {
       )}
 
       {/* 1. Business Basics */}
-      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl overflow-hidden shadow-sm">
+      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-slate-100 dark:border-[#1E293B] flex justify-between items-center bg-slate-50/50 dark:bg-[#0F172A]/50">
           <div className="flex items-center space-x-2">
-            <Building2 className="w-5 h-5 text-[#3B82F6]" />
+            <Building2 className="w-5 h-5 text-[#315FEA]" />
             <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Business Basics</h2>
           </div>
           <Link 
             href="/admin/onboarding/business-basics?from=admin" 
-            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#3B82F6] hover:text-[#2563EB] dark:text-[#60A5FA] dark:hover:text-[#93C5FD] transition-colors"
+            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
           >
             <Edit3 className="w-3.5 h-3.5 mr-1" />
             Edit Basics
@@ -276,7 +276,7 @@ export default function BusinessContextManagementPage() {
               </div>
               <dd className="mt-1 text-sm sm:text-base font-medium text-slate-800 dark:text-white">
                 {data.website ? (
-                  <a href={data.website} target="_blank" rel="noopener noreferrer" className="text-[#3B82F6] hover:underline">
+                  <a href={data.website} target="_blank" rel="noopener noreferrer" className="text-[#315FEA] hover:underline">
                     {data.website}
                   </a>
                 ) : (
@@ -289,15 +289,15 @@ export default function BusinessContextManagementPage() {
       </section>
 
       {/* 2. Services */}
-      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl overflow-hidden shadow-sm">
+      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-slate-100 dark:border-[#1E293B] flex justify-between items-center bg-slate-50/50 dark:bg-[#0F172A]/50">
           <div className="flex items-center space-x-2">
-            <Layers className="w-5 h-5 text-[#8B3FD1]" />
+            <Layers className="w-5 h-5 text-[#7950B8]" />
             <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Services</h2>
           </div>
           <Link 
             href="/admin/onboarding/services?from=admin" 
-            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#3B82F6] hover:text-[#2563EB] dark:text-[#60A5FA] dark:hover:text-[#93C5FD] transition-colors"
+            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
           >
             <Edit3 className="w-3.5 h-3.5 mr-1" />
             Edit Services
@@ -307,13 +307,13 @@ export default function BusinessContextManagementPage() {
         <div className="p-6">
           {!data.services || data.services.length === 0 ? (
             <EmptyState
-              icon={<Layers className="w-6 h-6 text-[#8B3FD1]" />}
+              icon={<Layers className="w-6 h-6 text-[#7950B8]" />}
               title="No services added yet"
               description="Add your primary products and services so Sparovia can accurately represent your business offerings."
               action={
                 <Link
                   href="/admin/onboarding/services?from=admin"
-                  className="inline-flex items-center text-xs font-semibold text-[#3B82F6] hover:text-[#2563EB] dark:text-[#60A5FA]"
+                  className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB]"
                 >
                   <Edit3 className="w-3.5 h-3.5 mr-1" />
                   Add Services
@@ -323,7 +323,7 @@ export default function BusinessContextManagementPage() {
           ) : (
             <ul className="space-y-3">
               {data.services.map(s => (
-                <li key={s.id} className="bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl p-4">
+                <li key={s.id} className="bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] p-4">
                   <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-1">{s.serviceName}</h3>
                   <p className="text-xs sm:text-sm text-slate-600 dark:text-[#94A3B8] whitespace-pre-line leading-relaxed">
                     {s.serviceDescription || <span className="italic text-slate-400 dark:text-[#64748B]">No description provided</span>}
@@ -336,15 +336,15 @@ export default function BusinessContextManagementPage() {
       </section>
 
       {/* 3. Location & Customers */}
-      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl overflow-hidden shadow-sm">
+      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-slate-100 dark:border-[#1E293B] flex justify-between items-center bg-slate-50/50 dark:bg-[#0F172A]/50">
           <div className="flex items-center space-x-2">
-            <MapPin className="w-5 h-5 text-[#FF7043]" />
+            <MapPin className="w-5 h-5 text-[#315FEA]" />
             <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Location &amp; Customers</h2>
           </div>
           <Link 
             href="/admin/onboarding/location-customers?from=admin" 
-            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#3B82F6] hover:text-[#2563EB] dark:text-[#60A5FA] dark:hover:text-[#93C5FD] transition-colors"
+            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
           >
             <Edit3 className="w-3.5 h-3.5 mr-1" />
             Edit Location
@@ -401,15 +401,15 @@ export default function BusinessContextManagementPage() {
       </section>
 
       {/* 4. Business Description */}
-      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl overflow-hidden shadow-sm">
+      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-slate-100 dark:border-[#1E293B] flex justify-between items-center bg-slate-50/50 dark:bg-[#0F172A]/50">
           <div className="flex items-center space-x-2">
-            <FileText className="w-5 h-5 text-[#3B82F6]" />
+            <FileText className="w-5 h-5 text-[#315FEA]" />
             <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Business Description</h2>
           </div>
           <Link 
             href="/admin/onboarding/business-description?from=admin" 
-            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#3B82F6] hover:text-[#2563EB] dark:text-[#60A5FA] dark:hover:text-[#93C5FD] transition-colors"
+            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
           >
             <Edit3 className="w-3.5 h-3.5 mr-1" />
             Edit Description
@@ -432,9 +432,9 @@ export default function BusinessContextManagementPage() {
                       currentText: data.businessDescription || '',
                     })
                   }
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-xs font-semibold text-[#7950B8] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#7950B8] dark:text-purple-400 shrink-0" />
                   <span>Improve with AI</span>
                 </button>
               )}
@@ -458,9 +458,9 @@ export default function BusinessContextManagementPage() {
                       currentText: data.differentiators || '',
                     })
                   }
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-xs font-semibold text-[#7950B8] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#7950B8] dark:text-purple-400 shrink-0" />
                   <span>Improve with AI</span>
                 </button>
               )}
@@ -473,15 +473,15 @@ export default function BusinessContextManagementPage() {
       </section>
 
       {/* 5. Approved Facts & Claims */}
-      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl overflow-hidden shadow-sm">
+      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-slate-100 dark:border-[#1E293B] flex justify-between items-center bg-slate-50/50 dark:bg-[#0F172A]/50">
           <div className="flex items-center space-x-2">
-            <Award className="w-5 h-5 text-[#8B3FD1]" />
+            <Award className="w-5 h-5 text-[#7950B8]" />
             <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Approved Facts &amp; Claims</h2>
           </div>
           <Link 
             href="/admin/onboarding/approved-facts?from=admin" 
-            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#3B82F6] hover:text-[#2563EB] dark:text-[#60A5FA] dark:hover:text-[#93C5FD] transition-colors"
+            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
           >
             <Edit3 className="w-3.5 h-3.5 mr-1" />
             Edit Facts
@@ -556,7 +556,7 @@ export default function BusinessContextManagementPage() {
 
       {/* Confirmation Actions / Confirmed Banner */}
       {data.isConfirmed ? (
-        <section className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl p-6 sm:p-8 shadow-sm">
+        <section className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-[8px] p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
@@ -569,7 +569,7 @@ export default function BusinessContextManagementPage() {
             </div>
             <Link
               href="/admin"
-              className="inline-flex items-center justify-center py-2.5 px-6 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#3B82F6] hover:bg-[#2563EB] transition-colors shrink-0 shadow-sm"
+              className="inline-flex items-center justify-center py-2.5 px-6 rounded-[6px] text-xs sm:text-sm font-semibold text-white bg-[#315FEA] hover:bg-[#254EDB] transition-colors shrink-0 shadow-xs"
             >
               Go to Dashboard
               <ArrowRight className="w-4 h-4 ml-1.5" />
@@ -577,7 +577,7 @@ export default function BusinessContextManagementPage() {
           </div>
         </section>
       ) : (
-        <section className="bg-white dark:bg-[#0F172A] border-2 border-[#3B82F6]/30 dark:border-[#3B82F6]/40 rounded-2xl p-6 sm:p-8 shadow-md">
+        <section className="bg-white dark:bg-[#0F172A] border border-[#315FEA]/30 dark:border-[#315FEA]/40 rounded-[8px] p-6 sm:p-8 shadow-sm">
           <div className="flex items-start">
             <div className="flex items-center h-6">
               <input
@@ -589,7 +589,7 @@ export default function BusinessContextManagementPage() {
                   setHasConfirmedCheckbox(e.target.checked);
                   if (e.target.checked) setError('');
                 }}
-                className="w-5 h-5 bg-slate-50 dark:bg-[#0B1220] border-slate-300 dark:border-[#334155] rounded text-[#3B82F6] focus:ring-[#3B82F6]"
+                className="w-5 h-5 bg-slate-50 dark:bg-[#0B1220] border-slate-300 dark:border-[#334155] rounded-[4px] text-[#315FEA] focus:ring-[#315FEA]"
               />
             </div>
             <div className="ml-3">

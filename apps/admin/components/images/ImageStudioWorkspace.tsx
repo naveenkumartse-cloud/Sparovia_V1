@@ -1106,7 +1106,7 @@ export function ImageStudioWorkspace({
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                    <span className="w-4 h-4 rounded-[4px] bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">1</span>
                     <span>Approved Enhancement Operations</span>
                   </h3>
                   <span className="text-[11px] font-mono text-[#475569] dark:text-[#94A3B8]">
@@ -1201,7 +1201,7 @@ export function ImageStudioWorkspace({
               <div className="p-3.5 bg-[#F3F6FA] dark:bg-[#1E293B] rounded-[8px] border border-[#E3E7ED] dark:border-[#334155]">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-full bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                    <span className="w-4 h-4 rounded-[4px] bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">2</span>
                     <span>Enhancements Applied</span>
                   </h4>
                   {displayedVariant ? (
@@ -1271,7 +1271,7 @@ export function ImageStudioWorkspace({
               {/* SECTION 3: Review, Approval & Separate Publishing Boundary */}
               <div className="flex flex-col gap-2.5 pt-2 border-t border-[#E3E7ED] dark:border-[#1E293B]">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
-                  <span className="w-4 h-4 rounded-full bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                  <span className="w-4 h-4 rounded-[4px] bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">3</span>
                   <span>Review &amp; Publishing Boundary</span>
                 </h4>
 

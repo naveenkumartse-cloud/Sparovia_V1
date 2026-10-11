@@ -169,7 +169,7 @@ function ToastCard({ toast, onClose }: { toast: ToastItem; onClose: () => void }
         type="button"
         onClick={onClose}
         aria-label="Dismiss notification"
-        className="shrink-0 p-1 text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white rounded-lg transition-colors"
+        className="shrink-0 p-1 text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white rounded-[6px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]"
       >
         <X className="w-3.5 h-3.5" />
       </button>

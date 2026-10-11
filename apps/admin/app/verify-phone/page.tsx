@@ -232,11 +232,11 @@ function VerifyPhoneContent() {
   };
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] py-7 px-5 sm:py-8 sm:px-8 shadow-xl dark:shadow-2xl rounded-2xl border border-slate-200 dark:border-[#1E293B] max-w-md mx-auto w-full relative z-10">
+    <div className="bg-white dark:bg-[#0F172A] py-7 px-5 sm:py-8 sm:px-8 shadow-sm dark:shadow-md rounded-[8px] border border-slate-200 dark:border-[#1E293B] max-w-md mx-auto w-full relative z-10">
       {/* SUCCESS STATE */}
       {status === 'success' ? (
         <div className="text-center space-y-5 py-4">
-          <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 dark:text-emerald-400 rounded-2xl flex items-center justify-center mx-auto animate-bounce">
+          <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 dark:text-emerald-400 rounded-[6px] flex items-center justify-center mx-auto animate-bounce">
             <CheckCircle2 className="w-8 h-8 text-emerald-500 dark:text-emerald-400" />
           </div>
           <div>
@@ -247,14 +247,14 @@ function VerifyPhoneContent() {
               Your account has been authenticated. Redirecting to Business Setup...
             </p>
           </div>
-          <div className="w-8 h-8 border-2 border-[#3B82F6]/20 border-t-[#3B82F6] rounded-full animate-spin mx-auto" />
+          <div className="w-8 h-8 border-2 border-[#315FEA]/20 border-t-[#315FEA] rounded-full animate-spin mx-auto" />
         </div>
       ) : (
         <div className="space-y-6">
           {/* HEADER */}
           <div className="text-center">
-            <div className="w-13 h-13 bg-brand-primary/10 border border-brand-primary/20 text-brand-primary rounded-2xl flex items-center justify-center mx-auto mb-3.5">
-              <Smartphone className="w-7 h-7 text-[#3B82F6]" />
+            <div className="w-13 h-13 bg-[#315FEA]/10 border border-[#315FEA]/20 text-[#315FEA] rounded-[6px] flex items-center justify-center mx-auto mb-3.5">
+              <Smartphone className="w-7 h-7 text-[#315FEA]" />
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
               Verify your Phone
@@ -269,7 +269,7 @@ function VerifyPhoneContent() {
 
           {/* OTP HELPER CARD FOR PILOT / TESTING */}
           {devOtp && (
-            <div className="p-3.5 bg-amber-500/10 dark:bg-amber-950/20 border border-amber-500/30 rounded-xl text-xs space-y-2">
+            <div className="p-3.5 bg-amber-500/10 dark:bg-amber-950/20 border border-amber-500/30 rounded-[6px] text-xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                   <KeyRound className="w-3.5 h-3.5" />
@@ -278,14 +278,14 @@ function VerifyPhoneContent() {
                 <button
                   type="button"
                   onClick={handleFillDevOtp}
-                  className="px-2 py-0.5 bg-amber-500 text-white rounded font-medium text-[11px] hover:bg-amber-600 transition-colors"
+                  className="px-2 py-0.5 bg-amber-500 text-white rounded-[4px] font-medium text-[11px] hover:bg-amber-600 transition-colors"
                 >
                   Fill Code
                 </button>
               </div>
               <div className="flex items-center justify-between text-amber-800 dark:text-amber-200">
                 <span>Verification Code:</span>
-                <span className="font-mono font-bold text-sm tracking-widest bg-amber-500/20 px-2 py-0.5 rounded">
+                <span className="font-mono font-bold text-sm tracking-widest bg-amber-500/20 px-2 py-0.5 rounded-[4px]">
                   {devOtp}
                 </span>
               </div>
@@ -294,7 +294,7 @@ function VerifyPhoneContent() {
 
           {/* ERROR ALERT */}
           {errorMessage && (
-            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 dark:text-red-300 text-xs flex items-start space-x-2" role="alert">
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-[6px] text-red-600 dark:text-red-300 text-xs flex items-start space-x-2" role="alert">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
@@ -323,7 +323,7 @@ function VerifyPhoneContent() {
                     onChange={(e) => handleInputChange(idx, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(idx, e)}
                     onPaste={idx === 0 ? handlePaste : undefined}
-                    className="w-11 h-13 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/30 transition-all caret-[#3B82F6]"
+                    className="w-11 h-13 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] text-slate-900 dark:text-white focus:outline-none focus:border-[#315FEA] focus:ring-2 focus:ring-[#315FEA]/20 transition-all caret-[#315FEA]"
                     autoComplete="one-time-code"
                     aria-label={`Digit ${idx + 1}`}
                   />
@@ -355,7 +355,7 @@ function VerifyPhoneContent() {
               type="button"
               onClick={handleResend}
               disabled={cooldown > 0 || isResending}
-              className="inline-flex items-center text-xs font-semibold text-[#3B82F6] hover:text-[#60A5FA] disabled:text-slate-400 dark:disabled:text-[#64748B] disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] disabled:text-slate-400 dark:disabled:text-[#64748B] disabled:cursor-not-allowed transition-colors"
             >
               {isResending ? (
                 <>
@@ -387,7 +387,7 @@ function VerifyPhoneContent() {
             </Link>
             <Link
               href="/login"
-              className="text-[#3B82F6] hover:text-[#60A5FA] transition-colors font-medium"
+              className="text-[#315FEA] hover:text-[#254EDB] transition-colors font-medium"
             >
               Back to Sign In
             </Link>
@@ -401,9 +401,6 @@ function VerifyPhoneContent() {
 export default function VerifyPhonePage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Subtle brand ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-r from-[#3B82F6]/10 to-[#8B3FD1]/10 blur-[120px] pointer-events-none rounded-full" />
-
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center mb-6">
         <Link href="/" className="inline-block">
           <span className="text-3xl font-extrabold text-brand-gradient tracking-tight">

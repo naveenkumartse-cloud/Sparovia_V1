@@ -13,16 +13,17 @@ const config: Config = {
         surface: '#FAFAFA',
         'surface-elevated': '#F8FAFC',
         brand: {
-          50: '#F5F3FF',
-          100: '#EDE9FE',
-          200: '#DDD6FE',
-          300: '#C4B5FD',
-          400: '#A78BFA',
-          500: '#8B5CF6',
-          600: '#7C3AED',
-          700: '#6D28D9',
-          800: '#5B21B6',
-          900: '#4C1D95',
+          50: '#F0F4FF',
+          100: '#E0E8FF',
+          200: '#C7D6FE',
+          300: '#93B4FD',
+          400: '#6090FA',
+          500: '#3B82F6',
+          600: '#315FEA', // color.brand.primary (Editorial Cobalt)
+          700: '#254EDB',
+          800: '#1E40AF',
+          900: '#172554',
+          secondary: '#7950B8',
         },
         charcoal: {
           600: '#475569',
@@ -35,6 +36,12 @@ const config: Config = {
           500: '#64748B',
         },
       },
+      borderRadius: {
+        indicator: '4px',
+        control: '6px',
+        panel: '8px',
+        dialog: '10px',
+      },
       fontFamily: {
         sans: ['var(--font-inter)', 'Inter', 'sans-serif'],
       },
@@ -46,7 +53,8 @@ const config: Config = {
         '30': '7.5rem',  // 120px
       },
       boxShadow: {
-        'purple-glow': '0 4px 20px rgba(124, 58, 237, 0.18)',
+        subtle: '0 1px 2px rgb(23 32 51 / 0.06)',
+        overlay: '0 12px 32px rgb(23 32 51 / 0.16)',
         'soft-sm': '0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02)',
         'soft-md': '0 4px 16px -2px rgba(15, 23, 42, 0.06)',
         'soft-lg': '0 12px 32px -4px rgba(15, 23, 42, 0.08)',

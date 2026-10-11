@@ -23,19 +23,19 @@ export function Button({
   className,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'inline-flex items-center justify-center font-sans font-bold text-xs uppercase tracking-widest transition-all duration-300 rounded-full focus-ring disabled:opacity-50 disabled:pointer-events-none cursor-pointer';
+  const baseStyles = 'inline-flex items-center justify-center font-sans font-semibold text-xs uppercase tracking-wider transition-colors duration-200 rounded-[6px] focus-ring disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-xs';
 
   const variantStyles = {
-    primary: 'bg-brand-600 hover:bg-brand-700 text-white shadow-purple-glow hover:scale-[1.03]',
-    secondary: 'bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200',
-    outline: 'bg-white hover:bg-gray-50 text-charcoal-900 border border-gray-300 shadow-soft-sm',
-    ghost: 'bg-transparent hover:bg-gray-100 text-charcoal-800',
+    primary: 'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white border border-transparent shadow-xs hover:shadow-subtle',
+    secondary: 'bg-[#F3F6FA] hover:bg-[#E3E7ED] text-[#172033] border border-[#CBD5E1]',
+    outline: 'bg-white hover:bg-[#F3F6FA] text-[#172033] border border-[#CBD5E1] shadow-xs',
+    ghost: 'bg-transparent hover:bg-[#F3F6FA] text-[#475569] hover:text-[#172033]',
   };
 
   const sizeStyles = {
-    sm: 'px-5 py-2 text-[11px]',
-    md: 'px-7 py-3.5 text-xs',
-    lg: 'px-9 py-4 text-xs',
+    sm: 'px-4 py-2 text-xs min-h-[36px]',
+    md: 'px-6 py-2.5 text-xs min-h-[40px]',
+    lg: 'px-8 py-3 text-sm min-h-[44px]',
   };
 
   const combinedClasses = cn(baseStyles, variantStyles[variant], sizeStyles[size], className);

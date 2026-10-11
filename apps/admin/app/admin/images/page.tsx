@@ -502,7 +502,7 @@ export default function ImagesPage() {
       </div>
 
       {/* Guidance Banner */}
-      <div className="bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-xl p-4 flex items-start gap-3">
+      <div className="bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-[8px] p-4 flex items-start gap-3">
         <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
         <div className="text-xs sm:text-sm text-blue-900 dark:text-blue-200 leading-relaxed">
           <p className="font-semibold text-blue-950 dark:text-blue-100">
@@ -523,7 +523,7 @@ export default function ImagesPage() {
           onClick={() => handleTabChange('website')}
           className={`pb-3 text-sm font-semibold transition-colors border-b-2 -mb-px flex items-center gap-2 ${
             activeTab === 'website'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+              ? 'border-[#315FEA] text-[#315FEA]'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
@@ -536,7 +536,7 @@ export default function ImagesPage() {
           onClick={() => handleTabChange('explore')}
           className={`pb-3 text-sm font-semibold transition-colors border-b-2 -mb-px flex items-center gap-2 ${
             activeTab === 'explore'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+              ? 'border-[#315FEA] text-[#315FEA]'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
@@ -591,8 +591,8 @@ export default function ImagesPage() {
 
       {/* Loading & Error States */}
       {loading && (
-        <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-12 text-center">
-          <RefreshCw className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-3" />
+        <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-12 text-center">
+          <RefreshCw className="w-8 h-8 text-[#315FEA] animate-spin mx-auto mb-3" />
           <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
             Loading your images...
           </p>
@@ -600,7 +600,7 @@ export default function ImagesPage() {
       )}
 
       {error && !loading && (
-        <div className="bg-white dark:bg-[#0F172A] border border-rose-200 dark:border-rose-900/50 rounded-2xl p-8 text-center space-y-4">
+        <div className="bg-white dark:bg-[#0F172A] border border-rose-200 dark:border-rose-900/50 rounded-[8px] p-8 text-center space-y-4">
           <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
           <div>
             <h3 className="text-base font-semibold text-slate-900 dark:text-white">
@@ -635,7 +635,7 @@ export default function ImagesPage() {
               return (
                 <div
                   key={slot.key}
-                  className="col-span-1 md:col-span-1 lg:col-span-6 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-7 shadow-xs flex flex-col justify-between hover:border-[#315FEA] transition-colors min-h-[520px]"
+                  className="col-span-1 md:col-span-1 lg:col-span-6 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-7 shadow-xs flex flex-col justify-between hover:border-[#315FEA] transition-colors min-h-[520px]"
                 >
                   <div className="space-y-3">
                     {/* Slot Header */}
@@ -650,7 +650,7 @@ export default function ImagesPage() {
                       </div>
 
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${
+                        className={`px-2.5 py-0.5 rounded-[4px] text-[10px] font-semibold shrink-0 ${
                           assignedImage
                             ? isAssignedPublished
                               ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
@@ -663,7 +663,7 @@ export default function ImagesPage() {
                     </div>
 
                     {/* Image Preview Area - Large Workspace Viewport */}
-                    <div className="relative rounded-xl overflow-hidden bg-slate-900/5 dark:bg-[#1E293B]/40 border border-slate-200 dark:border-slate-800 flex items-center justify-center min-h-[260px] aspect-[16/10] group mt-3">
+                    <div className="relative rounded-[8px] overflow-hidden bg-slate-900/5 dark:bg-[#1E293B]/40 border border-slate-200 dark:border-slate-800 flex items-center justify-center min-h-[260px] aspect-[16/10] group mt-3">
                       {assignedImage ? (
                         <>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1248,7 +1248,7 @@ export default function ImagesPage() {
       >
         {previewImage && (
           <div className="space-y-4">
-            <div className="rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center max-h-[60vh]">
+            <div className="rounded-[8px] overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center max-h-[60vh]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={resolveImageUrl(previewImage.previewUrl)}
@@ -1257,7 +1257,7 @@ export default function ImagesPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-slate-50 dark:bg-[#1E293B]/50 rounded-xl text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-slate-50 dark:bg-[#1E293B]/50 rounded-[8px] text-xs">
               <div>
                 <span className="text-slate-400 block">Dimensions</span>
                 <span className="font-semibold text-slate-900 dark:text-white">
@@ -1403,7 +1403,7 @@ export default function ImagesPage() {
             Are you sure you want to delete this image from your media library?
           </p>
           {removingImage?.status === 'Published' && (
-            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-800 dark:text-amber-300">
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-[8px] text-xs text-amber-800 dark:text-amber-300">
               <strong>Warning:</strong> This image is currently published on your live website. Deleting it will remove it from public display.
             </div>
           )}
@@ -1446,7 +1446,7 @@ export default function ImagesPage() {
           <p className="text-sm text-slate-600 dark:text-slate-300">
             Are you sure you want to delete <strong>{selectedImageIds.size}</strong> selected image{selectedImageIds.size === 1 ? '' : 's'}?
           </p>
-          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-800 dark:text-amber-300">
+          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-[8px] text-xs text-amber-800 dark:text-amber-300">
             <strong>Warning:</strong> Any published images among your selection will be removed from your live website.
           </div>
         </div>
@@ -1488,7 +1488,7 @@ export default function ImagesPage() {
           <p className="text-sm text-slate-600 dark:text-slate-300">
             Are you sure you want to publish <strong>{selectedImageIds.size}</strong> selected image{selectedImageIds.size === 1 ? '' : 's'} to your website?
           </p>
-          <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 rounded-xl text-xs text-blue-800 dark:text-blue-300">
+          <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 rounded-[8px] text-xs text-blue-800 dark:text-blue-300">
             Optimized, high-performance web representations (WebP) will be displayed to your live website visitors. Original photographs are immutable and never overwritten.
           </div>
         </div>
@@ -1504,7 +1504,7 @@ export default function ImagesPage() {
       >
         <div className="space-y-4">
           {categoryActionError && (
-            <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 rounded-xl text-xs text-rose-800 dark:text-rose-300 flex items-center gap-2">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 rounded-[8px] text-xs text-rose-800 dark:text-rose-300 flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{categoryActionError}</span>
             </div>
@@ -1522,7 +1522,7 @@ export default function ImagesPage() {
                 onChange={(e) => setNewCatInput(e.target.value)}
                 placeholder="e.g. Bespoke Wardrobes"
                 maxLength={100}
-                className="flex-1 text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                className="flex-1 text-xs px-3 py-2 rounded-[6px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#315FEA]"
               />
               <Button
                 type="button"
@@ -1544,7 +1544,7 @@ export default function ImagesPage() {
             {categories.length === 0 ? (
               <p className="text-xs text-slate-400 italic py-2">No categories created yet.</p>
             ) : (
-              <div className="divide-y divide-slate-100 dark:divide-[#1E293B] border border-slate-200 dark:border-[#1E293B] rounded-xl overflow-hidden bg-white dark:bg-[#0F172A]">
+              <div className="divide-y divide-slate-100 dark:divide-[#1E293B] border border-slate-200 dark:border-[#1E293B] rounded-[8px] overflow-hidden bg-white dark:bg-[#0F172A]">
                 {categories.map((cat) => (
                   <div key={cat.id} className="p-3 flex items-center justify-between gap-2">
                     {editingCategoryId === cat.id ? (
@@ -1561,7 +1561,7 @@ export default function ImagesPage() {
                           }}
                           autoFocus
                           maxLength={100}
-                          className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-blue-400 bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 text-xs px-2.5 py-1.5 rounded-[6px] border border-[#315FEA] bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#315FEA]"
                         />
                         <Button
                           type="button"
@@ -1590,7 +1590,7 @@ export default function ImagesPage() {
                           <span className="text-xs sm:text-sm font-medium text-slate-900 dark:text-white">
                             {cat.name}
                           </span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-[4px] bg-slate-100 dark:bg-slate-800 text-slate-500">
                             {cat.imageCount} {cat.imageCount === 1 ? 'image' : 'images'}
                           </span>
                         </div>

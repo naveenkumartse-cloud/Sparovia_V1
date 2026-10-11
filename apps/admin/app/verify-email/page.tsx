@@ -77,11 +77,11 @@ function VerifyEmailContent() {
   };
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] py-8 px-6 shadow-xl dark:shadow-2xl rounded-2xl sm:px-10 border border-slate-200 dark:border-[#1E293B] max-w-md mx-auto w-full relative z-10">
+    <div className="bg-white dark:bg-[#0F172A] py-8 px-6 shadow-sm dark:shadow-md rounded-[8px] sm:px-10 border border-slate-200 dark:border-[#1E293B] max-w-md mx-auto w-full relative z-10">
       {/* SUCCESS STATE */}
       {status === 'success' && (
         <div className="text-center space-y-6">
-          <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 dark:text-emerald-400 rounded-2xl flex items-center justify-center mx-auto">
+          <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 dark:text-emerald-400 rounded-[6px] flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8 text-emerald-500 dark:text-emerald-400" />
           </div>
           <div>
@@ -103,7 +103,7 @@ function VerifyEmailContent() {
       {/* VERIFYING TOKEN IN PROGRESS */}
       {status === 'loading' && token && (
         <div className="text-center py-6 space-y-4">
-          <div className="w-12 h-12 border-3 border-[#3B82F6]/20 border-t-[#3B82F6] rounded-full animate-spin mx-auto" />
+          <div className="w-12 h-12 border-3 border-[#315FEA]/20 border-t-[#315FEA] rounded-full animate-spin mx-auto" />
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">Verifying your email...</h2>
           <p className="text-sm text-slate-500 dark:text-[#94A3B8]">Validating your secure verification token.</p>
         </div>
@@ -112,12 +112,12 @@ function VerifyEmailContent() {
       {/* ERROR STATE */}
       {status === 'error' && (
         <div className="text-center space-y-6">
-          <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 rounded-2xl flex items-center justify-center mx-auto">
+          <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 rounded-[6px] flex items-center justify-center mx-auto">
             <AlertCircle className="w-8 h-8 text-red-500 dark:text-red-400" />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Verification Failed</h2>
-            <p className="mt-2 text-sm text-red-600 dark:text-red-300 bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+            <p className="mt-2 text-sm text-red-600 dark:text-red-300 bg-red-500/10 border border-red-500/20 rounded-[6px] p-3">
               {message}
             </p>
           </div>
@@ -140,14 +140,14 @@ function VerifyEmailContent() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="block w-full pl-10 pr-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+                    className="block w-full pl-10 pr-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
                   />
                 </div>
               </div>
               <button
                 type="submit"
                 disabled={isResending}
-                className="w-full flex justify-center items-center py-2.5 px-4 rounded-xl text-sm font-medium text-slate-900 dark:text-white bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] border border-slate-200 dark:border-[#334155] disabled:opacity-50 transition-colors"
+                className="w-full flex justify-center items-center py-2.5 px-4 rounded-[6px] text-sm font-medium text-slate-900 dark:text-white bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] border border-slate-200 dark:border-[#334155] disabled:opacity-50 transition-colors"
               >
                 {isResending ? (
                   <span className="inline-flex items-center">
@@ -166,8 +166,8 @@ function VerifyEmailContent() {
       {/* IDLE / CHECK YOUR EMAIL STATE (arrived after registration) */}
       {status === 'idle' && !token && (
         <div className="text-center space-y-6">
-          <div className="w-14 h-14 bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] rounded-2xl flex items-center justify-center mx-auto">
-            <Mail className="w-8 h-8 text-[#3B82F6]" />
+          <div className="w-14 h-14 bg-[#315FEA]/10 border border-[#315FEA]/20 text-[#315FEA] rounded-[6px] flex items-center justify-center mx-auto">
+            <Mail className="w-8 h-8 text-[#315FEA]" />
           </div>
 
           <div>
@@ -181,7 +181,7 @@ function VerifyEmailContent() {
           </div>
 
           {resendSuccess && (
-            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-300 text-xs text-center" role="alert">
+            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-[6px] text-emerald-600 dark:text-emerald-300 text-xs text-center" role="alert">
               {message}
             </div>
           )}
@@ -206,7 +206,7 @@ function VerifyEmailContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="mt-1.5 block w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+                  className="mt-1.5 block w-full px-3.5 py-2 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
                 />
               </div>
             )}
@@ -214,7 +214,7 @@ function VerifyEmailContent() {
             <button
               type="submit"
               disabled={isResending}
-              className="w-full flex justify-center items-center py-2.5 px-4 rounded-xl text-sm font-medium text-slate-900 dark:text-white bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] border border-slate-200 dark:border-[#334155] disabled:opacity-50 transition-colors"
+              className="w-full flex justify-center items-center py-2.5 px-4 rounded-[6px] text-sm font-medium text-slate-900 dark:text-white bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] border border-slate-200 dark:border-[#334155] disabled:opacity-50 transition-colors"
             >
               {isResending ? (
                 <span className="inline-flex items-center">
@@ -247,7 +247,7 @@ function VerifyEmailContent() {
           )}
 
           <div className="pt-4 border-t border-slate-100 dark:border-[#1E293B] flex justify-between items-center text-xs">
-            <Link href="/login" className="text-[#3B82F6] hover:text-[#60A5FA] transition-colors font-medium">
+            <Link href="/login" className="text-[#315FEA] hover:text-[#254EDB] transition-colors font-medium">
               Back to Sign In
             </Link>
             <Link href="/register" className="text-slate-500 hover:text-slate-900 dark:text-[#94A3B8] dark:hover:text-white transition-colors">
@@ -263,9 +263,6 @@ function VerifyEmailContent() {
 export default function VerifyEmailPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Subtle brand ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-r from-[#3B82F6]/10 to-[#8B3FD1]/10 blur-[120px] pointer-events-none rounded-full" />
-
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center mb-6">
         <Link href="/" className="inline-block">
           <span className="text-3xl font-extrabold text-brand-gradient tracking-tight">

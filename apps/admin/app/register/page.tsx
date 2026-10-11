@@ -129,10 +129,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex flex-col justify-center py-6 sm:py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Subtle brand ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[250px] bg-gradient-to-r from-[#3B82F6]/10 to-[#8B3FD1]/10 blur-[120px] pointer-events-none rounded-full" />
-
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex flex-col justify-center py-6 sm:py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors">
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center">
         <Link href="/" className="inline-block mb-1.5 sm:mb-2">
           <span className="text-2xl sm:text-3xl font-extrabold text-brand-gradient tracking-tight">
@@ -148,10 +145,10 @@ export default function RegisterPage() {
       </div>
 
       <div className="mt-5 sm:mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-white dark:bg-[#0F172A] py-5 px-5 sm:py-6 sm:px-8 shadow-xl dark:shadow-2xl rounded-2xl border border-slate-200 dark:border-[#1E293B]">
+        <div className="bg-white dark:bg-[#0F172A] py-5 px-5 sm:py-6 sm:px-8 shadow-xs rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B]">
           <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit(onSubmit)} method="POST">
             {globalError && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 dark:text-red-300 text-xs flex items-start space-x-2" role="alert">
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-[6px] text-red-600 dark:text-red-300 text-xs flex items-start space-x-2" role="alert">
                 <span className="text-red-500 dark:text-red-400 font-bold">Error:</span>
                 <span>{globalError}</span>
               </div>
@@ -181,7 +178,7 @@ export default function RegisterPage() {
                       }
                     },
                   })}
-                  className="block w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
+                  className="block w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA] transition-colors"
                   aria-invalid={errors.fullName ? 'true' : 'false'}
                   aria-describedby={errors.fullName ? 'fullName-error' : undefined}
                 />
@@ -207,17 +204,17 @@ export default function RegisterPage() {
                 </span>
               </div>
               <div
-                className={`relative flex items-stretch w-full rounded-xl border bg-slate-50 dark:bg-[#0B1220] transition-colors focus-within:ring-1 focus-within:ring-[#3B82F6] focus-within:border-[#3B82F6] ${
+                className={`relative flex items-stretch w-full rounded-[6px] border bg-slate-50 dark:bg-[#0B1220] transition-colors focus-within:ring-1 focus-within:ring-[#315FEA] focus-within:border-[#315FEA] ${
                   errors.phoneNumber
                     ? 'border-red-500/60 dark:border-red-500/60'
                     : isPhoneValid
                     ? 'border-emerald-500/60 dark:border-emerald-500/60'
-                    : 'border-slate-200 dark:border-[#334155]'
+                    : 'border-[#CBD5E1] dark:border-[#334155]'
                 }`}
               >
                 <div
                   aria-hidden="true"
-                  className="flex items-center justify-center px-3 py-2 bg-slate-100 dark:bg-[#1E293B]/70 text-slate-600 dark:text-slate-300 font-semibold text-xs sm:text-sm select-none rounded-l-xl border-r border-slate-200 dark:border-[#334155]"
+                  className="flex items-center justify-center px-3 py-2 bg-slate-100 dark:bg-[#1E293B]/70 text-slate-600 dark:text-slate-300 font-semibold text-xs sm:text-sm select-none rounded-l-[6px] border-r border-[#CBD5E1] dark:border-[#334155]"
                 >
                   <span className="tracking-wide">+91</span>
                 </div>
@@ -291,7 +288,7 @@ export default function RegisterPage() {
                       }
                     },
                   })}
-                  className="block w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
+                  className="block w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA] transition-colors"
                   aria-invalid={errors.email ? 'true' : 'false'}
                   aria-describedby={errors.email ? 'email-error' : undefined}
                 />
@@ -327,7 +324,7 @@ export default function RegisterPage() {
                       }
                     },
                   })}
-                  className="block w-full pl-9 pr-10 py-2 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
+                  className="block w-full pl-9 pr-10 py-2 bg-slate-50 dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA] transition-colors"
                   aria-invalid={errors.password ? 'true' : 'false'}
                   aria-describedby={errors.password ? 'password-error' : undefined}
                 />
@@ -371,7 +368,7 @@ export default function RegisterPage() {
                       }
                     },
                   })}
-                  className="block w-full pl-9 pr-10 py-2 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors"
+                  className="block w-full pl-9 pr-10 py-2 bg-slate-50 dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA] transition-colors"
                   aria-invalid={errors.confirmPassword ? 'true' : 'false'}
                   aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
                 />
@@ -397,7 +394,7 @@ export default function RegisterPage() {
                 id="acceptedTerms"
                 type="checkbox"
                 {...register('acceptedTerms')}
-                className="mt-0.5 h-3.5 w-3.5 text-[#3B82F6] focus:ring-[#3B82F6] border-slate-300 dark:border-[#334155] rounded bg-white dark:bg-[#0B1220]"
+                className="mt-0.5 h-3.5 w-3.5 text-[#315FEA] focus:ring-[#1D4ED8] border-[#CBD5E1] dark:border-[#334155] rounded-[4px] bg-white dark:bg-[#0B1220]"
                 aria-invalid={errors.acceptedTerms ? 'true' : 'false'}
                 aria-describedby={errors.acceptedTerms ? 'acceptedTerms-error' : undefined}
               />
@@ -432,7 +429,7 @@ export default function RegisterPage() {
               Already have an account?{' '}
               <Link
                 href="/login"
-                className="font-medium text-[#3B82F6] hover:text-[#60A5FA] transition-colors"
+                className="font-medium text-[#315FEA] hover:text-[#254EDB] transition-colors"
               >
                 Sign in
               </Link>

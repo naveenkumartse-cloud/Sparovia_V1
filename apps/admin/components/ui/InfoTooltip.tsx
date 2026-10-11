@@ -87,7 +87,7 @@ export function InfoTooltip({ content, align = 'left' }: InfoTooltipProps) {
             setIsVisible(false);
           }
         }}
-        className="text-[#64748B] hover:text-[#94A3B8] focus:text-[#3B82F6] focus:outline-none rounded-full p-0.5 transition-colors touch-manipulation"
+        className="text-[#64748B] hover:text-[#94A3B8] focus:text-[#315FEA] focus:outline-none rounded-[4px] p-0.5 transition-colors touch-manipulation"
         aria-label="Field information"
         aria-expanded={isVisible}
       >
@@ -101,7 +101,7 @@ export function InfoTooltip({ content, align = 'left' }: InfoTooltipProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 3, scale: 0.97 }}
             transition={{ duration: 0.12 }}
-            className={`absolute z-50 w-56 sm:w-64 max-w-[calc(100vw-3rem)] p-2.5 top-full mt-1.5 bg-[#0B1220] border border-[#1E293B] rounded-xl shadow-2xl shadow-black/60 pointer-events-auto ${alignmentClass}`}
+            className={`absolute z-50 w-56 sm:w-64 max-w-[calc(100vw-3rem)] p-2.5 top-full mt-1.5 bg-[#0B1220] border border-[#1E293B] rounded-[8px] shadow-2xl shadow-black/60 pointer-events-auto ${alignmentClass}`}
             role="tooltip"
           >
             {/* Arrow */}

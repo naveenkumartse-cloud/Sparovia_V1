@@ -16,8 +16,8 @@ interface PublicWebsiteEmptyProps {
 export default function PublicWebsiteEmpty({ businessName }: PublicWebsiteEmptyProps) {
   return (
     <div className="min-h-screen bg-stone-50 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-16">
-      <div className="max-w-md w-full text-center bg-white p-8 sm:p-10 rounded-2xl shadow-soft-md border border-slate-200/80">
-        <div className="w-12 h-12 mx-auto mb-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 border border-slate-200">
+      <div className="max-w-md w-full text-center bg-white p-8 sm:p-10 rounded-[8px] shadow-soft-md border border-[#CBD5E1]">
+        <div className="w-12 h-12 mx-auto mb-5 rounded-[6px] bg-[#F3F6FA] flex items-center justify-center text-[#172033] border border-[#E3E7ED]">
           <Compass className="w-6 h-6" />
         </div>
 

@@ -163,7 +163,7 @@ export default function BusinessBasicsPage() {
     <div>
       <div className="mb-6">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
-          <Building2 className="w-5 h-5 mr-2 text-[#3B82F6]" />
+          <Building2 className="w-5 h-5 mr-2 text-[#315FEA]" />
           Business Basics
         </h2>
         <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
@@ -172,7 +172,7 @@ export default function BusinessBasicsPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 dark:text-red-300 text-sm" role="alert">
+        <div className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 rounded-[8px] text-red-600 dark:text-red-300 text-sm" role="alert">
           {error}
         </div>
       )}
@@ -183,7 +183,7 @@ export default function BusinessBasicsPage() {
           <div className="sm:col-span-2">
             <div className="flex items-center gap-1.5">
               <label htmlFor="businessName" className="block text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
-                Business Name <span className="text-[#FF7043]">*</span>
+                Business Name <span className="text-red-500">*</span>
               </label>
               <InfoTooltip content="The legal or public brand name of your business as it will appear on your website." />
             </div>
@@ -198,7 +198,7 @@ export default function BusinessBasicsPage() {
               value={formData.businessName || ''} 
               onChange={e => setFormData({...formData, businessName: e.target.value})}
               placeholder="e.g. Apex Window Systems"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             />
           </div>
 
@@ -206,7 +206,7 @@ export default function BusinessBasicsPage() {
           <div className="relative" ref={categoryComboboxRef}>
             <div className="flex items-center gap-1.5">
               <label htmlFor="primaryCategoryInput" className="block text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
-                Primary Business Category <span className="text-[#FF7043]">*</span>
+                Primary Business Category <span className="text-red-500">*</span>
               </label>
               <InfoTooltip content="The industry or domain your business belongs to (what your business does)." />
             </div>
@@ -218,7 +218,7 @@ export default function BusinessBasicsPage() {
                 aria-haspopup="listbox"
                 aria-expanded={isCategoryOpen}
                 onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-                className="w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-left text-sm text-slate-900 dark:text-white focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] flex items-center justify-between"
+                className="w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-4 py-2.5 text-left text-sm text-slate-900 dark:text-white focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA] flex items-center justify-between"
               >
                 <span className={formData.primaryCategory ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-[#64748B]'}>
                   {formData.primaryCategory || 'Select or search category...'}
@@ -227,7 +227,7 @@ export default function BusinessBasicsPage() {
               </button>
 
               {isCategoryOpen && (
-                <div className="absolute z-30 mt-2 w-full bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#334155] rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute z-30 mt-2 w-full bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#334155] rounded-[8px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                   <div className="p-2 border-b border-slate-100 dark:border-[#1E293B] relative">
                     <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#64748B]" />
                     <input
@@ -236,7 +236,7 @@ export default function BusinessBasicsPage() {
                       onChange={e => setCategorySearch(e.target.value)}
                       placeholder="Filter categories..."
                       autoFocus
-                      className="w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-lg pl-8 pr-8 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
+                      className="w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] pl-8 pr-8 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] focus:outline-none focus:border-[#315FEA]"
                     />
                     {categorySearch && (
                       <button
@@ -259,12 +259,12 @@ export default function BusinessBasicsPage() {
                           onClick={() => handleSelectCategory(cat)}
                           className={`px-3.5 py-2 text-xs flex items-center justify-between cursor-pointer transition-colors ${
                             isSelected 
-                              ? 'bg-[#3B82F6]/15 text-[#3B82F6] font-semibold' 
+                              ? 'bg-[#315FEA]/10 text-[#315FEA] font-semibold' 
                               : 'text-slate-700 dark:text-[#CBD5E1] hover:bg-slate-100 dark:hover:bg-[#1E293B] hover:text-slate-900 dark:hover:text-white'
                           }`}
                         >
                           <span>{cat}</span>
-                          {isSelected && <Check className="w-3.5 h-3.5 text-[#3B82F6]" />}
+                          {isSelected && <Check className="w-3.5 h-3.5 text-[#315FEA]" />}
                         </li>
                       );
                     })}
@@ -274,7 +274,7 @@ export default function BusinessBasicsPage() {
                         <button
                           type="button"
                           onClick={() => handleSelectCategory(categorySearch)}
-                          className="text-[#3B82F6] hover:underline font-semibold ml-1"
+                          className="text-[#315FEA] hover:underline font-semibold ml-1"
                         >
                           Use &ldquo;{categorySearch}&rdquo;
                         </button>
@@ -300,7 +300,7 @@ export default function BusinessBasicsPage() {
                     setFormData({ ...formData, primaryCategory: e.target.value });
                   }}
                   placeholder="Specify your custom business category..."
-                  className="w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-xs focus:outline-none focus:border-[#3B82F6]"
+                  className="w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-4 py-2 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-xs focus:outline-none focus:border-[#315FEA]"
                 />
               </div>
             )}
@@ -310,7 +310,7 @@ export default function BusinessBasicsPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <label htmlFor="businessType" className="block text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
-                Business Operating Type <span className="text-[#FF7043]">*</span>
+                Business Operating Type <span className="text-red-500">*</span>
               </label>
               <InfoTooltip content="How your business delivers services to customers (operational model)." />
             </div>
@@ -318,7 +318,7 @@ export default function BusinessBasicsPage() {
               id="businessType"
               value={formData.businessType || ''}
               onChange={e => setFormData({...formData, businessType: e.target.value})}
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-4 py-2.5 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             >
               <option value="">Select operating type...</option>
               {BUSINESS_OPERATING_TYPES.map(type => (
@@ -331,14 +331,14 @@ export default function BusinessBasicsPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <label htmlFor="businessPhone" className="block text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
-                Business Phone <span className="text-[#FF7043]">*</span>
+                Business Phone <span className="text-red-500">*</span>
               </label>
               <InfoTooltip content="Public contact phone number displayed for customer inquiries and lead calls." />
             </div>
-            <div className="mt-1.5 flex items-stretch w-full rounded-xl border border-slate-200 dark:border-[#334155] bg-slate-50 dark:bg-[#0B1220] focus-within:ring-1 focus-within:ring-[#3B82F6] focus-within:border-[#3B82F6]">
+            <div className="mt-1.5 flex items-stretch w-full rounded-[6px] border border-slate-200 dark:border-[#334155] bg-slate-50 dark:bg-[#0B1220] focus-within:ring-1 focus-within:ring-[#315FEA] focus-within:border-[#315FEA]">
               <div
                 aria-hidden="true"
-                className="flex items-center justify-center px-3.5 py-2.5 bg-slate-100 dark:bg-[#1E293B]/70 text-slate-600 dark:text-slate-300 font-semibold text-sm select-none rounded-l-xl border-r border-slate-200 dark:border-[#334155]"
+                className="flex items-center justify-center px-3.5 py-2.5 bg-slate-100 dark:bg-[#1E293B]/70 text-slate-600 dark:text-slate-300 font-semibold text-sm select-none rounded-l-[6px] border-r border-slate-200 dark:border-[#334155]"
               >
                 <span className="tracking-wide">+91</span>
               </div>
@@ -370,7 +370,7 @@ export default function BusinessBasicsPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <label htmlFor="businessEmail" className="block text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
-                Business Email <span className="text-[#FF7043]">*</span>
+                Business Email <span className="text-red-500">*</span>
               </label>
               <InfoTooltip content="Primary business email used for receiving customer inquiries from website forms." />
             </div>
@@ -381,7 +381,7 @@ export default function BusinessBasicsPage() {
               value={formData.businessEmail || ''} 
               onChange={e => setFormData({...formData, businessEmail: e.target.value})}
               placeholder="contact@apexwindows.com"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             />
           </div>
 
@@ -389,7 +389,7 @@ export default function BusinessBasicsPage() {
           <div className="sm:col-span-2">
             <div className="flex items-center gap-1.5">
               <label htmlFor="website" className="block text-sm font-medium text-slate-700 dark:text-[#E2E8F0]">
-                Website URL <span className="text-[#FF7043]">*</span>
+                Website URL <span className="text-red-500">*</span>
               </label>
               <InfoTooltip content="Your current live website domain or intended web address." />
             </div>
@@ -400,7 +400,7 @@ export default function BusinessBasicsPage() {
               value={formData.website || ''} 
               onChange={e => setFormData({...formData, website: e.target.value})}
               placeholder="https://www.apexwindows.com"
-              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+              className="mt-1.5 w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
             />
           </div>
         </div>

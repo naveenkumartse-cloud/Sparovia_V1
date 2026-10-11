@@ -162,10 +162,10 @@ export default function ContactSection() {
       <Container>
         <div className="max-w-2xl mx-auto w-full">
           <FadeIn direction="up">
-            <div className="bg-surface p-5 sm:p-8 md:p-12 rounded-3xl border border-gray-200 shadow-soft-sm">
+            <div className="bg-surface p-5 sm:p-8 md:p-12 rounded-[8px] border border-gray-200 shadow-soft-sm">
               {submitted ? (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 rounded-full bg-brand-100 border border-brand-200 flex items-center justify-center mx-auto mb-6 text-brand-600">
+                  <div className="w-16 h-16 rounded-[8px] bg-brand-50 border border-brand-200 flex items-center justify-center mx-auto mb-6 text-brand-600">
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
                   <h3 className="font-sans text-2xl font-bold text-charcoal-900 mb-2">
@@ -208,7 +208,7 @@ export default function ContactSection() {
                         setFormData({ ...formData, name: e.target.value });
                         if (error) setError(null);
                       }}
-                      className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60"
+                      className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs"
                     />
                   </div>
 
@@ -220,7 +220,7 @@ export default function ContactSection() {
                         </label>
                         <span className="text-[11px] text-gray-500 font-medium">10-digit mobile</span>
                       </div>
-                      <div className="relative flex items-center rounded-xl border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-charcoal-900 focus-within:border-charcoal-900">
+                      <div className="relative flex items-center rounded-[6px] border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#315FEA] focus-within:border-[#315FEA] shadow-xs">
                         <span className="inline-flex items-center px-3.5 py-3.5 bg-gray-100 text-charcoal-800 font-semibold text-xs sm:text-sm select-none border-r border-gray-300">
                           +91
                         </span>
@@ -270,7 +270,7 @@ export default function ContactSection() {
                           setFormData({ ...formData, email: e.target.value });
                           if (error) setError(null);
                         }}
-                        className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60"
+                        className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs"
                       />
                     </div>
                   </div>
@@ -287,7 +287,7 @@ export default function ContactSection() {
                         setFormData({ ...formData, areaOfInterest: e.target.value });
                         if (error) setError(null);
                       }}
-                      className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60"
+                      className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs"
                     >
                       <option value="">Select an area of interest</option>
                       {areaOptions.map((opt) => (
@@ -313,12 +313,12 @@ export default function ContactSection() {
                         setFormData({ ...formData, projectDetails: e.target.value });
                         if (error) setError(null);
                       }}
-                      className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring resize-none disabled:opacity-60"
+                      className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring resize-none disabled:opacity-60 shadow-xs"
                     />
                   </div>
 
                   {error && (
-                    <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
+                    <div className="p-3.5 rounded-[6px] bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
                       <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                       <span>{error}</span>
                     </div>

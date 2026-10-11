@@ -53,7 +53,7 @@ export default function TestimonialsSection() {
         </div>
 
         {/* Editorial Quote Presentation */}
-        <div className="relative bg-white rounded-3xl p-5 sm:p-8 md:p-12 border border-gray-100 shadow-soft-sm">
+        <div className="relative bg-white rounded-panel p-5 sm:p-8 md:p-12 border border-gray-100 shadow-soft-sm">
           <Quote className="w-10 h-10 text-brand-200 mb-6" />
 
           <AnimatePresence mode="wait">
@@ -86,14 +86,14 @@ export default function TestimonialsSection() {
                   <div className="flex items-center gap-2" role="group" aria-label="Testimonial controls">
                     <button
                       onClick={prevTestimonial}
-                      className="w-10 h-10 rounded-full bg-surface hover:bg-brand-50 text-charcoal-700 hover:text-brand-600 border border-gray-200 flex items-center justify-center transition-colors focus-ring cursor-pointer"
+                      className="w-10 h-10 rounded-[6px] bg-surface hover:bg-brand-50 text-charcoal-700 hover:text-brand-600 border border-gray-200 flex items-center justify-center transition-colors focus-ring cursor-pointer shadow-xs"
                       aria-label="Previous testimonial"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
                     <button
                       onClick={nextTestimonial}
-                      className="w-10 h-10 rounded-full bg-surface hover:bg-brand-50 text-charcoal-700 hover:text-brand-600 border border-gray-200 flex items-center justify-center transition-colors focus-ring cursor-pointer"
+                      className="w-10 h-10 rounded-[6px] bg-surface hover:bg-brand-50 text-charcoal-700 hover:text-brand-600 border border-gray-200 flex items-center justify-center transition-colors focus-ring cursor-pointer shadow-xs"
                       aria-label="Next testimonial"
                     >
                       <ChevronRight className="w-5 h-5" />

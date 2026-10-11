@@ -228,7 +228,7 @@ export default function BusinessPresencePage() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-sm">
           <EmptyState
             icon={<Building2 className="w-8 h-8 text-blue-500" />}
             title="Business Context Confirmation Required"
@@ -281,7 +281,7 @@ export default function BusinessPresencePage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-[#1E293B] text-slate-700 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs font-medium bg-slate-100 dark:bg-[#1E293B] text-slate-700 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
             <CalendarCheck className="w-3.5 h-3.5 text-blue-500" />
             <span>Reviewed: {formatReviewedDate(data.lastReviewedAt)}</span>
           </div>
@@ -289,9 +289,9 @@ export default function BusinessPresencePage() {
       </div>
 
       {/* 2. Understanding Business Presence in Pilot V1 — Comprehensive Guidance */}
-      <div className="p-6 sm:p-7 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm">
+      <div className="p-6 sm:p-7 rounded-[8px] bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+          <div className="w-10 h-10 rounded-[6px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] flex items-center justify-center flex-shrink-0 mt-0.5">
             <Info className="w-5 h-5" />
           </div>
           <div className="space-y-3.5 flex-1">
@@ -300,7 +300,7 @@ export default function BusinessPresencePage() {
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">
                   Understanding Business Presence in Sparovia
                 </h2>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                   Pilot V1 Guidance
                 </span>
               </div>
@@ -310,7 +310,7 @@ export default function BusinessPresencePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1 text-xs text-slate-600 dark:text-[#94A3B8]">
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0B1220] border border-slate-200/60 dark:border-[#1E293B] space-y-1">
+              <div className="p-3 rounded-[8px] bg-slate-50 dark:bg-[#0B1220] border border-slate-200/60 dark:border-[#1E293B] space-y-1">
                 <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-white">
                   <ShieldCheck className="w-4 h-4 text-blue-500" />
                   <span>What Sparovia Manages</span>
@@ -320,7 +320,7 @@ export default function BusinessPresencePage() {
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0B1220] border border-slate-200/60 dark:border-[#1E293B] space-y-1">
+              <div className="p-3 rounded-[8px] bg-slate-50 dark:bg-[#0B1220] border border-slate-200/60 dark:border-[#1E293B] space-y-1">
                 <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-white">
                   <Globe className="w-4 h-4 text-blue-500" />
                   <span>How Sparovia Uses It</span>
@@ -330,7 +330,7 @@ export default function BusinessPresencePage() {
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0B1220] border border-slate-200/60 dark:border-[#1E293B] space-y-1">
+              <div className="p-3 rounded-[8px] bg-slate-50 dark:bg-[#0B1220] border border-slate-200/60 dark:border-[#1E293B] space-y-1">
                 <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-white">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                   <span>Why Consistency Matters</span>
@@ -340,7 +340,7 @@ export default function BusinessPresencePage() {
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 space-y-1">
+              <div className="p-3 rounded-[8px] bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 space-y-1">
                 <div className="flex items-center gap-1.5 font-semibold text-amber-900 dark:text-amber-300">
                   <Info className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   <span>External Sync Boundary</span>
@@ -355,7 +355,7 @@ export default function BusinessPresencePage() {
       </div>
 
       {/* 3. Supported Presence Information (Sourced from Business Context) */}
-      <div className="bg-white dark:bg-[#0F172A] rounded-2xl border border-slate-200 dark:border-[#1E293B] shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[#0F172A] rounded-[8px] border border-slate-200 dark:border-[#1E293B] shadow-sm overflow-hidden">
         <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-[#1E293B]">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="space-y-1">
@@ -364,7 +364,7 @@ export default function BusinessPresencePage() {
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                   Verified Business Information (NAP)
                 </h2>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                   Source of Truth
                 </span>
               </div>
@@ -401,7 +401,7 @@ export default function BusinessPresencePage() {
         {/* Supported Field Grid with [Field Label] ⓘ Pattern */}
         <div className="p-6 sm:p-8 bg-slate-50/50 dark:bg-[#0B1220]/40 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {/* Field 1: Business Name */}
-          <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
+          <div className="p-4 rounded-[8px] bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Building2 className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
@@ -420,14 +420,14 @@ export default function BusinessPresencePage() {
               <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                 Managed in Sparovia
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
                 Context Source
               </span>
             </div>
           </div>
 
           {/* Field 2: Primary Category & Type */}
-          <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
+          <div className="p-4 rounded-[8px] bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Globe className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
@@ -449,14 +449,14 @@ export default function BusinessPresencePage() {
               <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                 Managed in Sparovia
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
                 Context Source
               </span>
             </div>
           </div>
 
           {/* Field 3: Business Phone */}
-          <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
+          <div className="p-4 rounded-[8px] bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Phone className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
@@ -475,14 +475,14 @@ export default function BusinessPresencePage() {
               <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                 Managed in Sparovia
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
                 Context Source
               </span>
             </div>
           </div>
 
           {/* Field 4: Business Email */}
-          <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
+          <div className="p-4 rounded-[8px] bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Mail className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
@@ -501,14 +501,14 @@ export default function BusinessPresencePage() {
               <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                 Managed in Sparovia
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
                 Context Source
               </span>
             </div>
           </div>
 
           {/* Field 5: Operating Address */}
-          <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
+          <div className="p-4 rounded-[8px] bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
                 <MapPin className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
@@ -527,14 +527,14 @@ export default function BusinessPresencePage() {
               <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                 Managed in Sparovia
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
                 Context Source
               </span>
             </div>
           </div>
 
           {/* Field 6: Website URL */}
-          <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
+          <div className="p-4 rounded-[8px] bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
                 <ExternalLink className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
@@ -551,7 +551,7 @@ export default function BusinessPresencePage() {
                     href={nap.website} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                    className="text-[#315FEA] hover:underline"
                   >
                     {nap.website}
                   </a>
@@ -564,7 +564,7 @@ export default function BusinessPresencePage() {
               <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                 Managed in Sparovia
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
                 Context Source
               </span>
             </div>
@@ -572,7 +572,7 @@ export default function BusinessPresencePage() {
 
           {/* Field 7: Service Areas (if configured) */}
           {nap?.serviceAreas && nap.serviceAreas.length > 0 && (
-            <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3 md:col-span-2 lg:col-span-3">
+            <div className="p-4 rounded-[8px] bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3 md:col-span-2 lg:col-span-3">
               <div>
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <MapPinned className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
@@ -587,7 +587,7 @@ export default function BusinessPresencePage() {
                   {nap.serviceAreas.map((area, idx) => (
                     <span 
                       key={idx}
-                      className="px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]"
+                      className="px-2 py-0.5 rounded-[4px] text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]"
                     >
                       {area}
                     </span>
@@ -598,7 +598,7 @@ export default function BusinessPresencePage() {
                 <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                   Managed in Sparovia
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
                   Context Source
                 </span>
               </div>
@@ -608,11 +608,11 @@ export default function BusinessPresencePage() {
       </div>
 
       {/* 4. Presence Information & Schedule Form */}
-      <form onSubmit={handleSave} className="bg-white dark:bg-[#0F172A] rounded-2xl border border-slate-200 dark:border-[#1E293B] shadow-sm p-6 sm:p-8 space-y-6">
+      <form onSubmit={handleSave} className="bg-white dark:bg-[#0F172A] rounded-[8px] border border-slate-200 dark:border-[#1E293B] shadow-sm p-6 sm:p-8 space-y-6">
         <div className="border-b border-slate-100 dark:border-[#1E293B] pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <Clock className="w-5 h-5 text-[#315FEA] dark:text-blue-400" />
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                 Presence Information & Schedule
               </h2>
@@ -621,7 +621,7 @@ export default function BusinessPresencePage() {
               Configure public client hours and timely announcements. Clear, up-to-date presence info prevents customer drop-off.
             </p>
           </div>
-          <span className="self-start sm:self-auto text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
+          <span className="self-start sm:self-auto text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-[4px] bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
             Managed in Sparovia
           </span>
         </div>
@@ -640,7 +640,7 @@ export default function BusinessPresencePage() {
                 value={operatingHours}
                 onChange={(e) => setOperatingHours(e.target.value)}
                 placeholder="e.g.&#10;Monday – Friday: 9:00 AM – 5:00 PM&#10;Saturday: 10:00 AM – 2:00 PM&#10;Sunday: Closed"
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent transition-all resize-y"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#315FEA] focus:border-transparent transition-all resize-y"
               />
             </FormField>
           </div>
@@ -658,7 +658,7 @@ export default function BusinessPresencePage() {
                 value={publicNotice}
                 onChange={(e) => setPublicNotice(e.target.value)}
                 placeholder="e.g. Closed on national holidays. Currently accepting new client consultations for Q4."
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent transition-all resize-y"
+                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#315FEA] focus:border-transparent transition-all resize-y"
               />
             </FormField>
           </div>
@@ -691,7 +691,7 @@ export default function BusinessPresencePage() {
             onClick={handleMarkReviewed}
             isLoading={isReviewing}
             loadingText="Verifying..."
-            leftIcon={<CalendarCheck className="w-4 h-4 text-blue-500" />}
+            leftIcon={<CalendarCheck className="w-4 h-4 text-[#315FEA]" />}
           >
             Mark as Reviewed
           </Button>
@@ -699,15 +699,15 @@ export default function BusinessPresencePage() {
       </form>
 
       {/* 5. Approved Extended Context for Presence & Discovery */}
-      <div className="bg-white dark:bg-[#0F172A] rounded-2xl border border-slate-200 dark:border-[#1E293B] shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[#0F172A] rounded-[8px] border border-slate-200 dark:border-[#1E293B] shadow-sm overflow-hidden">
         <div className="p-6 sm:p-7 border-b border-slate-100 dark:border-[#1E293B] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <Sparkles className="w-5 h-5 text-[#7950B8] dark:text-purple-400" />
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                 Approved Context for Search & Discovery
               </h2>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-purple-50 dark:bg-purple-900/30 text-[#7950B8] dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                 Presence Signals
               </span>
             </div>
@@ -744,10 +744,10 @@ export default function BusinessPresencePage() {
         {showExtendedContext && (
           <div className="p-6 sm:p-8 bg-slate-50/50 dark:bg-[#0B1220]/40 grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Field: Business Description */}
-            <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
+            <div className="p-4 rounded-[8px] bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
               <div>
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <BookOpen className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
+                  <BookOpen className="w-3.5 h-3.5 text-[#7950B8] flex-shrink-0" />
                   <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Business Description
                   </span>
@@ -763,17 +763,17 @@ export default function BusinessPresencePage() {
                 <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                   Managed in Sparovia
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-purple-50 dark:bg-purple-900/30 text-[#7950B8] dark:text-purple-400">
                   Business Context
                 </span>
               </div>
             </div>
 
             {/* Field: Differentiators */}
-            <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
+            <div className="p-4 rounded-[8px] bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
               <div>
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#7950B8] flex-shrink-0" />
                   <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Differentiators & Positioning
                   </span>
@@ -789,14 +789,14 @@ export default function BusinessPresencePage() {
                 <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                   Managed in Sparovia
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-purple-50 dark:bg-purple-900/30 text-[#7950B8] dark:text-purple-400">
                   Business Context
                 </span>
               </div>
             </div>
 
             {/* Field: Target Customers */}
-            <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
+            <div className="p-4 rounded-[8px] bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
               <div>
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <Users className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
@@ -812,7 +812,7 @@ export default function BusinessPresencePage() {
                     nap.targetCustomers.map((cust, idx) => (
                       <span 
                         key={idx}
-                        className="px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]"
+                        className="px-2 py-0.5 rounded-[4px] text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]"
                       >
                         {cust}
                       </span>
@@ -826,14 +826,14 @@ export default function BusinessPresencePage() {
                 <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                   Managed in Sparovia
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
                   Business Context
                 </span>
               </div>
             </div>
 
             {/* Field: Services Offered */}
-            <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
+            <div className="p-4 rounded-[8px] bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3">
               <div>
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <Layers className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
@@ -849,7 +849,7 @@ export default function BusinessPresencePage() {
                     nap.serviceNames.map((svc, idx) => (
                       <span 
                         key={idx}
-                        className="px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]"
+                        className="px-2 py-0.5 rounded-[4px] text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]"
                       >
                         {svc}
                       </span>
@@ -863,14 +863,14 @@ export default function BusinessPresencePage() {
                 <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                   {nap?.servicesCount || 0} Services Configured
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
                   Business Context
                 </span>
               </div>
             </div>
 
             {/* Field: Approved Facts & Claims */}
-            <div className="p-4 rounded-xl bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3 md:col-span-2">
+            <div className="p-4 rounded-[8px] bg-white dark:bg-[#1E293B]/70 border border-slate-200/70 dark:border-[#334155]/60 flex flex-col justify-between space-y-3 md:col-span-2">
               <div>
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <Award className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
@@ -883,27 +883,27 @@ export default function BusinessPresencePage() {
                 </div>
                 <div className="flex flex-wrap gap-2 pt-1">
                   {nap?.yearsInBusiness ? (
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                    <span className="px-2.5 py-1 rounded-[4px] text-xs font-semibold bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                       {nap.yearsInBusiness}+ Years in Business
                     </span>
                   ) : null}
                   {nap?.certifications?.map((c, i) => (
-                    <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]">
+                    <span key={i} className="px-2.5 py-1 rounded-[4px] text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]">
                       🏅 {c}
                     </span>
                   ))}
                   {nap?.awards?.map((a, i) => (
-                    <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]">
+                    <span key={i} className="px-2.5 py-1 rounded-[4px] text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]">
                       🏆 {a}
                     </span>
                   ))}
                   {nap?.warranties?.map((w, i) => (
-                    <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]">
+                    <span key={i} className="px-2.5 py-1 rounded-[4px] text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]">
                       🛡️ {w}
                     </span>
                   ))}
                   {nap?.authorizedStatuses?.map((s, i) => (
-                    <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]">
+                    <span key={i} className="px-2.5 py-1 rounded-[4px] text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]">
                       ✓ {s}
                     </span>
                   ))}
@@ -916,7 +916,7 @@ export default function BusinessPresencePage() {
                 <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                   Managed in Sparovia
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-purple-50 dark:bg-purple-900/30 text-[#7950B8] dark:text-purple-400">
                   Business Context
                 </span>
               </div>
@@ -927,9 +927,9 @@ export default function BusinessPresencePage() {
 
       {/* 6. External Presence Section (Capability Boundary & Directory Guidance) */}
       <div className="space-y-5">
-        <div className="p-6 rounded-2xl bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm">
+        <div className="p-6 rounded-[8px] bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm">
           <div className="flex items-start gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <div className="w-9 h-9 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center flex-shrink-0 mt-0.5">
               <Info className="w-5 h-5" />
             </div>
             <div className="space-y-1.5 flex-1">
@@ -937,7 +937,7 @@ export default function BusinessPresencePage() {
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
                   External Presence Capability Boundary
                 </h3>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-200 dark:bg-[#1E293B] text-slate-700 dark:text-[#94A3B8]">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-slate-200 dark:bg-[#1E293B] text-slate-700 dark:text-[#94A3B8]">
                   Managed in Sparovia
                 </span>
               </div>
@@ -957,18 +957,18 @@ export default function BusinessPresencePage() {
         {/* Directory Profiles Guidance Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Card 1: Google Business Profile */}
-          <div className="p-5 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm flex flex-col justify-between space-y-4">
+          <div className="p-5 rounded-[8px] bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm flex flex-col justify-between space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-sm">
+                  <div className="w-8 h-8 rounded-[6px] bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-[#315FEA] font-bold text-sm">
                     G
                   </div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                     Google Business Profile
                   </h4>
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
                   Manual Alignment
                 </span>
               </div>
@@ -981,7 +981,7 @@ export default function BusinessPresencePage() {
                 href="https://business.google.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 inline-flex items-center gap-1.5 transition-colors"
+                className="text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] inline-flex items-center gap-1.5 transition-colors"
               >
                 Open Google Business Profile
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -999,18 +999,18 @@ export default function BusinessPresencePage() {
           </div>
 
           {/* Card 2: Apple Maps */}
-          <div className="p-5 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm flex flex-col justify-between space-y-4">
+          <div className="p-5 rounded-[8px] bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm flex flex-col justify-between space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#1E293B] flex items-center justify-center text-slate-700 dark:text-slate-200 font-bold text-sm">
+                  <div className="w-8 h-8 rounded-[6px] bg-slate-100 dark:bg-[#1E293B] flex items-center justify-center text-slate-700 dark:text-slate-200 font-bold text-sm">
                     <Navigation className="w-4 h-4" />
                   </div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                     Apple Maps Connect
                   </h4>
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
                   Manual Alignment
                 </span>
               </div>
@@ -1023,7 +1023,7 @@ export default function BusinessPresencePage() {
                 href="https://mapsconnect.apple.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 inline-flex items-center gap-1.5 transition-colors"
+                className="text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] inline-flex items-center gap-1.5 transition-colors"
               >
                 Open Apple Business Connect
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -1041,18 +1041,18 @@ export default function BusinessPresencePage() {
           </div>
 
           {/* Card 3: Bing Places */}
-          <div className="p-5 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm flex flex-col justify-between space-y-4">
+          <div className="p-5 rounded-[8px] bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm flex flex-col justify-between space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 dark:text-teal-400 font-bold text-sm">
+                  <div className="w-8 h-8 rounded-[6px] bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 dark:text-teal-400 font-bold text-sm">
                     <Compass className="w-4 h-4" />
                   </div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                     Bing Places for Business
                   </h4>
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
                   Manual Alignment
                 </span>
               </div>
@@ -1065,7 +1065,7 @@ export default function BusinessPresencePage() {
                 href="https://www.bingplaces.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 inline-flex items-center gap-1.5 transition-colors"
+                className="text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] inline-flex items-center gap-1.5 transition-colors"
               >
                 Open Bing Places
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -1083,18 +1083,18 @@ export default function BusinessPresencePage() {
           </div>
 
           {/* Card 4: Local Directories & Citations */}
-          <div className="p-5 rounded-2xl bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm flex flex-col justify-between space-y-4">
+          <div className="p-5 rounded-[8px] bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm flex flex-col justify-between space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold text-sm">
+                  <div className="w-8 h-8 rounded-[6px] bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold text-sm">
                     <BookOpen className="w-4 h-4" />
                   </div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                     Local Citations & Directories
                   </h4>
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
                   Manual Alignment
                 </span>
               </div>
@@ -1106,7 +1106,7 @@ export default function BusinessPresencePage() {
               <button
                 type="button"
                 onClick={handleCopyNap}
-                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 inline-flex items-center gap-1.5 transition-colors"
+                className="text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] inline-flex items-center gap-1.5 transition-colors"
               >
                 Copy Verified NAP for Citations
                 <Copy className="w-3.5 h-3.5" />

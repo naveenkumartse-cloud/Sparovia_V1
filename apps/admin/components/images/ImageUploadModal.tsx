@@ -293,7 +293,7 @@ export function ImageUploadModal({
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center">
+              <div className="w-12 h-12 rounded-[8px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center">
                 <Upload className="w-6 h-6" />
               </div>
               <div>

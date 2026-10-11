@@ -51,7 +51,7 @@ export default function BrandIntroSection() {
                     className="h-[195px] lg:h-[260px]"
                   />
 
-                  <div className="relative h-[130px] lg:h-[185px] rounded-2xl bg-brand-50 p-4 lg:p-6 flex flex-col justify-between border border-brand-200 shadow-soft-sm">
+                  <div className="relative h-[130px] lg:h-[185px] rounded-panel bg-brand-50 p-4 lg:p-6 flex flex-col justify-between border border-brand-200 shadow-soft-sm">
                     <Award className="w-7 h-7 lg:w-8 lg:h-8 text-brand-600" />
                     <div>
                       <span className="font-sans text-sm lg:text-lg font-bold text-charcoal-900 block leading-snug">Dedicated Quality</span>

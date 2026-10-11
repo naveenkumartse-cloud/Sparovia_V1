@@ -210,10 +210,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Subtle brand ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-r from-[#3B82F6]/10 to-[#8B3FD1]/10 blur-[120px] pointer-events-none rounded-full" />
-
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors">
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center">
         <Link href="/" className="inline-block mb-3 sm:mb-4">
           <span className="text-2xl sm:text-3xl font-extrabold text-brand-gradient tracking-tight">
@@ -231,11 +228,11 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-white dark:bg-[#0F172A] py-6 sm:py-8 px-5 sm:px-8 shadow-xl dark:shadow-2xl rounded-2xl border border-slate-200 dark:border-[#1E293B]">
+        <div className="bg-white dark:bg-[#0F172A] py-6 sm:py-8 px-5 sm:px-8 shadow-xs rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B]">
           <form className="space-y-4 sm:space-y-5" onSubmit={handleLogin} method="POST">
             {error && (
               <div
-                className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 dark:text-red-300 text-xs sm:text-sm space-y-2"
+                className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-[6px] text-red-600 dark:text-red-300 text-xs sm:text-sm space-y-2"
                 role="alert"
               >
                 <p>{error}</p>
@@ -243,7 +240,7 @@ export default function LoginPage() {
                   <div>
                     <Link
                       href={`/verify-phone?phone=${encodeURIComponent(identifier)}`}
-                      className="text-[#3B82F6] hover:text-[#60A5FA] underline text-xs font-semibold inline-flex items-center"
+                      className="text-[#315FEA] hover:text-[#254EDB] underline text-xs font-semibold inline-flex items-center"
                     >
                       Go to verification
                       <ArrowRight className="ml-1 h-3 w-3" />
@@ -253,7 +250,7 @@ export default function LoginPage() {
                   <div className="pt-1">
                     <Link
                       href="/register"
-                      className="text-[#3B82F6] hover:text-[#60A5FA] underline text-xs font-semibold inline-flex items-center"
+                      className="text-[#315FEA] hover:text-[#254EDB] underline text-xs font-semibold inline-flex items-center"
                     >
                       Create account
                       <ArrowRight className="ml-1 h-3 w-3" />
@@ -280,12 +277,12 @@ export default function LoginPage() {
                     />
                   </div>
                   {isPhoneMode && (
-                    <span className="text-[11px] font-medium text-[#3B82F6] bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md">
+                    <span className="text-[11px] font-medium text-[#315FEA] bg-[#315FEA]/10 px-2 py-0.5 rounded-[4px]">
                       10-digit mobile
                     </span>
                   )}
                   {isEmailMode && (
-                    <span className="text-[11px] font-medium text-[#8B3FD1] bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-md">
+                    <span className="text-[11px] font-medium text-[#7950B8] bg-[#7950B8]/10 px-2 py-0.5 rounded-[4px]">
                       Email
                     </span>
                   )}
@@ -294,9 +291,9 @@ export default function LoginPage() {
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-[#64748B]">
                     {isPhoneMode ? (
-                      <Smartphone className="h-4 w-4 text-[#3B82F6]" />
+                      <Smartphone className="h-4 w-4 text-[#315FEA]" />
                     ) : isEmailMode ? (
-                      <Mail className="h-4 w-4 text-[#8B3FD1]" />
+                      <Mail className="h-4 w-4 text-[#7950B8]" />
                     ) : (
                       <User className="h-4 w-4" />
                     )}
@@ -325,12 +322,12 @@ export default function LoginPage() {
                     onChange={handleIdentifierChange}
                     onBlur={handleIdentifierBlur}
                     placeholder="Email or phone number"
-                    className={`block w-full pl-10 pr-9 py-2.5 bg-slate-50 dark:bg-[#0B1220] border rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors touch-manipulation ${
+                    className={`block w-full pl-10 pr-9 py-2.5 bg-slate-50 dark:bg-[#0B1220] border rounded-[6px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA] transition-colors touch-manipulation ${
                       fieldError
                         ? 'border-red-500/60 dark:border-red-500/60'
                         : isIdentifierValid
                         ? 'border-emerald-500/60 dark:border-emerald-500/60'
-                        : 'border-slate-200 dark:border-[#334155]'
+                        : 'border-[#CBD5E1] dark:border-[#334155]'
                     }`}
                     aria-invalid={fieldError ? 'true' : 'false'}
                     aria-describedby={fieldError ? 'identifier-error' : undefined}
@@ -381,9 +378,9 @@ export default function LoginPage() {
             {step === 2 && (
               <div className="space-y-4">
                 {/* Active Identifier Pill with Change Button */}
-                <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-xl">
+                <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#1E293B] rounded-[6px]">
                   <div className="flex items-center space-x-2.5 min-w-0">
-                    <div className="p-1.5 bg-blue-500/10 text-[#3B82F6] rounded-lg shrink-0">
+                    <div className="p-1.5 bg-[#315FEA]/10 text-[#315FEA] rounded-[6px] shrink-0">
                       {isPhoneMode ? <Smartphone className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
                     </div>
                     <span className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
@@ -393,7 +390,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={handleBackToIdentifier}
-                    className="text-xs font-semibold text-[#3B82F6] hover:text-[#60A5FA] px-2 py-1 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-colors whitespace-nowrap touch-manipulation shrink-0 ml-2"
+                    className="text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] px-2 py-1 hover:bg-[#315FEA]/10 rounded-[6px] transition-colors whitespace-nowrap touch-manipulation shrink-0 ml-2"
                   >
                     Use a different email or phone
                   </button>
@@ -418,7 +415,7 @@ export default function LoginPage() {
                     </label>
                     <Link
                       href="/forgot-password"
-                      className="text-xs font-medium text-[#3B82F6] hover:text-[#60A5FA] transition-colors"
+                      className="text-xs font-medium text-[#315FEA] hover:text-[#254EDB] transition-colors"
                     >
                       Forgot password?
                     </Link>
@@ -440,7 +437,7 @@ export default function LoginPage() {
                         if (error) setError('');
                       }}
                       placeholder="Enter your password"
-                      className="block w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-colors touch-manipulation"
+                      className="block w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA] transition-colors touch-manipulation"
                       aria-invalid={error ? 'true' : 'false'}
                     />
                     <button
@@ -478,7 +475,7 @@ export default function LoginPage() {
               New to Sparovia?{' '}
               <Link
                 href="/register"
-                className="font-medium text-[#3B82F6] hover:text-[#60A5FA] transition-colors"
+                className="font-medium text-[#315FEA] hover:text-[#254EDB] transition-colors"
               >
                 Create an account
               </Link>

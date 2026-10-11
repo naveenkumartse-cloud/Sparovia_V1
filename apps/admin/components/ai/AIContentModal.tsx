@@ -359,7 +359,7 @@ export function AIContentModal({
       <div className="space-y-4 pb-1">
         {/* Case 1: Checking AI Connection state */}
         {isLoadingAiConnection && !aiConnection && (
-          <div className="p-6 rounded-xl bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155] flex flex-col items-center justify-center text-center space-y-2.5">
+          <div className="p-6 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155] flex flex-col items-center justify-center text-center space-y-2.5">
             <RefreshCw className="w-6 h-6 text-purple-600 dark:text-purple-400 animate-spin" />
             <div className="space-y-1">
               <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -374,7 +374,7 @@ export function AIContentModal({
 
         {/* Case 2: Verification Error */}
         {!isLoadingAiConnection && aiConnectionError && !aiConnection && (
-          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
+          <div className="p-4 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
             <div className="flex items-start gap-2.5">
               <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <div className="text-xs text-amber-900 dark:text-amber-200 space-y-1">
@@ -405,7 +405,7 @@ export function AIContentModal({
 
         {/* Case 3: AI Provider Not Connected */}
         {!isLoadingAiConnection && aiConnection && aiConnection.status === 'NotConnected' && (
-          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
+          <div className="p-4 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
             <div className="flex items-start gap-2.5">
               <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <div className="text-xs text-amber-900 dark:text-amber-200 space-y-1">
@@ -427,7 +427,7 @@ export function AIContentModal({
 
         {/* Case 4: Invalid Configuration */}
         {!isLoadingAiConnection && aiConnection && aiConnection.status === 'Invalid' && (
-          <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 space-y-3">
+          <div className="p-4 rounded-[8px] bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 space-y-3">
             <div className="flex items-start gap-2.5">
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
               <div className="text-xs text-red-900 dark:text-red-200 space-y-1">
@@ -449,7 +449,7 @@ export function AIContentModal({
 
         {/* Case 5: Connected but Model Does Not Support Content AI */}
         {!isLoadingAiConnection && aiConnection && aiConnection.status === 'Connected' && !isContentAiAvailable && (
-          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
+          <div className="p-4 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
             <div className="flex items-start gap-2.5">
               <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <div className="text-xs text-amber-900 dark:text-amber-200 space-y-1">
@@ -473,19 +473,19 @@ export function AIContentModal({
         {aiConnection && aiConnection.status === 'Connected' && isContentAiAvailable && (
           <>
             {/* Provider info pill */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200/90 dark:border-[#334155]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200/90 dark:border-[#334155]">
               <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                 <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                   Connected AI:
                 </span>
-                <span className="text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-800/40 truncate max-w-[200px] sm:max-w-none">
+                <span className="text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-2 py-0.5 rounded-[4px] border border-purple-200 dark:border-purple-800/40 truncate max-w-[200px] sm:max-w-none">
                   {aiConnection.providerDisplayName || aiConnection.providerKey} • {aiConnection.selectedModelDisplayName || aiConnection.selectedModelKey}
                 </span>
               </div>
               <Link
                 href="/admin/ai-models"
-                className="text-xs font-semibold text-[#3B82F6] hover:text-[#2563EB] dark:text-[#60A5FA] flex items-center gap-1 transition-colors shrink-0"
+                className="text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] dark:text-[#60A5FA] flex items-center gap-1 transition-colors shrink-0"
               >
                 <span>Manage</span>
                 <ExternalLink className="w-3 h-3" />
@@ -502,7 +502,7 @@ export function AIContentModal({
                   {currentText.length} characters
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-[#1E293B] text-xs text-slate-800 dark:text-slate-200 max-h-24 overflow-y-auto leading-relaxed select-text font-normal break-words">
+              <div className="p-3 rounded-[8px] bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-[#1E293B] text-xs text-slate-800 dark:text-slate-200 max-h-24 overflow-y-auto leading-relaxed select-text font-normal break-words">
                 {currentText || <span className="italic text-slate-400">No content entered</span>}
               </div>
             </div>
@@ -523,7 +523,7 @@ export function AIContentModal({
                           type="button"
                           onClick={() => setAiOperation(op.key)}
                           className={cn(
-                            'text-left p-3 rounded-xl border transition-all text-xs flex flex-col justify-start gap-1 group min-h-[64px]',
+                            'text-left p-3 rounded-[8px] border transition-all text-xs flex flex-col justify-start gap-1 group min-h-[64px]',
                             isSelected
                               ? 'bg-purple-50 dark:bg-purple-950/30 border-purple-500/80 dark:border-purple-600 text-purple-950 dark:text-purple-200 ring-2 ring-purple-500/20 shadow-xs'
                               : 'bg-white dark:bg-[#0F172A] border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'
@@ -563,14 +563,14 @@ export function AIContentModal({
                       value={aiInstruction}
                       onChange={(e) => setAiInstruction(e.target.value)}
                       placeholder="e.g. Emphasize fast delivery and certified craftsmen"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500"
+                      className="w-full px-3.5 py-2.5 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500"
                     />
                   </FormField>
                 )}
 
                 {/* AI Error Alert */}
                 {aiError && (
-                  <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5">
+                  <div className="p-3.5 rounded-[8px] bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5">
                     <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                     <div className="flex-1">
                       <p className="font-semibold">Unable to Generate Suggestion</p>
@@ -585,16 +585,16 @@ export function AIContentModal({
             {aiSuggestion && (
               <div className="space-y-3.5">
                 {/* Status Badges */}
-                <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155]">
+                <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155]">
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-semibold text-slate-500 dark:text-[#94A3B8]">Review Status:</span>
-                    <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/40">
+                    <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-[4px] border border-amber-200 dark:border-amber-800/40">
                       {aiReviewStatus === 'PendingReview' ? 'Pending Human Review' : aiReviewStatus}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-1">
+                    <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-[4px] border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                       Server-Validated
                     </span>
@@ -602,7 +602,7 @@ export function AIContentModal({
                 </div>
 
                 {/* Guidance Banner */}
-                <div className="p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-800/40 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2">
+                <div className="p-3 rounded-[8px] bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-800/40 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2">
                   <InfoTooltip content="AI suggestions are untrusted until explicitly accepted. Accepting applies the suggestion to your form. The original text is preserved until you accept." />
                   <div className="space-y-0.5">
                     <p className="font-semibold text-blue-950 dark:text-blue-100">Human Review Required</p>
@@ -614,7 +614,7 @@ export function AIContentModal({
 
                 {/* Conflict Alert */}
                 {aiConflictError && (
-                  <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700/50 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
+                  <div className="p-3 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700/50 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                     <div className="space-y-0.5">
                       <p className="font-semibold">Conflict Detected</p>
@@ -627,7 +627,7 @@ export function AIContentModal({
 
                 {/* AI Error Alert */}
                 {aiError && !aiConflictError && (
-                  <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5">
+                  <div className="p-3.5 rounded-[8px] bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5">
                     <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                     <div>
                       <p className="font-semibold">Review Action Failed</p>
@@ -644,7 +644,7 @@ export function AIContentModal({
                         <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                         AI Suggestion
                       </span>
-                      <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-800/40">
+                      <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-2 py-0.5 rounded-[4px] border border-purple-200 dark:border-purple-800/40">
                         Editable before acceptance
                       </span>
                     </div>
@@ -661,7 +661,7 @@ export function AIContentModal({
                     lang="en"
                     value={aiEditableSuggestion}
                     onChange={(e) => setAiEditableSuggestion(e.target.value)}
-                    className="w-full p-3.5 rounded-xl border border-purple-300 dark:border-purple-700 bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 leading-relaxed font-normal shadow-xs"
+                    className="w-full p-3.5 rounded-[6px] border border-purple-300 dark:border-purple-700 bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 leading-relaxed font-normal shadow-xs"
                     placeholder="AI suggestion will appear here..."
                   />
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">

@@ -546,17 +546,17 @@ export default function ContentPage() {
     return (
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="space-y-2">
-          <Skeleton className="h-8 w-64 rounded-xl" />
-          <Skeleton className="h-4 w-96 rounded-lg" />
+          <Skeleton className="h-8 w-64 rounded-[8px]" />
+          <Skeleton className="h-4 w-96 rounded-[6px]" />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-4 space-y-3">
-            <Skeleton className="h-28 w-full rounded-2xl" />
-            <Skeleton className="h-96 w-full rounded-2xl" />
+            <Skeleton className="h-28 w-full rounded-[8px]" />
+            <Skeleton className="h-96 w-full rounded-[8px]" />
           </div>
           <div className="lg:col-span-8 space-y-4">
-            <Skeleton className="h-64 w-full rounded-2xl" />
-            <Skeleton className="h-64 w-full rounded-2xl" />
+            <Skeleton className="h-64 w-full rounded-[8px]" />
+            <Skeleton className="h-64 w-full rounded-[8px]" />
           </div>
         </div>
       </div>
@@ -576,7 +576,7 @@ export default function ContentPage() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-sm">
           <EmptyState
             icon={<ShieldCheck className="w-8 h-8 text-amber-500" />}
             title="Business Context Confirmation Required"
@@ -620,7 +620,7 @@ export default function ContentPage() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-sm">
           <EmptyState
             icon={<Layers className="w-8 h-8 text-blue-500" />}
             title="No Website Sections Available"
@@ -655,7 +655,7 @@ export default function ContentPage() {
         </div>
 
         {/* Connected Website Status Card */}
-        <div className="flex items-center gap-3 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl px-4 py-2.5 shadow-xs self-start sm:self-auto shrink-0 max-w-full">
+        <div className="flex items-center gap-3 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] px-4 py-2.5 shadow-xs self-start sm:self-auto shrink-0 max-w-full">
           <div className="relative flex items-center justify-center shrink-0">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
             <span className="absolute w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-75" />
@@ -672,7 +672,7 @@ export default function ContentPage() {
                 href={website.domain.startsWith('http') ? website.domain : `http://${website.domain}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] text-slate-500 hover:text-[#3B82F6] dark:text-[#94A3B8] dark:hover:text-[#3B82F6] font-mono truncate max-w-[280px] flex items-center gap-1 transition-colors"
+                className="text-[11px] text-slate-500 hover:text-[#315FEA] dark:text-[#94A3B8] dark:hover:text-[#315FEA] font-mono truncate max-w-[280px] flex items-center gap-1 transition-colors"
                 title="Open live website in new tab"
               >
                 <span className="truncate">{website.domain}</span>
@@ -692,7 +692,7 @@ export default function ContentPage() {
         
         {/* Left Column: Navigation List of Supported Sections */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-4 shadow-sm">
+          <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-4 shadow-sm">
             <div className="flex items-center justify-between pb-3 mb-2 border-b border-slate-100 dark:border-[#1E293B]">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
                 Website Sections ({sections.length})
@@ -714,7 +714,7 @@ export default function ContentPage() {
                     type="button"
                     onClick={() => handleSelectSection(sec.sectionKey)}
                     className={cn(
-                      'w-full text-left p-3 rounded-xl transition-all flex items-center justify-between gap-3 group',
+                      'w-full text-left p-3 rounded-[6px] transition-all flex items-center justify-between gap-3 group',
                       isSelected
                         ? 'bg-amber-50 dark:bg-amber-950/20 border border-amber-300/80 dark:border-amber-600/40 text-amber-900 dark:text-amber-200 shadow-xs'
                         : 'hover:bg-slate-50 dark:hover:bg-[#1E293B]/50 border border-transparent text-slate-700 dark:text-slate-300'
@@ -723,9 +723,9 @@ export default function ContentPage() {
                     <div className="flex items-center gap-3 min-w-0">
                       <div
                         className={cn(
-                          'p-2 rounded-lg transition-colors flex-shrink-0',
+                          'p-2 rounded-[6px] transition-colors flex-shrink-0',
                           isSelected
-                            ? 'bg-[#FF7043] text-white shadow-xs'
+                            ? 'bg-[#315FEA] text-white shadow-xs'
                             : 'bg-slate-100 dark:bg-[#1E293B] text-slate-500 dark:text-[#94A3B8] group-hover:text-slate-900 dark:group-hover:text-white'
                         )}
                       >
@@ -753,7 +753,7 @@ export default function ContentPage() {
                     <ChevronRight
                       className={cn(
                         'w-4 h-4 transition-transform flex-shrink-0',
-                        isSelected ? 'text-amber-700 dark:text-amber-400 translate-x-0.5' : 'text-slate-300 dark:text-slate-600'
+                        isSelected ? 'text-[#315FEA] translate-x-0.5' : 'text-slate-300 dark:text-slate-600'
                       )}
                     />
                   </button>
@@ -763,9 +763,9 @@ export default function ContentPage() {
           </div>
 
           {/* Quick Help Card */}
-          <div className="bg-slate-50/70 dark:bg-[#0B1120]/40 border border-slate-200 dark:border-[#1E293B] rounded-2xl p-4 text-xs text-slate-500 dark:text-[#94A3B8] space-y-2">
+          <div className="bg-slate-50/70 dark:bg-[#0B1120]/40 border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-4 text-xs text-slate-500 dark:text-[#94A3B8] space-y-2">
             <div className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-200">
-              <HelpCircle className="w-3.5 h-3.5 text-blue-500" />
+              <HelpCircle className="w-3.5 h-3.5 text-[#315FEA]" />
               <span>Controlled CMS Principles</span>
             </div>
             <p className="leading-relaxed text-[11px]">
@@ -777,12 +777,12 @@ export default function ContentPage() {
         {/* Right Column: Section Content Editor Form */}
         <div className="lg:col-span-8">
           {activeSection ? (
-            <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] shadow-sm overflow-hidden">
               
               {/* Section Header */}
               <div className="p-6 border-b border-slate-100 dark:border-[#1E293B] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-[#FF7043] border border-amber-200/60 dark:border-amber-700/30">
+                  <div className="p-2.5 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20">
                     <SectionIcon className="w-5 h-5" />
                   </div>
                   <div>
@@ -790,7 +790,7 @@ export default function ContentPage() {
                       <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                         {currentTitle}
                       </h2>
-                      <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300">
+                      <span className="text-[11px] font-mono uppercase px-2 py-0.5 rounded-[4px] bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300">
                         {activeSection.sectionKey}
                       </span>
                     </div>
@@ -801,12 +801,12 @@ export default function ContentPage() {
                 </div>
 
                 {/* Editor vs Payload Tabs */}
-                <div className="flex items-center bg-slate-100 dark:bg-[#1E293B] p-1 rounded-xl self-start sm:self-auto">
+                <div className="flex items-center bg-slate-100 dark:bg-[#1E293B] p-1 rounded-[6px] self-start sm:self-auto">
                   <button
                     type="button"
                     onClick={() => setActiveTab('editor')}
                     className={cn(
-                      'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5',
+                      'px-3 py-1.5 rounded-[4px] text-xs font-semibold transition-all flex items-center gap-1.5',
                       activeTab === 'editor'
                         ? 'bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white shadow-xs'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -819,7 +819,7 @@ export default function ContentPage() {
                     type="button"
                     onClick={() => setActiveTab('preview')}
                     className={cn(
-                      'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5',
+                      'px-3 py-1.5 rounded-[4px] text-xs font-semibold transition-all flex items-center gap-1.5',
                       activeTab === 'preview'
                         ? 'bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white shadow-xs'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -858,7 +858,7 @@ export default function ContentPage() {
                           </span>
                         )}
                       </div>
-                      <pre className="p-4 rounded-xl bg-slate-900 text-slate-200 text-xs font-mono overflow-auto max-h-96 leading-relaxed">
+                      <pre className="p-4 rounded-[8px] bg-slate-900 text-slate-200 text-xs font-mono overflow-auto max-h-96 leading-relaxed">
                         {JSON.stringify(draftPayload, null, 2)}
                       </pre>
                     </div>
@@ -872,7 +872,7 @@ export default function ContentPage() {
                           v{activeSection.version}
                         </span>
                       </div>
-                      <pre className="p-4 rounded-xl bg-slate-900 text-slate-200 text-xs font-mono overflow-auto max-h-96 leading-relaxed">
+                      <pre className="p-4 rounded-[8px] bg-slate-900 text-slate-200 text-xs font-mono overflow-auto max-h-96 leading-relaxed">
                         {JSON.stringify(activeSection.publishedFields || {}, null, 2)}
                       </pre>
                     </div>
@@ -881,7 +881,7 @@ export default function ContentPage() {
               )}
 
               {/* Actions Footer */}
-              <div className="p-4 sm:p-6 bg-slate-50/80 dark:bg-[#0B1120]/60 border-t border-slate-200 dark:border-[#1E293B] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="p-4 sm:p-6 bg-slate-50/80 dark:bg-[#0B1220]/60 border-t border-slate-200 dark:border-[#1E293B] flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-[#94A3B8] self-start sm:self-auto">
                   {isDirty ? (
                     <span className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-medium">
@@ -943,7 +943,7 @@ export default function ContentPage() {
 
             </div>
           ) : (
-            <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-12 text-center text-slate-500">
+            <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-12 text-center text-slate-500">
               <p className="text-sm font-medium">Select a section from the left navigation to begin editing.</p>
             </div>
           )}
@@ -984,7 +984,7 @@ export default function ContentPage() {
         }
       >
         <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155] space-y-2.5">
+          <div className="p-4 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155] space-y-2.5">
             <div className="flex items-center justify-between text-xs">
               <span className="text-slate-500 dark:text-[#94A3B8]">Target Section</span>
               <span className="font-semibold text-slate-800 dark:text-slate-200">
@@ -1006,7 +1006,7 @@ export default function ContentPage() {
           </div>
 
           {isDirty && (
-            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-700/30 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2.5">
+            <div className="p-3.5 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-700/30 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold">Unsaved edits detected</p>
@@ -1149,7 +1149,7 @@ export default function ContentPage() {
         <div className="space-y-4 sm:space-y-4.5 pb-1">
           {/* Case 1: Checking / Loading AI Connection state */}
           {isLoadingAiConnection && !aiConnection && (
-            <div className="p-8 rounded-xl bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155] flex flex-col items-center justify-center text-center space-y-3">
+            <div className="p-8 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155] flex flex-col items-center justify-center text-center space-y-3">
               <RefreshCw className="w-6 h-6 text-purple-600 dark:text-purple-400 animate-spin" />
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -1164,7 +1164,7 @@ export default function ContentPage() {
 
           {/* Case 2: Verification Error (Unable to verify, network error, 500, etc.) */}
           {!isLoadingAiConnection && aiConnectionError && !aiConnection && (
-            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
+            <div className="p-4 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
               <div className="flex items-start gap-2.5">
                 <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div className="text-xs text-amber-900 dark:text-amber-200 space-y-1">
@@ -1200,7 +1200,7 @@ export default function ContentPage() {
 
           {/* Case 3: AI Provider Not Connected */}
           {!isLoadingAiConnection && aiConnection && aiConnection.status === 'NotConnected' && (
-            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
+            <div className="p-4 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
               <div className="flex items-start gap-2.5">
                 <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div className="text-xs text-amber-900 dark:text-amber-200 space-y-1">
@@ -1228,7 +1228,7 @@ export default function ContentPage() {
 
           {/* Case 4: Invalid Configuration (failed credential) */}
           {!isLoadingAiConnection && aiConnection && aiConnection.status === 'Invalid' && (
-            <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 space-y-3">
+            <div className="p-4 rounded-[8px] bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 space-y-3">
               <div className="flex items-start gap-2.5">
                 <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
                 <div className="text-xs text-red-900 dark:text-red-200 space-y-1">
@@ -1256,7 +1256,7 @@ export default function ContentPage() {
 
           {/* Case 5: Connected but Model Does Not Support Content AI */}
           {!isLoadingAiConnection && aiConnection && aiConnection.status === 'Connected' && !isContentAiAvailable && (
-            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
+            <div className="p-4 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
               <div className="flex items-start gap-2.5">
                 <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div className="text-xs text-amber-900 dark:text-amber-200 space-y-1">
@@ -1286,7 +1286,7 @@ export default function ContentPage() {
           {aiConnection && aiConnection.status === 'Connected' && isContentAiAvailable && (
             <>
               {/* AI Provider & Model Status Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200/90 dark:border-[#334155]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200/90 dark:border-[#334155]">
                 <div className="flex flex-wrap items-center gap-2 min-w-0">
                   <div className="flex items-center gap-1.5 shrink-0">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -1294,17 +1294,17 @@ export default function ContentPage() {
                       Connected AI:
                     </span>
                   </div>
-                  <span className="text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800/40">
+                  <span className="text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-[4px] border border-purple-200 dark:border-purple-800/40">
                     {aiConnection.providerDisplayName || aiConnection.providerKey} • {aiConnection.selectedModelDisplayName || aiConnection.selectedModelKey}
                   </span>
-                  <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40 shrink-0">
+                  <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-[4px] border border-emerald-200 dark:border-emerald-800/40 shrink-0">
                     Content AI available
                   </span>
                 </div>
 
                 <Link
                   href="/admin/ai-models"
-                  className="text-xs font-semibold text-[#3B82F6] hover:text-[#2563EB] dark:text-[#60A5FA] flex items-center gap-1 transition-colors shrink-0 self-start sm:self-auto"
+                  className="text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] dark:text-[#60A5FA] flex items-center gap-1 transition-colors shrink-0 self-start sm:self-auto"
                 >
                   <span>Manage AI Provider</span>
                   <ExternalLink className="w-3 h-3" />
@@ -1321,7 +1321,7 @@ export default function ContentPage() {
                     {aiFieldInfo?.currentText.length || 0} characters
                   </span>
                 </div>
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-[#1E293B] text-xs text-slate-800 dark:text-slate-200 max-h-24 overflow-y-auto leading-relaxed select-text font-normal break-words">
+                <div className="p-3 rounded-[8px] bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-[#1E293B] text-xs text-slate-800 dark:text-slate-200 max-h-24 overflow-y-auto leading-relaxed select-text font-normal break-words">
                   {aiFieldInfo?.currentText || <span className="italic text-slate-400">No content entered</span>}
                 </div>
               </div>
@@ -1342,7 +1342,7 @@ export default function ContentPage() {
                             type="button"
                             onClick={() => setAiOperation(op.key)}
                             className={cn(
-                              'text-left p-3 rounded-xl border transition-all text-xs flex flex-col justify-start gap-1 group min-h-[68px] sm:min-h-[72px]',
+                              'text-left p-3 rounded-[8px] border transition-all text-xs flex flex-col justify-start gap-1 group min-h-[68px] sm:min-h-[72px]',
                               isSelected
                                 ? 'bg-purple-50 dark:bg-purple-950/30 border-purple-500/80 dark:border-purple-600 text-purple-950 dark:text-purple-200 ring-2 ring-purple-500/20 shadow-xs'
                                 : 'bg-white dark:bg-[#0F172A] border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'
@@ -1382,14 +1382,14 @@ export default function ContentPage() {
                         value={aiInstruction}
                         onChange={(e) => setAiInstruction(e.target.value)}
                         placeholder="e.g., Make it emphasize our 15 years of bespoke residential experience"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500"
+                        className="w-full px-3.5 py-2.5 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500"
                       />
                     </FormField>
                   )}
 
                   {/* AI Error Alert */}
                   {aiError && (
-                    <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5">
+                    <div className="p-3.5 rounded-[8px] bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5">
                       <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                       <div className="flex-1">
                         <p className="font-semibold">Unable to Generate Suggestion</p>
@@ -1404,16 +1404,16 @@ export default function ContentPage() {
               {aiSuggestion && (
                 <div className="space-y-3.5">
                   {/* Status Badges & Validation State */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155]">
+                  <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155]">
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] font-semibold text-slate-500 dark:text-[#94A3B8]">Review Status:</span>
-                      <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/40">
+                      <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-[4px] border border-amber-200 dark:border-amber-800/40">
                         {aiReviewStatus === 'PendingReview' ? 'Pending Human Review' : aiReviewStatus}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-1">
+                      <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-[4px] border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                         Server-Validated
                       </span>
@@ -1421,7 +1421,7 @@ export default function ContentPage() {
                   </div>
 
                   {/* Information Guidance Banner */}
-                  <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-800/40 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2.5">
+                  <div className="p-3.5 rounded-[8px] bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-800/40 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2.5">
                     <InfoTooltip content="AI suggestions are untrusted until explicitly accepted. Accepting applies the suggestion to your draft only. Live website content is never modified automatically." />
                     <div className="space-y-0.5">
                       <p className="font-semibold text-blue-950 dark:text-blue-100">Human Review Required</p>
@@ -1433,7 +1433,7 @@ export default function ContentPage() {
 
                   {/* Conflict Alert (Stale draft protection) */}
                   {aiConflictError && (
-                    <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700/50 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
+                    <div className="p-3.5 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700/50 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
                       <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                       <div className="space-y-1">
                         <p className="font-semibold">Draft Conflict Detected</p>
@@ -1446,7 +1446,7 @@ export default function ContentPage() {
 
                   {/* AI Error Alert */}
                   {aiError && !aiConflictError && (
-                    <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5">
+                    <div className="p-3.5 rounded-[8px] bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5">
                       <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                       <div>
                         <p className="font-semibold">Review Action Failed</p>
@@ -1462,7 +1462,7 @@ export default function ContentPage() {
                           <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                           AI Suggestion
                         </span>
-                        <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-800/40">
+                        <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-2 py-0.5 rounded-[4px] border border-purple-200 dark:border-purple-800/40">
                           Editable before acceptance
                         </span>
                       </div>
@@ -1479,7 +1479,7 @@ export default function ContentPage() {
                       lang="en"
                       value={aiEditableSuggestion}
                       onChange={(e) => setAiEditableSuggestion(e.target.value)}
-                      className="w-full p-3.5 rounded-xl border border-purple-300 dark:border-purple-700 bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 leading-relaxed font-normal shadow-xs"
+                      className="w-full p-3.5 rounded-[6px] border border-purple-300 dark:border-purple-700 bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 leading-relaxed font-normal shadow-xs"
                       placeholder="AI suggestion will appear here..."
                     />
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
@@ -1537,7 +1537,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
               lang="en"
               value={typeof value[k] === 'string' ? value[k] : JSON.stringify(value[k])}
               onChange={(e) => onChange(k, e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FF7043]/30 focus:border-[#FF7043]"
+              className="w-full px-3.5 py-2.5 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]/20 focus:border-[#315FEA]"
             />
           </FormField>
         ))}
@@ -1570,9 +1570,9 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                   }
                   disabled={!value[field.key] || typeof value[field.key] !== 'string' || !value[field.key].trim()}
                   title={value[field.key] ? 'Improve with AI' : 'Enter some text first to improve with AI'}
-                  className="inline-flex items-center flex-row flex-nowrap whitespace-nowrap gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="inline-flex items-center flex-row flex-nowrap whitespace-nowrap gap-1.5 px-2.5 py-1 rounded-[6px] text-xs font-semibold text-[#7950B8] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#7950B8] dark:text-purple-400 shrink-0" />
                   <span>Improve with AI</span>
                 </button>
               }
@@ -1587,7 +1587,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                 value={value[field.key] ?? ''}
                 onChange={(e) => onChange(field.key, e.target.value)}
                 placeholder={field.placeholder}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FF7043]/30 focus:border-[#FF7043] transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#315FEA]/20 focus:border-[#315FEA] transition-colors"
               />
             </FormField>
           );
@@ -1615,9 +1615,9 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                   }
                   disabled={!value[field.key] || typeof value[field.key] !== 'string' || !value[field.key].trim()}
                   title={value[field.key] ? 'Improve with AI' : 'Enter some text first to improve with AI'}
-                  className="inline-flex items-center flex-row flex-nowrap whitespace-nowrap gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="inline-flex items-center flex-row flex-nowrap whitespace-nowrap gap-1.5 px-2.5 py-1 rounded-[6px] text-xs font-semibold text-[#7950B8] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#7950B8] dark:text-purple-400 shrink-0" />
                   <span>Improve with AI</span>
                 </button>
               }
@@ -1632,7 +1632,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                 value={value[field.key] ?? ''}
                 onChange={(e) => onChange(field.key, e.target.value)}
                 placeholder={field.placeholder}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FF7043]/30 focus:border-[#FF7043] leading-relaxed transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#315FEA]/20 focus:border-[#315FEA] leading-relaxed transition-colors"
               />
             </FormField>
           );
@@ -1648,7 +1648,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
               <div className="flex items-center gap-1.5 mb-1.5">
                 <label className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-[#E2E8F0] select-none">
                   {field.label}
-                  {field.required && <span className="text-[#FF7043] ml-1">*</span>}
+                  {field.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
                 {field.tooltip && <InfoTooltip content={field.tooltip} />}
               </div>
@@ -1672,7 +1672,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                           onChange(field.key, updated);
                         }}
                         placeholder={`Item ${idx + 1}`}
-                        className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FF7043]/30 focus:border-[#FF7043]"
+                        className="flex-1 px-3.5 py-2 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#315FEA]/20 focus:border-[#315FEA]"
                       />
                       <button
                         type="button"
@@ -1680,7 +1680,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                           const updated = list.filter((_, i) => i !== idx);
                           onChange(field.key, updated);
                         }}
-                        className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                        className="p-2 rounded-[6px] text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                         title="Remove item"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1717,7 +1717,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                 <div className="flex items-center gap-1.5">
                   <label className="block text-xs sm:text-sm font-bold text-slate-800 dark:text-[#E2E8F0]">
                     {field.label}
-                    {field.required && <span className="text-[#FF7043] ml-1">*</span>}
+                    {field.required && <span className="text-red-500 ml-1">*</span>}
                   </label>
                   {field.tooltip && <InfoTooltip content={field.tooltip} />}
                 </div>
@@ -1727,7 +1727,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
               </div>
 
               {items.length === 0 ? (
-                <div className="p-4 rounded-xl border border-dashed border-slate-200 dark:border-[#1E293B] text-center text-xs text-slate-400">
+                <div className="p-4 rounded-[8px] border border-dashed border-slate-200 dark:border-[#1E293B] text-center text-xs text-slate-400">
                   No items configured. Click &quot;Add {field.label.replace(/s$/, '') || 'Item'}&quot; below to add one.
                 </div>
               ) : (
@@ -1745,7 +1745,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                     return (
                       <div
                         key={itemIdx}
-                        className="p-4 rounded-xl border border-slate-200 dark:border-[#1E293B] bg-slate-50/60 dark:bg-[#0B1120]/40 space-y-4"
+                        className="p-4 rounded-[8px] border border-slate-200 dark:border-[#1E293B] bg-slate-50/60 dark:bg-[#0B1120]/40 space-y-4"
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
@@ -1757,7 +1757,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                               const updated = items.filter((_, i) => i !== itemIdx);
                               onChange(field.key, updated);
                             }}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                            className="p-1.5 rounded-[6px] text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                             title="Remove item"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1788,9 +1788,9 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                                   }
                                   disabled={!item[subField.key] || typeof item[subField.key] !== 'string' || !item[subField.key].trim()}
                                   title={item[subField.key] ? 'Improve with AI' : 'Enter some text first to improve with AI'}
-                                  className="inline-flex items-center flex-row flex-nowrap whitespace-nowrap gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                  className="inline-flex items-center flex-row flex-nowrap whitespace-nowrap gap-1 px-2 py-0.5 rounded-[4px] text-[11px] font-semibold text-[#7950B8] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
-                                  <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400 shrink-0" />
+                                  <Sparkles className="w-3 h-3 text-[#7950B8] dark:text-purple-400 shrink-0" />
                                   <span>Improve with AI</span>
                                 </button>
                               }
@@ -1810,7 +1810,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                                     onChange(field.key, updated);
                                   }}
                                   placeholder={subField.placeholder}
-                                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FF7043]/30 focus:border-[#FF7043]"
+                                  className="w-full px-3 py-2 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#315FEA]/20 focus:border-[#315FEA]"
                                 />
                               ) : (
                                 <input
@@ -1827,7 +1827,7 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                                     onChange(field.key, updated);
                                   }}
                                   placeholder={subField.placeholder}
-                                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FF7043]/30 focus:border-[#FF7043]"
+                                  className="w-full px-3 py-2 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#315FEA]/20 focus:border-[#315FEA]"
                                 />
                               )}
                             </FormField>

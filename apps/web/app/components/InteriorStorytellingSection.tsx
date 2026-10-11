@@ -60,7 +60,7 @@ function AlternatingStorytelling({ categories }: { categories: CategoryItem[] })
             {/* Visual Column */}
             <div className="w-full lg:w-3/5">
               <FadeIn direction={isEven ? "right" : "left"} delay={0.1}>
-                <div className="relative w-full rounded-2xl overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3] sm:aspect-[16/10]">
+                <div className="relative w-full rounded-panel overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3] sm:aspect-[16/10]">
                   <Image
                     src={getCategoryImage(cat)}
                     alt={displayName}

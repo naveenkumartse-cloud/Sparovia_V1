@@ -67,14 +67,14 @@ function SidebarView({
             <span className="font-extrabold text-xl text-brand-gradient tracking-tight">
               SPAROVIA
             </span>
-            <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
+            <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20">
               ADMIN
             </span>
           </Link>
           <button
             type="button"
             onClick={onClose}
-            className="h-11 w-11 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-900 dark:text-[#94A3B8] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#3B82F6]"
+            className="h-10 w-10 flex items-center justify-center rounded-[6px] text-slate-500 hover:text-slate-900 dark:text-[#94A3B8] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
             aria-label="Close navigation menu"
           >
             <X className="h-5 w-5" aria-hidden="true" />
@@ -84,7 +84,7 @@ function SidebarView({
         <div className="flex h-16 shrink-0 items-center justify-center border-b border-slate-200 dark:border-[#1E293B]">
           <Link 
             href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} 
-            className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#3B82F6] to-[#8B3FD1] flex items-center justify-center text-white font-extrabold text-base shadow-sm hover:opacity-90 transition-opacity"
+            className="w-10 h-10 rounded-[6px] bg-[#315FEA] flex items-center justify-center text-white font-extrabold text-base shadow-xs hover:bg-[#254EDB] transition-colors"
             title="Sparovia Admin"
           >
             S
@@ -96,7 +96,7 @@ function SidebarView({
             <span className="font-extrabold text-xl text-brand-gradient tracking-tight">
               SPAROVIA
             </span>
-            <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
+            <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20">
               ADMIN
             </span>
           </Link>
@@ -106,8 +106,8 @@ function SidebarView({
       {/* Navigation List */}
       <div className={`flex flex-1 flex-col overflow-y-auto ${isCollapsed ? 'px-2 py-4' : 'px-3 py-4'}`}>
         {!isConfirmed && !isCollapsed && (
-          <div className="mb-3 px-3 py-2 bg-[#3B82F6]/10 border border-[#3B82F6]/20 rounded-xl">
-            <p className="text-[11px] font-semibold text-[#3B82F6] dark:text-[#60A5FA]">Onboarding Active</p>
+          <div className="mb-3 px-3 py-2 bg-[#315FEA]/10 border border-[#315FEA]/20 rounded-[8px]">
+            <p className="text-[11px] font-semibold text-[#315FEA] dark:text-[#60A5FA]">Onboarding Active</p>
             <p className="text-[10px] text-slate-500 dark:text-[#94A3B8] mt-0.5">Complete Business Context to unlock full Admin access.</p>
           </div>
         )}
@@ -125,7 +125,7 @@ function SidebarView({
                 return (
                   <div
                     key={item.name}
-                    className="flex items-center justify-center rounded-xl p-2.5 text-slate-400 dark:text-[#475569] cursor-not-allowed opacity-60"
+                    className="flex items-center justify-center rounded-[6px] p-2.5 text-slate-400 dark:text-[#475569] cursor-not-allowed opacity-60"
                     title={`${item.name} (Locked - Complete onboarding to unlock)`}
                   >
                     <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
@@ -135,14 +135,14 @@ function SidebarView({
               return (
                 <div
                   key={item.name}
-                  className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-400 dark:text-[#475569] cursor-not-allowed opacity-60"
+                  className="flex items-center justify-between rounded-[6px] px-3.5 py-2.5 text-xs font-medium text-slate-400 dark:text-[#475569] cursor-not-allowed opacity-60"
                   title="Complete onboarding to unlock this feature"
                 >
                   <div className="flex items-center">
                     <item.icon className="mr-3 h-4 w-4 flex-shrink-0 text-slate-400 dark:text-[#475569]" aria-hidden="true" />
                     <span className="truncate">{item.name}</span>
                   </div>
-                  <span className="text-[9px] uppercase tracking-wider font-semibold px-1 py-0.5 rounded bg-slate-100 dark:bg-[#1E293B] text-slate-500 dark:text-[#64748B]">Locked</span>
+                  <span className="text-[9px] uppercase tracking-wider font-semibold px-1 py-0.5 rounded-[4px] bg-slate-100 dark:bg-[#1E293B] text-slate-500 dark:text-[#64748B]">Locked</span>
                 </div>
               );
             }
@@ -207,7 +207,7 @@ function SidebarView({
           <Link 
             href="/admin/account"
             title={userFullName || userEmail || 'Account'}
-            className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3B82F6] to-[#8B3FD1] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm hover:opacity-90 transition-opacity"
+            className="w-10 h-10 rounded-[6px] bg-[#315FEA] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-xs hover:bg-[#254EDB] transition-colors"
           >
             {userFullName ? userFullName[0].toUpperCase() : 'U'}
           </Link>
@@ -219,11 +219,11 @@ function SidebarView({
             className="flex items-center space-x-3 group hover:opacity-90 transition-opacity"
             onClick={onNavigate}
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#3B82F6] to-[#8B3FD1] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">
+            <div className="w-8 h-8 rounded-[6px] bg-[#315FEA] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-xs">
               {userFullName ? userFullName[0].toUpperCase() : 'U'}
             </div>
             <div className="flex-1 min-w-0 text-left">
-              <p className="text-xs font-semibold text-slate-800 dark:text-white truncate group-hover:text-[#3B82F6] transition-colors">
+              <p className="text-xs font-semibold text-slate-800 dark:text-white truncate group-hover:text-[#315FEA] transition-colors">
                 {userFullName || 'Business Owner'}
               </p>
               <p className="text-[11px] text-slate-500 dark:text-[#64748B] truncate">{userEmail}</p>
@@ -294,7 +294,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex items-center justify-center">
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-3 border-[#3B82F6]/30 border-t-[#3B82F6] rounded-full animate-spin mx-auto" />
+          <div className="w-10 h-10 border-3 border-[#315FEA]/30 border-t-[#315FEA] rounded-full animate-spin mx-auto" />
           <p className="text-sm font-medium text-slate-500 dark:text-[#94A3B8]">Loading secure workspace...</p>
         </div>
       </div>
@@ -367,7 +367,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             {/* Mobile/Tablet Hamburger Toggle (< lg) */}
             <button
               type="button"
-              className="lg:hidden h-11 w-11 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] text-slate-700 dark:text-slate-200 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#3B82F6]"
+              className="lg:hidden h-10 w-10 flex items-center justify-center rounded-[6px] bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] text-slate-700 dark:text-slate-200 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
               onClick={() => setMobileMenuOpen(true)}
               aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={mobileMenuOpen}
@@ -380,7 +380,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <div className="lg:hidden flex items-center space-x-2">
               <Link href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} className="flex items-center space-x-2">
                 <span className="font-extrabold text-lg text-brand-gradient tracking-tight">SPAROVIA</span>
-                <span className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
+                <span className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20">
                   ADMIN
                 </span>
               </Link>
@@ -389,7 +389,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             {/* Desktop Sidebar Rail Toggle Button (lg+) */}
             <button
               type="button"
-              className="hidden lg:flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] text-slate-600 dark:text-slate-300 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#3B82F6]"
+              className="hidden lg:flex h-9 w-9 items-center justify-center rounded-[6px] bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] text-slate-600 dark:text-slate-300 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
               onClick={() => setDesktopCollapsed(!desktopCollapsed)}
               aria-label={desktopCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               title={desktopCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -409,7 +409,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center space-x-2 sm:space-x-3">
             {/* Quick theme toggle */}
-            <div className="flex items-center bg-slate-100 dark:bg-[#1E293B] p-1 rounded-xl border border-slate-200 dark:border-[#334155]/60" title={`Current appearance: ${theme}`}>
+            <div className="flex items-center bg-slate-100 dark:bg-[#1E293B] p-1 rounded-[8px] border border-slate-200 dark:border-[#334155]/60" title={`Current appearance: ${theme}`}>
               <button
                 type="button"
                 onClick={() => setTheme('light')}

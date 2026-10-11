@@ -19,8 +19,8 @@ function generateFaviconSvg(letter: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
     <linearGradient id="clientGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B82F6"/>
-      <stop offset="100%" stop-color="#8B3FD1"/>
+      <stop offset="0%" stop-color="#315FEA"/>
+      <stop offset="100%" stop-color="#7950B8"/>
     </linearGradient>
   </defs>
   <rect width="100" height="100" rx="24" fill="url(#clientGrad)"/>
@@ -55,8 +55,8 @@ function generateFaviconPng(letter: string): Promise<string> {
       ctx.closePath();
 
       const grad = ctx.createLinearGradient(0, 0, 64, 64);
-      grad.addColorStop(0, '#3B82F6');
-      grad.addColorStop(1, '#8B3FD1');
+      grad.addColorStop(0, '#315FEA');
+      grad.addColorStop(1, '#7950B8');
       ctx.fillStyle = grad;
       ctx.fill();
 

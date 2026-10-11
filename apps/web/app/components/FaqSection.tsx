@@ -68,7 +68,7 @@ export default function FaqSection() {
                     >
                       {faq.question}
                     </span>
-                    <div className="w-8 h-8 rounded-full bg-surface group-hover:bg-brand-50 flex items-center justify-center text-charcoal-700 group-hover:text-brand-600 shrink-0 transition-colors">
+                    <div className="w-8 h-8 rounded-[6px] bg-surface group-hover:bg-brand-50 flex items-center justify-center text-charcoal-700 group-hover:text-brand-600 shrink-0 transition-colors">
                       {isOpen ? (
                         <Minus className="w-4 h-4 text-brand-600" />
                       ) : (

@@ -9,7 +9,7 @@ interface TypographyProps {
 
 export function Eyebrow({ children, className, icon = true }: TypographyProps & { icon?: boolean }) {
   return (
-    <div className={cn('inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full badge-purple mb-4 font-sans text-xs uppercase tracking-widest font-semibold', className)}>
+    <div className={cn('inline-flex items-center gap-2 px-3 py-1 rounded-[4px] badge-purple mb-4 font-sans text-xs uppercase tracking-wider font-semibold', className)}>
       {icon && <Sparkles className="w-3.5 h-3.5 text-brand-600" />}
       <span>{children}</span>
     </div>

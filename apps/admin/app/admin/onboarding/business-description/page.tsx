@@ -87,7 +87,7 @@ export default function BusinessDescriptionPage() {
     <div>
       <div className="mb-6">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center">
-          <FileText className="w-5 h-5 mr-2 text-[#3B82F6]" />
+          <FileText className="w-5 h-5 mr-2 text-[#315FEA]" />
           Business Description & Differentiators
         </h2>
         <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
@@ -96,7 +96,7 @@ export default function BusinessDescriptionPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 dark:text-red-300 text-sm" role="alert">
+        <div className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 rounded-[8px] text-red-600 dark:text-red-300 text-sm" role="alert">
           {error}
         </div>
       )}
@@ -106,7 +106,7 @@ export default function BusinessDescriptionPage() {
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
               <label htmlFor="businessDescription" className="block text-xs font-medium text-slate-700 dark:text-[#E2E8F0]">
-                Business Description <span className="text-[#FF7043]">*</span>
+                Business Description <span className="text-red-500">*</span>
               </label>
               <InfoTooltip content="A comprehensive summary of your company, mission, and the core problems you solve for clients." />
             </div>
@@ -115,9 +115,9 @@ export default function BusinessDescriptionPage() {
               onClick={() => handleOpenAi('businessDescription', 'Business Description', formData.businessDescription || '')}
               disabled={!formData.businessDescription?.trim()}
               title={formData.businessDescription?.trim() ? 'Improve with AI' : 'Enter some text first to improve with AI'}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-xs font-semibold text-[#7950B8] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 text-[#7950B8] dark:text-purple-400 shrink-0" />
               <span>Improve with AI</span>
             </button>
           </div>
@@ -132,7 +132,7 @@ export default function BusinessDescriptionPage() {
             value={formData.businessDescription || ''}
             onChange={e => setFormData({ ...formData, businessDescription: e.target.value })}
             placeholder="Tell your story: what your company specializes in, who you serve, and your commitment to excellence..."
-            className="w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+            className="w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
           />
         </div>
 
@@ -140,7 +140,7 @@ export default function BusinessDescriptionPage() {
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
               <label htmlFor="differentiators" className="block text-xs font-medium text-slate-700 dark:text-[#E2E8F0]">
-                Key Differentiators <span className="text-[#FF7043]">*</span>
+                Key Differentiators <span className="text-red-500">*</span>
               </label>
               <InfoTooltip content="Highlight unique strengths, proprietary methods, warranties, certified craftsmen, or superior materials." />
             </div>
@@ -149,9 +149,9 @@ export default function BusinessDescriptionPage() {
               onClick={() => handleOpenAi('differentiators', 'Key Differentiators', formData.differentiators || '')}
               disabled={!formData.differentiators?.trim()}
               title={formData.differentiators?.trim() ? 'Improve with AI' : 'Enter some text first to improve with AI'}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-xs font-semibold text-[#7950B8] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 text-[#7950B8] dark:text-purple-400 shrink-0" />
               <span>Improve with AI</span>
             </button>
           </div>
@@ -166,7 +166,7 @@ export default function BusinessDescriptionPage() {
             value={formData.differentiators || ''}
             onChange={e => setFormData({ ...formData, differentiators: e.target.value })}
             placeholder="e.g. 10-year comprehensive warranty, certified in-house master installers, precision German hardware..."
-            className="w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
+            className="w-full bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#64748B] text-sm focus:outline-none focus:border-[#315FEA] focus:ring-1 focus:ring-[#315FEA]"
           />
         </div>
 
