@@ -58,9 +58,9 @@ export default function RootLayout({
           <WebsiteContentProvider>
             <DynamicFavicon />
             {children}
+            <SocialControl />
           </WebsiteContentProvider>
         </SmoothScrollProvider>
-        <SocialControl />
       </body>
     </html>
   );
