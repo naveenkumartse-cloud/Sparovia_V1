@@ -466,8 +466,16 @@ Provide a simple overview of the client's website management state.
 ```text
 Welcome back, [Business Name]
 
-Website
-[Connected / Needs Attention]
+Summary Cards:
+- Website Status [Connected / Live]
+- Recent Website Updates [Draft / Published]
+- Customer Leads [Count of genuine submitted enquiries]
+- Contact Activity [Total clicks on WhatsApp, Facebook, Instagram links]
+  * WhatsApp clicks count
+  * Facebook clicks count
+  * Instagram clicks count
+  * Note: Outbound link clicks only; does not guarantee message delivery.
+  * Link: View activity log → /admin/leads?tab=activity
 
 Quick Actions
 [Edit Website Content]
@@ -483,9 +491,9 @@ Recent Leads
 
 ### Dashboard should not become
 
-* Analytics dashboard
-* CRM dashboard
-* Marketing dashboard
+* Complex analytics dashboard
+* CRM pipeline dashboard
+* Marketing campaign dashboard
 * AI dashboard
 
 Keep V1 simple.
@@ -1233,17 +1241,21 @@ Enhancement must not be presented as a way to:
 Path:
 
 ```text
-Leads
+/admin/leads
 ```
 
-Supported lead sources:
+The Leads area contains two distinct views via top navigation tabs:
 
-```text
-Website
-WhatsApp
-```
+1. **Customer Leads (`?tab=leads` / default):**
+   Genuine submitted customer enquiries. Supported lead sources:
+   ```text
+   Website (contact form submissions)
+   WhatsApp (verified inbound webhook messages)
+   ```
+   WhatsApp lead intake is available only when the client's supported WhatsApp integration is configured.
 
-WhatsApp is available only when the client's supported WhatsApp integration is configured.
+2. **Contact Activity (`?tab=activity`):**
+   Lightweight interaction audit capturing outbound clicks on WhatsApp template choices and social profile links (Facebook, Instagram). Strictly isolated from Leads — clicks never create or increment confirmed enquiries.
 
 ---
 
@@ -1409,6 +1421,63 @@ No V1:
 
 ---
 
+# 48B. Public Website Contact Choices & Social Links
+
+### WhatsApp Template Choices
+
+* Floating control / quick actions bar and contact section offer 3–4 independent WhatsApp choice buttons.
+* Only active templates configured by the client are displayed.
+* Clicking any template opens WhatsApp (`https://wa.me/{phone}?text={encodedText}`) directly in a new window/tab with the template text prefilled.
+* Templates are independent: any choice can be opened directly without selecting another.
+* Dispatches non-blocking beacon/fetch to `POST /api/v1/contact-activity/public` with channel `WhatsApp` and template ID/title.
+* If WhatsApp is unconfigured or has no active templates, a safe fallback renders without broken actions.
+* Never displays misleading text implying that the message was sent or received.
+
+### Social Profile Links
+
+* Outbound links to client Facebook page/profile and Instagram profile in header/footer/contact surfaces.
+* Rendered only when valid and enabled by the client.
+* Strict URL validation permits only `http` or `https` protocols; blocks `javascript:`, `data:`, or open redirect abuse.
+* Dispatches non-blocking beacon/fetch to `POST /api/v1/contact-activity/public` with channel `Facebook` or `Instagram`.
+
+---
+
+# 48C. Contact Activity View (`/admin/leads?tab=activity`)
+
+### Purpose
+
+Provide clients with a transparent, privacy-respecting log of visitor clicks on their WhatsApp templates, Facebook, and Instagram links.
+
+### Screen Layout & Components
+
+1. **Top Notice Banner:**
+   * Informs the client:
+     > "Contact Activity tracks outbound clicks on WhatsApp, Facebook, and Instagram links. These represent visitor interest and external app launches, not confirmed enquiries or delivered messages."
+
+2. **Metric Summary Cards:**
+   * Total Interactions (aggregated count)
+   * WhatsApp (count of clicks across all WhatsApp templates)
+   * Facebook (count of Facebook profile clicks)
+   * Instagram (count of Instagram profile clicks)
+
+3. **Channel Filters:**
+   * Filter pills: `All`, `WhatsApp`, `Facebook`, `Instagram` with live counts.
+
+4. **Activity Log Table:**
+   * Columns:
+     * **Date & Time**: Formatted timestamp.
+     * **Channel**: Colored badge (WhatsApp, Facebook, Instagram).
+     * **Interaction**: Type label (e.g. `Contact Link Clicked`).
+     * **Detail / Template**: Selected template title or profile link target.
+     * **Source Page**: Referrer page / location (e.g., `landing_page`, `website`).
+   * Pagination controls (Page, Next, Previous).
+
+5. **Empty State:**
+   * Polite notice when no outbound activity has been recorded yet:
+     > "No contact activity recorded yet. When visitors click your WhatsApp templates or social links, interactions will appear here."
+
+---
+
 # 49. Settings
 
 ## 49.1 Account
@@ -1466,6 +1535,53 @@ Sparovia does NOT create or present fictional AI models (e.g. "Sparovia Fast" or
 * Form clears credential inputs after successful encryption and persistence.
 * Unapproved, unavailable, or deprecated models cannot be selected.
 * Changing providers or disconnecting shows a clear confirmation modal.
+
+---
+
+## 49.3 Integrations (WhatsApp Templates & Social Profile Links)
+
+Path:
+
+```text
+/admin/account (Integrations Tab)
+```
+
+Allow the client to manage their business WhatsApp number, message templates, and outbound social profile links.
+
+### WhatsApp Configuration & Templates
+
+* **Business WhatsApp Number**:
+  * Phone number input with international digit normalization guidance.
+  * Preview link to verify destination (`wa.me/{number}`).
+* **Default Prefilled Message**:
+  * Fallback message text if no specific template is chosen.
+* **Client-Authored Templates (3–4 Templates)**:
+  * Up to 4 client-authored templates.
+  * Fields per template:
+    * **Template Title**: Input (max 100 characters, required).
+    * **Message Text**: Multiline text area (max 1000 characters, required) with live character counter.
+    * **Active Toggle**: Enable/disable template from appearing on public site.
+    * **Ordering Controls**: `Move Up` and `Move Down` buttons to control public display order.
+    * **Test Link**: Template-specific `Test Link` button opening `https://wa.me/{number}?text={encoded}` in a new tab.
+* **Live Public Choices Preview**:
+  * Interactive preview box showing how independent choice cards will appear to website visitors.
+* **Save Action**:
+  * `[Save WhatsApp Settings]` button with loading, error, and saved states.
+
+### Social Profile Links
+
+* **Facebook Profile**:
+  * Profile URL input.
+  * Active toggle.
+  * Validation: Requires valid URL starting with `http://` or `https://`. Blocks `javascript:` and other unsafe schemes.
+  * `[Test Link]` opens profile in new tab.
+* **Instagram Profile**:
+  * Profile URL input.
+  * Active toggle.
+  * Validation: Requires valid URL starting with `http://` or `https://`. Blocks `javascript:` and other unsafe schemes.
+  * `[Test Link]` opens profile in new tab.
+* **Save Action**:
+  * `[Save Social Links]` button with state feedback.
 
 ---
 
@@ -2118,7 +2234,12 @@ Pilot V1 UX is complete when:
 * [ ] Lead detail works.
 * [ ] Lead status updates work.
 * [ ] Website leads appear correctly.
-* [ ] WhatsApp leads appear correctly when configured.
+* [ ] WhatsApp leads appear correctly when configured via inbound webhook.
+* [ ] WhatsApp templates (3–4 client-authored) configure, reorder, toggle, and preview cleanly.
+* [ ] Social profile links (Facebook, Instagram) configure and validate URLs safely.
+* [ ] Public website renders independent WhatsApp choices and social links with safe fallback.
+* [ ] Outbound clicks log Contact Activity without creating or altering Lead records.
+* [ ] Contact Activity is summarized on Dashboard and detailed under Leads activity tab.
 * [ ] Empty states are implemented.
 * [ ] Loading states are implemented.
 * [ ] Success states are implemented.

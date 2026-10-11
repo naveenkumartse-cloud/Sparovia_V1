@@ -44,7 +44,10 @@ Implementation includes:
 - AI image enhancement
 - Image approval and publishing
 - Website lead intake
-- WhatsApp lead intake when configured
+- WhatsApp lead intake when configured via incoming message webhook
+- WhatsApp outbound contact template choices (3–4 client-authored)
+- Social profile links (Facebook, Instagram)
+- Contact Activity tracking (strictly isolated from confirmed Leads)
 - Lead management
 - Tenant isolation
 - Audit/change tracking
@@ -828,6 +831,40 @@ Where available:
 
 ---
 
+# 14B. Phase 9B — WhatsApp Templates, Social Links & Contact Activity
+
+## Objective
+
+Empower clients to configure 3–4 client-authored WhatsApp contact templates and social profile links (Facebook, Instagram), provide independent choices on the public website, and track outbound contact clicks as lightweight Contact Activity while keeping them strictly separated from Leads.
+
+## Scope
+
+* Admin configuration for 3–4 client-authored WhatsApp message templates (title, message text, display ordering, active state, preview).
+* Single business WhatsApp phone number per tenant.
+* Admin configuration for Facebook and Instagram profile URLs with scheme validation (`http`/`https` only; reject unsafe schemes like `javascript:` and `data:`).
+* Public website independent WhatsApp template choice rendering (URL-encoded `wa.me` links) and social profile outbound links.
+* Lightweight, best-effort tracking of link clicks via `POST /api/v1/contact-activity/public`.
+* Admin Dashboard summary card and dedicated Contact Activity tab in Lead management (`/admin/leads`).
+* **Strict Separation Rule:** Contact clicks never create or modify `Lead` records, nor increment confirmed Lead counts.
+
+## Excluded
+
+* AI-generated templates or AI assistance for templates.
+* Meta Graph API, WhatsApp Business API, or paid third-party middleware.
+* Chatbots, sequential questionnaires, inbox, or direct message synchronization.
+* Additional social networks (LinkedIn, TikTok, X/Twitter).
+
+## Exit Criteria
+
+* Admin can create, edit, reorder, toggle, and preview 3–4 WhatsApp templates.
+* Social URLs validate scheme and destination safely.
+* Public website renders active templates and valid social links; fallback displays gracefully when unconfigured.
+* Outbound clicks record `ContactActivity` with server-derived tenant isolation.
+* Clicks never create or alter `Lead` entities or increment lead counts.
+* Inbound WhatsApp lead intake webhook remains functional where configured.
+
+---
+
 # 15. Phase 10 — Audit, Observability & Hardening
 
 ## Objective
@@ -1407,10 +1444,21 @@ Website Enquiry
 ## Scenario 7 — WhatsApp Lead
 
 ```text
-WhatsApp Message
-→ Integration
+WhatsApp Inbound Message
+→ Integration Webhook
 → Lead Created/Updated
 → Admin
+```
+
+## Scenario 8 — WhatsApp Contact Choices & Contact Activity Tracking
+
+```text
+Visitor Clicks WhatsApp Template Choice (or Facebook / Instagram Link)
+→ Browser Dispatches Contact Activity Beacon
+→ External Destination (wa.me with prefilled text or Social Profile) Opens
+→ Server Validates & Derives Tenant from Host/Domain
+→ ContactActivity Record Created (Never creates/alters Lead)
+→ Dashboard Summary & Leads Contact Activity Tab Incremented
 ```
 
 ---
@@ -1686,7 +1734,15 @@ Before release, verify:
 * [ ] Lead list works
 * [ ] Lead detail works
 * [ ] Status management works
-* [ ] WhatsApp intake works when configured
+* [ ] WhatsApp intake works when configured via webhook
+
+### WhatsApp Templates, Social Links & Contact Activity
+
+* [ ] WhatsApp template configuration (3–4 client-authored templates) works
+* [ ] Social profile links (Facebook, Instagram) configure and validate URLs safely
+* [ ] Outbound links dispatch non-blocking Contact Activity tracking
+* [ ] Contact clicks NEVER create or alter Leads or increment confirmed Lead counts
+* [ ] Admin Dashboard and Leads page Contact Activity tab display accurate metrics
 
 ### Security
 

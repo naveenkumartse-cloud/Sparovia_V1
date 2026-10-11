@@ -7,10 +7,11 @@ import { Container } from '@/components/ui/Container';
 import { Eyebrow } from '@/components/ui/Typography';
 import { Button } from '@/components/ui/Button';
 import { FadeIn } from '@/components/ui/Motion';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, MessageCircle, ExternalLink } from 'lucide-react';
+import { recordContactActivity } from '@/lib/analytics/contactTracking';
 
 export default function ContactSection() {
-  const { contact, ourWork, tenantCategories, website } = useTemplateContent();
+  const { contact, ourWork, tenantCategories, website, whatsapp } = useTemplateContent();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -191,6 +192,52 @@ export default function ContactSection() {
                       {contact.description}
                     </p>
                   )}
+
+                  {/* Quick WhatsApp Template Choices */}
+                  {(() => {
+                    const activeTemplates = (whatsapp?.templates || []).filter(t => t.isActive);
+                    const rawPhone = whatsapp?.phoneNumber ? whatsapp.phoneNumber.replace(/\D/g, '') : '';
+                    const cleanPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
+                    const canShowWhatsApp = Boolean(whatsapp?.enabled && cleanPhone);
+
+                    if (!canShowWhatsApp || activeTemplates.length === 0) return null;
+
+                    return (
+                      <div className="mb-6 p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <MessageCircle className="w-4 h-4 text-emerald-600" />
+                          <span className="text-xs font-bold text-emerald-950">
+                            Quick WhatsApp Choices
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-emerald-800 mb-3 leading-relaxed">
+                          Prefer immediate messaging? Choose an inquiry topic to chat directly on WhatsApp:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {activeTemplates.map((t) => (
+                            <button
+                              key={t.id}
+                              type="button"
+                              onClick={() => {
+                                recordContactActivity({
+                                  channel: 'WhatsApp',
+                                  templateId: t.id,
+                                  templateTitle: t.title,
+                                  source: 'ContactSection',
+                                });
+                                const encoded = encodeURIComponent(t.messageText);
+                                window.open(`https://wa.me/${cleanPhone}?text=${encoded}`, '_blank', 'noopener,noreferrer');
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-100/70 border border-emerald-200 text-xs font-semibold text-emerald-900 transition-all hover:scale-[1.02] shadow-xs cursor-pointer"
+                            >
+                              <span>{t.title}</span>
+                              <ExternalLink className="w-3 h-3 text-emerald-600" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   <div>
                     <label htmlFor="user-name" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">

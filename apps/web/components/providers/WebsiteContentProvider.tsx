@@ -130,11 +130,27 @@ export interface UpvcContent {
   themes: TemplateThemeItem[];
 }
 
+export interface WhatsAppTemplate {
+  id: string;
+  title: string;
+  messageText: string;
+  displayOrder: number;
+  isActive: boolean;
+}
+
 export interface WhatsAppContent {
   enabled: boolean;
   phoneNumber?: string;
   prefilledMessage?: string;
   status?: string;
+  templates?: WhatsAppTemplate[];
+}
+
+export interface SocialLinksContent {
+  facebookUrl?: string;
+  facebookEnabled?: boolean;
+  instagramUrl?: string;
+  instagramEnabled?: boolean;
 }
 
 export interface AdaptedTemplateContent {
@@ -150,6 +166,7 @@ export interface AdaptedTemplateContent {
   footer: FooterContent;
   tenantCategories: string[];
   whatsapp: WhatsAppContent;
+  social: SocialLinksContent;
 
   // Backward compatibility aliases
   brandIntro: AboutContent;
@@ -399,11 +416,34 @@ export function adaptTemplateContent(
     : workCategories.filter((c: string) => c.toLowerCase() !== 'all');
 
   const rawWa = sections.whatsapp || {};
+  let templatesList: WhatsAppTemplate[] = [];
+  if (Array.isArray(rawWa.templates)) {
+    templatesList = rawWa.templates
+      .filter((t: any) => t && typeof t === 'object' && t.isActive !== false)
+      .map((t: any, idx: number) => ({
+        id: String(t.id || `template-${idx + 1}`),
+        title: String(t.title || `Choice ${idx + 1}`),
+        messageText: String(t.messageText || ''),
+        displayOrder: Number(t.displayOrder || idx + 1),
+        isActive: Boolean(t.isActive !== false),
+      }))
+      .sort((a: WhatsAppTemplate, b: WhatsAppTemplate) => a.displayOrder - b.displayOrder);
+  }
+
   const whatsapp: WhatsAppContent = {
     enabled: Boolean(rawWa.enabled && rawWa.phoneNumber && String(rawWa.phoneNumber).trim().length > 0),
     phoneNumber: rawWa.phoneNumber ? String(rawWa.phoneNumber).trim() : '',
     prefilledMessage: rawWa.prefilledMessage ? String(rawWa.prefilledMessage) : 'Hi, I would like to inquire about interior design services.',
     status: rawWa.status || (rawWa.enabled ? 'Active' : 'Inactive'),
+    templates: templatesList,
+  };
+
+  const rawSocial = sections.social || {};
+  const social: SocialLinksContent = {
+    facebookUrl: typeof rawSocial.facebookUrl === 'string' ? rawSocial.facebookUrl.trim() : '',
+    facebookEnabled: Boolean(rawSocial.facebookEnabled && rawSocial.facebookUrl),
+    instagramUrl: typeof rawSocial.instagramUrl === 'string' ? rawSocial.instagramUrl.trim() : '',
+    instagramEnabled: Boolean(rawSocial.instagramEnabled && rawSocial.instagramUrl),
   };
 
   return {
@@ -419,6 +459,7 @@ export function adaptTemplateContent(
     footer,
     tenantCategories,
     whatsapp,
+    social,
     // Aliases
     brandIntro: about,
     interiors: services,

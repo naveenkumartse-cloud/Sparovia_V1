@@ -28,14 +28,37 @@ import {
   Phone,
   MessageCircle,
   ExternalLink,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  Facebook,
+  Instagram,
+  Share2
 } from 'lucide-react';
+
+export interface WhatsAppTemplateItem {
+  id: string;
+  title: string;
+  messageText: string;
+  displayOrder: number;
+  isActive: boolean;
+}
 
 interface WhatsAppIntegration {
   enabled: boolean;
   phoneNumber: string;
   prefilledMessage: string;
   status: string;
+  templates: WhatsAppTemplateItem[];
+}
+
+interface SocialLinksIntegration {
+  facebookUrl: string;
+  facebookEnabled: boolean;
+  instagramUrl: string;
+  instagramEnabled: boolean;
 }
 
 export default function AccountPage() {
@@ -59,6 +82,38 @@ export default function AccountPage() {
   const [waMessage, setWaMessage] = useState('Hi, I would like to inquire about interior design services.');
   const [waStatus, setWaStatus] = useState('Inactive');
   const [waError, setWaError] = useState<string | null>(null);
+  const [waTemplates, setWaTemplates] = useState<WhatsAppTemplateItem[]>([
+    {
+      id: 'template-1',
+      title: 'General Enquiry',
+      messageText: 'Hi, I would like to inquire about interior design services for my space.',
+      displayOrder: 1,
+      isActive: true,
+    },
+    {
+      id: 'template-2',
+      title: 'Design Consultation',
+      messageText: 'Hello, I am interested in scheduling a personalized design consultation.',
+      displayOrder: 2,
+      isActive: true,
+    },
+    {
+      id: 'template-3',
+      title: 'Request a Quote',
+      messageText: 'Hi, I have floorplans ready and would like to request an estimate for interior work.',
+      displayOrder: 3,
+      isActive: true,
+    },
+  ]);
+
+  // Social Links Integration State
+  const [socialLoading, setSocialLoading] = useState(false);
+  const [socialSaving, setSocialSaving] = useState(false);
+  const [facebookUrl, setFacebookUrl] = useState('');
+  const [facebookEnabled, setFacebookEnabled] = useState(false);
+  const [instagramUrl, setInstagramUrl] = useState('');
+  const [instagramEnabled, setInstagramEnabled] = useState(false);
+  const [socialError, setSocialError] = useState<string | null>(null);
 
   // Edit Profile State
   const [isEditing, setIsEditing] = useState(false);
@@ -131,6 +186,9 @@ export default function AccountPage() {
       setWaPhone(cleanPhoneInput(res.phoneNumber || ''));
       setWaMessage(res.prefilledMessage || 'Hi, I would like to inquire about interior design services.');
       setWaStatus(res.status || (res.enabled ? 'Active' : 'Inactive'));
+      if (res.templates && Array.isArray(res.templates) && res.templates.length > 0) {
+        setWaTemplates(res.templates);
+      }
     } catch {
       // Non-blocking fallback
     } finally {
@@ -138,8 +196,25 @@ export default function AccountPage() {
     }
   };
 
+  const fetchSocialSettings = async () => {
+    setSocialLoading(true);
+    setSocialError(null);
+    try {
+      const res = await apiClient.get<SocialLinksIntegration>('/integrations/social');
+      setFacebookUrl(res.facebookUrl || '');
+      setFacebookEnabled(Boolean(res.facebookEnabled));
+      setInstagramUrl(res.instagramUrl || '');
+      setInstagramEnabled(Boolean(res.instagramEnabled));
+    } catch {
+      // Non-blocking fallback
+    } finally {
+      setSocialLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchWhatsAppSettings();
+    fetchSocialSettings();
   }, []);
 
   useEffect(() => {
@@ -153,6 +228,46 @@ export default function AccountPage() {
     router.replace(`/admin/account?tab=${tab}`, { scroll: false });
   };
 
+  const handleAddTemplate = () => {
+    if (waTemplates.length >= 4) {
+      toast.error('A maximum of 4 WhatsApp templates are supported.');
+      return;
+    }
+    const newTemplate: WhatsAppTemplateItem = {
+      id: `template-${Date.now()}`,
+      title: `Choice ${waTemplates.length + 1}`,
+      messageText: 'Hi, I would like to inquire about your services.',
+      displayOrder: waTemplates.length + 1,
+      isActive: true,
+    };
+    setWaTemplates([...waTemplates, newTemplate]);
+  };
+
+  const handleUpdateTemplate = (index: number, field: keyof WhatsAppTemplateItem, value: any) => {
+    const updated = [...waTemplates];
+    updated[index] = { ...updated[index], [field]: value };
+    setWaTemplates(updated);
+  };
+
+  const handleDeleteTemplate = (index: number) => {
+    if (waTemplates.length <= 1) {
+      toast.error('You must keep at least 1 template.');
+      return;
+    }
+    const updated = waTemplates.filter((_, i) => i !== index).map((t, i) => ({ ...t, displayOrder: i + 1 }));
+    setWaTemplates(updated);
+  };
+
+  const handleMoveTemplate = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= waTemplates.length) return;
+    const updated = [...waTemplates];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+    setWaTemplates(updated.map((t, i) => ({ ...t, displayOrder: i + 1 })));
+  };
+
   const handleSaveWhatsApp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setWaError(null);
@@ -163,23 +278,123 @@ export default function AccountPage() {
       return;
     }
 
+    if (waTemplates.length === 0) {
+      setWaError('At least 1 WhatsApp message template is required (3–4 templates recommended).');
+      return;
+    }
+
+    if (waTemplates.length > 4) {
+      setWaError('A maximum of 4 WhatsApp message templates are supported.');
+      return;
+    }
+
+    for (let i = 0; i < waTemplates.length; i++) {
+      const t = waTemplates[i];
+      if (!t.title.trim()) {
+        setWaError(`Template #${i + 1} must have a title.`);
+        return;
+      }
+      if (t.title.trim().length > 100) {
+        setWaError(`Template #${i + 1} title cannot exceed 100 characters.`);
+        return;
+      }
+      if (!t.messageText.trim()) {
+        setWaError(`Template #${i + 1} must have message text.`);
+        return;
+      }
+      if (t.messageText.trim().length > 1000) {
+        setWaError(`Template #${i + 1} message cannot exceed 1000 characters.`);
+        return;
+      }
+    }
+
+    if (waEnabled && !waTemplates.some(t => t.isActive)) {
+      setWaError('At least one template must be active when WhatsApp integration is enabled.');
+      return;
+    }
+
     setWaSaving(true);
     try {
       const res = await apiClient.put<WhatsAppIntegration>('/integrations/whatsapp', {
         enabled: waEnabled,
         phoneNumber: cleanPhone ? `+91${cleanPhone}` : '',
         prefilledMessage: waMessage.trim(),
+        templates: waTemplates.map((t, idx) => ({
+          ...t,
+          displayOrder: idx + 1,
+        })),
       });
       setWaEnabled(Boolean(res.enabled));
       setWaPhone(cleanPhone);
       setWaMessage(res.prefilledMessage || waMessage);
       setWaStatus(res.status || (res.enabled ? 'Active' : 'Inactive'));
-      toast.success(res.enabled ? 'WhatsApp button activated on live website.' : 'WhatsApp settings saved.');
+      if (res.templates && Array.isArray(res.templates)) {
+        setWaTemplates(res.templates);
+      }
+      toast.success(res.enabled ? 'WhatsApp button and templates activated on live website.' : 'WhatsApp settings saved.');
     } catch (err: any) {
       setWaError(err.message || 'Failed to save WhatsApp settings.');
       toast.error(err.message || 'Failed to save WhatsApp settings.');
     } finally {
       setWaSaving(false);
+    }
+  };
+
+  const handleSaveSocial = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setSocialError(null);
+
+    const validateUrl = (url: string, platform: string) => {
+      if (!url.trim()) return null;
+      try {
+        const parsed = new URL(url.trim());
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+          return `${platform} URL must start with http:// or https://. Unsafe schemes are rejected.`;
+        }
+        return null;
+      } catch {
+        return `Please enter a valid absolute ${platform} URL (e.g. https://${platform.toLowerCase()}.com/yourhandle).`;
+      }
+    };
+
+    if (facebookEnabled && !facebookUrl.trim()) {
+      setSocialError('Facebook URL is required when Facebook link is enabled.');
+      return;
+    }
+    const fbErr = validateUrl(facebookUrl, 'Facebook');
+    if (fbErr) {
+      setSocialError(fbErr);
+      return;
+    }
+
+    if (instagramEnabled && !instagramUrl.trim()) {
+      setSocialError('Instagram URL is required when Instagram link is enabled.');
+      return;
+    }
+    const igErr = validateUrl(instagramUrl, 'Instagram');
+    if (igErr) {
+      setSocialError(igErr);
+      return;
+    }
+
+    setSocialSaving(true);
+    try {
+      const res = await apiClient.put<SocialLinksIntegration>('/integrations/social', {
+        facebookUrl: facebookUrl.trim(),
+        facebookEnabled,
+        instagramUrl: instagramUrl.trim(),
+        instagramEnabled,
+      });
+      setFacebookUrl(res.facebookUrl || '');
+      setFacebookEnabled(Boolean(res.facebookEnabled));
+      setInstagramUrl(res.instagramUrl || '');
+      setInstagramEnabled(Boolean(res.instagramEnabled));
+      toast.success('Social profile links saved successfully.');
+    } catch (err: any) {
+      setSocialError(err.message || 'Failed to save social links.');
+      toast.error(err.message || 'Failed to save social links.');
+    } finally {
+      setSocialSaving(false);
     }
   };
 
@@ -623,28 +838,29 @@ export default function AccountPage() {
         </div>
       )}
 
-      {/* TAB: INTEGRATIONS (WHATSAPP) */}
+      {/* TAB: INTEGRATIONS (WHATSAPP & SOCIAL LINKS) */}
       {activeTab === 'integrations' && (
-        <div className="space-y-6 animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-2xl p-6 sm:p-8 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-100 dark:border-[#1E293B]">
+        <div className="space-y-8 animate-in fade-in duration-150">
+          {/* Panel 1: WhatsApp Configuration & Templates */}
+          <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[#E3E7ED] dark:border-[#1E293B]">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-800">
+                <div className="w-10 h-10 rounded-[6px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-800">
                   <MessageCircle className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    WhatsApp Floating Button
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                  <h2 className="text-lg font-bold text-[#172033] dark:text-white flex items-center gap-2">
+                    WhatsApp Contact &amp; Templates
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold border ${
                       waEnabled
                         ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
-                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                        : 'bg-[#F3F6FA] text-[#475569] dark:bg-slate-800 dark:text-slate-400 border-[#E3E7ED] dark:border-slate-700'
                     }`}>
                       {waEnabled ? 'Active' : 'Inactive'}
                     </span>
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">
-                    Connect your WhatsApp number to show an interactive customer chat button on your live website.
+                  <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-0.5">
+                    Connect your WhatsApp business number and manage 3–4 client-authored templates for website visitors.
                   </p>
                 </div>
               </div>
@@ -654,9 +870,9 @@ export default function AccountPage() {
                   href={`https://wa.me/${waPhone.replace(/\D/g, '')}${waMessage ? `?text=${encodeURIComponent(waMessage)}` : ''}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors shrink-0"
                 >
-                  <span>Test Link</span>
+                  <span>Test Default Link</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               )}
@@ -664,20 +880,20 @@ export default function AccountPage() {
 
             <form onSubmit={handleSaveWhatsApp} className="mt-6 space-y-6">
               {waError && (
-                <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-xs flex items-center gap-2">
+                <div className="p-3.5 rounded-[6px] bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{waError}</span>
                 </div>
               )}
 
               {/* Toggle Enable/Disable */}
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] flex items-center justify-between gap-4">
+              <div className="p-4 rounded-[6px] bg-[#F3F6FA] dark:bg-[#0B1220] border border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                    Display Floating WhatsApp Button
+                  <p className="text-sm font-semibold text-[#172033] dark:text-white">
+                    Display WhatsApp Contact on Website
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">
-                    When turned on, your published website displays a responsive floating chat CTA in the bottom corner.
+                  <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-0.5">
+                    When active, visitors can select independent prefilled choices to open WhatsApp directly with your business.
                   </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer shrink-0">
@@ -693,11 +909,11 @@ export default function AccountPage() {
 
               {/* Phone Number */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
-                  WhatsApp Phone Number *
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8]">
+                  Business WhatsApp Phone Number *
                 </label>
                 <p className="text-xs text-slate-400 mt-0.5 mb-2">
-                  Include country code with no + or spaces (e.g. 919876543210 for India).
+                  Include 10-digit mobile number (India). Will be formatted as +91 for WhatsApp wa.me links.
                 </p>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
@@ -710,39 +926,403 @@ export default function AccountPage() {
                       setWaPhone(e.target.value);
                       if (waError) setWaError(null);
                     }}
-                    placeholder="919876543210"
-                    className="w-full bg-white dark:bg-[#0B1220] border border-slate-300 dark:border-[#334155] rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B82F6] font-mono transition-all"
+                    placeholder="9876543210"
+                    maxLength={10}
+                    className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] pl-10 pr-4 py-2.5 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] font-mono transition-all"
                   />
                 </div>
               </div>
 
-              {/* Pre-filled Message */}
+              {/* Default / Fallback Pre-filled Message */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
-                  Pre-filled Message (Optional)
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8]">
+                  Default Greeting Message (Fallback)
                 </label>
                 <p className="text-xs text-slate-400 mt-0.5 mb-2">
-                  Default greeting or enquiry message pre-loaded when a user clicks the WhatsApp button.
+                  Used if direct chat icon is clicked without choosing a specific template.
                 </p>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={waMessage}
                   onChange={(e) => setWaMessage(e.target.value)}
                   placeholder="Hi, I would like to inquire about interior design services."
-                  className="w-full bg-white dark:bg-[#0B1220] border border-slate-300 dark:border-[#334155] rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B82F6] transition-all resize-none"
+                  className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-4 py-2 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] transition-all resize-none"
                 />
               </div>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-[#1E293B] flex items-center justify-end">
+              {/* Client-authored WhatsApp Templates Section */}
+              <div className="pt-6 border-t border-[#E3E7ED] dark:border-[#1E293B] space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm font-bold text-[#172033] dark:text-white flex items-center gap-2">
+                      <span>WhatsApp Message Templates</span>
+                      <span className="text-xs font-normal text-[#475569] dark:text-[#94A3B8]">
+                        ({waTemplates.length} of 4 configured)
+                      </span>
+                    </h3>
+                    <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-0.5">
+                      Client-authored choices shown to visitors. Each choice opens WhatsApp with the prefilled message.
+                    </p>
+                  </div>
+                  {waTemplates.length < 4 && (
+                    <button
+                      type="button"
+                      onClick={handleAddTemplate}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold text-[#315FEA] bg-[#315FEA]/10 border border-[#315FEA]/20 hover:bg-[#315FEA]/20 transition-colors shrink-0 self-start sm:self-auto"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Template</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Templates List */}
+                <div className="space-y-4">
+                  {waTemplates.map((template, idx) => {
+                    const cleanDigits = waPhone.replace(/\D/g, '');
+                    const phoneWithCode = cleanDigits.length === 10 ? `91${cleanDigits}` : cleanDigits;
+                    const encodedMsg = encodeURIComponent(template.messageText);
+                    const testUrl = phoneWithCode ? `https://wa.me/${phoneWithCode}?text=${encodedMsg}` : '';
+
+                    return (
+                      <div
+                        key={template.id || idx}
+                        className={`p-4 rounded-[6px] border transition-all ${
+                          template.isActive
+                            ? 'bg-white dark:bg-[#0B1220] border-[#CBD5E1] dark:border-[#334155]'
+                            : 'bg-[#F3F6FA] dark:bg-[#0F172A] border-[#E3E7ED] dark:border-[#1E293B] opacity-75'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-3 mb-3 pb-2 border-b border-[#E3E7ED] dark:border-[#1E293B]">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] text-xs font-bold flex items-center justify-center">
+                              {idx + 1}
+                            </span>
+                            <span className="text-xs font-semibold text-[#172033] dark:text-white">
+                              Template #{idx + 1}
+                            </span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-[4px] font-medium ${
+                              template.isActive
+                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
+                            }`}>
+                              {template.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            {/* Move Up */}
+                            <button
+                              type="button"
+                              onClick={() => handleMoveTemplate(idx, 'up')}
+                              disabled={idx === 0}
+                              className="p-1 rounded-[4px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                              title="Move up"
+                            >
+                              <ArrowUp className="w-4 h-4" />
+                            </button>
+                            {/* Move Down */}
+                            <button
+                              type="button"
+                              onClick={() => handleMoveTemplate(idx, 'down')}
+                              disabled={idx === waTemplates.length - 1}
+                              className="p-1 rounded-[4px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                              title="Move down"
+                            >
+                              <ArrowDown className="w-4 h-4" />
+                            </button>
+                            {/* Active Toggle */}
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateTemplate(idx, 'isActive', !template.isActive)}
+                              className={`px-2 py-1 rounded-[4px] text-[11px] font-medium border transition-colors ${
+                                template.isActive
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-800'
+                                  : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700'
+                              }`}
+                            >
+                              {template.isActive ? 'Deactivate' : 'Activate'}
+                            </button>
+                            {/* Delete Button */}
+                            {waTemplates.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteTemplate(idx)}
+                                className="p-1 text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
+                                title="Delete template"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          {/* Title */}
+                          <div className="sm:col-span-1">
+                            <div className="flex justify-between items-center mb-1">
+                              <label className="text-[11px] font-semibold text-[#475569] dark:text-[#94A3B8]">
+                                Choice Title *
+                              </label>
+                              <span className="text-[10px] text-slate-400">
+                                {template.title.length}/100
+                              </span>
+                            </div>
+                            <input
+                              type="text"
+                              value={template.title}
+                              maxLength={100}
+                              onChange={(e) => handleUpdateTemplate(idx, 'title', e.target.value)}
+                              placeholder="e.g. Design Consultation"
+                              className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+                            />
+                          </div>
+
+                          {/* Message Text */}
+                          <div className="sm:col-span-2">
+                            <div className="flex justify-between items-center mb-1">
+                              <label className="text-[11px] font-semibold text-[#475569] dark:text-[#94A3B8]">
+                                Prefilled WhatsApp Message *
+                              </label>
+                              <span className="text-[10px] text-slate-400">
+                                {template.messageText.length}/1000
+                              </span>
+                            </div>
+                            <textarea
+                              rows={2}
+                              value={template.messageText}
+                              maxLength={1000}
+                              onChange={(e) => handleUpdateTemplate(idx, 'messageText', e.target.value)}
+                              placeholder="Client-authored prefilled text for WhatsApp..."
+                              className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] resize-none"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Test URL Link for this template */}
+                        {testUrl && (
+                          <div className="mt-2 pt-2 border-t border-[#E3E7ED]/50 dark:border-[#1E293B] flex items-center justify-between text-[11px]">
+                            <span className="text-slate-400 truncate max-w-[80%] font-mono">
+                              wa.me/{phoneWithCode}?text={template.title}
+                            </span>
+                            <a
+                              href={testUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[#315FEA] hover:underline font-medium"
+                            >
+                              <span>Test Link</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Visitor Choices Preview Card */}
+                <div className="p-4 rounded-[6px] bg-[#F5F0FB] dark:bg-[#1E1B2E] border border-[#E3E7ED] dark:border-[#332A4A]">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-bold text-[#7950B8] dark:text-[#A78BFA] flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Live Public Choices Preview</span>
+                    </p>
+                    <span className="text-[10px] text-slate-500">
+                      Independent Choices
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#475569] dark:text-slate-300 mb-3">
+                    Website visitors will see these buttons when initiating contact via WhatsApp:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {waTemplates.filter(t => t.isActive).map((t) => (
+                      <div
+                        key={t.id}
+                        className="px-3 py-1.5 rounded-[6px] bg-white dark:bg-[#0B1220] border border-emerald-200 dark:border-emerald-800 text-xs font-semibold text-emerald-800 dark:text-emerald-300 shadow-xs flex items-center gap-1.5"
+                      >
+                        <MessageCircle className="w-3 h-3 text-emerald-600" />
+                        <span>{t.title}</span>
+                      </div>
+                    ))}
+                    {waTemplates.filter(t => t.isActive).length === 0 && (
+                      <span className="text-xs text-amber-600 dark:text-amber-400 italic">
+                        No active templates. Activate at least one template above.
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-end">
                 <Button
                   type="submit"
                   variant="primary"
                   isLoading={waSaving}
-                  loadingText="Saving Settings..."
+                  loadingText="Saving WhatsApp Settings..."
                   leftIcon={<Save className="w-4 h-4" />}
-                  className="px-6"
+                  className="px-6 rounded-[6px]"
                 >
                   Save WhatsApp Settings
+                </Button>
+              </div>
+            </form>
+          </div>
+
+          {/* Panel 2: Social Profile Links (Facebook & Instagram) */}
+          <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[#E3E7ED] dark:border-[#1E293B]">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center border border-[#315FEA]/20">
+                  <Share2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-[#172033] dark:text-white">
+                    Social Profile Links
+                  </h2>
+                  <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-0.5">
+                    Configure official Facebook and Instagram outbound links shown on your live website header, footer, and contact controls.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveSocial} className="mt-6 space-y-6">
+              {socialError && (
+                <div className="p-3.5 rounded-[6px] bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{socialError}</span>
+                </div>
+              )}
+
+              {/* Facebook Section */}
+              <div className="p-4 rounded-[6px] bg-[#F3F6FA] dark:bg-[#0B1220] border border-[#E3E7ED] dark:border-[#334155] space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-[6px] bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200 dark:bg-blue-950/40 dark:border-blue-800">
+                      <Facebook className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#172033] dark:text-white">
+                        Facebook Page Link
+                      </p>
+                      <p className="text-xs text-[#475569] dark:text-[#94A3B8]">
+                        Show external Facebook page link on live website
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={facebookEnabled}
+                      onChange={(e) => setFacebookEnabled(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-[#315FEA]"></div>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8] mb-1">
+                    Facebook Profile / Page URL
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="url"
+                      value={facebookUrl}
+                      onChange={(e) => {
+                        setFacebookUrl(e.target.value);
+                        if (socialError) setSocialError(null);
+                      }}
+                      placeholder="https://facebook.com/yourbrand"
+                      className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+                    />
+                  </div>
+                  {facebookUrl && (
+                    <div className="mt-1.5 flex justify-end">
+                      <a
+                        href={facebookUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-[#315FEA] hover:underline"
+                      >
+                        <span>Test Facebook Link</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Instagram Section */}
+              <div className="p-4 rounded-[6px] bg-[#F3F6FA] dark:bg-[#0B1220] border border-[#E3E7ED] dark:border-[#334155] space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-[6px] bg-pink-50 text-pink-600 flex items-center justify-center border border-pink-200 dark:bg-pink-950/40 dark:border-pink-800">
+                      <Instagram className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#172033] dark:text-white">
+                        Instagram Profile Link
+                      </p>
+                      <p className="text-xs text-[#475569] dark:text-[#94A3B8]">
+                        Show external Instagram profile link on live website
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={instagramEnabled}
+                      onChange={(e) => setInstagramEnabled(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-[#315FEA]"></div>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8] mb-1">
+                    Instagram Profile URL
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="url"
+                      value={instagramUrl}
+                      onChange={(e) => {
+                        setInstagramUrl(e.target.value);
+                        if (socialError) setSocialError(null);
+                      }}
+                      placeholder="https://instagram.com/yourbrand"
+                      className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+                    />
+                  </div>
+                  {instagramUrl && (
+                    <div className="mt-1.5 flex justify-end">
+                      <a
+                        href={instagramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-[#315FEA] hover:underline"
+                      >
+                        <span>Test Instagram Link</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-end">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  isLoading={socialSaving}
+                  loadingText="Saving Social Links..."
+                  leftIcon={<Save className="w-4 h-4" />}
+                  className="px-6 rounded-[6px]"
+                >
+                  Save Social Profile Links
                 </Button>
               </div>
             </form>

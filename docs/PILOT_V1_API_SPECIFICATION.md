@@ -1779,6 +1779,8 @@ Conceptual endpoint:
 
 ```http
 POST /api/v1/integrations/whatsapp/leads
+# or webhook route:
+POST /api/v1/leads/webhook/whatsapp
 ```
 
 The exact integration authentication mechanism is implementation-specific.
@@ -1977,6 +1979,202 @@ Lead intake endpoints should implement appropriate:
 * Bot/spam protection where appropriate
 
 Do not log unnecessary lead PII.
+
+---
+
+# 58B. Contact & Social Integrations Configuration API
+
+Clients manage their business WhatsApp number, message templates, and outbound social profile links via authorized integration endpoints.
+
+## 58B.1 Get WhatsApp Integration
+
+```http
+GET /api/v1/integrations/whatsapp
+```
+
+### Authorization
+Bearer Token (Authenticated Tenant Admin)
+
+### Response (`200 OK`)
+```json
+{
+  "phoneNumber": "919876543210",
+  "fallbackMessage": "Hello! I am contacting you from your website.",
+  "templates": [
+    {
+      "id": "tpl-1",
+      "title": "General Enquiry",
+      "message": "Hi, I would like to inquire about your services.",
+      "order": 1,
+      "isActive": true
+    },
+    {
+      "id": "tpl-2",
+      "title": "Schedule a Consultation",
+      "message": "Hi, I would like to book a consultation for my project.",
+      "order": 2,
+      "isActive": true
+    },
+    {
+      "id": "tpl-3",
+      "title": "Request a Quote",
+      "message": "Hi, could you please provide a quotation for your services?",
+      "order": 3,
+      "isActive": true
+    }
+  ]
+}
+```
+
+## 58B.2 Update WhatsApp Integration
+
+```http
+PUT /api/v1/integrations/whatsapp
+```
+
+### Authorization
+Bearer Token (Authenticated Tenant Admin)
+
+### Request
+```json
+{
+  "phoneNumber": "919876543210",
+  "fallbackMessage": "Hello! I am contacting you from your website.",
+  "templates": [
+    {
+      "id": "tpl-1",
+      "title": "General Enquiry",
+      "message": "Hi, I would like to inquire about your services.",
+      "order": 1,
+      "isActive": true
+    }
+  ]
+}
+```
+
+### Validation Rules
+* Maximum 4 templates permitted.
+* Template `title` max 100 characters; `message` max 1000 characters.
+* Client-authored only; no AI generation.
+
+## 58B.3 Get Social Links Integration
+
+```http
+GET /api/v1/integrations/social
+```
+
+### Response (`200 OK`)
+```json
+{
+  "facebookUrl": "https://facebook.com/sparovia",
+  "facebookEnabled": true,
+  "instagramUrl": "https://instagram.com/sparovia",
+  "instagramEnabled": true
+}
+```
+
+## 58B.4 Update Social Links Integration
+
+```http
+PUT /api/v1/integrations/social
+```
+
+### Validation Rules
+* URLs must start with `http://` or `https://`.
+* Unsafe schemes (e.g. `javascript:`, `data:`) are rejected (`400 Bad Request`).
+
+---
+
+# 58C. Contact Activity API
+
+Provides lightweight tracking of outbound link clicks (WhatsApp templates, Facebook, Instagram) strictly isolated from confirmed Leads.
+
+## 58C.1 Record Contact Activity (Public)
+
+```http
+POST /api/v1/contact-activity/public
+```
+
+### Authorization
+Anonymous (Public website, rate-limited)
+
+### Request
+```json
+{
+  "domain": "example.com",
+  "channel": "WhatsApp",
+  "eventType": "ContactLinkClicked",
+  "templateId": "tpl-1",
+  "templateTitle": "General Enquiry",
+  "source": "website",
+  "correlationId": "nonce-12345"
+}
+```
+
+### Security & Separation Rules
+* Server derives Tenant ID strictly from trusted website domain/host mapping. Never trusts caller-supplied tenant IDs.
+* Valid channels: `WhatsApp`, `Facebook`, `Instagram`.
+* Deduplication: `correlationId` deduplicates concurrent or double clicks within a 10-minute window.
+* **Strict Boundary:** This endpoint NEVER creates or modifies `Lead` records, nor increments lead counts.
+* Non-blocking: Tracking failure does not block external client navigation.
+
+### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "activityId": "uuid",
+  "message": "Contact activity recorded successfully."
+}
+```
+
+## 58C.2 Get Contact Activity Summary
+
+```http
+GET /api/v1/contact-activity/summary
+```
+
+### Authorization
+Bearer Token (Authenticated Tenant Admin)
+
+### Response (`200 OK`)
+```json
+{
+  "totalClicks": 42,
+  "whatsAppClicks": 28,
+  "facebookClicks": 8,
+  "instagramClicks": 6
+}
+```
+
+## 58C.3 Get Contact Activity List
+
+```http
+GET /api/v1/contact-activity?channel=WhatsApp&page=1&pageSize=20
+```
+
+### Authorization
+Bearer Token (Authenticated Tenant Admin)
+
+### Response (`200 OK`)
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "channel": "WhatsApp",
+      "eventType": "ContactLinkClicked",
+      "templateId": "tpl-1",
+      "templateTitle": "General Enquiry",
+      "source": "website",
+      "createdAt": "2026-10-11T12:00:00Z"
+    }
+  ],
+  "totalCount": 28,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 2
+}
+```
 
 ---
 
@@ -2564,9 +2762,17 @@ Gallery Management
 | Image        | POST   | `/website/images/{id}/publish`             |
 | Leads        | POST   | `/leads`                                   |
 | WhatsApp     | POST   | `/integrations/whatsapp/leads`             |
+| WhatsApp     | POST   | `/leads/webhook/whatsapp`                  |
 | Leads        | GET    | `/leads`                                   |
 | Leads        | GET    | `/leads/{id}`                              |
 | Leads        | PATCH  | `/leads/{id}/status`                       |
+| Integrations | GET    | `/integrations/whatsapp`                   |
+| Integrations | PUT    | `/integrations/whatsapp`                   |
+| Integrations | GET    | `/integrations/social`                     |
+| Integrations | PUT    | `/integrations/social`                     |
+| Contact Act  | POST   | `/contact-activity/public`                 |
+| Contact Act  | GET    | `/contact-activity/summary`                |
+| Contact Act  | GET    | `/contact-activity`                        |
 
 ---
 
@@ -2620,6 +2826,10 @@ The API is production-ready when:
 * [ ] WhatsApp lead intake works when configured.
 * [ ] Lead list/detail works.
 * [ ] Lead status updates work.
+* [ ] WhatsApp templates configuration (`GET`/`PUT /integrations/whatsapp`) works with length limits and max 4 templates.
+* [ ] Social links configuration (`GET`/`PUT /integrations/social`) works with safe URL scheme validation.
+* [ ] Public Contact Activity tracking (`POST /contact-activity/public`) persists clicks without mutating Leads.
+* [ ] Contact Activity summary (`GET /contact-activity/summary`) and list (`GET /contact-activity`) enforce tenant isolation.
 * [ ] Tenant isolation is enforced on every client-owned resource.
 * [ ] Rate limiting is implemented where required.
 * [ ] API errors follow the standard format.

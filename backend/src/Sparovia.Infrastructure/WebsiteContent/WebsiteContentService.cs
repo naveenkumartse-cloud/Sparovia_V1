@@ -690,8 +690,50 @@ public class WebsiteContentService : IWebsiteContentService
 
         if (!sectionsMap.ContainsKey("whatsapp"))
         {
-            using var waDoc = JsonDocument.Parse("{\"enabled\":false,\"phoneNumber\":\"\",\"prefilledMessage\":\"\",\"status\":\"Inactive\"}");
+            var defaultWa = new
+            {
+                enabled = false,
+                phoneNumber = "",
+                prefilledMessage = "Hi, I would like to inquire about interior design services.",
+                status = "Inactive",
+                templates = new[]
+                {
+                    new { id = "template-1", title = "General Enquiry", messageText = "Hi, I would like to inquire about interior design services for my space.", displayOrder = 1, isActive = true },
+                    new { id = "template-2", title = "Design Consultation", messageText = "Hello, I am interested in scheduling a personalized design consultation.", displayOrder = 2, isActive = true },
+                    new { id = "template-3", title = "Request a Quote", messageText = "Hi, I have floorplans ready and would like to request an estimate for interior work.", displayOrder = 3, isActive = true }
+                }
+            };
+            using var waDoc = JsonDocument.Parse(JsonSerializer.Serialize(defaultWa));
             sectionsMap["whatsapp"] = waDoc.RootElement.Clone();
+        }
+        else
+        {
+            try
+            {
+                var waJson = sectionsMap["whatsapp"].GetRawText();
+                var waNode = JsonNode.Parse(waJson) as JsonObject;
+                if (waNode != null && (!waNode.ContainsKey("templates") || waNode["templates"] == null || (waNode["templates"] is JsonArray arr && arr.Count == 0)))
+                {
+                    var defaultTemplates = new[]
+                    {
+                        new { id = "template-1", title = "General Enquiry", messageText = "Hi, I would like to inquire about interior design services for my space.", displayOrder = 1, isActive = true },
+                        new { id = "template-2", title = "Design Consultation", messageText = "Hello, I am interested in scheduling a personalized design consultation.", displayOrder = 2, isActive = true },
+                        new { id = "template-3", title = "Request a Quote", messageText = "Hi, I have floorplans ready and would like to request an estimate for interior work.", displayOrder = 3, isActive = true }
+                    };
+                    waNode["templates"] = JsonSerializer.SerializeToNode(defaultTemplates);
+                    sectionsMap["whatsapp"] = JsonDocument.Parse(waNode.ToJsonString()).RootElement.Clone();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Failed to normalize templates on published whatsapp section.");
+            }
+        }
+
+        if (!sectionsMap.ContainsKey("social"))
+        {
+            using var socDoc = JsonDocument.Parse("{\"facebookUrl\":\"\",\"facebookEnabled\":false,\"instagramUrl\":\"\",\"instagramEnabled\":false}");
+            sectionsMap["social"] = socDoc.RootElement.Clone();
         }
 
         // Enrich hero, about, and services sections with published active Website Images

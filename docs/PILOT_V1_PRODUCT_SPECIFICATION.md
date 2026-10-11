@@ -20,8 +20,9 @@ The pilot allows a client to:
 4. Upload and replace website images.
 5. Enhance existing images with AI while preserving the original.
 6. Connect a supported external AI provider (e.g. OpenAI, Google Gemini, Anthropic Claude) using their own API credentials and select an approved model.
-7. Receive and manage leads from the website and, when configured, WhatsApp.
-8. Perform these workflows securely within their own tenant.
+7. Receive and manage leads from the website and, when configured, incoming WhatsApp messages.
+8. Configure WhatsApp contact template choices and social profile links (Facebook and Instagram), and monitor lightweight Contact Activity.
+9. Perform these workflows securely within their own tenant.
 
 The pilot is intentionally small. It validates the core Sparovia product model before broader platform development.
 
@@ -310,10 +311,10 @@ Sparovia never silently switches models or providers. Capability compatibility i
 
 ### 3.9 Lead Management
 
-Leads may originate from:
+Leads represent genuine, submitted customer enquiries and may originate from:
 
-* Website
-* WhatsApp, when configured
+* Website contact forms
+* WhatsApp, when configured via an authorized incoming message integration
 
 Minimum website lead fields:
 
@@ -339,11 +340,31 @@ The client can:
 * Filter by source
 * Update status
 
-WhatsApp integration in V1 is limited to receiving customer enquiries and creating/updating leads.
-
-It does not provide a full WhatsApp CRM or inbox.
+WhatsApp lead intake in V1 is limited to receiving customer enquiries via verified incoming message webhooks and creating/updating leads. It does not provide a full WhatsApp CRM or inbox.
 
 ---
+
+### 3.10 WhatsApp Templates, Social Links, and Contact Activity
+
+To facilitate outbound visitor connection, Sparovia supports client-configured contact choices, social links, and lightweight activity tracking:
+
+1. **WhatsApp Contact Templates:**
+   * Client configures a single business WhatsApp number per tenant.
+   * Client authors 3–4 independent prefilled message templates (title, message text, display order, active/inactive toggle).
+   * Templates are authored directly by the client; no AI generation, Meta API, or paid providers are used.
+   * Public website renders active templates as independent choices. Selecting any template opens WhatsApp with the prefilled message.
+   * If not configured or no templates are active, a safe fallback is rendered with no broken actions.
+
+2. **Social Profile Links:**
+   * Client configures outbound Facebook profile and Instagram profile URLs.
+   * Strict scheme validation permits only `http` or `https`, rejecting unsafe schemes such as `javascript:` or `data:`.
+   * Public links render only when enabled and valid. No social APIs, DM capture, or external synchronization are included.
+
+3. **Contact Activity vs Confirmed Leads (Strict Separation):**
+   * Outbound link clicks on WhatsApp templates, Facebook, or Instagram links are recorded as lightweight `ContactActivity` events.
+   * Minimum event data: Tenant association (derived from server-trusted context), Channel (`WhatsApp`, `Facebook`, `Instagram`), EventType (`ContactLinkClicked`), Server timestamp, Page/source reference, Template ID/title where applicable, and Correlation ID.
+   * **Strict Boundary:** Contact Activity is NOT a Lead. Outbound link clicks must NEVER create or mutate `Lead` entities, nor increment confirmed Lead counts. A click does not guarantee message transmission or receipt.
+   * Contact Activity is reviewed separately in the Admin Dashboard (compact summary) and in the Leads management area (`/admin/leads` via a dedicated Contact Activity tab).
 
 ## 4. Core User Workflows
 
@@ -466,7 +487,7 @@ Update Website
 ### 4.6 Leads
 
 ```text
-Website / WhatsApp
+Website Form / Verified Inbound WhatsApp Webhook
        ↓
 Sparovia Lead API
        ↓
@@ -479,6 +500,26 @@ Create / Update Lead
 New
        ↓
 Client manages status
+```
+
+---
+
+### 4.7 Contact Activity (Outbound Link Clicks)
+
+```text
+Visitor Clicks WhatsApp Template / Facebook / Instagram Link
+       ↓
+Browser Dispatches Non-Blocking Beacon/Fetch to /contact-activity/public
+       ↓
+External Destination Opens Immediately (wa.me / facebook.com / instagram.com)
+       ↓
+Validate Domain & Channel; Deduplicate via CorrelationId
+       ↓
+Resolve Tenant from Trusted Website Configuration
+       ↓
+Record ContactActivity Event (Never creates/alters Lead)
+       ↓
+Surfaced on Admin Dashboard & Leads Contact Activity Tab
 ```
 
 ---
@@ -1093,10 +1134,18 @@ The pilot must demonstrate:
 ### Leads
 
 * Website leads arrive reliably.
-* WhatsApp leads arrive when configured.
+* WhatsApp leads arrive when configured via incoming message webhook.
 * Leads belong to the correct tenant.
 * Client can view lead details.
 * Client can manage basic status.
+
+### WhatsApp Templates, Social Links & Contact Activity
+
+* Client can configure and order 3–4 client-authored WhatsApp templates.
+* Client can configure Facebook and Instagram outbound profile URLs with scheme validation.
+* Outbound template and social link clicks are tracked as Contact Activity without blocking navigation.
+* Contact Activity is strictly isolated from Leads; outbound clicks never create or mutate Leads or increment confirmed Lead counts.
+* Contact Activity is cleanly summarized on the Admin Dashboard and detailed in the Leads management area.
 
 ### Security & Reliability
 
@@ -1127,6 +1176,8 @@ Pilot V1 is ready for a real client only when:
 * Website lead submission works.
 * WhatsApp lead intake works where configured.
 * Lead management works.
+* WhatsApp templates (3–4 client-authored), Facebook/Instagram links, and Contact Activity tracking work.
+* Contact clicks are verified never to touch or increment Lead records.
 * Failure/retry/fallback behavior works.
 * Responsive Admin behavior is verified.
 * Important audit events are recorded.

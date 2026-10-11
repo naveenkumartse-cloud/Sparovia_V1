@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Instagram, Facebook, X } from 'lucide-react';
+import { Instagram, Facebook, X, MessageCircle, ExternalLink } from 'lucide-react';
 import { siteConfig } from '@/config/siteConfig';
 import { useTemplateContent } from '@/components/providers/WebsiteContentProvider';
+import { recordContactActivity } from '@/lib/analytics/contactTracking';
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -23,18 +24,34 @@ export function SocialControl() {
   const containerRef = useRef<HTMLDivElement>(null);
   const templateContent = useTemplateContent();
   const whatsappConfig = templateContent?.whatsapp;
+  const socialConfig = templateContent?.social;
 
-  let whatsappUrl = '';
+  // Compute clean phone number
+  let cleanPhone = '';
   if (whatsappConfig?.enabled && whatsappConfig.phoneNumber) {
-    let cleanPhone = whatsappConfig.phoneNumber.replace(/\D/g, '');
-    if (cleanPhone.length === 10) {
-      cleanPhone = `91${cleanPhone}`;
-    }
-    if (cleanPhone.length >= 10) {
-      const text = whatsappConfig.prefilledMessage ? encodeURIComponent(whatsappConfig.prefilledMessage) : '';
-      whatsappUrl = `https://wa.me/${cleanPhone}${text ? `?text=${text}` : ''}`;
+    const raw = whatsappConfig.phoneNumber.replace(/\D/g, '');
+    if (raw.length === 10) {
+      cleanPhone = `91${raw}`;
+    } else if (raw.length > 10) {
+      cleanPhone = raw;
     }
   }
+
+  // Active client-authored WhatsApp templates
+  const activeTemplates = (whatsappConfig?.templates || []).filter(t => t.isActive);
+
+  // Default WhatsApp URL fallback
+  const defaultText = whatsappConfig?.prefilledMessage ? encodeURIComponent(whatsappConfig.prefilledMessage) : '';
+  const defaultWhatsappUrl = cleanPhone ? `https://wa.me/${cleanPhone}${defaultText ? `?text=${defaultText}` : ''}` : '';
+
+  // Social Links
+  const facebookUrl = (socialConfig?.facebookEnabled && socialConfig.facebookUrl) 
+    ? socialConfig.facebookUrl 
+    : (siteConfig?.social?.facebook && siteConfig.social.facebook !== '#' ? siteConfig.social.facebook : '');
+
+  const instagramUrl = (socialConfig?.instagramEnabled && socialConfig.instagramUrl) 
+    ? socialConfig.instagramUrl 
+    : (siteConfig?.social?.instagram && siteConfig.social.instagram !== '#' ? siteConfig.social.instagram : '');
 
   // Close on outside click
   useEffect(() => {
@@ -62,28 +79,65 @@ export function SocialControl() {
     };
   }, [isOpen]);
 
-  const socialLinks = [
-    { name: 'WhatsApp', icon: WhatsAppIcon, url: whatsappUrl },
-    { name: 'Instagram', icon: Instagram, url: siteConfig.social.instagram },
-    { name: 'Facebook', icon: Facebook, url: siteConfig.social.facebook },
-  ].filter(link => Boolean(link.url && link.url.trim() !== '' && link.url !== '#'));
+  const hasWhatsApp = Boolean(cleanPhone);
+  const hasTemplates = hasWhatsApp && activeTemplates.length > 0;
+  const hasFacebook = Boolean(facebookUrl);
+  const hasInstagram = Boolean(instagramUrl);
 
-  if (socialLinks.length === 0) return null;
+  // If nothing is enabled, render nothing
+  if (!hasWhatsApp && !hasFacebook && !hasInstagram) return null;
 
-  const isDirectWhatsApp = socialLinks.length === 1 && socialLinks[0].name === 'WhatsApp';
+  // Handle template selection
+  const handleTemplateClick = (t: { id: string; title: string; messageText: string }) => {
+    recordContactActivity({
+      channel: 'WhatsApp',
+      templateId: t.id,
+      templateTitle: t.title,
+      source: 'SocialControl',
+    });
+    const encoded = encodeURIComponent(t.messageText);
+    window.open(`https://wa.me/${cleanPhone}?text=${encoded}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleDefaultWhatsAppClick = () => {
+    recordContactActivity({
+      channel: 'WhatsApp',
+      templateTitle: 'Direct Chat',
+      source: 'SocialControl',
+    });
+    window.open(defaultWhatsappUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleSocialClick = (channel: 'Facebook' | 'Instagram', url: string) => {
+    recordContactActivity({
+      channel,
+      source: 'SocialControl',
+    });
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  // If only a single direct WhatsApp exists without templates or social links:
+  const isDirectSingleWhatsApp = hasWhatsApp && !hasTemplates && !hasFacebook && !hasInstagram;
 
   return (
     <div 
       ref={containerRef}
       className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pb-[env(safe-area-inset-bottom,0px)] pr-[env(safe-area-inset-right,0px)]"
-      onPointerEnter={(e) => { if (!isDirectWhatsApp && e.pointerType === 'mouse') setIsOpen(true); }}
-      onPointerLeave={(e) => { if (!isDirectWhatsApp && e.pointerType === 'mouse') setIsOpen(false); }}
+      onPointerEnter={(e) => { if (!isDirectSingleWhatsApp && e.pointerType === 'mouse') setIsOpen(true); }}
+      onPointerLeave={(e) => { if (!isDirectSingleWhatsApp && e.pointerType === 'mouse') setIsOpen(false); }}
     >
-      {isDirectWhatsApp ? (
+      {isDirectSingleWhatsApp ? (
         <a
-          href={whatsappUrl}
+          href={defaultWhatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => {
+            recordContactActivity({
+              channel: 'WhatsApp',
+              templateTitle: 'Direct Chat',
+              source: 'SocialControl',
+            });
+          }}
           className="w-14 h-14 rounded-full shadow-2xl bg-[#25D366] hover:bg-[#20ba59] text-white flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-[#25D366]/40 focus-ring touch-manipulation"
           aria-label="Chat with us on WhatsApp"
         >
@@ -94,27 +148,80 @@ export function SocialControl() {
           <AnimatePresence>
             {isOpen && (
               <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                initial={{ opacity: 0, y: 12, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                exit={{ opacity: 0, y: 12, scale: 0.95 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="flex flex-col gap-3 mb-2"
+                className="flex flex-col gap-3 mb-2 items-end"
               >
-                {socialLinks.map((link, i) => (
-                  <motion.a
-                    key={link.name}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-12 h-12 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-charcoal-700 hover:text-brand-600 hover:scale-110 transition-all duration-300 focus-ring"
-                    aria-label={`Visit our ${link.name}`}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                  >
-                    <link.icon className="w-5 h-5" />
-                  </motion.a>
-                ))}
+                {/* Popover Card for WhatsApp Template Choices */}
+                {hasWhatsApp && (
+                  <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-3.5 max-w-xs w-64 text-left">
+                    <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
+                      <div className="w-6 h-6 rounded-full bg-[#25D366]/10 text-[#25D366] flex items-center justify-center shrink-0">
+                        <WhatsAppIcon className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-xs font-bold text-charcoal-900">
+                        Chat on WhatsApp
+                      </span>
+                    </div>
+
+                    {hasTemplates ? (
+                      <div className="space-y-1.5">
+                        <p className="text-[11px] text-gray-500 mb-1">
+                          Select a conversation topic:
+                        </p>
+                        {activeTemplates.map((t) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => handleTemplateClick(t)}
+                            className="w-full text-left px-3 py-2 rounded-xl bg-gray-50 hover:bg-emerald-50 hover:text-emerald-900 border border-transparent hover:border-emerald-200 transition-all text-xs font-semibold text-charcoal-800 flex items-center justify-between group"
+                          >
+                            <span className="truncate">{t.title}</span>
+                            <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-emerald-600 shrink-0 ml-1.5" />
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleDefaultWhatsAppClick}
+                        className="w-full text-left px-3 py-2 rounded-xl bg-gray-50 hover:bg-emerald-50 hover:text-emerald-900 border border-transparent hover:border-emerald-200 transition-all text-xs font-semibold text-charcoal-800 flex items-center justify-between"
+                      >
+                        <span>Start Conversation</span>
+                        <ExternalLink className="w-3 h-3 text-emerald-600" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Social Outbound Icons */}
+                {(hasFacebook || hasInstagram) && (
+                  <div className="flex items-center gap-2.5">
+                    {hasInstagram && (
+                      <button
+                        type="button"
+                        onClick={() => handleSocialClick('Instagram', instagramUrl)}
+                        className="w-11 h-11 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-pink-600 hover:scale-110 hover:shadow-pink-500/20 transition-all duration-300 focus-ring"
+                        aria-label="Visit Instagram Profile"
+                      >
+                        <Instagram className="w-5 h-5" />
+                      </button>
+                    )}
+
+                    {hasFacebook && (
+                      <button
+                        type="button"
+                        onClick={() => handleSocialClick('Facebook', facebookUrl)}
+                        className="w-11 h-11 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-blue-600 hover:scale-110 hover:shadow-blue-500/20 transition-all duration-300 focus-ring"
+                        aria-label="Visit Facebook Page"
+                      >
+                        <Facebook className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

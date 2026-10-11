@@ -19,4 +19,5 @@ public class Website
     public ICollection<WebsiteContent> Contents { get; set; } = new List<WebsiteContent>();
     public ICollection<Image> Images { get; set; } = new List<Image>();
     public ICollection<Lead> Leads { get; set; } = new List<Lead>();
+    public ICollection<ContactActivity> ContactActivities { get; set; } = new List<ContactActivity>();
 }

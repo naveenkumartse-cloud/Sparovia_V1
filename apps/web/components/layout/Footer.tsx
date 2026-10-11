@@ -2,10 +2,11 @@
 
 import { templateConfig } from '@/config/templateConfig';
 import { useTemplateContent } from '@/components/providers/WebsiteContentProvider';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, Facebook, Instagram } from 'lucide-react';
+import { recordContactActivity } from '@/lib/analytics/contactTracking';
 
 export default function Footer() {
-  const { footer, website } = useTemplateContent();
+  const { footer, website, social } = useTemplateContent();
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -17,6 +18,9 @@ export default function Footer() {
   const logoRest = nameParts.slice(1).join(' ');
 
   const copyrightText = footer.copyrightText || `© ${new Date().getFullYear()} ${displayName}. All rights reserved.`;
+
+  const hasFacebook = Boolean(social?.facebookEnabled && social?.facebookUrl);
+  const hasInstagram = Boolean(social?.instagramEnabled && social?.instagramUrl);
 
   return (
     <footer className="bg-charcoal-900 text-white pt-16 pb-10 relative border-t border-charcoal-800" role="contentinfo">
@@ -39,6 +43,45 @@ export default function Footer() {
             <p className="text-xs text-gray-400 font-normal leading-relaxed max-w-sm">
               {footer.shortDescription || 'Transforming spaces with custom modular interiors and architectural systems.'}
             </p>
+
+            {(hasFacebook || hasInstagram) && (
+              <div className="flex items-center gap-3 pt-2">
+                {hasFacebook && (
+                  <a
+                    href={social!.facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      recordContactActivity({
+                        channel: 'Facebook',
+                        source: 'Footer',
+                      });
+                    }}
+                    className="w-8 h-8 rounded-lg bg-charcoal-800 hover:bg-brand-600 border border-charcoal-700 flex items-center justify-center text-gray-300 hover:text-white transition-all cursor-pointer"
+                    aria-label="Visit our Facebook page"
+                  >
+                    <Facebook className="w-4 h-4" />
+                  </a>
+                )}
+                {hasInstagram && (
+                  <a
+                    href={social!.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      recordContactActivity({
+                        channel: 'Instagram',
+                        source: 'Footer',
+                      });
+                    }}
+                    className="w-8 h-8 rounded-lg bg-charcoal-800 hover:bg-brand-600 border border-charcoal-700 flex items-center justify-center text-gray-300 hover:text-white transition-all cursor-pointer"
+                    aria-label="Visit our Instagram profile"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Navigation Links */}

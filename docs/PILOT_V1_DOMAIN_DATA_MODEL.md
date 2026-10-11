@@ -26,6 +26,7 @@ The model covers only the Pilot V1 scope:
 - Image variants
 - AI requests
 - Leads
+- ContactActivity (outbound contact clicks)
 - Audit records
 
 The model intentionally excludes future platform complexity.
@@ -50,6 +51,7 @@ Tenant
  ├── Website
  ├── Images
  ├── Leads
+ ├── ContactActivities
  ├── AIRequests
  └── AuditRecords
 ````
@@ -117,6 +119,7 @@ Pilot V1 contains the following core entities:
 | Image           | Original client-uploaded image         |
 | ImageVariant    | Derived image versions                 |
 | Lead            | Customer enquiry                       |
+| ContactActivity | Outbound contact link click event      |
 | AIRequest       | Record of contextual AI operation      |
 | AuditRecord     | Important change/security history      |
 
@@ -134,10 +137,13 @@ Tenant
 │
 ├── Website
 │   ├── WebsiteContent
-│   └── Image
-│       └── ImageVariant
+│   ├── Image
+│   │   └── ImageVariant
+│   └── ContactActivity
 │
 ├── Lead
+│
+├── ContactActivity
 │
 ├── AIRequest
 │
@@ -155,8 +161,10 @@ Tenant 1 ─── 1 Website
 Website 1 ─── N WebsiteContent
 Website 1 ─── N Image
 Image 1 ─── N ImageVariant
+Website 1 ─── N ContactActivity
 
 Tenant 1 ─── N Lead
+Tenant 1 ─── N ContactActivity
 Tenant 1 ─── N AIRequest
 Tenant 1 ─── N AuditRecord
 ```
@@ -514,9 +522,31 @@ WhyChooseUs
 ExploreOurWork
 Contact
 Footer
+Social
 ```
 
 Additional sections may be supported only when explicitly mapped for the connected pilot website.
+
+### 15.1 Social & WhatsApp Template Content Data
+
+The `social` section stores outbound contact configuration:
+
+* **WhatsApp Configuration:**
+  * `PhoneNumber`: Business phone number (normalized digits/E.164).
+  * `FallbackMessage`: Default prefilled message.
+  * `Templates`: List of 3–4 client-authored templates:
+    * `Id`: Stable identifier.
+    * `Title`: Client-authored title (max 100 chars).
+    * `Message`: Client-authored message text (max 1000 chars).
+    * `Order`: Integer display order (1-indexed).
+    * `IsActive`: Boolean toggle controlling public display.
+* **Social Links Configuration:**
+  * `FacebookUrl`: Client Facebook profile/page URL (`http`/`https` only).
+  * `FacebookEnabled`: Boolean toggle.
+  * `InstagramUrl`: Client Instagram profile URL (`http`/`https` only).
+  * `InstagramEnabled`: Boolean toggle.
+
+Unsafe schemes (e.g. `javascript:`, `data:`) are strictly prohibited and rejected.
 
 ---
 
@@ -841,6 +871,37 @@ A user from Tenant A must never be able to:
 
 ---
 
+# 29B. ContactActivity (Lightweight Outbound Interaction Tracking)
+
+## Purpose
+
+Stores lightweight outbound link activation events (clicks) for WhatsApp templates, Facebook profile links, and Instagram profile links.
+
+Contact Activity is strictly separated from Leads. An outbound click represents visitor intent to open an external application or profile, not a submitted enquiry or delivered message. Outbound clicks must never create or update `Lead` entities, nor increment confirmed lead counts.
+
+## Fields
+
+| Field         | Type     | Required | Description |
+| ------------- | -------- | -------: | ----------- |
+| Id            | UUID     |      Yes | Primary key |
+| TenantId      | UUID     |      Yes | Foreign key to Tenant (mandatory security boundary) |
+| WebsiteId     | UUID     |      Yes | Foreign key to Website |
+| Channel       | String   |      Yes | Channel name: `WhatsApp`, `Facebook`, or `Instagram` |
+| EventType     | String   |      Yes | Event type identifier, e.g. `ContactLinkClicked` |
+| TemplateId    | String   |       No | Identifier of the selected WhatsApp template (if applicable) |
+| TemplateTitle | String   |       No | Display title of the selected WhatsApp template (if applicable) |
+| Source        | String   |      Yes | Page or component source identifier (e.g. `website`, `landing_page`) |
+| CorrelationId | String   |       No | Optional client-generated correlation/idempotency key for deduplication |
+| CreatedAt     | DateTime |      Yes | Server-generated timestamp (UTC) |
+
+## Server-Derived Tenant Resolution
+
+`ContactActivity.TenantId` must always resolve server-side from trusted host/domain configuration. Caller-provided tenant identifiers are never accepted as proof of tenant ownership.
+
+## Privacy & Boundary
+
+Contact Activity records do not collect personal identifiers, prefilled message text, phone numbers, or invasive browser fingerprints. They serve as an operational metric and audit trail for client outbound contact channels.
+
 ---
 
 # 30. TenantAIConfiguration (Tenant AI Connection & Model Selection)
@@ -1141,6 +1202,7 @@ Audit data is tenant-scoped.
 | Image           | Direct + Website         |
 | ImageVariant    | Direct + Image           |
 | Lead            | Direct                   |
+| ContactActivity | Direct + Website         |
 | AIRequest       | Direct                   |
 | AuditRecord     | Direct                   |
 
@@ -1463,6 +1525,9 @@ ImageVariant.ImageId → Image.Id
 
 Lead.TenantId → Tenant.Id
 
+ContactActivity.TenantId → Tenant.Id
+ContactActivity.WebsiteId → Website.Id
+
 AIRequest.TenantId → Tenant.Id
 
 AuditRecord.TenantId → Tenant.Id
@@ -1698,6 +1763,8 @@ Tenant
 │       └── ImageVariant
 │
 ├── Lead
+│
+├── ContactActivity
 │
 ├── AIRequest
 │

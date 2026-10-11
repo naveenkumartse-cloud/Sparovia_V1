@@ -15,4 +15,5 @@ public class Tenant
     public TenantAIConfiguration? AIConfiguration { get; set; }
     public ICollection<Image> Images { get; set; } = new List<Image>();
     public ICollection<Lead> Leads { get; set; } = new List<Lead>();
+    public ICollection<ContactActivity> ContactActivities { get; set; } = new List<ContactActivity>();
 }
