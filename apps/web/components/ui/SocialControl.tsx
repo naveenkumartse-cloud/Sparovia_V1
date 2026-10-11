@@ -13,7 +13,6 @@ import {
   ArrowLeft 
 } from 'lucide-react';
 import { useTemplateContent, WhatsAppTemplate } from '@/components/providers/WebsiteContentProvider';
-import { recordContactActivity } from '@/lib/analytics/contactTracking';
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -162,12 +161,6 @@ export function SocialControl() {
 
   // Handle WhatsApp template click
   const handleTemplateClick = (t: WhatsAppTemplate) => {
-    recordContactActivity({
-      channel: 'WhatsApp',
-      templateId: t.id,
-      templateTitle: t.title,
-      source: 'SocialControl',
-    });
     setIsOpen(false);
     setPanelView('channels');
     const composed = composeWhatsAppMessage(t.messageText, t.category);
@@ -179,23 +172,12 @@ export function SocialControl() {
   const handleDirectWhatsAppClick = () => {
     if (activeTemplates.length === 1) {
       const single = activeTemplates[0];
-      recordContactActivity({
-        channel: 'WhatsApp',
-        templateId: single.id,
-        templateTitle: single.title,
-        source: 'SocialControl',
-      });
       setIsOpen(false);
       setPanelView('channels');
       const composed = composeWhatsAppMessage(single.messageText, single.category);
       const encoded = encodeURIComponent(composed);
       window.open(`https://wa.me/${cleanPhone}?text=${encoded}`, '_blank', 'noopener,noreferrer');
     } else {
-      recordContactActivity({
-        channel: 'WhatsApp',
-        templateTitle: 'Direct Chat',
-        source: 'SocialControl',
-      });
       setIsOpen(false);
       setPanelView('channels');
       const defaultText = whatsappConfig?.prefilledMessage ? encodeURIComponent(whatsappConfig.prefilledMessage) : '';
@@ -215,10 +197,6 @@ export function SocialControl() {
 
   // Handle external social profile navigation
   const handleSocialClick = (channel: 'Facebook' | 'Instagram', url: string) => {
-    recordContactActivity({
-      channel,
-      source: 'SocialControl',
-    });
     setIsOpen(false);
     setPanelView('channels');
     window.open(url, '_blank', 'noopener,noreferrer');

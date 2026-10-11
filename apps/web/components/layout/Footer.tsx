@@ -3,7 +3,6 @@
 import { templateConfig } from '@/config/templateConfig';
 import { useTemplateContent } from '@/components/providers/WebsiteContentProvider';
 import { ChevronUp, Facebook, Instagram } from 'lucide-react';
-import { recordContactActivity } from '@/lib/analytics/contactTracking';
 
 export default function Footer() {
   const { footer, website, social } = useTemplateContent();
@@ -51,12 +50,6 @@ export default function Footer() {
                     href={social!.facebookUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => {
-                      recordContactActivity({
-                        channel: 'Facebook',
-                        source: 'Footer',
-                      });
-                    }}
                     className="w-9 h-9 rounded-full bg-[#1877F2] hover:bg-[#166fe5] flex items-center justify-center text-white shadow-md transition-all cursor-pointer hover:scale-105"
                     aria-label="Visit our Facebook page"
                   >
@@ -68,12 +61,6 @@ export default function Footer() {
                     href={social!.instagramUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => {
-                      recordContactActivity({
-                        channel: 'Instagram',
-                        source: 'Footer',
-                      });
-                    }}
                     className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] hover:opacity-95 flex items-center justify-center text-white shadow-md transition-all cursor-pointer hover:scale-105"
                     aria-label="Visit our Instagram profile"
                   >

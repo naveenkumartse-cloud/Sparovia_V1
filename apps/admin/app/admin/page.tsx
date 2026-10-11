@@ -14,7 +14,6 @@ import {
   Clock, 
   FileEdit,
   ShieldCheck,
-  Activity,
   Image as ImageIcon
 } from 'lucide-react';
 
@@ -22,7 +21,6 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const [contextSummary, setContextSummary] = useState<any>(null);
   const [newLeadsCount, setNewLeadsCount] = useState<number | null>(null);
-  const [activityTotalClicks, setActivityTotalClicks] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -31,18 +29,11 @@ export default function AdminDashboard() {
         const data = await apiClient.get('/onboarding/summary');
         setContextSummary(data);
 
-        // Fetch leads summary and contact activity count if confirmed
+        // Fetch leads summary count if confirmed
         if ((data as any)?.isConfirmed) {
           try {
             const leadsData = await apiClient.get<any>('/leads?pageSize=1&status=New');
             setNewLeadsCount(leadsData?.totalCount ?? 0);
-          } catch {
-            // Non-blocking for dashboard
-          }
-
-          try {
-            const activityData = await apiClient.get<any>('/contact-activity/summary');
-            setActivityTotalClicks(activityData?.totalClicks ?? 0);
           } catch {
             // Non-blocking for dashboard
           }
@@ -92,8 +83,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Grid of Key Status Cards (4-column responsive grid) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Grid of Key Status Cards (3-column responsive grid) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Business Context Card */}
         <div className="bg-white dark:bg-[#0F172A] p-6 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs flex flex-col justify-between">
           <div>
@@ -180,42 +171,10 @@ export default function AdminDashboard() {
           </div>
           <div className="mt-6 pt-4 border-t border-[#E3E7ED] dark:border-[#1E293B]">
             <Link 
-              href="/admin/leads?tab=leads" 
+              href="/admin/leads" 
               className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
             >
               View lead list <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Contact Activity Card */}
-        <div className="bg-white dark:bg-[#0F172A] p-6 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-[6px] bg-[#7950B8]/10 border border-[#7950B8]/20 flex items-center justify-center text-[#7950B8]">
-                <Activity className="w-5 h-5" />
-              </div>
-              {activityTotalClicks !== null && activityTotalClicks > 0 ? (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#7950B8]/10 text-[#7950B8] border border-[#7950B8]/20">
-                  {activityTotalClicks} {activityTotalClicks === 1 ? 'Click' : 'Clicks'}
-                </span>
-              ) : (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#F3F6FA] dark:bg-[#1E293B] text-[#475569] dark:text-[#94A3B8]">
-                  Tracking Active
-                </span>
-              )}
-            </div>
-            <h2 className="text-base font-bold text-[#172033] dark:text-white">Contact Activity</h2>
-            <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
-              Outbound clicks on WhatsApp templates and social profile links.
-            </p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-[#E3E7ED] dark:border-[#1E293B]">
-            <Link 
-              href="/admin/leads?tab=activity" 
-              className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
-            >
-              View activity log <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Link>
           </div>
         </div>

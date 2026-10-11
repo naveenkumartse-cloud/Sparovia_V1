@@ -82,55 +82,23 @@ For V1:
 - Validate URL scheme and destination. Prevent unsafe schemes and open redirects.
 - Preserve working social-link behavior.
 
-## 5. Contact Activity
+## 5. Contact Activity (Module Removed)
 
-### 5.1 Purpose and placement
+### 5.1 Removal Decision and Rationale
 
-Contact Activity is a lightweight record of observable outbound link interactions, **not a customer conversation log, incoming-message feed, or list of confirmed enquiries**.
+The Contact Activity module has been **removed completely from Sparovia V1**.
 
-- Keep genuine website form submissions under Customer Leads.
-- If outbound click activity is shown in the existing Leads area, label it clearly as outbound link activity and visually separate it from Leads.
-- A compact summary may show counts by channel, but only when backed by real stored events and clearly labelled as clicks.
-- Detailed records should provide the useful context actually available: timestamp, channel, event, selected WhatsApp template (where applicable), and source page (where available).
-- Do not display generic “message received”, “customer contacted”, or “enquiry” labels for outbound clicks. Do not fabricate customer identity, message content, delivery state, or conversation outcome.
-- If a click-only list does not provide actionable context beyond an event, keep it as clearly labelled outbound analytics rather than presenting it as customer contact history.
+**Rationale:**
+- Outbound link clicks on WhatsApp, Facebook, and Instagram do not provide sufficiently validated or actionable business outcomes.
+- A click on an external link does not confirm that a WhatsApp message was sent or received, that an enquiry occurred, or that a customer was acquired.
+- Surfacing click tallies, template names, and raw timestamps in the Admin panel introduced noise and confusion without proving lead conversion.
+- Per product owner directive, the module, its UI (tabs, cards, tables), and public tracking beacons have been excised completely rather than renamed or redesigned.
 
-Do not build a full analytics platform or CRM.
+### 5.2 Preservation of Genuine Leads and Direct External Navigation
 
-### 5.2 Events
-
-Track observable activation of:
-- WhatsApp template links (store template ID/title where useful; do not store the full message by default).
-- Facebook profile links.
-- Instagram profile links.
-
-Use only minimum operational data:
-- Tenant association resolved from trusted context.
-- Channel: `WhatsApp`, `Facebook`, or `Instagram`.
-- Event type such as `ContactLinkClicked`.
-- Server timestamp.
-- Page/source reference where available.
-- WhatsApp template reference where applicable.
-- Existing safe event/correlation identifier where useful.
-
-Avoid unnecessary personal data, message content, fingerprinting, precise location, and persistent IP/user-agent storage unless an existing approved security policy requires it.
-
-### 5.3 Separation from Leads
-
-- Contact Activity is not a Lead.
-- Outbound clicks must not increase confirmed lead counts.
-- Website form submissions continue creating genuine Leads through the existing workflow.
-- Incoming WhatsApp messages may create/update Leads only through a separately configured, verified incoming-message integration.
-- A click-to-chat URL does not provide inbound message text, customer phone, send status, or conversation status.
-- Admin labels and counts must clearly distinguish activity from enquiries.
-
-### 5.4 Reliability and security
-
-- Tracking is best-effort and must not block or materially delay external navigation.
-- If tracking fails, the contact action must still work.
-- Use existing validation, rate limiting/abuse controls, tenant isolation, and logging patterns.
-- Never trust a client-supplied tenant ID as proof of ownership.
-- Avoid invasive visitor identity tracking.
+- **Genuine Customer Leads:** Direct inquiries submitted through verified website contact forms remain the sole source of truth in the Leads workspace.
+- **Direct Link Launch:** WhatsApp template selection, Facebook profile visits, and Instagram profile visits launch external applications directly without client-side or server-side click tracking beacons.
+- **No Replacement Analytics:** No replacement click-counting, fake analytics, or vanity metrics are introduced. Historical database records, if any, remain preserved in persistence without destructive drops.
 
 ## 6. Multi-Tenant Security
 

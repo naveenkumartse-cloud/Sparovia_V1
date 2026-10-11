@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Users, 
   Search, 
@@ -16,12 +15,7 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Activity,
-  ExternalLink,
-  Info,
-  MessageCircle,
-  Instagram,
-  Facebook
+  MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -61,65 +55,11 @@ interface LeadListResponse {
   totalPages: number;
 }
 
-export interface ContactActivityItem {
-  id: string;
-  channel: string;
-  eventType: string;
-  templateId?: string | null;
-  templateTitle?: string | null;
-  source?: string | null;
-  correlationId?: string | null;
-  createdAt: string;
-}
-
-export interface ContactActivitySummary {
-  totalClicks: number;
-  whatsAppClicks: number;
-  facebookClicks: number;
-  instagramClicks: number;
-  recentActivities?: ContactActivityItem[];
-}
-
-export interface ContactActivityListResponse {
-  items: ContactActivityItem[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
-
 const STATUS_OPTIONS = ['All', 'New', 'Contacted', 'Qualified', 'Closed'] as const;
 const SOURCE_OPTIONS = ['All', 'Website', 'WhatsApp', 'Manual'] as const;
-const ACTIVITY_CHANNEL_OPTIONS = ['All', 'WhatsApp', 'Facebook', 'Instagram'] as const;
 
-function LeadsManagementInner() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // Tab State: 'leads' | 'activity'
-  const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<'leads' | 'activity'>(
-    tabParam === 'activity' ? 'activity' : 'leads'
-  );
-
-  useEffect(() => {
-    if (tabParam === 'activity') {
-      setActiveTab('activity');
-    } else {
-      setActiveTab('leads');
-    }
-  }, [tabParam]);
-
-  const handleTabChange = (newTab: 'leads' | 'activity') => {
-    setActiveTab(newTab);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', newTab);
-    router.replace(`/admin/leads?${params.toString()}`);
-  };
-
-  // ==========================================
-  // LEADS STATE & LOGIC
-  // ==========================================
+function CustomerLeadsContent() {
+  // Query parameters state
   const [leadsPage, setLeadsPage] = useState(1);
   const [leadsPageSize] = useState(15);
   const [leadsSearch, setLeadsSearch] = useState('');
@@ -127,13 +67,14 @@ function LeadsManagementInner() {
   const [sourceFilter, setSourceFilter] = useState<string>('All');
   const [sortOrder, setSortOrder] = useState<string>('newest');
 
+  // Leads Data state
   const [leads, setLeads] = useState<Lead[]>([]);
   const [leadsTotalCount, setLeadsTotalCount] = useState(0);
   const [leadsTotalPages, setLeadsTotalPages] = useState(1);
   const [leadsLoading, setLeadsLoading] = useState(true);
   const [leadsError, setLeadsError] = useState<string | null>(null);
 
-  // Tenant Work Categories
+  // Tenant Work Categories (Source of truth for Area of Interest)
   const [tenantCategories, setTenantCategories] = useState<TenantWorkCategory[]>([]);
 
   // Selected Lead for detail view
@@ -368,63 +309,6 @@ function LeadsManagementInner() {
     }
   };
 
-  // ==========================================
-  // CONTACT ACTIVITY STATE & LOGIC
-  // ==========================================
-  const [activityPage, setActivityPage] = useState(1);
-  const [activityPageSize] = useState(20);
-  const [activityChannelFilter, setActivityChannelFilter] = useState<string>('All');
-  const [activitySortOrder] = useState<string>('newest');
-
-  const [activitySummary, setActivitySummary] = useState<ContactActivitySummary | null>(null);
-  const [activities, setActivities] = useState<ContactActivityItem[]>([]);
-  const [activityTotalCount, setActivityTotalCount] = useState(0);
-  const [activityTotalPages, setActivityTotalPages] = useState(1);
-  const [activityLoading, setActivityLoading] = useState(false);
-  const [activityError, setActivityError] = useState<string | null>(null);
-
-  const fetchActivitySummary = useCallback(async () => {
-    try {
-      const summary = await apiClient.get<ContactActivitySummary>('/contact-activity/summary');
-      setActivitySummary(summary);
-    } catch (err) {
-      console.warn('Could not load activity summary:', err);
-    }
-  }, []);
-
-  const fetchActivities = useCallback(async () => {
-    setActivityLoading(true);
-    setActivityError(null);
-    try {
-      const queryParams = new URLSearchParams();
-      queryParams.set('page', activityPage.toString());
-      queryParams.set('pageSize', activityPageSize.toString());
-
-      if (activityChannelFilter !== 'All') {
-        queryParams.set('channel', activityChannelFilter);
-      }
-      if (activitySortOrder) {
-        queryParams.set('sort', activitySortOrder);
-      }
-
-      const res = await apiClient.get<ContactActivityListResponse>(`/contact-activity?${queryParams.toString()}`);
-      setActivities(res.items || []);
-      setActivityTotalCount(res.totalCount || 0);
-      setActivityTotalPages(res.totalPages || 1);
-    } catch (err: any) {
-      setActivityError(err.message || 'Failed to load contact activities.');
-    } finally {
-      setActivityLoading(false);
-    }
-  }, [activityPage, activityPageSize, activityChannelFilter, activitySortOrder]);
-
-  useEffect(() => {
-    if (activeTab === 'activity') {
-      fetchActivitySummary();
-      fetchActivities();
-    }
-  }, [activeTab, fetchActivitySummary, fetchActivities]);
-
   const formatDate = (dateStr: string) => {
     try {
       const d = new Date(dateStr);
@@ -500,714 +384,353 @@ function LeadsManagementInner() {
     );
   };
 
-  const getActivityChannelBadge = (channel: string) => {
-    const ch = channel?.toLowerCase() || '';
-    if (ch === 'whatsapp') {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[4px] text-xs font-semibold bg-[#25D366]/10 text-[#128C7E] dark:bg-[#25D366]/20 dark:text-[#25D366] border border-[#25D366]/30">
-          <MessageCircle className="w-3.5 h-3.5" />
-          WhatsApp
-        </span>
-      );
-    }
-    if (ch === 'facebook') {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[4px] text-xs font-semibold bg-[#1877F2]/10 text-[#1877F2] dark:bg-[#1877F2]/20 dark:text-[#4267B2] border border-[#1877F2]/30">
-          <Facebook className="w-3.5 h-3.5" />
-          Facebook
-        </span>
-      );
-    }
-    if (ch === 'instagram') {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[4px] text-xs font-semibold bg-[#E1306C]/10 text-[#E1306C] dark:bg-[#E1306C]/20 dark:text-[#FD1D1D] border border-[#E1306C]/30">
-          <Instagram className="w-3.5 h-3.5" />
-          Instagram
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[4px] text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-        <ExternalLink className="w-3.5 h-3.5" />
-        {channel}
-      </span>
-    );
-  };
-
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Page Navigation Tabs */}
-      <div className="flex border-b border-[#E3E7ED] dark:border-[#1E293B] space-x-2 sm:space-x-4">
-        <button
-          type="button"
-          onClick={() => handleTabChange('leads')}
-          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors ${
-            activeTab === 'leads'
-              ? 'border-[#315FEA] text-[#315FEA]'
-              : 'border-transparent text-[#475569] dark:text-[#94A3B8] hover:text-[#172033] dark:hover:text-white'
-          }`}
-        >
-          <Users className="w-4 h-4" />
-          <span>Customer Leads</span>
-          {leadsTotalCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-[4px] bg-[#315FEA]/10 text-[#315FEA]">
-              {leadsTotalCount}
-            </span>
-          )}
-        </button>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#172033] dark:text-white tracking-tight">
+            Customer Leads
+          </h1>
+          <p className="text-sm text-[#475569] dark:text-[#94A3B8] mt-1">
+            Review and manage customer enquiries captured through your website contact forms and verified channels.
+          </p>
+        </div>
 
-        <button
-          type="button"
-          onClick={() => handleTabChange('activity')}
-          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors ${
-            activeTab === 'activity'
-              ? 'border-[#315FEA] text-[#315FEA]'
-              : 'border-transparent text-[#475569] dark:text-[#94A3B8] hover:text-[#172033] dark:hover:text-white'
-          }`}
-        >
-          <Activity className="w-4 h-4" />
-          <span>Contact Activity</span>
-          {activitySummary && activitySummary.totalClicks > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-[4px] bg-[#7950B8]/10 text-[#7950B8]">
-              {activitySummary.totalClicks}
-            </span>
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-1.5 rounded-[6px]"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Lead</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchLeads}
+            disabled={leadsLoading}
+            className="flex items-center gap-1.5 rounded-[6px]"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${leadsLoading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </Button>
+        </div>
       </div>
 
-      {/* ========================================================== */}
-      {/* TAB 1: CUSTOMER LEADS VIEW                                 */}
-      {/* ========================================================== */}
-      {activeTab === 'leads' && (
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#172033] dark:text-white tracking-tight">
-                Customer Leads
-              </h1>
-              <p className="text-sm text-[#475569] dark:text-[#94A3B8] mt-1">
-                Review and manage customer enquiries captured through your website contact forms and verified channels.
-              </p>
-            </div>
+      {/* Filter and Search Bar */}
+      <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-4 shadow-xs space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by name, phone, or email..."
+              value={leadsSearch}
+              onChange={e => {
+                setLeadsSearch(e.target.value);
+                setLeadsPage(1);
+              }}
+              className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+            />
+          </div>
 
-            <div className="flex items-center gap-2">
+          {/* Status Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 font-medium shrink-0">Status:</span>
+            <select
+              value={statusFilter}
+              onChange={e => {
+                setStatusFilter(e.target.value);
+                setLeadsPage(1);
+              }}
+              className="w-full py-2 px-3 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+            >
+              {STATUS_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Source Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 font-medium shrink-0">Source:</span>
+            <select
+              value={sourceFilter}
+              onChange={e => {
+                setSourceFilter(e.target.value);
+                setLeadsPage(1);
+              }}
+              className="w-full py-2 px-3 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+            >
+              {SOURCE_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sort Order */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 font-medium shrink-0">Sort:</span>
+            <select
+              value={sortOrder}
+              onChange={e => {
+                setSortOrder(e.target.value);
+                setLeadsPage(1);
+              }}
+              className="w-full py-2 px-3 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="updated">Recently updated</option>
+              <option value="name">Customer name (A-Z)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Leads Content Area */}
+      {leadsError ? (
+        <ErrorState
+          title="Could not load leads"
+          error={leadsError}
+          onRetry={fetchLeads}
+        />
+      ) : leadsLoading && leads.length === 0 ? (
+        <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-12 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-[6px] bg-slate-100 dark:bg-[#1E293B] text-slate-400 mb-4 animate-pulse">
+            <Users className="w-6 h-6" />
+          </div>
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+            Loading customer leads...
+          </p>
+        </div>
+      ) : leads.length === 0 ? (
+        <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-8 sm:p-12 shadow-xs">
+          <EmptyState
+            icon={<Users className="w-8 h-8 text-slate-400" />}
+            title={leadsSearch || statusFilter !== 'All' || sourceFilter !== 'All' ? "No matching leads found" : "No leads yet"}
+            description={
+              leadsSearch || statusFilter !== 'All' || sourceFilter !== 'All'
+                ? "Try clearing or broadening your search and filter criteria."
+                : "When customers submit enquiries through your website, they will appear here."
+            }
+          />
+          {!leadsSearch && statusFilter === 'All' && sourceFilter === 'All' && (
+            <div className="mt-4 text-center">
               <Button
                 variant="primary"
                 size="sm"
                 onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-1.5 rounded-[6px]"
+                className="inline-flex items-center gap-1.5 rounded-[6px]"
               >
                 <Plus className="w-4 h-4" />
-                <span>Add Lead</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchLeads}
-                disabled={leadsLoading}
-                className="flex items-center gap-1.5 rounded-[6px]"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${leadsLoading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
+                <span>Add First Lead</span>
               </Button>
             </div>
-          </div>
-
-          {/* Filter and Search Bar */}
-          <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-4 shadow-xs space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search by name, phone, or email..."
-                  value={leadsSearch}
-                  onChange={e => {
-                    setLeadsSearch(e.target.value);
-                    setLeadsPage(1);
-                  }}
-                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
-                />
-              </div>
-
-              {/* Status Filter */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 font-medium shrink-0">Status:</span>
-                <select
-                  value={statusFilter}
-                  onChange={e => {
-                    setStatusFilter(e.target.value);
-                    setLeadsPage(1);
-                  }}
-                  className="w-full py-2 px-3 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
-                >
-                  {STATUS_OPTIONS.map(opt => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Source Filter */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 font-medium shrink-0">Source:</span>
-                <select
-                  value={sourceFilter}
-                  onChange={e => {
-                    setSourceFilter(e.target.value);
-                    setLeadsPage(1);
-                  }}
-                  className="w-full py-2 px-3 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
-                >
-                  {SOURCE_OPTIONS.map(opt => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Sort Order */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 font-medium shrink-0">Sort:</span>
-                <select
-                  value={sortOrder}
-                  onChange={e => {
-                    setSortOrder(e.target.value);
-                    setLeadsPage(1);
-                  }}
-                  className="w-full py-2 px-3 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
-                >
-                  <option value="newest">Newest first</option>
-                  <option value="oldest">Oldest first</option>
-                  <option value="updated">Recently updated</option>
-                  <option value="name">Customer name (A-Z)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Leads Content Area */}
-          {leadsError ? (
-            <ErrorState
-              title="Could not load leads"
-              error={leadsError}
-              onRetry={fetchLeads}
-            />
-          ) : leadsLoading && leads.length === 0 ? (
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-12 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-[6px] bg-slate-100 dark:bg-[#1E293B] text-slate-400 mb-4 animate-pulse">
-                <Users className="w-6 h-6" />
-              </div>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                Loading customer leads...
-              </p>
-            </div>
-          ) : leads.length === 0 ? (
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-8 sm:p-12 shadow-xs">
-              <EmptyState
-                icon={<Users className="w-8 h-8 text-slate-400" />}
-                title={leadsSearch || statusFilter !== 'All' || sourceFilter !== 'All' ? "No matching leads found" : "No leads yet"}
-                description={
-                  leadsSearch || statusFilter !== 'All' || sourceFilter !== 'All'
-                    ? "Try clearing or broadening your search and filter criteria."
-                    : "When customers submit enquiries through your website, they will appear here."
-                }
-              />
-              {!leadsSearch && statusFilter === 'All' && sourceFilter === 'All' && (
-                <div className="mt-4 text-center">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 rounded-[6px]"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Add First Lead</span>
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] shadow-xs overflow-hidden">
-              {/* Desktop Table View */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm">
-                  <thead className="bg-[#F3F6FA] dark:bg-[#1E293B]/40 border-b border-[#E3E7ED] dark:border-[#1E293B] text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
-                    <tr>
-                      <th scope="col" className="px-6 py-3.5">Customer</th>
-                      <th scope="col" className="px-6 py-3.5">Phone / Contact</th>
-                      <th scope="col" className="px-6 py-3.5">Area of Interest</th>
-                      <th scope="col" className="px-6 py-3.5">Source</th>
-                      <th scope="col" className="px-6 py-3.5">Status</th>
-                      <th scope="col" className="px-6 py-3.5">Submitted</th>
-                      <th scope="col" className="px-6 py-3.5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-[#1E293B]">
-                    {leads.map(lead => (
-                      <tr
-                        key={lead.id}
-                        onClick={() => setSelectedLead(lead)}
-                        className="hover:bg-slate-50/80 dark:hover:bg-[#1E293B]/30 cursor-pointer transition-colors"
-                      >
-                        <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                          <div>{lead.name}</div>
-                          {lead.message && (
-                            <div className="text-xs text-slate-400 font-normal truncate max-w-xs mt-0.5">
-                              {lead.message}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
-                          <div>{lead.phone}</div>
-                          {lead.email && (
-                            <div className="text-xs text-slate-400 truncate max-w-xs">{lead.email}</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          {lead.areaOfInterest ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-xs font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                              {lead.areaOfInterest}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-slate-400">—</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          {getSourceBadge(lead.source)}
-                        </td>
-                        <td className="px-6 py-4">
-                          {getStatusBadge(lead.status)}
-                        </td>
-                        <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                          {formatDate(lead.submittedAt)}
-                        </td>
-                        <td className="px-6 py-4 text-right" onClick={e => e.stopPropagation()}>
-                          <div className="inline-flex items-center gap-2">
-                            <select
-                              value={lead.status}
-                              onChange={e => handleStatusChange(lead.id, e.target.value)}
-                              disabled={isUpdatingStatus}
-                              className="py-1 px-2 text-xs rounded-[6px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
-                              aria-label={`Update status for ${lead.name}`}
-                            >
-                              <option value="New">New</option>
-                              <option value="Contacted">Contacted</option>
-                              <option value="Qualified">Qualified</option>
-                              <option value="Closed">Closed</option>
-                            </select>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon-xs"
-                              onClick={() => {
-                                setSelectedLead(lead);
-                                openEditModal(lead);
-                              }}
-                              title="Edit lead"
-                              aria-label={`Edit ${lead.name}`}
-                              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon-xs"
-                              onClick={() => setLeadToDelete(lead)}
-                              title="Delete lead"
-                              aria-label={`Delete ${lead.name}`}
-                              className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Card Layout */}
-              <div className="md:hidden divide-y divide-slate-100 dark:divide-[#1E293B]">
+          )}
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] shadow-xs overflow-hidden">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead className="bg-[#F3F6FA] dark:bg-[#1E293B]/40 border-b border-[#E3E7ED] dark:border-[#1E293B] text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
+                <tr>
+                  <th scope="col" className="px-6 py-3.5">Customer</th>
+                  <th scope="col" className="px-6 py-3.5">Phone / Contact</th>
+                  <th scope="col" className="px-6 py-3.5">Area of Interest</th>
+                  <th scope="col" className="px-6 py-3.5">Source</th>
+                  <th scope="col" className="px-6 py-3.5">Status</th>
+                  <th scope="col" className="px-6 py-3.5">Submitted</th>
+                  <th scope="col" className="px-6 py-3.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-[#1E293B]">
                 {leads.map(lead => (
-                  <div
+                  <tr
                     key={lead.id}
-                    role="button"
-                    tabIndex={0}
                     onClick={() => setSelectedLead(lead)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setSelectedLead(lead);
-                      }
-                    }}
-                    className="p-4 hover:bg-slate-50/60 dark:hover:bg-[#1E293B]/20 active:bg-slate-100 dark:active:bg-[#1E293B]/40 cursor-pointer space-y-3 touch-manipulation select-none"
+                    className="hover:bg-slate-50/80 dark:hover:bg-[#1E293B]/30 cursor-pointer transition-colors"
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
-                          {lead.name}
-                        </h3>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                          {lead.phone}
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                      <div>{lead.name}</div>
+                      {lead.message && (
+                        <div className="text-xs text-slate-400 font-normal truncate max-w-xs mt-0.5">
+                          {lead.message}
                         </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-1.5">
-                        {getStatusBadge(lead.status)}
-                        {getSourceBadge(lead.source)}
-                      </div>
-                    </div>
-
-                    {lead.areaOfInterest && (
-                      <div>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
+                      <div>{lead.phone}</div>
+                      {lead.email && (
+                        <div className="text-xs text-slate-400 truncate max-w-xs">{lead.email}</div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {lead.areaOfInterest ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-xs font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                           {lead.areaOfInterest}
                         </span>
+                      ) : (
+                        <span className="text-xs text-slate-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {getSourceBadge(lead.source)}
+                    </td>
+                    <td className="px-6 py-4">
+                      {getStatusBadge(lead.status)}
+                    </td>
+                    <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                      {formatDate(lead.submittedAt)}
+                    </td>
+                    <td className="px-6 py-4 text-right" onClick={e => e.stopPropagation()}>
+                      <div className="inline-flex items-center gap-2">
+                        <select
+                          value={lead.status}
+                          onChange={e => handleStatusChange(lead.id, e.target.value)}
+                          disabled={isUpdatingStatus}
+                          className="py-1 px-2 text-xs rounded-[6px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+                          aria-label={`Update status for ${lead.name}`}
+                        >
+                          <option value="New">New</option>
+                          <option value="Contacted">Contacted</option>
+                          <option value="Qualified">Qualified</option>
+                          <option value="Closed">Closed</option>
+                        </select>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => {
+                            setSelectedLead(lead);
+                            openEditModal(lead);
+                          }}
+                          title="Edit lead"
+                          aria-label={`Edit ${lead.name}`}
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => setLeadToDelete(lead)}
+                          title="Delete lead"
+                          aria-label={`Delete ${lead.name}`}
+                          className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
                       </div>
-                    )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-                    {lead.message && (
-                      <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
-                        {lead.message}
-                      </p>
-                    )}
-
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-50 dark:border-slate-800">
-                      <span>{formatDate(lead.submittedAt)}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[#315FEA] font-medium">View details &rarr;</span>
-                      </div>
+          {/* Mobile Card Layout */}
+          <div className="md:hidden divide-y divide-slate-100 dark:divide-[#1E293B]">
+            {leads.map(lead => (
+              <div
+                key={lead.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedLead(lead)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedLead(lead);
+                  }
+                }}
+                className="p-4 hover:bg-slate-50/60 dark:hover:bg-[#1E293B]/20 active:bg-slate-100 dark:active:bg-[#1E293B]/40 cursor-pointer space-y-3 touch-manipulation select-none"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
+                      {lead.name}
+                    </h3>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      {lead.phone}
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Pagination Controls */}
-              <div className="p-4 border-t border-slate-100 dark:border-[#1E293B] flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50 dark:bg-[#0B1120]/50">
-                <div className="text-xs text-slate-500">
-                  Showing <span className="font-semibold text-slate-700 dark:text-slate-300">{leads.length}</span> of{' '}
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">{leadsTotalCount}</span> total enquiries
+                  <div className="flex flex-col items-end gap-1.5">
+                    {getStatusBadge(lead.status)}
+                    {getSourceBadge(lead.source)}
+                  </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setLeadsPage(p => Math.max(1, p - 1))}
-                    disabled={leadsPage <= 1 || leadsLoading}
-                    className="flex items-center gap-1 text-xs rounded-[6px]"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>Previous</span>
-                  </Button>
-                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400 px-2">
-                    Page {leadsPage} of {leadsTotalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setLeadsPage(p => Math.min(leadsTotalPages, p + 1))}
-                    disabled={leadsPage >= leadsTotalPages || leadsLoading}
-                    className="flex items-center gap-1 text-xs rounded-[6px]"
-                  >
-                    <span>Next</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Button>
+                {lead.areaOfInterest && (
+                  <div>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                      {lead.areaOfInterest}
+                    </span>
+                  </div>
+                )}
+
+                {lead.message && (
+                  <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
+                    {lead.message}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-50 dark:border-slate-800">
+                  <span>{formatDate(lead.submittedAt)}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[#315FEA] font-medium">View details &rarr;</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            ))}
+          </div>
 
-      {/* ========================================================== */}
-      {/* TAB 2: CONTACT ACTIVITY VIEW                               */}
-      {/* ========================================================== */}
-      {activeTab === 'activity' && (
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#172033] dark:text-white tracking-tight">
-                Contact Activity
-              </h1>
-              <p className="text-sm text-[#475569] dark:text-[#94A3B8] mt-1">
-                Observable outbound link interactions on your website. Clicks reflect visitor engagement and external launches, not confirmed enquiries.
-              </p>
+          {/* Pagination Controls */}
+          <div className="p-4 border-t border-slate-100 dark:border-[#1E293B] flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50 dark:bg-[#0B1120]/50">
+            <div className="text-xs text-slate-500">
+              Showing <span className="font-semibold text-slate-700 dark:text-slate-300">{leads.length}</span> of{' '}
+              <span className="font-semibold text-slate-700 dark:text-slate-300">{leadsTotalCount}</span> total enquiries
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  fetchActivitySummary();
-                  fetchActivities();
-                }}
-                disabled={activityLoading}
-                className="flex items-center gap-1.5 rounded-[6px]"
+                onClick={() => setLeadsPage(p => Math.max(1, p - 1))}
+                disabled={leadsPage <= 1 || leadsLoading}
+                className="flex items-center gap-1 text-xs rounded-[6px]"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${activityLoading ? 'animate-spin' : ''}`} />
-                <span>Refresh Activity</span>
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Previous</span>
+              </Button>
+              <span className="text-xs font-medium text-slate-600 dark:text-slate-400 px-2">
+                Page {leadsPage} of {leadsTotalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLeadsPage(p => Math.min(leadsTotalPages, p + 1))}
+                disabled={leadsPage >= leadsTotalPages || leadsLoading}
+                className="flex items-center gap-1 text-xs rounded-[6px]"
+              >
+                <span>Next</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </Button>
             </div>
           </div>
-
-          {/* Top Notice Banner (Per Screen Spec Section 48C) */}
-          <div className="bg-[#315FEA]/5 border border-[#315FEA]/20 rounded-[8px] p-4 flex items-start gap-3">
-            <Info className="w-5 h-5 text-[#315FEA] shrink-0 mt-0.5" />
-            <div className="text-xs sm:text-sm text-[#172033] dark:text-[#E2E8F0] leading-relaxed">
-              <span className="font-semibold text-[#315FEA] block mb-0.5">Outbound Activity Notice</span>
-              Contact Activity tracks outbound clicks on WhatsApp, Facebook, and Instagram links. These represent visitor interest and external app launches, not confirmed enquiries or delivered messages.
-            </div>
-          </div>
-
-          {/* Metric Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Total Interactions */}
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-4 shadow-xs">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-slate-500 dark:text-[#94A3B8]">Total Interactions</span>
-                <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center">
-                  <Activity className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-[#172033] dark:text-white">
-                {activitySummary?.totalClicks ?? 0}
-              </div>
-              <p className="text-[11px] text-slate-400 mt-1">Aggregated outbound clicks</p>
-            </div>
-
-            {/* WhatsApp */}
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-4 shadow-xs">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-slate-500 dark:text-[#94A3B8]">WhatsApp Clicks</span>
-                <div className="w-8 h-8 rounded-[6px] bg-[#25D366]/10 text-[#128C7E] dark:text-[#25D366] flex items-center justify-center">
-                  <MessageCircle className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-[#172033] dark:text-white">
-                {activitySummary?.whatsAppClicks ?? 0}
-              </div>
-              <p className="text-[11px] text-slate-400 mt-1">Template choices launched</p>
-            </div>
-
-            {/* Facebook */}
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-4 shadow-xs">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-slate-500 dark:text-[#94A3B8]">Facebook Clicks</span>
-                <div className="w-8 h-8 rounded-[6px] bg-[#1877F2]/10 text-[#1877F2] flex items-center justify-center">
-                  <Facebook className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-[#172033] dark:text-white">
-                {activitySummary?.facebookClicks ?? 0}
-              </div>
-              <p className="text-[11px] text-slate-400 mt-1">Profile visits from launcher</p>
-            </div>
-
-            {/* Instagram */}
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-4 shadow-xs">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-slate-500 dark:text-[#94A3B8]">Instagram Clicks</span>
-                <div className="w-8 h-8 rounded-[6px] bg-[#E1306C]/10 text-[#E1306C] flex items-center justify-center">
-                  <Instagram className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-[#172033] dark:text-white">
-                {activitySummary?.instagramClicks ?? 0}
-              </div>
-              <p className="text-[11px] text-slate-400 mt-1">Profile visits from launcher</p>
-            </div>
-          </div>
-
-          {/* Channel Filter Pills */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-2">Filter by Channel:</span>
-            {ACTIVITY_CHANNEL_OPTIONS.map(ch => {
-              const isSelected = activityChannelFilter === ch;
-              return (
-                <button
-                  key={ch}
-                  type="button"
-                  onClick={() => {
-                    setActivityChannelFilter(ch);
-                    setActivityPage(1);
-                  }}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-[6px] transition-colors ${
-                    isSelected
-                      ? 'bg-[#315FEA] text-white shadow-xs'
-                      : 'bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1E293B]/50'
-                  }`}
-                >
-                  <span>{ch}</span>
-                  {activitySummary && (
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-[4px] ${
-                      isSelected
-                        ? 'bg-white/20 text-white'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                    }`}>
-                      {ch === 'All'
-                        ? activitySummary.totalClicks
-                        : ch === 'WhatsApp'
-                        ? activitySummary.whatsAppClicks
-                        : ch === 'Facebook'
-                        ? activitySummary.facebookClicks
-                        : activitySummary.instagramClicks}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Activity Log Table / Empty State */}
-          {activityError ? (
-            <ErrorState
-              title="Could not load contact activity"
-              error={activityError}
-              onRetry={fetchActivities}
-            />
-          ) : activityLoading && activities.length === 0 ? (
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-12 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-[6px] bg-slate-100 dark:bg-[#1E293B] text-slate-400 mb-4 animate-pulse">
-                <Activity className="w-6 h-6" />
-              </div>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                Loading contact activity records...
-              </p>
-            </div>
-          ) : activities.length === 0 ? (
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-8 sm:p-12 shadow-xs">
-              <EmptyState
-                icon={<Activity className="w-8 h-8 text-slate-400" />}
-                title={activityChannelFilter !== 'All' ? `No ${activityChannelFilter} interactions found` : "No contact activity recorded yet"}
-                description="No contact activity recorded yet. When visitors click your WhatsApp templates or social links, interactions will appear here."
-              />
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] shadow-xs overflow-hidden">
-              {/* Desktop Table View */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm">
-                  <thead className="bg-[#F3F6FA] dark:bg-[#1E293B]/40 border-b border-[#E3E7ED] dark:border-[#1E293B] text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
-                    <tr>
-                      <th scope="col" className="px-6 py-3.5">Date &amp; Time</th>
-                      <th scope="col" className="px-6 py-3.5">Channel</th>
-                      <th scope="col" className="px-6 py-3.5">Interaction Type</th>
-                      <th scope="col" className="px-6 py-3.5">Detail / Template</th>
-                      <th scope="col" className="px-6 py-3.5">Source Page</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-[#1E293B]">
-                    {activities.map(act => (
-                      <tr
-                        key={act.id}
-                        className="hover:bg-slate-50/80 dark:hover:bg-[#1E293B]/30 transition-colors"
-                      >
-                        <td className="px-6 py-4 text-xs font-mono text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                          {formatDate(act.createdAt)}
-                        </td>
-                        <td className="px-6 py-4">
-                          {getActivityChannelBadge(act.channel)}
-                        </td>
-                        <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
-                          <span className="inline-flex items-center gap-1">
-                            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-                            {act.eventType === 'ContactLinkClicked' ? 'Contact Link Clicked' : act.eventType}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
-                          {act.templateTitle ? (
-                            <span className="font-semibold text-[#172033] dark:text-white">
-                              {act.templateTitle}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-slate-500 italic">
-                              External Profile Link
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400">
-                          {act.source || 'Website'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Card Layout */}
-              <div className="md:hidden divide-y divide-slate-100 dark:divide-[#1E293B]">
-                {activities.map(act => (
-                  <div key={act.id} className="p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      {getActivityChannelBadge(act.channel)}
-                      <span className="text-[11px] text-slate-500 font-mono">
-                        {formatDate(act.createdAt)}
-                      </span>
-                    </div>
-
-                    <div className="text-sm font-semibold text-slate-900 dark:text-white">
-                      {act.templateTitle || 'External Profile Link'}
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-50 dark:border-slate-800">
-                      <span>{act.eventType === 'ContactLinkClicked' ? 'Link Clicked' : act.eventType}</span>
-                      <span>Source: {act.source || 'Website'}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Pagination Controls */}
-              <div className="p-4 border-t border-slate-100 dark:border-[#1E293B] flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50 dark:bg-[#0B1120]/50">
-                <div className="text-xs text-slate-500">
-                  Showing <span className="font-semibold text-slate-700 dark:text-slate-300">{activities.length}</span> of{' '}
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">{activityTotalCount}</span> total interactions
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setActivityPage(p => Math.max(1, p - 1))}
-                    disabled={activityPage <= 1 || activityLoading}
-                    className="flex items-center gap-1 text-xs rounded-[6px]"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>Previous</span>
-                  </Button>
-                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400 px-2">
-                    Page {activityPage} of {activityTotalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setActivityPage(p => Math.min(activityTotalPages, p + 1))}
-                    disabled={activityPage >= activityTotalPages || activityLoading}
-                    className="flex items-center gap-1 text-xs rounded-[6px]"
-                  >
-                    <span>Next</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
-      {/* ========================================================== */}
-      {/* MODALS: DETAIL, ADD, EDIT, DELETE                          */}
-      {/* ========================================================== */}
       {/* Lead Detail Modal */}
       <Modal
         isOpen={!!selectedLead && !isEditModalOpen}
@@ -1780,7 +1303,7 @@ export default function LeadsPage() {
         Loading...
       </div>
     }>
-      <LeadsManagementInner />
+      <CustomerLeadsContent />
     </Suspense>
   );
 }

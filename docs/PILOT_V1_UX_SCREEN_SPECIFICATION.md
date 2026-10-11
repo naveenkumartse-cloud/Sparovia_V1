@@ -470,12 +470,6 @@ Summary Cards:
 - Website Status [Connected / Live]
 - Recent Website Updates [Draft / Published]
 - Customer Leads [Count of genuine submitted enquiries]
-- Contact Activity [Total clicks on WhatsApp, Facebook, Instagram links]
-  * WhatsApp clicks count
-  * Facebook clicks count
-  * Instagram clicks count
-  * Note: Outbound link clicks only; does not guarantee message delivery.
-  * Link: View activity log → /admin/leads?tab=activity
 
 Quick Actions
 [Edit Website Content]
@@ -1244,18 +1238,15 @@ Path:
 /admin/leads
 ```
 
-The Leads area contains two distinct views via top navigation tabs:
+The Leads area is focused exclusively on genuine customer enquiries:
 
-1. **Customer Leads (`?tab=leads` / default):**
-   Genuine submitted customer enquiries. Supported lead sources:
-   ```text
-   Website (contact form submissions)
-   WhatsApp (verified inbound webhook messages)
-   ```
-   WhatsApp lead intake is available only when the client's supported WhatsApp integration is configured.
-
-2. **Contact Activity (`?tab=activity`):**
-   Lightweight interaction audit capturing outbound clicks on WhatsApp template choices and social profile links (Facebook, Instagram). Strictly isolated from Leads — clicks never create or increment confirmed enquiries.
+**Customer Leads:**
+Genuine submitted customer enquiries. Supported lead sources:
+```text
+Website (contact form submissions)
+WhatsApp (verified inbound webhook messages)
+```
+WhatsApp lead intake is available only when the client's supported WhatsApp integration is configured.
 
 ---
 
@@ -1438,43 +1429,15 @@ No V1:
 * Outbound links to client Facebook page/profile and Instagram profile in header/footer/contact surfaces.
 * Rendered only when valid and enabled by the client.
 * Strict URL validation permits only `http` or `https` protocols; blocks `javascript:`, `data:`, or open redirect abuse.
-* Dispatches non-blocking beacon/fetch to `POST /api/v1/contact-activity/public` with channel `Facebook` or `Instagram`.
+* Opens external profile URLs directly.
 
 ---
 
-# 48C. Contact Activity View (`/admin/leads?tab=activity`)
+# 48C. Contact Activity View (Removed)
 
-### Purpose
+### Status: Module Removed
 
-Provide clients with a transparent, privacy-respecting log of visitor clicks on their WhatsApp templates, Facebook, and Instagram links.
-
-### Screen Layout & Components
-
-1. **Top Notice Banner:**
-   * Informs the client:
-     > "Contact Activity tracks outbound clicks on WhatsApp, Facebook, and Instagram links. These represent visitor interest and external app launches, not confirmed enquiries or delivered messages."
-
-2. **Metric Summary Cards:**
-   * Total Interactions (aggregated count)
-   * WhatsApp (count of clicks across all WhatsApp templates)
-   * Facebook (count of Facebook profile clicks)
-   * Instagram (count of Instagram profile clicks)
-
-3. **Channel Filters:**
-   * Filter pills: `All`, `WhatsApp`, `Facebook`, `Instagram` with live counts.
-
-4. **Activity Log Table:**
-   * Columns:
-     * **Date & Time**: Formatted timestamp.
-     * **Channel**: Colored badge (WhatsApp, Facebook, Instagram).
-     * **Interaction**: Type label (e.g. `Contact Link Clicked`).
-     * **Detail / Template**: Selected template title or profile link target.
-     * **Source Page**: Referrer page / location (e.g., `landing_page`, `website`).
-   * Pagination controls (Page, Next, Previous).
-
-5. **Empty State:**
-   * Polite notice when no outbound activity has been recorded yet:
-     > "No contact activity recorded yet. When visitors click your WhatsApp templates or social links, interactions will appear here."
+The Contact Activity module has been removed completely from Sparovia V1. Outbound link clicks, WhatsApp template selections, and social profile visits launch external destinations directly without client-side or server-side click tracking beacons. The Leads workspace focuses exclusively on genuine submitted customer enquiries under Customer Leads.
 
 ---
 
@@ -2238,8 +2201,7 @@ Pilot V1 UX is complete when:
 * [ ] WhatsApp templates (3–4 client-authored) configure, reorder, toggle, and preview cleanly.
 * [ ] Social profile links (Facebook, Instagram) configure and validate URLs safely.
 * [ ] Public website renders independent WhatsApp choices and social links with safe fallback.
-* [ ] Outbound clicks log Contact Activity without creating or altering Lead records.
-* [ ] Contact Activity is summarized on Dashboard and detailed under Leads activity tab.
+* [ ] Outbound WhatsApp and social links launch destinations directly without tracking beacons.
 * [ ] Empty states are implemented.
 * [ ] Loading states are implemented.
 * [ ] Success states are implemented.
