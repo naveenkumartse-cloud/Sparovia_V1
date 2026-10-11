@@ -97,8 +97,8 @@ const config: Config = {
         table: '0px',
       },
       backgroundImage: {
-        'brand-gradient': 'linear-gradient(135deg, #3B82F6 0%, #8B3FD1 100%)',
-        'brand-gradient-hover': 'linear-gradient(135deg, #2563EB 0%, #7A28C7 100%)',
+        'brand-gradient': 'linear-gradient(135deg, #315FEA 0%, #7950B8 100%)',
+        'brand-gradient-hover': 'linear-gradient(135deg, #254EDB 0%, #6820AB 100%)',
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],

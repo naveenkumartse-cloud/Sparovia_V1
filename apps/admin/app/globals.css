@@ -106,13 +106,13 @@ html.dark body {
 @layer utilities {
   /* Approved logo wordmark exception (DESIGN.md Section 7) */
   .text-brand-gradient {
-    background: linear-gradient(135deg, #3B82F6 0%, #8B3FD1 100%);
+    background: linear-gradient(135deg, #315FEA 0%, #7950B8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   .bg-brand-gradient {
-    background: linear-gradient(135deg, #3B82F6 0%, #8B3FD1 100%);
+    background: linear-gradient(135deg, #315FEA 0%, #7950B8 100%);
   }
 
   .bg-brand-cta {

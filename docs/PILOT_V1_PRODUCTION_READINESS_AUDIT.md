@@ -111,6 +111,18 @@ The previous audit reported success based primarily on backend test passes and i
 | **DEF-WEB-09** | `PublicWebsiteSkeleton.tsx` | Skeleton cards and buttons used `rounded-2xl`, `rounded-xl`, `rounded-full` | Standardized buttons to `rounded-control`, cards to `rounded-panel`, badges to `rounded-indicator`. | `VERIFIED` |
 | **DEF-WEB-10** | `DynamicFavicon.tsx` | Favicon SVG and Canvas gradients used `#3B82F6` and `#8B3FD1` | Updated both SVG and Canvas gradient stops to `#315FEA` and `#7950B8`. | `VERIFIED` |
 
+### 4.3 Customer Leads Task-Oriented Redesign (`apps/admin/app/admin/leads/page.tsx`)
+
+| Feature Enhancement | Description | Verification Evidence |
+|---|---|:---:|
+| **Executive Status KPI Strip** | 4 interactive summary cards (`All Enquiries`, `New`, `Contacted`, `Qualified`) atop workspace; clicking any card filters the active leads list instantly. | `VERIFIED` |
+| **Dual Presentation Modes** | Instant toggle between high-density **Table View** and task-oriented **Card / Grid View**. | `VERIFIED` |
+| **1-Click Communication** | Direct Call (`tel:`), WhatsApp (`wa.me`), and Email (`mailto:`) quick actions on each table row and card, plus 1-click clipboard copy of phone numbers. | `VERIFIED` |
+| **Client-Side CSV Export** | Instant client-side CSV download formatted for offline CRM follow-up and spreadsheet review. | `VERIFIED` |
+| **Visual Pipeline Stepper** | 4-stage visual conversion pipeline stepper (`New` &rarr; `Contacted` &rarr; `Qualified` &rarr; `Closed`) in inspection modal updating status via `PATCH /leads/{id}/status`. | `VERIFIED` |
+| **Initials Badges & Relative Timestamps** | Deterministic customer initials avatars (`bg-[#315FEA]/10 text-[#315FEA]`) and human-readable timestamps ("Just now", "12m ago", "2h ago", "Yesterday"). | `VERIFIED` |
+| **Token & Palette Alignment** | Replaced legacy `#3B82F6` in tailwind configs & globals.css; 0 token violations across repository. | `VERIFIED` |
+
 ---
 
 ## 5. Controlled Surface Area and Changed Files

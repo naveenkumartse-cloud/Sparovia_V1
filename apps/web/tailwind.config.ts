@@ -18,7 +18,7 @@ const config: Config = {
           200: '#C7D6FE',
           300: '#93B4FD',
           400: '#6090FA',
-          500: '#3B82F6',
+          500: '#315FEA',
           600: '#315FEA', // color.brand.primary (Editorial Cobalt)
           700: '#254EDB',
           800: '#1E40AF',
