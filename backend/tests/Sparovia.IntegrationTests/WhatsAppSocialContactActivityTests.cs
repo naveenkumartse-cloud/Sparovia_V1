@@ -132,7 +132,9 @@ public class WhatsAppSocialContactActivityTests : IClassFixture<WebApplicationFa
                     Title = "Kitchen Estimate",
                     MessageText = "Hi, I would like an estimate for custom kitchen modular work.",
                     DisplayOrder = 1,
-                    IsActive = true
+                    IsActive = true,
+                    Category = "Modular Kitchen",
+                    Intent = "Estimate"
                 },
                 new WhatsAppTemplateDto
                 {
@@ -161,6 +163,8 @@ public class WhatsAppSocialContactActivityTests : IClassFixture<WebApplicationFa
         Assert.Equal("919876543210", updatedDto.PhoneNumber);
         Assert.Equal(3, updatedDto.Templates.Count);
         Assert.Equal("Kitchen Estimate", updatedDto.Templates[0].Title);
+        Assert.Equal("Modular Kitchen", updatedDto.Templates[0].Category);
+        Assert.Equal("Estimate", updatedDto.Templates[0].Intent);
         Assert.False(updatedDto.Templates[2].IsActive);
 
         // 3. GET retrieves saved templates in correct order
@@ -170,6 +174,8 @@ public class WhatsAppSocialContactActivityTests : IClassFixture<WebApplicationFa
         Assert.NotNull(reloadedDto);
         Assert.Equal(3, reloadedDto.Templates.Count);
         Assert.Equal("Villa Consultation", reloadedDto.Templates[1].Title);
+        Assert.Equal("Modular Kitchen", reloadedDto.Templates[0].Category);
+        Assert.Equal("Estimate", reloadedDto.Templates[0].Intent);
     }
 
     [Fact]

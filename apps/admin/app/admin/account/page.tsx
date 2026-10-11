@@ -35,7 +35,8 @@ import {
   ArrowDown,
   Facebook,
   Instagram,
-  Share2
+  Share2,
+  CheckCheck
 } from 'lucide-react';
 
 export interface WhatsAppTemplateItem {
@@ -44,6 +45,8 @@ export interface WhatsAppTemplateItem {
   messageText: string;
   displayOrder: number;
   isActive: boolean;
+  category?: string;
+  intent?: string;
 }
 
 interface WhatsAppIntegration {
@@ -85,24 +88,30 @@ export default function AccountPage() {
   const [waTemplates, setWaTemplates] = useState<WhatsAppTemplateItem[]>([
     {
       id: 'template-1',
-      title: 'General Enquiry',
-      messageText: 'Hi, I would like to inquire about interior design services for my space.',
+      title: 'Plan a New Project',
+      messageText: 'Hi, I am planning a new interior project and would like to discuss design concepts and pricing.',
       displayOrder: 1,
       isActive: true,
+      category: 'Full Home Interior',
+      intent: 'New Project',
     },
     {
       id: 'template-2',
-      title: 'Design Consultation',
-      messageText: 'Hello, I am interested in scheduling a personalized design consultation.',
+      title: 'Modular Kitchen & Wardrobe',
+      messageText: 'Hello, I am interested in modular kitchen and wardrobe solutions for my home. Could you share details?',
       displayOrder: 2,
       isActive: true,
+      category: 'Kitchen & Wardrobes',
+      intent: 'Product Consultation',
     },
     {
       id: 'template-3',
-      title: 'Request a Quote',
-      messageText: 'Hi, I have floorplans ready and would like to request an estimate for interior work.',
+      title: 'Request Estimate & Floorplan',
+      messageText: 'Hi, I have floorplans ready and would like to request an estimate and timeline for my space.',
       displayOrder: 3,
       isActive: true,
+      category: 'Consultation & Estimate',
+      intent: 'Price Estimate',
     },
   ]);
 
@@ -228,6 +237,41 @@ export default function AccountPage() {
     router.replace(`/admin/account?tab=${tab}`, { scroll: false });
   };
 
+  const TEMPLATE_PRESETS = [
+    {
+      title: 'Plan a New Project',
+      category: 'Full Home Interior',
+      messageText: 'Hello, I am planning a new interior project and would like to discuss concept designs, timelines, and pricing.',
+    },
+    {
+      title: 'Modular Kitchen & Wardrobes',
+      category: 'Modular Systems',
+      messageText: 'Hi, I am interested in custom modular kitchen and wardrobe solutions for my home. Could you share details?',
+    },
+    {
+      title: 'Request Project Estimate',
+      category: 'Cost Estimate',
+      messageText: 'Hi, I have floorplans ready and would like to request an estimate and timeline for interior execution.',
+    },
+    {
+      title: 'Book Design Consultation',
+      category: 'Consultation',
+      messageText: 'Hello, I would like to schedule a personalized design consultation with your lead designer.',
+    },
+  ];
+
+  const handleApplyPreset = (index: number, preset: typeof TEMPLATE_PRESETS[0]) => {
+    const updated = [...waTemplates];
+    updated[index] = {
+      ...updated[index],
+      title: preset.title,
+      category: preset.category,
+      messageText: preset.messageText,
+    };
+    setWaTemplates(updated);
+    toast.success(`Applied "${preset.title}" preset.`);
+  };
+
   const handleAddTemplate = () => {
     if (waTemplates.length >= 4) {
       toast.error('A maximum of 4 WhatsApp templates are supported.');
@@ -236,9 +280,11 @@ export default function AccountPage() {
     const newTemplate: WhatsAppTemplateItem = {
       id: `template-${Date.now()}`,
       title: `Choice ${waTemplates.length + 1}`,
-      messageText: 'Hi, I would like to inquire about your services.',
+      messageText: 'Hello, I would like to inquire about your services and discuss requirements.',
       displayOrder: waTemplates.length + 1,
       isActive: true,
+      category: 'General Enquiry',
+      intent: 'New Enquiry',
     };
     setWaTemplates([...waTemplates, newTemplate]);
   };
@@ -298,6 +344,10 @@ export default function AccountPage() {
         setWaError(`Template #${i + 1} title cannot exceed 100 characters.`);
         return;
       }
+      if (t.category && t.category.trim().length > 100) {
+        setWaError(`Template #${i + 1} category cannot exceed 100 characters.`);
+        return;
+      }
       if (!t.messageText.trim()) {
         setWaError(`Template #${i + 1} must have message text.`);
         return;
@@ -322,6 +372,8 @@ export default function AccountPage() {
         templates: waTemplates.map((t, idx) => ({
           ...t,
           displayOrder: idx + 1,
+          category: t.category?.trim() || undefined,
+          intent: t.intent?.trim() || undefined,
         })),
       });
       setWaEnabled(Boolean(res.enabled));
@@ -987,20 +1039,26 @@ export default function AccountPage() {
                     return (
                       <div
                         key={template.id || idx}
-                        className={`p-4 rounded-[6px] border transition-all ${
+                        className={`p-4 sm:p-5 rounded-[8px] border transition-all ${
                           template.isActive
-                            ? 'bg-white dark:bg-[#0B1220] border-[#CBD5E1] dark:border-[#334155]'
+                            ? 'bg-white dark:bg-[#0B1220] border-[#CBD5E1] dark:border-[#334155] shadow-xs'
                             : 'bg-[#F3F6FA] dark:bg-[#0F172A] border-[#E3E7ED] dark:border-[#1E293B] opacity-75'
                         }`}
                       >
-                        <div className="flex items-center justify-between gap-3 mb-3 pb-2 border-b border-[#E3E7ED] dark:border-[#1E293B]">
-                          <div className="flex items-center gap-2">
+                        {/* Card Header */}
+                        <div className="flex items-center justify-between gap-3 mb-3 pb-2.5 border-b border-[#E3E7ED] dark:border-[#1E293B]">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="w-6 h-6 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] text-xs font-bold flex items-center justify-center">
                               {idx + 1}
                             </span>
-                            <span className="text-xs font-semibold text-[#172033] dark:text-white">
-                              Template #{idx + 1}
+                            <span className="text-xs font-bold text-[#172033] dark:text-white">
+                              {template.title || `Template #${idx + 1}`}
                             </span>
+                            {template.category && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] font-semibold">
+                                {template.category}
+                              </span>
+                            )}
                             <span className={`text-[10px] px-2 py-0.5 rounded-[4px] font-medium ${
                               template.isActive
                                 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
@@ -1010,7 +1068,7 @@ export default function AccountPage() {
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 shrink-0">
                             {/* Move Up */}
                             <button
                               type="button"
@@ -1057,12 +1115,13 @@ export default function AccountPage() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          {/* Title */}
-                          <div className="sm:col-span-1">
+                        {/* Title and Category Inputs */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                          {/* Visitor-Facing Choice Title */}
+                          <div>
                             <div className="flex justify-between items-center mb-1">
                               <label className="text-[11px] font-semibold text-[#475569] dark:text-[#94A3B8]">
-                                Choice Title *
+                                Visitor Choice Title *
                               </label>
                               <span className="text-[10px] text-slate-400">
                                 {template.title.length}/100
@@ -1073,49 +1132,113 @@ export default function AccountPage() {
                               value={template.title}
                               maxLength={100}
                               onChange={(e) => handleUpdateTemplate(idx, 'title', e.target.value)}
-                              placeholder="e.g. Design Consultation"
+                              placeholder="e.g. Plan a New Project"
                               className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
                             />
+                            <p className="text-[10px] text-slate-400 mt-1">
+                              Action label displayed on the public website selector.
+                            </p>
                           </div>
 
-                          {/* Message Text */}
-                          <div className="sm:col-span-2">
+                          {/* Customer Intent / Service Category */}
+                          <div>
                             <div className="flex justify-between items-center mb-1">
                               <label className="text-[11px] font-semibold text-[#475569] dark:text-[#94A3B8]">
-                                Prefilled WhatsApp Message *
+                                Customer Intent / Category (Optional)
                               </label>
                               <span className="text-[10px] text-slate-400">
-                                {template.messageText.length}/1000
+                                {(template.category || '').length}/100
                               </span>
                             </div>
-                            <textarea
-                              rows={2}
-                              value={template.messageText}
-                              maxLength={1000}
-                              onChange={(e) => handleUpdateTemplate(idx, 'messageText', e.target.value)}
-                              placeholder="Client-authored prefilled text for WhatsApp..."
-                              className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] resize-none"
+                            <input
+                              type="text"
+                              value={template.category || ''}
+                              maxLength={100}
+                              onChange={(e) => handleUpdateTemplate(idx, 'category', e.target.value)}
+                              placeholder="e.g. Modular Systems, Full Home Interior"
+                              className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
                             />
+                            <p className="text-[10px] text-slate-400 mt-1">
+                              Optional badge clarifying the service or reason for contact.
+                            </p>
                           </div>
                         </div>
 
-                        {/* Test URL Link for this template */}
-                        {testUrl && (
-                          <div className="mt-2 pt-2 border-t border-[#E3E7ED]/50 dark:border-[#1E293B] flex items-center justify-between text-[11px]">
-                            <span className="text-slate-400 truncate max-w-[80%] font-mono">
-                              wa.me/{phoneWithCode}?text={template.title}
+                        {/* Prefilled WhatsApp Message */}
+                        <div className="mb-3">
+                          <div className="flex justify-between items-center mb-1">
+                            <label className="text-[11px] font-semibold text-[#475569] dark:text-[#94A3B8]">
+                              Prefilled WhatsApp Message *
+                            </label>
+                            <span className="text-[10px] text-slate-400">
+                              {template.messageText.length}/1000
                             </span>
-                            <a
-                              href={testUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[#315FEA] hover:underline font-medium"
-                            >
-                              <span>Test Link</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
                           </div>
-                        )}
+                          <textarea
+                            rows={2}
+                            value={template.messageText}
+                            maxLength={1000}
+                            onChange={(e) => handleUpdateTemplate(idx, 'messageText', e.target.value)}
+                            placeholder="Client-authored prefilled text opening in WhatsApp..."
+                            className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] resize-none"
+                          />
+                        </div>
+
+                        {/* Quick Preset Starter Chips */}
+                        <div className="mb-3 p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#0F172A] border border-slate-200/70 dark:border-slate-800">
+                          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[#475569] dark:text-[#94A3B8] mb-1.5">
+                            <Sparkles className="w-3 h-3 text-[#7950B8]" />
+                            <span>Quick Insert Starters:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {TEMPLATE_PRESETS.map((preset) => (
+                              <button
+                                key={preset.title}
+                                type="button"
+                                onClick={() => handleApplyPreset(idx, preset)}
+                                className="px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 hover:border-[#315FEA] text-[#172033] dark:text-slate-200 hover:text-[#315FEA] transition-colors"
+                              >
+                                {preset.title}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Realistic WhatsApp Chat Bubble Preview */}
+                        <div className="p-3 rounded-[6px] bg-[#ECE5DD] dark:bg-[#111B21] border border-[#D1D7DB] dark:border-[#222E35]">
+                          <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-black/5 dark:border-white/5">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-4 h-4 rounded-full bg-[#25D366] text-white flex items-center justify-center">
+                                <MessageCircle className="w-2.5 h-2.5" />
+                              </div>
+                              <span className="text-[10px] font-bold text-[#111B21] dark:text-slate-200">
+                                WhatsApp Chat Preview {phoneWithCode ? `(+${phoneWithCode})` : ''}
+                              </span>
+                            </div>
+                            {testUrl && (
+                              <a
+                                href={testUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[10px] text-emerald-800 dark:text-emerald-400 hover:underline font-semibold"
+                              >
+                                <span>Test wa.me Link</span>
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            )}
+                          </div>
+
+                          {/* Message Bubble */}
+                          <div className="max-w-[92%] ml-auto bg-[#D9FDD3] dark:bg-[#005C4B] rounded-[7.5px] rounded-tr-none px-3 py-2 shadow-xs text-[#111B21] dark:text-white text-xs leading-relaxed">
+                            <p className="whitespace-pre-wrap break-words text-[11px]">
+                              {template.messageText || '(Empty message)'}
+                            </p>
+                            <div className="flex items-center justify-end gap-1 mt-1 text-[9px] text-[#667781] dark:text-emerald-200/80">
+                              <span>10:30 AM</span>
+                              <CheckCheck className="w-3 h-3 text-[#53bdeb]" />
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
@@ -1129,11 +1252,11 @@ export default function AccountPage() {
                       <span>Live Public Choices Preview</span>
                     </p>
                     <span className="text-[10px] text-slate-500">
-                      Independent Choices
+                      Unified Floating Selector
                     </span>
                   </div>
                   <p className="text-[11px] text-[#475569] dark:text-slate-300 mb-3">
-                    Website visitors will see these buttons when initiating contact via WhatsApp:
+                    Website visitors will see these options inside the compact floating contact menu:
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {waTemplates.filter(t => t.isActive).map((t) => (
@@ -1143,6 +1266,11 @@ export default function AccountPage() {
                       >
                         <MessageCircle className="w-3 h-3 text-emerald-600" />
                         <span>{t.title}</span>
+                        {t.category && (
+                          <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-normal">
+                            {t.category}
+                          </span>
+                        )}
                       </div>
                     ))}
                     {waTemplates.filter(t => t.isActive).length === 0 && (

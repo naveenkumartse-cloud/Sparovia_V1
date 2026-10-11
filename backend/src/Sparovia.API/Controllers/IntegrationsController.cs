@@ -14,6 +14,8 @@ public record WhatsAppTemplateDto
     public string MessageText { get; init; } = string.Empty;
     public int DisplayOrder { get; init; }
     public bool IsActive { get; init; } = true;
+    public string? Category { get; init; }
+    public string? Intent { get; init; }
 }
 
 public record WhatsAppIntegrationDto
@@ -120,26 +122,32 @@ public class IntegrationsController : ControllerBase
             new WhatsAppTemplateDto
             {
                 Id = "template-1",
-                Title = "General Enquiry",
-                MessageText = "Hi, I would like to inquire about interior design services for my space.",
+                Title = "Plan a New Project",
+                MessageText = "Hi, I am planning a new interior project and would like to discuss design concepts and pricing.",
                 DisplayOrder = 1,
-                IsActive = true
+                IsActive = true,
+                Category = "Full Home Interior",
+                Intent = "New Project"
             },
             new WhatsAppTemplateDto
             {
                 Id = "template-2",
-                Title = "Design Consultation",
-                MessageText = "Hello, I am interested in scheduling a personalized design consultation.",
+                Title = "Modular Kitchen & Wardrobe",
+                MessageText = "Hello, I am interested in modular kitchen and wardrobe solutions for my home. Could you share details?",
                 DisplayOrder = 2,
-                IsActive = true
+                IsActive = true,
+                Category = "Kitchen & Wardrobes",
+                Intent = "Product Consultation"
             },
             new WhatsAppTemplateDto
             {
                 Id = "template-3",
-                Title = "Request a Quote",
-                MessageText = "Hi, I have floorplans ready and would like to request an estimate for interior work.",
+                Title = "Request Estimate & Floorplan",
+                MessageText = "Hi, I have floorplans ready and would like to request an estimate and timeline for my space.",
                 DisplayOrder = 3,
-                IsActive = true
+                IsActive = true,
+                Category = "Consultation & Estimate",
+                Intent = "Price Estimate"
             }
         };
     }
@@ -213,6 +221,8 @@ public class IntegrationsController : ControllerBase
                         var text = item.TryGetProperty("messageText", out var textProp) ? textProp.GetString() ?? "" : "";
                         var order = item.TryGetProperty("displayOrder", out var orderProp) && orderProp.TryGetInt32(out var oVal) ? oVal : templates.Count + 1;
                         var active = !item.TryGetProperty("isActive", out var activeProp) || activeProp.GetBoolean();
+                        var category = item.TryGetProperty("category", out var catProp) ? catProp.GetString() : null;
+                        var intent = item.TryGetProperty("intent", out var intentProp) ? intentProp.GetString() : null;
 
                         if (!string.IsNullOrWhiteSpace(title) || !string.IsNullOrWhiteSpace(text))
                         {
@@ -222,7 +232,9 @@ public class IntegrationsController : ControllerBase
                                 Title = title,
                                 MessageText = text,
                                 DisplayOrder = order,
-                                IsActive = active
+                                IsActive = active,
+                                Category = category,
+                                Intent = intent
                             });
                         }
                     }
@@ -331,13 +343,27 @@ public class IntegrationsController : ControllerBase
                     return BadRequest(new { Error = $"Template #{i + 1} message cannot exceed 1000 characters." });
                 }
 
+                var category = !string.IsNullOrWhiteSpace(t.Category) ? t.Category.Trim() : null;
+                if (category != null && category.Length > 100)
+                {
+                    return BadRequest(new { Error = $"Template #{i + 1} category cannot exceed 100 characters." });
+                }
+
+                var intent = !string.IsNullOrWhiteSpace(t.Intent) ? t.Intent.Trim() : null;
+                if (intent != null && intent.Length > 100)
+                {
+                    return BadRequest(new { Error = $"Template #{i + 1} intent cannot exceed 100 characters." });
+                }
+
                 templates.Add(new WhatsAppTemplateDto
                 {
                     Id = string.IsNullOrWhiteSpace(t.Id) ? Guid.NewGuid().ToString() : t.Id.Trim(),
                     Title = t.Title.Trim(),
                     MessageText = t.MessageText.Trim(),
                     DisplayOrder = t.DisplayOrder > 0 ? t.DisplayOrder : i + 1,
-                    IsActive = t.IsActive
+                    IsActive = t.IsActive,
+                    Category = category,
+                    Intent = intent
                 });
             }
 

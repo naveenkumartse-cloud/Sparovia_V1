@@ -136,6 +136,8 @@ export interface WhatsAppTemplate {
   messageText: string;
   displayOrder: number;
   isActive: boolean;
+  category?: string;
+  intent?: string;
 }
 
 export interface WhatsAppContent {
@@ -426,6 +428,8 @@ export function adaptTemplateContent(
         messageText: String(t.messageText || ''),
         displayOrder: Number(t.displayOrder || idx + 1),
         isActive: Boolean(t.isActive !== false),
+        category: t.category ? String(t.category) : undefined,
+        intent: t.intent ? String(t.intent) : undefined,
       }))
       .sort((a: WhatsAppTemplate, b: WhatsAppTemplate) => a.displayOrder - b.displayOrder);
   }

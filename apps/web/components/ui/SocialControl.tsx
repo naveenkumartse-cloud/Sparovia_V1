@@ -1,9 +1,17 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Instagram, Facebook, X, ExternalLink } from 'lucide-react';
-import { useTemplateContent } from '@/components/providers/WebsiteContentProvider';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { 
+  Instagram, 
+  Facebook, 
+  X, 
+  ExternalLink, 
+  MessageCircle, 
+  ChevronRight, 
+  ArrowLeft 
+} from 'lucide-react';
+import { useTemplateContent, WhatsAppTemplate } from '@/components/providers/WebsiteContentProvider';
 import { recordContactActivity } from '@/lib/analytics/contactTracking';
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -20,12 +28,16 @@ const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export function SocialControl() {
   const [isOpen, setIsOpen] = useState(false);
+  const [panelView, setPanelView] = useState<'channels' | 'whatsapp-templates'>('channels');
   const containerRef = useRef<HTMLDivElement>(null);
+  const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldReduceMotion = useReducedMotion();
+
   const templateContent = useTemplateContent();
   const whatsappConfig = templateContent?.whatsapp;
   const socialConfig = templateContent?.social;
 
-  // Compute clean phone number
+  // Compute clean phone number for wa.me links
   let cleanPhone = '';
   if (whatsappConfig?.enabled && whatsappConfig.phoneNumber) {
     const raw = whatsappConfig.phoneNumber.replace(/\D/g, '');
@@ -37,11 +49,11 @@ export function SocialControl() {
   }
 
   // Active client-authored WhatsApp templates sorted by displayOrder
-  const activeTemplates = (whatsappConfig?.templates || [])
+  const activeTemplates: WhatsAppTemplate[] = (whatsappConfig?.templates || [])
     .filter(t => t && t.isActive)
     .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
-  // Determine channel availability strictly from Admin configuration (no fallbacks to hardcoded values)
+  // Channel availability strictly from verified Admin configuration
   const hasWhatsApp = Boolean(whatsappConfig?.enabled && cleanPhone);
   const hasMultipleTemplates = hasWhatsApp && activeTemplates.length > 1;
 
@@ -55,39 +67,75 @@ export function SocialControl() {
     : '';
   const hasInstagram = Boolean(instagramUrl);
 
-  // Close on outside click
+  // If only WhatsApp is active with multiple templates, default panelView directly to templates
+  const onlyWhatsAppWithTemplates = hasWhatsApp && !hasFacebook && !hasInstagram && hasMultipleTemplates;
+
+  // Clear hover-leave timer
+  const clearCloseTimer = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+
+  // Open with hover or focus
+  const handleMouseEnter = () => {
+    clearCloseTimer();
+    if (!isOpen) {
+      setPanelView(onlyWhatsAppWithTemplates ? 'whatsapp-templates' : 'channels');
+      setIsOpen(true);
+    }
+  };
+
+  // Delayed close on hover exit so cursor can safely transition between button and panel
+  const handleMouseLeave = () => {
+    clearCloseTimer();
+    closeTimerRef.current = setTimeout(() => {
+      setIsOpen(false);
+      setPanelView('channels');
+    }, 280);
+  };
+
+  // Close completely on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setPanelView('channels');
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      clearCloseTimer();
     };
   }, []);
 
-  // Close on Escape key
+  // Close or go back on Escape key
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape' && isOpen) {
-        setIsOpen(false);
+        if (panelView === 'whatsapp-templates' && !onlyWhatsAppWithTemplates) {
+          setPanelView('channels');
+        } else {
+          setIsOpen(false);
+          setPanelView('channels');
+        }
       }
     }
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, panelView, onlyWhatsAppWithTemplates]);
 
   // If all channels are disabled in Admin, render nothing
   if (!hasWhatsApp && !hasFacebook && !hasInstagram) {
     return null;
   }
 
-  // Handle template selection
-  const handleTemplateClick = (t: { id: string; title: string; messageText: string }) => {
+  // Handle WhatsApp template click
+  const handleTemplateClick = (t: WhatsAppTemplate) => {
     recordContactActivity({
       channel: 'WhatsApp',
       templateId: t.id,
@@ -95,11 +143,12 @@ export function SocialControl() {
       source: 'SocialControl',
     });
     setIsOpen(false);
+    setPanelView('channels');
     const encoded = encodeURIComponent(t.messageText);
     window.open(`https://wa.me/${cleanPhone}?text=${encoded}`, '_blank', 'noopener,noreferrer');
   };
 
-  // Handle direct WhatsApp click (when only 1 template or no custom templates exist)
+  // Direct WhatsApp click when single or no templates exist
   const handleDirectWhatsAppClick = () => {
     if (activeTemplates.length === 1) {
       const single = activeTemplates[0];
@@ -109,6 +158,8 @@ export function SocialControl() {
         templateTitle: single.title,
         source: 'SocialControl',
       });
+      setIsOpen(false);
+      setPanelView('channels');
       const encoded = encodeURIComponent(single.messageText);
       window.open(`https://wa.me/${cleanPhone}?text=${encoded}`, '_blank', 'noopener,noreferrer');
     } else {
@@ -117,157 +168,297 @@ export function SocialControl() {
         templateTitle: 'Direct Chat',
         source: 'SocialControl',
       });
+      setIsOpen(false);
+      setPanelView('channels');
       const defaultText = whatsappConfig?.prefilledMessage ? encodeURIComponent(whatsappConfig.prefilledMessage) : '';
       const url = `https://wa.me/${cleanPhone}${defaultText ? `?text=${defaultText}` : ''}`;
       window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
 
-  const handleWhatsAppButtonClick = () => {
+  // Handle click on the WhatsApp row in the channels menu
+  const handleWhatsAppChannelSelect = () => {
     if (hasMultipleTemplates) {
-      setIsOpen(prev => !prev);
+      setPanelView('whatsapp-templates');
     } else {
       handleDirectWhatsAppClick();
     }
   };
 
+  // Handle external social profile navigation
   const handleSocialClick = (channel: 'Facebook' | 'Instagram', url: string) => {
     recordContactActivity({
       channel,
       source: 'SocialControl',
     });
+    setIsOpen(false);
+    setPanelView('channels');
     window.open(url, '_blank', 'noopener,noreferrer');
   };
+
+  // Toggle button click (primarily for touch devices)
+  const handleLauncherClick = () => {
+    clearCloseTimer();
+    if (isOpen) {
+      setIsOpen(false);
+      setPanelView('channels');
+    } else {
+      setPanelView(onlyWhatsAppWithTemplates ? 'whatsapp-templates' : 'channels');
+      setIsOpen(true);
+    }
+  };
+
+  // Total enabled channels count
+  const enabledCount = (hasWhatsApp ? 1 : 0) + (hasFacebook ? 1 : 0) + (hasInstagram ? 1 : 0);
 
   return (
     <div
       ref={containerRef}
-      className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2 pb-[env(safe-area-inset-bottom,0px)] pr-[env(safe-area-inset-right,0px)] pointer-events-auto"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="fixed bottom-6 right-6 z-50 flex flex-col items-end pb-[env(safe-area-inset-bottom,0px)] pr-[env(safe-area-inset-right,0px)] pointer-events-auto"
     >
-      {/* WhatsApp Template Selector Popover */}
+      {/* Expandable Unified Contact & Social Panel */}
       <AnimatePresence>
-        {isOpen && hasMultipleTemplates && (
+        {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.96 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.96 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: shouldReduceMotion ? 0.05 : 0.18, ease: 'easeOut' }}
             role="dialog"
             aria-modal="false"
-            aria-label="WhatsApp conversation choices"
-            className="mb-1 w-72 sm:w-80 max-w-[calc(100vw-3rem)] rounded-[8px] bg-white dark:bg-[#0F172A] p-3.5 shadow-2xl border border-slate-200 dark:border-[#1E293B] text-left"
+            aria-label="Contact and Social channels"
+            className="mb-2.5 w-76 sm:w-80 max-w-[calc(100vw-2.5rem)] rounded-[8px] bg-white dark:bg-[#0F172A] p-3.5 shadow-2xl border border-slate-200/90 dark:border-[#1E293B] text-left"
           >
-            {/* Popover Header */}
-            <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-100 dark:border-[#1E293B]">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-[#25D366]/15 text-[#25D366] flex items-center justify-center shrink-0">
-                  <WhatsAppIcon className="w-3.5 h-3.5" />
-                </div>
-                <span className="text-xs font-bold text-[#172033] dark:text-white">
-                  Chat on WhatsApp
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="p-1 rounded-[4px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors"
-                aria-label="Close WhatsApp choices"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* Instruction */}
-            <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mb-2 leading-relaxed">
-              Select an enquiry topic to start your WhatsApp chat:
-            </p>
-
-            {/* Template Choices */}
-            <div className="space-y-1.5" role="menu">
-              {activeTemplates.map(t => (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="menuitem"
-                  onClick={() => handleTemplateClick(t)}
-                  className="w-full text-left p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#1E293B]/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/80 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold text-[#172033] dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate">
-                      {t.title}
-                    </span>
-                    <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 shrink-0" />
+            {/* VIEW 1: All Enabled Channels */}
+            {panelView === 'channels' && (
+              <div>
+                {/* Header */}
+                <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100 dark:border-[#1E293B]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center shrink-0">
+                      <MessageCircle className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-[#172033] dark:text-white block">
+                        Get in Touch
+                      </span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block leading-tight">
+                        {enabledCount} contact channel{enabledCount > 1 ? 's' : ''} available
+                      </span>
+                    </div>
                   </div>
-                  {t.messageText && (
-                    <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] line-clamp-1 mt-0.5 font-normal">
-                      {t.messageText}
-                    </p>
-                  )}
-                </button>
-              ))}
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="p-1 rounded-[4px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors"
+                    aria-label="Close contact options"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
 
-            {/* Micro disclaimer */}
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 pt-2 text-center">
-              Opens WhatsApp with prefilled message to review and send.
-            </p>
+                {/* Vertical Channel Options */}
+                <div className="space-y-1.5" role="menu">
+                  {/* WhatsApp Option */}
+                  {hasWhatsApp && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={handleWhatsAppChannelSelect}
+                      className="w-full text-left p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#1E293B]/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/80 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-7 h-7 rounded-full bg-[#25D366]/15 text-[#25D366] flex items-center justify-center shrink-0">
+                          <WhatsAppIcon className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-[#172033] dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate">
+                            WhatsApp
+                          </p>
+                          <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] truncate font-normal">
+                            {hasMultipleTemplates
+                              ? `${activeTemplates.length} enquiry topics`
+                              : activeTemplates.length === 1
+                              ? activeTemplates[0].title
+                              : 'Chat directly with our team'}
+                          </p>
+                        </div>
+                      </div>
+                      {hasMultipleTemplates ? (
+                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                      ) : (
+                        <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 shrink-0" />
+                      )}
+                    </button>
+                  )}
+
+                  {/* Instagram Option */}
+                  {hasInstagram && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => handleSocialClick('Instagram', instagramUrl)}
+                      className="w-full text-left p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#1E293B]/60 hover:bg-pink-50 dark:hover:bg-pink-950/30 border border-slate-200/80 dark:border-slate-700/60 hover:border-pink-300 dark:hover:border-pink-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-7 h-7 rounded-full bg-[#E1306C]/15 text-[#E1306C] flex items-center justify-center shrink-0">
+                          <Instagram className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-[#172033] dark:text-white group-hover:text-pink-700 dark:group-hover:text-pink-300 truncate">
+                            Instagram
+                          </p>
+                          <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] truncate font-normal">
+                            Explore our latest work &amp; reels
+                          </p>
+                        </div>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-pink-600 dark:group-hover:text-pink-400 shrink-0" />
+                    </button>
+                  )}
+
+                  {/* Facebook Option */}
+                  {hasFacebook && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => handleSocialClick('Facebook', facebookUrl)}
+                      className="w-full text-left p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#1E293B]/60 hover:bg-blue-50 dark:hover:bg-blue-950/30 border border-slate-200/80 dark:border-slate-700/60 hover:border-blue-300 dark:hover:border-blue-600 transition-all text-xs group cursor-pointer flex items-center justify-between gap-3"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-7 h-7 rounded-full bg-[#1877F2]/15 text-[#1877F2] flex items-center justify-center shrink-0">
+                          <Facebook className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-[#172033] dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 truncate">
+                            Facebook
+                          </p>
+                          <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] truncate font-normal">
+                            Official page and updates
+                          </p>
+                        </div>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 shrink-0" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* VIEW 2: WhatsApp Template Chooser */}
+            {panelView === 'whatsapp-templates' && (
+              <div>
+                {/* Header with Back button */}
+                <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100 dark:border-[#1E293B]">
+                  <div className="flex items-center gap-2">
+                    {!onlyWhatsAppWithTemplates && (
+                      <button
+                        type="button"
+                        onClick={() => setPanelView('channels')}
+                        className="p-1 -ml-1 rounded-[4px] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors flex items-center gap-1 text-[11px] font-semibold"
+                        aria-label="Back to channels"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <span>Channels</span>
+                      </button>
+                    )}
+                    {onlyWhatsAppWithTemplates && (
+                      <div className="w-6 h-6 rounded-full bg-[#25D366]/15 text-[#25D366] flex items-center justify-center shrink-0">
+                        <WhatsAppIcon className="w-3.5 h-3.5" />
+                      </div>
+                    )}
+                    <span className="text-xs font-bold text-[#172033] dark:text-white">
+                      WhatsApp Topics
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setPanelView('channels');
+                    }}
+                    className="p-1 rounded-[4px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors"
+                    aria-label="Close WhatsApp topics"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mb-2 leading-relaxed">
+                  Select an enquiry topic to start your WhatsApp chat:
+                </p>
+
+                {/* Template Choices */}
+                <div className="space-y-1.5 max-h-60 overflow-y-auto pr-0.5" role="menu">
+                  {activeTemplates.map(t => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => handleTemplateClick(t)}
+                      className="w-full text-left p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#1E293B]/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/80 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all text-xs group cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-[#172033] dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate">
+                          {t.title}
+                        </span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {t.category && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-[3px] bg-emerald-100/70 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 font-medium">
+                              {t.category}
+                            </span>
+                          )}
+                          <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 shrink-0" />
+                        </div>
+                      </div>
+                      {t.messageText && (
+                        <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] line-clamp-1 mt-0.5 font-normal">
+                          {t.messageText}
+                        </p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 pt-2 text-center">
+                  Opens WhatsApp with prefilled message to review and send.
+                </p>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Floating Action Buttons Group */}
-      <div className="flex items-center gap-2">
-        {/* Instagram Icon (Only if enabled) */}
-        {hasInstagram && (
-          <button
-            type="button"
-            onClick={() => handleSocialClick('Instagram', instagramUrl)}
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-[#0F172A] shadow-lg border border-slate-200 dark:border-[#1E293B] flex items-center justify-center text-[#E1306C] hover:scale-105 active:scale-95 transition-all duration-200 focus-ring"
-            aria-label="Visit our Instagram profile"
-            title="Visit our Instagram profile"
-          >
-            <Instagram className="w-5 h-5" />
-          </button>
+      {/* Single Compact Floating Launcher Button */}
+      <button
+        type="button"
+        onClick={handleLauncherClick}
+        aria-label={
+          isOpen 
+            ? 'Close contact options' 
+            : 'Open contact options (WhatsApp, Instagram, Facebook)'
+        }
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        title="Contact and Social channels"
+        className={`w-13 h-13 sm:w-14 sm:h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 focus-ring ${
+          isOpen
+            ? 'bg-[#172033] text-white hover:bg-black dark:bg-[#1E293B] dark:hover:bg-slate-800'
+            : hasWhatsApp && !hasFacebook && !hasInstagram
+            ? 'bg-[#25D366] hover:bg-[#20ba59] text-white hover:shadow-[#25D366]/30'
+            : 'bg-[#172033] hover:bg-[#232F48] text-white dark:bg-[#315FEA] dark:hover:bg-[#254EDB]'
+        }`}
+      >
+        {isOpen ? (
+          <X className="w-6 h-6" />
+        ) : hasWhatsApp && !hasFacebook && !hasInstagram ? (
+          <WhatsAppIcon className="w-7 h-7" />
+        ) : (
+          <MessageCircle className="w-6 h-6 sm:w-6.5 sm:h-6.5" />
         )}
-
-        {/* Facebook Icon (Only if enabled) */}
-        {hasFacebook && (
-          <button
-            type="button"
-            onClick={() => handleSocialClick('Facebook', facebookUrl)}
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-[#0F172A] shadow-lg border border-slate-200 dark:border-[#1E293B] flex items-center justify-center text-[#1877F2] hover:scale-105 active:scale-95 transition-all duration-200 focus-ring"
-            aria-label="Visit our Facebook page"
-            title="Visit our Facebook page"
-          >
-            <Facebook className="w-5 h-5" />
-          </button>
-        )}
-
-        {/* WhatsApp Icon (Only if enabled) */}
-        {hasWhatsApp && (
-          <button
-            type="button"
-            onClick={handleWhatsAppButtonClick}
-            className={`w-13 h-13 sm:w-14 sm:h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 focus-ring ${
-              isOpen
-                ? 'bg-charcoal-900 text-white'
-                : 'bg-[#25D366] hover:bg-[#20ba59] text-white hover:shadow-[#25D366]/30'
-            }`}
-            aria-label={
-              hasMultipleTemplates
-                ? isOpen
-                  ? 'Close WhatsApp choices'
-                  : 'Open WhatsApp conversation choices'
-                : 'Chat with us on WhatsApp'
-            }
-            aria-haspopup={hasMultipleTemplates ? 'dialog' : undefined}
-            aria-expanded={hasMultipleTemplates ? isOpen : undefined}
-            title="Chat with us on WhatsApp"
-          >
-            {isOpen ? <X className="w-6 h-6" /> : <WhatsAppIcon className="w-7 h-7" />}
-          </button>
-        )}
-      </div>
+      </button>
     </div>
   );
 }
