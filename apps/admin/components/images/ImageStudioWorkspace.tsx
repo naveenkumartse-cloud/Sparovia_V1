@@ -172,9 +172,6 @@ export function ImageStudioWorkspace({
 }: ImageStudioWorkspaceProps) {
   const [currentImage, setCurrentImage] = useState<ImageDto | null>(image || null);
 
-  // Selected operation for processing
-  const [selectedOp, setSelectedOp] = useState<string>('ImproveClarity');
-
   // Currently inspected variant (defaults to newest enhanced variant if one exists)
   const [activeVariant, setActiveVariant] = useState<ImageVariantDto | null>(() => {
     const enhanced = [...(image?.variants || [])]
@@ -183,15 +180,48 @@ export function ImageStudioWorkspace({
     return enhanced[0] || null;
   });
 
+  // Selected operation for processing (defaults to newest existing variant's operation for reopen persistence)
+  const [selectedOp, setSelectedOp] = useState<string>(() => {
+    const enhanced = [...(image?.variants || [])]
+      .filter((v) => v.status !== 'Rejected')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    if (enhanced?.operation) {
+      const base = enhanced.operation.split(':')[0].trim();
+      const found = APPROVED_OPERATIONS.find((o) => o.id.toLowerCase() === base.toLowerCase());
+      if (found) return found.id;
+    }
+    return 'ImproveClarity';
+  });
+
+  // Selected preset intensity (Light, Balanced, High - Default: Balanced)
+  const [selectedPreset, setSelectedPreset] = useState<'Light' | 'Balanced' | 'High'>(() => {
+    const enhanced = [...(image?.variants || [])]
+      .filter((v) => v.status !== 'Rejected')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    if (enhanced?.operation && enhanced.operation.includes(':')) {
+      const p = enhanced.operation.split(':')[1].trim();
+      if (p === 'Light' || p === 'Balanced' || p === 'High') return p;
+    }
+    return 'Balanced';
+  });
+
+  // Helper to match operation ignoring preset suffix
+  const isOpMatch = (variantOp?: string | null, targetOp?: string | null) => {
+    if (!variantOp || !targetOp) return false;
+    const vBase = variantOp.split(':')[0].trim().toLowerCase();
+    const tBase = targetOp.split(':')[0].trim().toLowerCase();
+    return vBase === tBase;
+  };
+
   const selectedOpDef = APPROVED_OPERATIONS.find((o) => o.id === selectedOp) || APPROVED_OPERATIONS[0];
 
   // Check if a variant matching selectedOp already exists (sorted newest first)
   const matchingVariant = [...(currentImage?.variants || [])]
-    .filter((v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected')
+    .filter((v) => isOpMatch(v.operation, selectedOp) && v.status !== 'Rejected')
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] || null;
 
   // Variant for current operation strictly matches selectedOp; prefer newly active variant if matching
-  const displayedVariant = (activeVariant && activeVariant.operation?.toLowerCase() === selectedOp.toLowerCase() && activeVariant.status !== 'Rejected')
+  const displayedVariant = (activeVariant && isOpMatch(activeVariant.operation, selectedOp) && activeVariant.status !== 'Rejected')
     ? activeVariant
     : matchingVariant;
 
@@ -200,9 +230,15 @@ export function ImageStudioWorkspace({
   const handleSelectOp = (opId: string) => {
     setSelectedOp(opId);
     const matching = [...(currentImage?.variants || [])]
-      .filter((v) => v.operation?.toLowerCase() === opId.toLowerCase() && v.status !== 'Rejected')
+      .filter((v) => isOpMatch(v.operation, opId) && v.status !== 'Rejected')
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] || null;
     setActiveVariant(matching || null);
+    if (matching?.operation && matching.operation.includes(':')) {
+      const p = matching.operation.split(':')[1].trim();
+      if (p === 'Light' || p === 'Balanced' || p === 'High') {
+        setSelectedPreset(p);
+      }
+    }
   };
 
   // Comparison view mode
@@ -363,7 +399,7 @@ export function ImageStudioWorkspace({
 
       const res = await apiClient.post<{ data: ImageVariantDto; message: string }>(
         `/website/images/${targetImage.id}/enhance`,
-        { operation: selectedOp }
+        { operation: selectedOp, preset: selectedPreset }
       );
 
       const newVariant = res?.data;
@@ -444,7 +480,7 @@ export function ImageStudioWorkspace({
         onImageUpdated(updatedImgRes.data);
         // Select next available non-rejected variant for this op or null
         const nextVariant = [...updatedImgRes.data.variants]
-          .filter((v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected')
+          .filter((v) => isOpMatch(v.operation, selectedOp) && v.status !== 'Rejected')
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
         setActiveVariant(nextVariant || null);
       }
@@ -1122,7 +1158,7 @@ export function ImageStudioWorkspace({
                     const isSelected = selectedOp === op.id;
                     const IconComp = op.icon;
                     const hasVariant = currentImage?.variants?.some(
-                      (v) => v.operation?.toLowerCase() === op.id.toLowerCase() && v.status !== 'Rejected'
+                      (v) => isOpMatch(v.operation, op.id) && v.status !== 'Rejected'
                     );
                     return (
                       <button
@@ -1168,7 +1204,7 @@ export function ImageStudioWorkspace({
                 </div>
 
                 {/* Active Selected Operation Details & Execution Card */}
-                <div className="mt-3 p-3 bg-white dark:bg-[#1E293B]/70 rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] space-y-2">
+                <div className="mt-3 p-3 bg-white dark:bg-[#1E293B]/70 rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-[#172033] dark:text-white">
                       {selectedOpDef.name}
@@ -1180,6 +1216,35 @@ export function ImageStudioWorkspace({
                   <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
                     {selectedOpDef.description}
                   </p>
+
+                  {/* Preset Intensity Selector */}
+                  <div className="pt-2 border-t border-[#E3E7ED] dark:border-[#334155]">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[11px] font-semibold text-[#172033] dark:text-white">
+                        Preset Intensity:
+                      </span>
+                      <span className="text-[10px] text-[#475569] dark:text-[#94A3B8]">
+                        {selectedPreset === 'Light' ? 'Subtle, gentle touch' : selectedPreset === 'High' ? 'High definition dynamic' : 'Balanced (Default)'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#F3F6FA] dark:bg-[#0B1220] rounded-[6px] border border-[#E3E7ED] dark:border-[#334155]">
+                      {(['Light', 'Balanced', 'High'] as const).map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => setSelectedPreset(preset)}
+                          className={`py-1 text-center text-xs font-medium rounded-[4px] transition-all ${
+                            selectedPreset === preset
+                              ? 'bg-white dark:bg-[#315FEA] text-[#172033] dark:text-white shadow-xs font-semibold'
+                              : 'text-[#475569] dark:text-[#94A3B8] hover:text-[#172033] dark:hover:text-white'
+                          }`}
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <Button
                     variant="primary"
                     size="md"
@@ -1232,25 +1297,35 @@ export function ImageStudioWorkspace({
                       </p>
                     )}
 
-                    <div className="pt-2.5 border-t border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between text-[11px] text-[#475569] dark:text-[#94A3B8]">
-                      <span>Output Resolution:</span>
-                      <span className="font-semibold text-[#172033] dark:text-white">
-                        {displayedVariant.width} × {displayedVariant.height} px
-                      </span>
-                    </div>
-
-                    <div className="pt-2">
-                      <details className="text-[11px] text-[#475569] dark:text-[#94A3B8] group">
-                        <summary className="cursor-pointer hover:text-[#172033] dark:hover:text-white flex items-center gap-1 select-none text-[10px]">
-                          <Info className="w-3 h-3 text-[#475569]" />
-                          <span>Technical Details</span>
-                        </summary>
-                        <div className="mt-1.5 p-2 bg-white dark:bg-[#0F172A] rounded-[4px] border border-[#CBD5E1] dark:border-[#334155] space-y-1 font-mono text-[10px]">
-                          <div>Algorithm: {displayedVariant.algorithmVersion || '1.0.0-deterministic'}</div>
-                          <div>Profile: {displayedVariant.effectiveProfile || displayedVariant.operation}</div>
-                          <div>Variant ID: {displayedVariant.id}</div>
-                        </div>
-                      </details>
+                    <div className="pt-2.5 border-t border-[#E3E7ED] dark:border-[#334155] grid grid-cols-2 gap-2.5 text-[11px]">
+                      <div>
+                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Output Resolution:</span>
+                        <span className="font-semibold text-[#172033] dark:text-white">
+                          {displayedVariant.width} × {displayedVariant.height} px
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Candidate Size:</span>
+                        <span className="font-semibold text-[#172033] dark:text-white">
+                          {formatBytes(displayedVariant.fileSize)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Format:</span>
+                        <span className="font-semibold text-[#172033] dark:text-white uppercase">
+                          {displayedVariant.mimeType ? displayedVariant.mimeType.replace('image/', '') : 'WEBP'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Applied Preset:</span>
+                        <span className="font-semibold text-[#172033] dark:text-white">
+                          {displayedVariant.operation?.includes(':')
+                            ? displayedVariant.operation.split(':')[1]
+                            : (displayedVariant.effectiveProfile?.includes(':')
+                              ? displayedVariant.effectiveProfile.split(':')[1]
+                              : selectedPreset)}
+                        </span>
+                      </div>
                     </div>
                   </>
                 ) : (

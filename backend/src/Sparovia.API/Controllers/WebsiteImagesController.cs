@@ -758,12 +758,14 @@ public class ReplaceImageForm
         if (!TryGetTenantId(out var tenantId, out var authError)) return authError!;
 
         string? operation = null;
+        string? preset = null;
         if (Request.HasJsonContentType())
         {
             try
             {
                 var body = await Request.ReadFromJsonAsync<EnhanceImageRequest>(cancellationToken: cancellationToken);
                 operation = body?.Operation;
+                preset = body?.Preset;
             }
             catch
             {
@@ -777,11 +779,21 @@ public class ReplaceImageForm
             {
                 operation = Request.Form["Operation"].ToString();
             }
+            preset = Request.Form["preset"].ToString();
+            if (string.IsNullOrWhiteSpace(preset))
+            {
+                preset = Request.Form["Preset"].ToString();
+            }
         }
 
         if (string.IsNullOrWhiteSpace(operation) && Request.Query.ContainsKey("operation"))
         {
             operation = Request.Query["operation"].ToString();
+        }
+
+        if (string.IsNullOrWhiteSpace(preset) && Request.Query.ContainsKey("preset"))
+        {
+            preset = Request.Query["preset"].ToString();
         }
 
         if (string.IsNullOrWhiteSpace(operation))
@@ -793,6 +805,7 @@ public class ReplaceImageForm
             tenantId,
             id,
             operation,
+            preset,
             TryGetUserId(),
             cancellationToken);
 

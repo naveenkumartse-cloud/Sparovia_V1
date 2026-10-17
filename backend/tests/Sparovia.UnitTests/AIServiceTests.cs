@@ -448,4 +448,127 @@ public class AIServiceTests
         Assert.Equal(AIErrorCodes.ModelUnavailable, result.ErrorCode);
         Assert.Contains("no longer available", result.ErrorMessage);
     }
+
+    [Fact]
+    public void ValidateAndSanitizeAIOutput_ValidText_ReturnsSanitizedContent()
+    {
+        var input = "  KVN Interior delivers stylish, functional residential and commercial spaces.  ";
+        var (isValid, sanitized, errCode, errMsg) = AIRequestValidator.ValidateAndSanitizeAIOutput(
+            input, AIOperationTypes.ImproveWording, "Original input");
+
+        Assert.True(isValid);
+        Assert.Equal("KVN Interior delivers stylish, functional residential and commercial spaces.", sanitized);
+        Assert.Null(errCode);
+        Assert.Null(errMsg);
+    }
+
+    [Fact]
+    public void ValidateAndSanitizeAIOutput_MetadataOnlyResponse_RejectsAsOutputInvalid()
+    {
+        // Exact screenshot defect case: "User Safety: safe"
+        var (isValid, sanitized, errCode, errMsg) = AIRequestValidator.ValidateAndSanitizeAIOutput(
+            "User Safety: safe", AIOperationTypes.ImproveWording, "Original input");
+
+        Assert.False(isValid);
+        Assert.Null(sanitized);
+        Assert.Equal(AIErrorCodes.OutputInvalid, errCode);
+        Assert.Contains("metadata", errMsg, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ValidateAndSanitizeAIOutput_MultiLineSafetyMetadataOnly_RejectsAsOutputInvalid()
+    {
+        var input = "User Safety: safe\nResponse Safety: safe";
+        var (isValid, sanitized, errCode, _) = AIRequestValidator.ValidateAndSanitizeAIOutput(
+            input, AIOperationTypes.ImproveWording, "Original input");
+
+        Assert.False(isValid);
+        Assert.Null(sanitized);
+        Assert.Equal(AIErrorCodes.OutputInvalid, errCode);
+    }
+
+    [Fact]
+    public void ValidateAndSanitizeAIOutput_SafetyMetadataPreamble_StripsMetadataAndExtractsContent()
+    {
+        var input = "User Safety: safe\nResponse Safety: safe\n\nKVN Interior crafts bespoke, high-quality residential and commercial interiors.";
+        var (isValid, sanitized, errCode, _) = AIRequestValidator.ValidateAndSanitizeAIOutput(
+            input, AIOperationTypes.ImproveWording, "Original input");
+
+        Assert.True(isValid);
+        Assert.Equal("KVN Interior crafts bespoke, high-quality residential and commercial interiors.", sanitized);
+        Assert.Null(errCode);
+    }
+
+    [Fact]
+    public void ValidateAndSanitizeAIOutput_MissingOrWhitespace_RejectsAsOutputInvalid()
+    {
+        var (isValid, sanitized, errCode, _) = AIRequestValidator.ValidateAndSanitizeAIOutput(
+            "   \t\n  ", AIOperationTypes.ImproveWording, "Original input");
+
+        Assert.False(isValid);
+        Assert.Null(sanitized);
+        Assert.Equal(AIErrorCodes.OutputInvalid, errCode);
+    }
+
+    [Fact]
+    public void ValidateAndSanitizeAIOutput_StructuredJsonMetadataOnly_RejectsAsOutputInvalid()
+    {
+        var input = "{\"user_safety\": \"safe\", \"status\": \"ok\", \"requestId\": \"req-123\"}";
+        var (isValid, sanitized, errCode, _) = AIRequestValidator.ValidateAndSanitizeAIOutput(
+            input, AIOperationTypes.ImproveWording, "Original input");
+
+        Assert.False(isValid);
+        Assert.Null(sanitized);
+        Assert.Equal(AIErrorCodes.OutputInvalid, errCode);
+    }
+
+    [Fact]
+    public void ValidateAndSanitizeAIOutput_StructuredJsonWithSuggestion_ExtractsCleanSuggestion()
+    {
+        var input = "```json\n{\n  \"suggestion\": \"Bespoke interior design and execution for modern living.\"\n}\n```";
+        var (isValid, sanitized, errCode, _) = AIRequestValidator.ValidateAndSanitizeAIOutput(
+            input, AIOperationTypes.ImproveWording, "Original input");
+
+        Assert.True(isValid);
+        Assert.Equal("Bespoke interior design and execution for modern living.", sanitized);
+        Assert.Null(errCode);
+    }
+
+    [Fact]
+    public void ValidateAndSanitizeAIOutput_ReasoningThoughtTokens_StripsThoughtBlocks()
+    {
+        var input = "<think>Evaluating business context facts. User Safety: safe.</think>Crafting elegant interiors for homes and businesses.";
+        var (isValid, sanitized, errCode, _) = AIRequestValidator.ValidateAndSanitizeAIOutput(
+            input, AIOperationTypes.ImproveWording, "Original input");
+
+        Assert.True(isValid);
+        Assert.Equal("Crafting elegant interiors for homes and businesses.", sanitized);
+        Assert.Null(errCode);
+    }
+
+    [Fact]
+    public void ValidateAndSanitizeAIOutput_IsolatedStatusToken_RejectsAsOutputInvalid()
+    {
+        var tokens = new[] { "safe", "Safe", "SAFE", "ok", "OK", "null", "true" };
+        foreach (var token in tokens)
+        {
+            var (isValid, _, errCode, _) = AIRequestValidator.ValidateAndSanitizeAIOutput(
+                token, AIOperationTypes.ImproveWording, "Original input");
+
+            Assert.False(isValid);
+            Assert.Equal(AIErrorCodes.OutputInvalid, errCode);
+        }
+    }
+
+    [Fact]
+    public void ValidateAndSanitizeAIOutput_ConversationalPrefix_StripsPrefixAndLeavesUsableContent()
+    {
+        var input = "Here is the improved wording: KVN Interior provides bespoke interior design and execution services.";
+        var (isValid, sanitized, errCode, _) = AIRequestValidator.ValidateAndSanitizeAIOutput(
+            input, AIOperationTypes.ImproveWording, "Original input");
+
+        Assert.True(isValid);
+        Assert.Equal("KVN Interior provides bespoke interior design and execution services.", sanitized);
+        Assert.Null(errCode);
+    }
 }

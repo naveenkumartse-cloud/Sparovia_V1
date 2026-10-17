@@ -323,10 +323,14 @@ export default function ContentPage() {
 
   // Call Content AI improvement endpoint
   const handleGenerateAi = async () => {
-    if (!aiFieldInfo) return;
+    if (!aiFieldInfo || isGeneratingAi) return;
     setIsGeneratingAi(true);
     setAiError(null);
     setAiConflictError(null);
+    // Clear previous suggestion immediately so stale content cannot persist if request fails
+    setAiSuggestion(null);
+    setAiEditableSuggestion('');
+    setCurrentAiRequestId(null);
 
     try {
       const resp = await apiClient.post<any>('/ai/content/improve', {
@@ -338,12 +342,19 @@ export default function ContentPage() {
       });
 
       const data: AIContentResponseDto = resp?.data ?? resp;
+      const suggestionText = (data?.suggestion || '').trim();
+
+      if (!suggestionText) {
+        setAiError("We couldn't create a suggestion. Your original content is unchanged.");
+        return;
+      }
+
       setCurrentAiRequestId(data.aiRequestId);
       setAiReviewStatus(data.reviewStatus || 'PendingReview');
-      setAiSuggestion(data.suggestion);
-      setAiEditableSuggestion(data.suggestion);
+      setAiSuggestion(suggestionText);
+      setAiEditableSuggestion(suggestionText);
     } catch (err: any) {
-      setAiError(err?.message || 'Failed to generate AI suggestion. Please try again.');
+      setAiError(err?.message || "We couldn't create a suggestion. Your original content is unchanged.");
     } finally {
       setIsGeneratingAi(false);
     }
@@ -1340,12 +1351,14 @@ export default function ContentPage() {
                           <button
                             key={op.key}
                             type="button"
+                            disabled={isGeneratingAi}
                             onClick={() => setAiOperation(op.key)}
                             className={cn(
                               'text-left p-3 rounded-[8px] border transition-all text-xs flex flex-col justify-start gap-1 group min-h-[68px] sm:min-h-[72px]',
                               isSelected
                                 ? 'bg-purple-50 dark:bg-purple-950/30 border-purple-500/80 dark:border-purple-600 text-purple-950 dark:text-purple-200 ring-2 ring-purple-500/20 shadow-xs'
-                                : 'bg-white dark:bg-[#0F172A] border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'
+                                : 'bg-white dark:bg-[#0F172A] border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300',
+                              isGeneratingAi && 'opacity-60 cursor-not-allowed'
                             )}
                           >
                             <div className="flex items-center justify-between gap-2 w-full">
@@ -1379,10 +1392,11 @@ export default function ContentPage() {
                         autoCorrect="on"
                         autoCapitalize="sentences"
                         lang="en"
+                        disabled={isGeneratingAi}
                         value={aiInstruction}
                         onChange={(e) => setAiInstruction(e.target.value)}
                         placeholder="e.g., Make it emphasize our 15 years of bespoke residential experience"
-                        className="w-full px-3.5 py-2.5 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500"
+                        className="w-full px-3.5 py-2.5 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
                       />
                     </FormField>
                   )}

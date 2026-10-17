@@ -104,6 +104,84 @@ public class StubAIProviderAdapter : IAIProvider
             };
         }
 
+        if (request.InputText.Contains("__SIMULATE_METADATA_ONLY__"))
+        {
+            stopwatch.Stop();
+            return new AIProviderResult
+            {
+                Success = true,
+                OutputText = "User Safety: safe",
+                ProviderReference = request.ProviderKey ?? ProviderName,
+                ModelReference = request.Model ?? "gpt-4o-mini",
+                DurationMs = stopwatch.ElapsedMilliseconds
+            };
+        }
+
+        if (request.InputText.Contains("__SIMULATE_SAFETY_PREAMBLE__"))
+        {
+            stopwatch.Stop();
+            return new AIProviderResult
+            {
+                Success = true,
+                OutputText = "User Safety: safe\nResponse Safety: safe\n\nKVN Interior provides bespoke interior design excellence tailored to your lifestyle.",
+                ProviderReference = request.ProviderKey ?? ProviderName,
+                ModelReference = request.Model ?? "gpt-4o-mini",
+                DurationMs = stopwatch.ElapsedMilliseconds
+            };
+        }
+
+        if (request.InputText.Contains("__SIMULATE_RAW_JSON_METADATA__"))
+        {
+            stopwatch.Stop();
+            return new AIProviderResult
+            {
+                Success = true,
+                OutputText = "{\"user_safety\": \"safe\", \"status\": \"ok\"}",
+                ProviderReference = request.ProviderKey ?? ProviderName,
+                ModelReference = request.Model ?? "gpt-4o-mini",
+                DurationMs = stopwatch.ElapsedMilliseconds
+            };
+        }
+
+        if (request.InputText.Contains("__SIMULATE_RAW_JSON_SUGGESTION__"))
+        {
+            stopwatch.Stop();
+            return new AIProviderResult
+            {
+                Success = true,
+                OutputText = "{\"suggestion\": \"Refined interior design services by KVN Interior.\"}",
+                ProviderReference = request.ProviderKey ?? ProviderName,
+                ModelReference = request.Model ?? "gpt-4o-mini",
+                DurationMs = stopwatch.ElapsedMilliseconds
+            };
+        }
+
+        if (request.InputText.Contains("__SIMULATE_THINK_TAGS__"))
+        {
+            stopwatch.Stop();
+            return new AIProviderResult
+            {
+                Success = true,
+                OutputText = "<think>Checking safety and refining wording</think>KVN Interior provides professional interior design tailored to each client.",
+                ProviderReference = request.ProviderKey ?? ProviderName,
+                ModelReference = request.Model ?? "gpt-4o-mini",
+                DurationMs = stopwatch.ElapsedMilliseconds
+            };
+        }
+
+        if (request.InputText.Contains("__SIMULATE_EMPTY_RESPONSE__"))
+        {
+            stopwatch.Stop();
+            return new AIProviderResult
+            {
+                Success = true,
+                OutputText = "   ",
+                ProviderReference = request.ProviderKey ?? ProviderName,
+                ModelReference = request.Model ?? "gpt-4o-mini",
+                DurationMs = stopwatch.ElapsedMilliseconds
+            };
+        }
+
         var suggestion = GenerateSuggestion(request);
         stopwatch.Stop();
 

@@ -27,12 +27,14 @@ public class BeforeAfterReviewAndApprovalTests : IClassFixture<WebApplicationFac
 
     private static byte[] CreateValidJpegBytes()
     {
-        return new byte[]
+        using var bmp = new SkiaSharp.SKBitmap(1200, 800, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul);
+        using (var canvas = new SkiaSharp.SKCanvas(bmp))
         {
-            0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00,
-            0xFF, 0xC0, 0x00, 0x11, 0x08, 0x04, 0x38, 0x07, 0x80, 0x03, 0x01, 0x22, 0x00, 0x02, 0x11, 0x01, 0x03, 0x11, 0x01,
-            0xFF, 0xD9
-        };
+            canvas.Clear(new SkiaSharp.SKColor(40, 80, 160));
+        }
+        using var img = SkiaSharp.SKImage.FromBitmap(bmp);
+        using var data = img.Encode(SkiaSharp.SKEncodedImageFormat.Jpeg, 90);
+        return data.ToArray();
     }
 
     private async Task<HttpClient> GetAuthenticatedClientAsync(string email)

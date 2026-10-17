@@ -43,10 +43,13 @@ public class DeterministicImageProcessingService : IImageProcessingService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to decode image data via SkiaSharp. Using fallback canvas for analysis.");
+            _logger.LogWarning(ex, "Failed to decode image data via SkiaSharp.");
         }
 
-        bitmap ??= new SKBitmap(800, 600, SKColorType.Rgba8888, SKAlphaType.Premul);
+        if (bitmap == null)
+        {
+            throw new InvalidOperationException("Failed to decode image data. The file may be corrupt, truncated, or an unsupported format.");
+        }
 
         using (bitmap)
         {
@@ -308,16 +311,31 @@ public class DeterministicImageProcessingService : IImageProcessingService
 
         if (sourceBitmap == null)
         {
-            var fallbackW = options?.MaxWidth ?? 1200;
-            var fallbackH = options?.MaxHeight ?? (int)Math.Round(fallbackW * 9.0 / 16.0);
-            sourceBitmap = new SKBitmap(fallbackW, fallbackH);
-            using var canvas = new SKCanvas(sourceBitmap);
-            canvas.Clear(new SKColor(200, 200, 200));
+            throw new InvalidOperationException("Failed to decode image data. The provided image stream is empty, corrupt, truncated, or in an unsupported format.");
         }
 
         using (sourceBitmap)
         {
-            var normOp = operation?.Trim() ?? "WebOptimize";
+            var rawOp = operation?.Trim() ?? "WebOptimize";
+            string baseOp = rawOp;
+            string? presetFromOp = null;
+            if (rawOp.Contains(':'))
+            {
+                var parts = rawOp.Split(':', 2);
+                baseOp = parts[0].Trim();
+                presetFromOp = parts[1].Trim();
+            }
+
+            string preset = !string.IsNullOrWhiteSpace(options?.Preset)
+                ? options.Preset.Trim()
+                : (!string.IsNullOrWhiteSpace(presetFromOp) ? presetFromOp : "Balanced");
+
+            if (!string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase))
+            {
+                preset = "Balanced";
+            }
+
             SKBitmap workingBitmap = sourceBitmap;
             bool ownsWorkingBitmap = false;
 
@@ -327,28 +345,18 @@ public class DeterministicImageProcessingService : IImageProcessingService
 
             try
             {
-                if (normOp.StartsWith("QualityStudio", StringComparison.OrdinalIgnoreCase) ||
-                    options?.Preset != null ||
-                    options?.Brightness != null ||
-                    options?.Contrast != null ||
-                    options?.Sharpness != null ||
-                    options?.NoiseReduction != null ||
-                    options?.Saturation != null)
+                if (baseOp.StartsWith("QualityStudio", StringComparison.OrdinalIgnoreCase) ||
+                    (!IsApprovedStandardOperation(baseOp) &&
+                     (options?.Brightness != null ||
+                      options?.Contrast != null ||
+                      options?.Sharpness != null ||
+                      options?.NoiseReduction != null ||
+                      options?.Saturation != null)))
                 {
                     // 1. Analyze working image for adaptive parameter computation
                     var metrics = AnalyzeBitmap(workingBitmap);
 
                     // 2. Resolve preset (Default: Balanced)
-                    var preset = options?.Preset;
-                    if (string.IsNullOrWhiteSpace(preset) && normOp.Contains(':'))
-                    {
-                        preset = normOp.Substring(normOp.IndexOf(':') + 1).Trim();
-                    }
-                    if (string.IsNullOrWhiteSpace(preset))
-                    {
-                        preset = "Balanced";
-                    }
-
                     int baseBrightness = 4;
                     int baseContrast = 10;
                     int baseSharpness = 35;
@@ -538,28 +546,51 @@ public class DeterministicImageProcessingService : IImageProcessingService
                     workingBitmap = colorAdjusted;
                     ownsWorkingBitmap = true;
                 }
-                else if (string.Equals(normOp, "ImproveClarity", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(baseOp, "ImproveClarity", StringComparison.OrdinalIgnoreCase))
                 {
-                    effectiveProfile = "ImproveClarity";
+                    effectiveProfile = $"ImproveClarity:{preset}";
                     var metrics = AnalyzeBitmap(workingBitmap);
                     bool isAlreadyGood = metrics.MeanLum >= 0.42 && metrics.MeanLum <= 0.60 &&
                                          metrics.Contrast >= 0.18 && metrics.Contrast <= 0.28;
 
-                    float contrast = isAlreadyGood ? 1.06f : 1.16f;
-                    float brightness = isAlreadyGood ? 0.01f : (metrics.ShadowRatio > 0.15 ? 0.025f : 0.015f);
-                    float sat = isAlreadyGood ? 1.02f : 1.05f;
-                    float sharp = isAlreadyGood ? 0.25f : 0.45f;
+                    float contrast;
+                    float brightness;
+                    float sat;
+                    float sharp;
 
-                    if (isAlreadyGood)
+                    if (string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase))
                     {
-                        appliedCorrections.Add("High-quality architectural baseline preserved");
-                        appliedCorrections.Add("Subtle tonal clarity polish applied without crushing shadows");
+                        contrast = isAlreadyGood ? 1.04f : 1.10f;
+                        brightness = isAlreadyGood ? 0.008f : (metrics.ShadowRatio > 0.15 ? 0.018f : 0.010f);
+                        sat = isAlreadyGood ? 1.01f : 1.03f;
+                        sharp = isAlreadyGood ? 0.18f : 0.30f;
+                        appliedCorrections.Add("Subtle clarity polish applied");
                     }
-                    else
+                    else if (string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase))
                     {
-                        appliedCorrections.Add("Tonal contrast expanded to remove atmospheric haze");
-                        appliedCorrections.Add("Highlight headroom protected against clipping");
-                        appliedCorrections.Add("Natural edge clarity and architectural depth enhanced");
+                        contrast = isAlreadyGood ? 1.10f : 1.22f;
+                        brightness = isAlreadyGood ? 0.018f : (metrics.ShadowRatio > 0.15 ? 0.035f : 0.022f);
+                        sat = isAlreadyGood ? 1.04f : 1.08f;
+                        sharp = isAlreadyGood ? 0.35f : 0.60f;
+                        appliedCorrections.Add("High-definition clarity and tonal separation applied");
+                    }
+                    else // Balanced
+                    {
+                        contrast = isAlreadyGood ? 1.06f : 1.16f;
+                        brightness = isAlreadyGood ? 0.01f : (metrics.ShadowRatio > 0.15 ? 0.025f : 0.015f);
+                        sat = isAlreadyGood ? 1.02f : 1.05f;
+                        sharp = isAlreadyGood ? 0.25f : 0.45f;
+                        if (isAlreadyGood)
+                        {
+                            appliedCorrections.Add("High-quality architectural baseline preserved");
+                            appliedCorrections.Add("Subtle tonal clarity polish applied without crushing shadows");
+                        }
+                        else
+                        {
+                            appliedCorrections.Add("Tonal contrast expanded to remove atmospheric haze");
+                            appliedCorrections.Add("Highlight headroom protected against clipping");
+                            appliedCorrections.Add("Natural edge clarity and architectural depth enhanced");
+                        }
                     }
 
                     var processed = ApplyColorAdjustments(workingBitmap, contrast: contrast, brightnessOffset: brightness, saturation: sat);
@@ -568,117 +599,217 @@ public class DeterministicImageProcessingService : IImageProcessingService
                     workingBitmap = sharpened;
                     ownsWorkingBitmap = true;
                 }
-                else if (string.Equals(normOp, "ImproveSharpness", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(baseOp, "ImproveSharpness", StringComparison.OrdinalIgnoreCase))
                 {
-                    effectiveProfile = "ImproveSharpness";
+                    effectiveProfile = $"ImproveSharpness:{preset}";
                     var metrics = AnalyzeBitmap(workingBitmap);
                     bool isAlreadySharp = metrics.Sharpness > 0.018;
 
-                    float amount = isAlreadySharp ? 0.35f : 0.80f;
-                    if (isAlreadySharp)
+                    float amount;
+                    if (string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase))
                     {
-                        appliedCorrections.Add("Natural edge sharpness already high; restrained polish applied");
-                        appliedCorrections.Add("Controlled edge definition maintained without halos or ringing");
+                        amount = isAlreadySharp ? 0.20f : 0.45f;
+                        appliedCorrections.Add("Subtle edge sharpness refined");
                     }
-                    else
+                    else if (string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase))
                     {
-                        appliedCorrections.Add("Controlled edge sharpness applied without halos");
-                        appliedCorrections.Add("Structural architectural lines and material boundaries refined");
+                        amount = isAlreadySharp ? 0.50f : 1.10f;
+                        appliedCorrections.Add("High-definition structural sharpness applied");
+                    }
+                    else // Balanced
+                    {
+                        amount = isAlreadySharp ? 0.35f : 0.80f;
+                        if (isAlreadySharp)
+                        {
+                            appliedCorrections.Add("Natural edge sharpness already high; restrained polish applied");
+                            appliedCorrections.Add("Controlled edge definition maintained without halos or ringing");
+                        }
+                        else
+                        {
+                            appliedCorrections.Add("Controlled edge sharpness applied without halos");
+                            appliedCorrections.Add("Structural architectural lines and material boundaries refined");
+                        }
                     }
 
                     var sharpened = ApplySharpening(workingBitmap, amount: amount);
                     workingBitmap = sharpened;
                     ownsWorkingBitmap = true;
                 }
-                else if (string.Equals(normOp, "ReduceNoise", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(baseOp, "ReduceNoise", StringComparison.OrdinalIgnoreCase))
                 {
-                    effectiveProfile = "ReduceNoise";
-                    var metrics = AnalyzeBitmap(workingBitmap);
-                    bool isAlreadyClean = metrics.NoiseLevel < 0.012;
-
-                    float sigma = isAlreadyClean ? 0.4f : (float)Math.Clamp(workingBitmap.Width / 1400f * 0.95f, 0.7f, 1.3f);
-                    if (isAlreadyClean)
+                    effectiveProfile = $"ReduceNoise:{preset}";
+                    float sigma;
+                    if (string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase))
                     {
-                        appliedCorrections.Add("Surface noise already minimal; original textures preserved");
-                        appliedCorrections.Add("Subtle smoothing applied to flat surfaces without detail loss");
+                        sigma = 0.8f;
+                        appliedCorrections.Add("Gentle surface noise reduction applied preserving fine textures");
                     }
-                    else
+                    else if (string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase))
                     {
+                        sigma = 2.2f;
+                        appliedCorrections.Add("Deep noise reduction applied with structural edge protection");
+                    }
+                    else // Balanced
+                    {
+                        sigma = 1.4f;
                         appliedCorrections.Add("Texture-aware noise reduction applied to flat and shadow surfaces");
                         appliedCorrections.Add("Fine wood, masonry, and architectural material grain preserved");
                     }
 
                     var smoothed = ApplyBlur(workingBitmap, sigma: sigma);
-                    var contrastAdjusted = ApplyColorAdjustments(smoothed, contrast: 1.03f, brightnessOffset: 0f, saturation: 1.0f);
-                    smoothed.Dispose();
-                    workingBitmap = contrastAdjusted;
+                    workingBitmap = smoothed;
                     ownsWorkingBitmap = true;
                 }
-                else if (string.Equals(normOp, "Upscale", StringComparison.OrdinalIgnoreCase) ||
-                         string.Equals(normOp, "UpscaleResolution", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(baseOp, "Upscale", StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(baseOp, "UpscaleResolution", StringComparison.OrdinalIgnoreCase))
                 {
-                    var factor = (workingBitmap.Width < 800 || workingBitmap.Height < 600) ? 2.0 : 1.5;
-                    effectiveProfile = $"Upscale ({factor:0.0}x)";
-                    var targetW = (int)Math.Min(3840, Math.Round(workingBitmap.Width * factor));
-                    if (targetW <= workingBitmap.Width)
+                    effectiveProfile = $"Upscale:{preset}";
+                    long currentPixels = (long)workingBitmap.Width * workingBitmap.Height;
+                    const long maxAllowedPixels = 25_000_000;
+
+                    if (currentPixels >= maxAllowedPixels)
                     {
-                        targetW = (int)Math.Round(workingBitmap.Width * 1.25);
+                        appliedCorrections.Add("Image resolution is already at or above maximum allowed limit (25 megapixels); resolution preserved.");
+                        appliedCorrections.Add("Structural edge clarity refined");
+                        var polished = ApplySharpening(workingBitmap, amount: 0.20f);
+                        workingBitmap = polished;
+                        ownsWorkingBitmap = true;
                     }
-                    var targetH = (int)Math.Round((double)workingBitmap.Height * targetW / workingBitmap.Width);
+                    else
+                    {
+                        double factor;
+                        if (string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase))
+                        {
+                            factor = 1.25;
+                        }
+                        else if (string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase))
+                        {
+                            factor = 2.0;
+                        }
+                        else // Balanced
+                        {
+                            factor = (workingBitmap.Width < 800 || workingBitmap.Height < 600) ? 2.0 : 1.5;
+                        }
 
-                    appliedCorrections.Add($"High-quality resolution interpolation applied ({targetW} × {targetH} px)");
-                    appliedCorrections.Add("Controlled structural edge definition applied");
+                        effectiveProfile = $"Upscale ({factor:0.0}x):{preset}";
 
-                    var resampled = ResizeBitmap(workingBitmap, targetW, targetH);
-                    var refined = ApplySharpening(resampled, amount: 0.30f);
-                    resampled.Dispose();
-                    workingBitmap = refined;
-                    ownsWorkingBitmap = true;
+                        var targetW = (int)Math.Round(workingBitmap.Width * factor);
+                        var targetH = (int)Math.Round(workingBitmap.Height * factor);
+
+                        // Clamp to 25 MP limit
+                        if ((long)targetW * targetH > maxAllowedPixels)
+                        {
+                            double scaleDown = Math.Sqrt((double)maxAllowedPixels / ((long)targetW * targetH));
+                            targetW = (int)Math.Floor(targetW * scaleDown);
+                            targetH = (int)Math.Floor(targetH * scaleDown);
+                        }
+
+                        if (targetW <= workingBitmap.Width || targetH <= workingBitmap.Height)
+                        {
+                            appliedCorrections.Add("Image resolution is already optimized for maximum quality; resolution preserved.");
+                            var polished = ApplySharpening(workingBitmap, amount: 0.20f);
+                            workingBitmap = polished;
+                            ownsWorkingBitmap = true;
+                        }
+                        else
+                        {
+                            appliedCorrections.Add($"High-quality resolution interpolation applied ({targetW} × {targetH} px)");
+                            appliedCorrections.Add("Controlled structural edge definition applied");
+
+                            var resampled = ResizeBitmap(workingBitmap, targetW, targetH);
+                            var refined = ApplySharpening(resampled, amount: 0.30f);
+                            resampled.Dispose();
+                            workingBitmap = refined;
+                            ownsWorkingBitmap = true;
+                        }
+                    }
                 }
-                else if (string.Equals(normOp, "ClassicLook", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(baseOp, "ClassicLook", StringComparison.OrdinalIgnoreCase))
                 {
-                    effectiveProfile = "ClassicLook";
+                    effectiveProfile = $"ClassicLook:{preset}";
                     appliedCorrections.Add("Subtle warm architectural color balance applied");
                     appliedCorrections.Add("Organic filmic midtone contrast refined");
                     appliedCorrections.Add("Natural wood and masonry textures preserved");
 
+                    float c, b, s, r, g, bl;
+                    if (string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase))
+                    {
+                        c = 1.04f; b = 0.01f; s = 0.99f; r = 1.02f; g = 1.005f; bl = 0.97f;
+                    }
+                    else if (string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase))
+                    {
+                        c = 1.14f; b = 0.02f; s = 0.96f; r = 1.07f; g = 1.02f; bl = 0.90f;
+                    }
+                    else // Balanced
+                    {
+                        c = 1.08f; b = 0.015f; s = 0.98f; r = 1.04f; g = 1.01f; bl = 0.94f;
+                    }
+
                     var processed = ApplyColorAdjustments(
                         workingBitmap,
-                        contrast: 1.08f,
-                        brightnessOffset: 0.015f,
-                        saturation: 0.98f,
-                        redScale: 1.04f,
-                        greenScale: 1.01f,
-                        blueScale: 0.94f);
+                        contrast: c,
+                        brightnessOffset: b,
+                        saturation: s,
+                        redScale: r,
+                        greenScale: g,
+                        blueScale: bl);
                     workingBitmap = processed;
                     ownsWorkingBitmap = true;
                 }
-                else if (string.Equals(normOp, "ModernLook", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(baseOp, "ModernLook", StringComparison.OrdinalIgnoreCase))
                 {
-                    effectiveProfile = "ModernLook";
+                    effectiveProfile = $"ModernLook:{preset}";
                     appliedCorrections.Add("Contemporary architectural contrast and crisp clarity applied");
                     appliedCorrections.Add("Clean architectural highlight definition applied");
                     appliedCorrections.Add("Authentic material colors preserved");
 
+                    float c, b, s, r, g, bl, sharp;
+                    if (string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase))
+                    {
+                        c = 1.04f; b = 0.005f; s = 1.02f; r = 0.97f; g = 1.00f; bl = 1.035f; sharp = 0.20f;
+                    }
+                    else if (string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase))
+                    {
+                        c = 1.15f; b = 0.02f; s = 1.08f; r = 0.90f; g = 1.00f; bl = 1.08f; sharp = 0.50f;
+                    }
+                    else // Balanced
+                    {
+                        c = 1.08f; b = 0.01f; s = 1.05f; r = 0.94f; g = 1.00f; bl = 1.055f; sharp = 0.35f;
+                    }
+
                     var processed = ApplyColorAdjustments(
                         workingBitmap,
-                        contrast: 1.15f,
-                        brightnessOffset: 0.02f,
-                        saturation: 1.05f,
-                        redScale: 0.98f,
-                        greenScale: 1.00f,
-                        blueScale: 1.03f);
-                    var sharpened = ApplySharpening(processed, amount: 0.40f);
+                        contrast: c,
+                        brightnessOffset: b,
+                        saturation: s,
+                        redScale: r,
+                        greenScale: g,
+                        blueScale: bl);
+                    var sharpened = ApplySharpening(processed, amount: sharp);
                     processed.Dispose();
                     workingBitmap = sharpened;
                     ownsWorkingBitmap = true;
                 }
-                else if (string.Equals(normOp, "WebOptimize", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(baseOp, "WebOptimize", StringComparison.OrdinalIgnoreCase))
                 {
-                    effectiveProfile = "WebOptimize";
+                    effectiveProfile = $"WebOptimize:{preset}";
                     appliedCorrections.Add("Optimized for web delivery with efficient WebP encoding");
                     appliedCorrections.Add("Image dimensions calibrated for high-performance responsive web display");
-                    var maxW = options?.MaxWidth ?? 1600;
+
+                    int maxW;
+                    if (string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase))
+                    {
+                        maxW = options?.MaxWidth ?? 1920;
+                    }
+                    else if (string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase))
+                    {
+                        maxW = options?.MaxWidth ?? 1280;
+                    }
+                    else // Balanced
+                    {
+                        maxW = options?.MaxWidth ?? 1600;
+                    }
+
                     if (workingBitmap.Width > maxW)
                     {
                         var targetH = (int)Math.Round((double)workingBitmap.Height * maxW / workingBitmap.Width);
@@ -708,8 +839,23 @@ public class DeterministicImageProcessingService : IImageProcessingService
                     ownsWorkingBitmap = true;
                 }
 
-                // Export as WebP for optimal web delivery and fast loading
-                var targetFormat = options?.TargetFormat?.ToLowerInvariant() ?? "webp";
+                // Determine target format: WebOptimize targets webp by default. Other operations preserve source format.
+                string detectedSourceFormat = DetectSourceFormat(imageBytes);
+                string targetFormat;
+                if (!string.IsNullOrWhiteSpace(options?.TargetFormat))
+                {
+                    targetFormat = options.TargetFormat.ToLowerInvariant();
+                }
+                else if (string.Equals(baseOp, "WebOptimize", StringComparison.OrdinalIgnoreCase) ||
+                         baseOp.StartsWith("QualityStudio", StringComparison.OrdinalIgnoreCase))
+                {
+                    targetFormat = "webp";
+                }
+                else
+                {
+                    targetFormat = detectedSourceFormat;
+                }
+
                 SKEncodedImageFormat encodeFormat;
                 string mimeType;
                 string ext;
@@ -733,7 +879,22 @@ public class DeterministicImageProcessingService : IImageProcessingService
                     ext = ".webp";
                 }
 
-                var quality = options?.Quality ?? (encodeFormat == SKEncodedImageFormat.Webp ? 82 : 85);
+                int quality;
+                if (options?.Quality.HasValue == true)
+                {
+                    quality = options.Quality.Value;
+                }
+                else if (string.Equals(baseOp, "WebOptimize", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase)) quality = 88;
+                    else if (string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase)) quality = 74;
+                    else quality = 82;
+                }
+                else
+                {
+                    quality = encodeFormat == SKEncodedImageFormat.Webp ? 82 : (encodeFormat == SKEncodedImageFormat.Png ? 100 : 88);
+                }
+
                 using var image = SKImage.FromBitmap(workingBitmap);
                 using var data = image.Encode(encodeFormat, quality);
 
@@ -780,12 +941,13 @@ public class DeterministicImageProcessingService : IImageProcessingService
     {
         var dest = new SKBitmap(source.Width, source.Height, source.ColorType, source.AlphaType);
         using var canvas = new SKCanvas(dest);
+        using var image = SKImage.FromBitmap(source);
         using var paint = new SKPaint
         {
-            ImageFilter = SKImageFilter.CreateBlur(sigma, sigma),
+            ImageFilter = SKImageFilter.CreateBlur(sigma, sigma, SKShaderTileMode.Clamp),
             IsAntialias = true
         };
-        canvas.DrawBitmap(source, 0, 0, paint);
+        canvas.DrawImage(image, 0, 0, paint);
         return dest;
     }
 
@@ -858,5 +1020,49 @@ public class DeterministicImageProcessingService : IImageProcessingService
         };
         canvas.DrawBitmap(source, 0, 0, paint);
         return dest;
+    }
+
+    private static bool IsApprovedStandardOperation(string op) =>
+        string.Equals(op, "ImproveClarity", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(op, "ImproveSharpness", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(op, "ReduceNoise", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(op, "Upscale", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(op, "UpscaleResolution", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(op, "ClassicLook", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(op, "ModernLook", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(op, "WebOptimize", StringComparison.OrdinalIgnoreCase);
+
+    private static string DetectSourceFormat(byte[] bytes)
+    {
+        if (bytes == null || bytes.Length == 0) return "jpeg";
+        try
+        {
+            using var stream = new MemoryStream(bytes);
+            using var codec = SKCodec.Create(stream);
+            if (codec != null)
+            {
+                var fmt = codec.EncodedFormat;
+                if (fmt == SKEncodedImageFormat.Png) return "png";
+                if (fmt == SKEncodedImageFormat.Jpeg) return "jpeg";
+                if (fmt == SKEncodedImageFormat.Webp) return "webp";
+            }
+        }
+        catch
+        {
+        }
+
+        if (bytes.Length >= 12)
+        {
+            if (bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF) return "jpeg";
+            if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47) return "png";
+            if (bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46 &&
+                bytes[8] == 0x57 && bytes[9] == 0x45 && bytes[10] == 0x42 && bytes[11] == 0x50) return "webp";
+        }
+        else if (bytes.Length >= 3 && bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF)
+        {
+            return "jpeg";
+        }
+
+        return "jpeg";
     }
 }

@@ -1111,6 +1111,17 @@ public class WebsiteImageService : IWebsiteImageService
         Guid? userId = null,
         CancellationToken cancellationToken = default)
     {
+        return await EnhanceImageAsync(tenantId, imageId, operation, "Balanced", userId, cancellationToken);
+    }
+
+    public async Task<ImageOperationResult> EnhanceImageAsync(
+        Guid tenantId,
+        Guid imageId,
+        string operation,
+        string? preset,
+        Guid? userId = null,
+        CancellationToken cancellationToken = default)
+    {
         var image = await _dbContext.Images
             .Include(i => i.Variants)
             .FirstOrDefaultAsync(i => i.Id == imageId && i.TenantId == tenantId, cancellationToken);
@@ -1125,7 +1136,27 @@ public class WebsiteImageService : IWebsiteImageService
             };
         }
 
-        if (ProhibitedTransformations.Contains(operation))
+        var rawOp = operation?.Trim() ?? "";
+        string baseOp = rawOp;
+        string? presetFromOp = null;
+        if (rawOp.Contains(':'))
+        {
+            var parts = rawOp.Split(':', 2);
+            baseOp = parts[0].Trim();
+            presetFromOp = parts[1].Trim();
+        }
+
+        var effectivePreset = !string.IsNullOrWhiteSpace(preset)
+            ? preset.Trim()
+            : (!string.IsNullOrWhiteSpace(presetFromOp) ? presetFromOp : "Balanced");
+
+        if (!string.Equals(effectivePreset, "Light", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(effectivePreset, "High", StringComparison.OrdinalIgnoreCase))
+        {
+            effectivePreset = "Balanced";
+        }
+
+        if (ProhibitedTransformations.Contains(baseOp))
         {
             return new ImageOperationResult
             {
@@ -1135,7 +1166,7 @@ public class WebsiteImageService : IWebsiteImageService
             };
         }
 
-        if (!AllowedEnhancementOperations.Contains(operation))
+        if (!AllowedEnhancementOperations.Contains(baseOp))
         {
             return new ImageOperationResult
             {
@@ -1145,15 +1176,11 @@ public class WebsiteImageService : IWebsiteImageService
             };
         }
 
-        // WebOptimize is deterministic optimization
-        if (string.Equals(operation, "WebOptimize", StringComparison.OrdinalIgnoreCase))
-        {
-            return await OptimizeImageAsync(tenantId, imageId, null, "webp", 1200, null, userId, cancellationToken);
-        }
+        var fullOperationKey = $"{baseOp}:{effectivePreset}";
 
         // Idempotency: Protect only against rapid double-clicks while an operation is currently processing
         var inFlightVariant = image.Variants
-            .Where(v => string.Equals(v.Operation, operation, StringComparison.OrdinalIgnoreCase)
+            .Where(v => string.Equals(v.Operation, fullOperationKey, StringComparison.OrdinalIgnoreCase)
                      && v.Status == "Processing"
                      && v.CreatedAt >= DateTime.UtcNow.AddSeconds(-5))
             .OrderByDescending(v => v.CreatedAt)
@@ -1161,7 +1188,7 @@ public class WebsiteImageService : IWebsiteImageService
 
         if (inFlightVariant != null)
         {
-            _logger.LogInformation("Idempotency: Reusing in-flight {Operation} variant {VariantId} for ImageId {ImageId}", operation, inFlightVariant.Id, imageId);
+            _logger.LogInformation("Idempotency: Reusing in-flight {Operation} variant {VariantId} for ImageId {ImageId}", fullOperationKey, inFlightVariant.Id, imageId);
             return new ImageOperationResult
             {
                 Success = true,
@@ -1175,25 +1202,43 @@ public class WebsiteImageService : IWebsiteImageService
 
         // Download original stream (read-only)
         var originalStream = await _storageProvider.DownloadAsync(ImageBucket, image.StorageKey, cancellationToken);
+        if (originalStream == null || (originalStream.CanSeek && originalStream.Length == 0))
+        {
+            _logger.LogError("Original image {ImageId} ({StorageKey}) is empty or missing from storage.", imageId, image.StorageKey);
+            return new ImageOperationResult
+            {
+                Success = false,
+                ErrorCode = "IMAGE_RETRIEVAL_FAILED",
+                ErrorMessage = "Failed to retrieve the original image file from storage."
+            };
+        }
+
+        var options = new ImageProcessingOptions
+        {
+            Preset = effectivePreset
+        };
 
         ProcessedImageResult processedResult;
         try
         {
-            processedResult = await _imageProcessor.ProcessImageAsync(originalStream, operation, null, cancellationToken);
+            using (originalStream)
+            {
+                processedResult = await _imageProcessor.ProcessImageAsync(originalStream, fullOperationKey, options, cancellationToken);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed deterministic processing for operation {Operation} on image {ImageId}", operation, imageId);
+            _logger.LogError(ex, "Failed deterministic processing for operation {Operation} on image {ImageId}", fullOperationKey, imageId);
             return new ImageOperationResult
             {
                 Success = false,
                 ErrorCode = "PROCESSING_FAILED",
-                ErrorMessage = $"Failed to process image with operation '{operation}': {ex.Message}"
+                ErrorMessage = $"Failed to process image with operation '{baseOp}': {ex.Message}"
             };
         }
 
         // Output Result Validation
-        if (processedResult.FileSize <= 0 || processedResult.Width <= 0 || processedResult.Height <= 0 || processedResult.Bytes.Length == 0)
+        if (processedResult.FileSize <= 0 || processedResult.Width <= 0 || processedResult.Height <= 0 || processedResult.Bytes == null || processedResult.Bytes.Length == 0)
         {
             return new ImageOperationResult
             {
@@ -1203,11 +1248,45 @@ public class WebsiteImageService : IWebsiteImageService
             };
         }
 
-        var variantStorageKey = $"tenants/{tenantId}/websites/{image.WebsiteId}/images/{imageId}/variants/{variantId}/{operation.ToLowerInvariant()}{processedResult.FileExtension}";
+        // Verify output bytes can be decoded
+        try
+        {
+            using var decData = SkiaSharp.SKData.CreateCopy(processedResult.Bytes);
+            using var testBitmap = SkiaSharp.SKBitmap.Decode(decData);
+            if (testBitmap == null || testBitmap.Width <= 0 || testBitmap.Height <= 0)
+            {
+                return new ImageOperationResult
+                {
+                    Success = false,
+                    ErrorCode = "RESULT_VALIDATION_FAILED",
+                    ErrorMessage = "The enhanced image output produced undecodable bytes. Original image remains preserved."
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Integrity check failed decoding enhanced bytes for image {ImageId}", imageId);
+            return new ImageOperationResult
+            {
+                Success = false,
+                ErrorCode = "RESULT_VALIDATION_FAILED",
+                ErrorMessage = "The enhanced image output produced invalid bytes. Original image remains preserved."
+            };
+        }
+
+        var variantStorageKey = $"tenants/{tenantId}/websites/{image.WebsiteId}/images/{imageId}/variants/{variantId}/{baseOp.ToLowerInvariant()}{processedResult.FileExtension}";
 
         // Store enhanced variant bytes
-        using var uploadStream = new MemoryStream(processedResult.Bytes);
-        await _storageProvider.UploadAsync(ImageBucket, variantStorageKey, uploadStream, processedResult.MimeType, cancellationToken);
+        using (var uploadStream = new MemoryStream(processedResult.Bytes))
+        {
+            await _storageProvider.UploadAsync(ImageBucket, variantStorageKey, uploadStream, processedResult.MimeType, cancellationToken);
+        }
+
+        var storedOperation = (operation != null && operation.Contains(':'))
+            ? operation
+            : (!string.IsNullOrWhiteSpace(preset) && !string.Equals(preset, "Balanced", StringComparison.OrdinalIgnoreCase)
+                ? $"{baseOp}:{effectivePreset}"
+                : baseOp);
 
         var variant = new ImageVariant
         {
@@ -1215,7 +1294,7 @@ public class WebsiteImageService : IWebsiteImageService
             TenantId = tenantId,
             ImageId = imageId,
             VariantType = "AIEnhanced",
-            Operation = operation,
+            Operation = storedOperation,
             StorageKey = variantStorageKey,
             MimeType = processedResult.MimeType,
             FileSize = processedResult.FileSize,
@@ -1238,13 +1317,17 @@ public class WebsiteImageService : IWebsiteImageService
         {
             TenantId = tenantId,
             UserId = userId,
-            OperationType = operation,
+            OperationType = storedOperation,
             ResourceType = "Image",
             ResourceId = imageId,
             Status = AIRequestStatus.Succeeded,
             ReviewStatus = AIReviewStatus.PendingReview,
             ProviderReference = aiConfig?.ProviderKey ?? "Deterministic",
             ModelReference = aiConfig?.SelectedModelKey ?? "BuiltIn",
+            OutputText = processedResult.EffectiveProfile != null
+                ? $"{processedResult.EffectiveProfile}|{string.Join(";", processedResult.AppliedCorrections)}"
+                : null,
+            ContextVersion = processedResult.AlgorithmVersion,
             CreatedAt = DateTime.UtcNow,
             CompletedAt = DateTime.UtcNow
         };
@@ -1263,7 +1346,7 @@ public class WebsiteImageService : IWebsiteImageService
 
         _logger.LogInformation(
             "AUDIT: ImageEnhancementRequested. TenantId={TenantId}, UserId={UserId}, ImageId={ImageId}, VariantId={VariantId}, Operation={Operation}",
-            tenantId, userId, imageId, variantId, operation);
+            tenantId, userId, imageId, variantId, fullOperationKey);
 
         var variantDto = MapVariantDto(variant, tenantId);
         variantDto.AlgorithmVersion = processedResult.AlgorithmVersion;
@@ -2543,6 +2626,10 @@ public class WebsiteImageService : IWebsiteImageService
     private static List<string> GetAppliedCorrectionsForOperation(string? operation, string variantType)
     {
         var op = operation?.Trim() ?? "";
+        if (op.Contains(':'))
+        {
+            op = op.Split(':')[0].Trim();
+        }
         if (op.Equals("ImproveClarity", StringComparison.OrdinalIgnoreCase))
         {
             return new List<string>

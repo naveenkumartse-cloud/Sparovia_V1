@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using Sparovia.Domain.Constants;
 
 namespace Sparovia.Application.AI;
@@ -94,9 +96,64 @@ public static class AIRequestValidator
         return (true, null, null);
     }
 
+    private static readonly Regex SafetyMetadataPattern = new(
+        @"^\s*(User\s*Safety|Response\s*Safety|Content\s*Safety|Safety\s*Rating|Safety\s*Classification|Safety|Moderation|Guardrail(\s*Status)?|Status|Request\s*Id|Response\s*Id)\s*:\s*([^\r\n]*)$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly HashSet<string> IsolatedStatusTokens = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "safe",
+        "unsafe",
+        "ok",
+        "null",
+        "true",
+        "false",
+        "none",
+        "pass",
+        "flagged"
+    };
+
+    private static string FilterSafetyAndDiagnosticLines(string text)
+    {
+        var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+        var contentLines = new List<string>();
+
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+            if (string.IsNullOrWhiteSpace(trimmed))
+            {
+                if (contentLines.Count > 0)
+                {
+                    contentLines.Add(string.Empty);
+                }
+                continue;
+            }
+
+            if (SafetyMetadataPattern.IsMatch(trimmed))
+            {
+                // Pure safety or diagnostic metadata line, skip
+                continue;
+            }
+
+            contentLines.Add(trimmed);
+        }
+
+        return string.Join("\n", contentLines).Trim();
+    }
+
+    private static bool IsIsolatedStatusToken(string text)
+    {
+        var trimmed = text.Trim();
+        if (IsolatedStatusTokens.Contains(trimmed)) return true;
+        if (SafetyMetadataPattern.IsMatch(trimmed)) return true;
+        return false;
+    }
+
     /// <summary>
     /// Validates and cleanses raw AI provider output before presenting to the client.
-    /// Rejects empty responses, excessive lengths, and strips accidental conversational filler.
+    /// Rejects empty responses, provider metadata, safety classifications, excessive lengths,
+    /// and strips accidental conversational filler, thought blocks, and internal status headers.
     /// </summary>
     public static (bool IsValid, string? SanitizedOutput, string? ErrorCode, string? ErrorMessage) ValidateAndSanitizeAIOutput(
         string? outputText,
@@ -110,7 +167,62 @@ public static class AIRequestValidator
 
         var cleaned = outputText.Trim();
 
-        // Strip enclosing quotes if the model wrapped the entire response in quotes
+        // 1. Strip reasoning blocks (<think>...</think> or <thought>...</thought>)
+        cleaned = Regex.Replace(cleaned, @"<(think|thought)>[\s\S]*?</(think|thought)>", string.Empty, RegexOptions.IgnoreCase).Trim();
+
+        // 2. Strip markdown code fence if output is wrapped in ``` or ```json
+        if (cleaned.StartsWith("```", StringComparison.Ordinal))
+        {
+            var firstNewline = cleaned.IndexOf('\n');
+            var lastFence = cleaned.LastIndexOf("```", StringComparison.Ordinal);
+            if (firstNewline > 0 && lastFence > firstNewline)
+            {
+                cleaned = cleaned.Substring(firstNewline + 1, lastFence - firstNewline - 1).Trim();
+            }
+        }
+
+        // 3. Handle structured JSON envelope / objects if returned instead of raw text
+        if (cleaned.StartsWith('{') && cleaned.EndsWith('}'))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(cleaned);
+                var root = doc.RootElement;
+                if (root.ValueKind == JsonValueKind.Object)
+                {
+                    string? extractedText = null;
+                    string[] contentPropNames = { "suggestion", "text", "content", "improvedText", "revisedText", "output", "result" };
+                    foreach (var prop in contentPropNames)
+                    {
+                        if (root.TryGetProperty(prop, out var val) && val.ValueKind == JsonValueKind.String)
+                        {
+                            var s = val.GetString();
+                            if (!string.IsNullOrWhiteSpace(s))
+                            {
+                                extractedText = s.Trim();
+                                break;
+                            }
+                        }
+                    }
+
+                    if (extractedText != null)
+                    {
+                        cleaned = extractedText;
+                    }
+                    else
+                    {
+                        // JSON contained only metadata (e.g. {"user_safety":"safe"}, {"status":"ok"})
+                        return (false, null, AIErrorCodes.OutputInvalid, "The AI response contained provider metadata rather than usable website content.");
+                    }
+                }
+            }
+            catch (JsonException)
+            {
+                // Not valid JSON, continue with string processing
+            }
+        }
+
+        // 4. Strip enclosing quotes if the model wrapped the entire response in quotes
         if (cleaned.Length >= 2 &&
             ((cleaned.StartsWith('"') && cleaned.EndsWith('"')) ||
              (cleaned.StartsWith('\'') && cleaned.EndsWith('\''))))
@@ -118,7 +230,7 @@ public static class AIRequestValidator
             cleaned = cleaned[1..^1].Trim();
         }
 
-        // Strip leading conversational fillers if present
+        // 5. Strip leading conversational fillers if present
         string[] conversationalPrefixes =
         {
             "Here is the improved wording:",
@@ -145,9 +257,18 @@ public static class AIRequestValidator
             }
         }
 
+        // 6. Filter out provider safety classification, guardrail lines, and diagnostic status headers
+        cleaned = FilterSafetyAndDiagnosticLines(cleaned);
+
         if (string.IsNullOrWhiteSpace(cleaned))
         {
-            return (false, null, AIErrorCodes.OutputInvalid, "The AI response contained only conversational filler and no usable content.");
+            return (false, null, AIErrorCodes.OutputInvalid, "The AI response contained provider safety metadata rather than usable website content.");
+        }
+
+        // 7. Reject isolated metadata/status tokens (e.g., "safe", "unsafe", "ok", "null", "true", "false")
+        if (IsIsolatedStatusToken(cleaned))
+        {
+            return (false, null, AIErrorCodes.OutputInvalid, "The AI response contained a status indicator rather than usable website content.");
         }
 
         if (cleaned.Length > MaxInputTextLength)
@@ -155,7 +276,7 @@ public static class AIRequestValidator
             return (false, null, AIErrorCodes.OutputInvalid, $"The AI response exceeded the maximum allowed length of {MaxInputTextLength} characters.");
         }
 
-        // Prohibited markup / script tag injection check
+        // 8. Prohibited markup / script tag injection check
         var lowerCleaned = cleaned.ToLowerInvariant();
         string[] prohibitedTags =
         {
@@ -171,7 +292,7 @@ public static class AIRequestValidator
             }
         }
 
-        // Prompt leakage & Developer instruction disclosure check
+        // 9. Prompt leakage & Developer instruction disclosure check
         string[] promptLeakagePhrases =
         {
             "system prompt",
@@ -193,16 +314,16 @@ public static class AIRequestValidator
             }
         }
 
-        // API keys & secrets detection check
-        if (System.Text.RegularExpressions.Regex.IsMatch(cleaned, @"sk-[a-zA-Z0-9]{20,}") ||
-            System.Text.RegularExpressions.Regex.IsMatch(cleaned, @"AIzaSy[a-zA-Z0-9_-]{33}") ||
+        // 10. API keys & secrets detection check
+        if (Regex.IsMatch(cleaned, @"sk-[a-zA-Z0-9]{20,}") ||
+            Regex.IsMatch(cleaned, @"AIzaSy[a-zA-Z0-9_-]{33}") ||
             cleaned.Contains("-----BEGIN PRIVATE KEY-----", StringComparison.OrdinalIgnoreCase) ||
             cleaned.Contains("-----BEGIN RSA PRIVATE KEY-----", StringComparison.OrdinalIgnoreCase))
         {
             return (false, null, AIErrorCodes.OutputValidationFailed, "The AI response contained sensitive credentials or secrets.");
         }
 
-        // For "MakeShorter", if the output is significantly longer than the original, flag it
+        // 11. For "MakeShorter", if the output is significantly longer than the original, flag it
         if (string.Equals(operationType, AIOperationTypes.MakeShorter, StringComparison.OrdinalIgnoreCase) &&
             cleaned.Length > originalText.Length + 50 && originalText.Length > 30)
         {

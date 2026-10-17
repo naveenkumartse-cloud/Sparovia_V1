@@ -112,6 +112,7 @@ public class RejectEnhancementRequest
 public class EnhanceImageRequest
 {
     public required string Operation { get; set; }
+    public string? Preset { get; set; } = "Balanced";
 }
 
 public class QualityStudioProcessRequest

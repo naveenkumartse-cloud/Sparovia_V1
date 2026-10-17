@@ -23,6 +23,7 @@ public interface IWebsiteImageService
     Task<ImageAnalysisResult> AnalyzeImageAsync(Guid tenantId, Guid imageId, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> ProcessQualityStudioAsync(Guid tenantId, Guid imageId, QualityStudioProcessRequest request, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> EnhanceImageAsync(Guid tenantId, Guid imageId, string operation, Guid? userId = null, CancellationToken cancellationToken = default);
+    Task<ImageOperationResult> EnhanceImageAsync(Guid tenantId, Guid imageId, string operation, string? preset, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> OptimizeImageAsync(Guid tenantId, Guid imageId, Guid? parentVariantId = null, string? targetFormat = null, int? maxWidth = null, int? maxHeight = null, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> ApproveEnhancementAsync(Guid tenantId, Guid imageId, Guid variantId, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<ImageOperationResult> RejectEnhancementAsync(Guid tenantId, Guid imageId, Guid variantId, Guid? userId = null, CancellationToken cancellationToken = default);

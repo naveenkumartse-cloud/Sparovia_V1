@@ -608,4 +608,217 @@ public class AIOutputValidationAndReviewTests : IClassFixture<WebApplicationFact
         var rejectResp = await clientB.PostAsJsonAsync($"/api/v1/ai/requests/{aiRequestId}/reject", new AIRejectRequestDto());
         Assert.Equal(HttpStatusCode.NotFound, rejectResp.StatusCode);
     }
+
+    [Fact]
+    public async Task OutputValidation_MetadataOnlyResponse_ReturnsBadRequest_DoesNotMarkSuccess()
+    {
+        // Exact reproduced defect: Provider returns "User Safety: safe"
+        var email = $"ai-meta-only-{Guid.NewGuid():N}@sparovia-test.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "KVN Interior", email);
+
+        // Baseline draft
+        var baselineDraft = new
+        {
+            Fields = new Dictionary<string, string>
+            {
+                { "subheadline", "Original subheadline text before AI" }
+            }
+        };
+        var draftResp = await client.PutAsJsonAsync("/api/v1/website/content/hero/draft", baselineDraft);
+        draftResp.EnsureSuccessStatusCode();
+
+        var req = new AIImproveContentRequest
+        {
+            SectionKey = "hero",
+            Field = "subheadline",
+            Operation = AIOperationTypes.ImproveWording,
+            CurrentText = "KVN Interior provides professional interior design and execution services. __SIMULATE_METADATA_ONLY__"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/v1/ai/content/improve", req);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var errJson = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var errCode = errJson.GetProperty("code").GetString();
+        Assert.Equal(AIErrorCodes.OutputInvalid, errCode);
+
+        // Verify request in DB was marked as Failed, NOT Succeeded
+        var aiRequestId = errJson.GetProperty("aiRequestId").GetGuid();
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<SparoviaDbContext>();
+            var record = await db.AIRequests.FirstOrDefaultAsync(r => r.Id == aiRequestId);
+            Assert.NotNull(record);
+            Assert.Equal(AIRequestStatus.Failed, record.Status);
+            Assert.NotEqual("User Safety: safe", record.OutputText);
+        }
+
+        // Verify draft content is unchanged
+        var sectionResp = await client.GetAsync("/api/v1/website/content/hero");
+        sectionResp.EnsureSuccessStatusCode();
+        var sectionJson = await sectionResp.Content.ReadFromJsonAsync<JsonElement>();
+        var draftSubheadline = sectionJson.GetProperty("draftFields").GetProperty("subheadline").GetString();
+        Assert.Equal("Original subheadline text before AI", draftSubheadline);
+    }
+
+    [Fact]
+    public async Task OutputValidation_SafetyMetadataPreamble_StripsMetadata_ReturnsCleanContent()
+    {
+        var email = $"ai-safety-preamble-{Guid.NewGuid():N}@sparovia-test.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Preamble Studio", email);
+
+        var req = new AIImproveContentRequest
+        {
+            SectionKey = "hero",
+            Field = "subheadline",
+            Operation = AIOperationTypes.ImproveWording,
+            CurrentText = "KVN Interior provides professional interior design. __SIMULATE_SAFETY_PREAMBLE__"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/v1/ai/content/improve", req);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var data = json.GetProperty("data");
+        var suggestion = data.GetProperty("suggestion").GetString();
+        var reviewStatus = data.GetProperty("reviewStatus").GetString();
+
+        Assert.Equal(AIReviewStatus.PendingReview, reviewStatus);
+        Assert.DoesNotContain("User Safety", suggestion);
+        Assert.DoesNotContain("Response Safety", suggestion);
+        Assert.Contains("KVN Interior provides bespoke interior design excellence tailored to your lifestyle.", suggestion);
+    }
+
+    [Fact]
+    public async Task OutputValidation_StructuredJsonMetadataOnly_ReturnsBadRequest()
+    {
+        var email = $"ai-json-meta-{Guid.NewGuid():N}@sparovia-test.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "JSON Meta Studio", email);
+
+        var req = new AIImproveContentRequest
+        {
+            SectionKey = "hero",
+            Field = "subheadline",
+            Operation = AIOperationTypes.ImproveWording,
+            CurrentText = "Interior text __SIMULATE_RAW_JSON_METADATA__"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/v1/ai/content/improve", req);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var errJson = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(AIErrorCodes.OutputInvalid, errJson.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task OutputValidation_StructuredJsonSuggestion_ExtractsCleanSuggestion()
+    {
+        var email = $"ai-json-sugg-{Guid.NewGuid():N}@sparovia-test.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "JSON Sugg Studio", email);
+
+        var req = new AIImproveContentRequest
+        {
+            SectionKey = "hero",
+            Field = "subheadline",
+            Operation = AIOperationTypes.ImproveWording,
+            CurrentText = "Interior text __SIMULATE_RAW_JSON_SUGGESTION__"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/v1/ai/content/improve", req);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var suggestion = json.GetProperty("data").GetProperty("suggestion").GetString();
+        Assert.Equal("Refined interior design services by KVN Interior.", suggestion);
+    }
+
+    [Fact]
+    public async Task OutputValidation_ThinkTags_StripsReasoningBlocks()
+    {
+        var email = $"ai-think-{Guid.NewGuid():N}@sparovia-test.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Think Studio", email);
+
+        var req = new AIImproveContentRequest
+        {
+            SectionKey = "hero",
+            Field = "subheadline",
+            Operation = AIOperationTypes.ImproveWording,
+            CurrentText = "Interior text __SIMULATE_THINK_TAGS__"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/v1/ai/content/improve", req);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var suggestion = json.GetProperty("data").GetProperty("suggestion").GetString();
+        Assert.DoesNotContain("<think>", suggestion);
+        Assert.DoesNotContain("</think>", suggestion);
+        Assert.Contains("KVN Interior provides professional interior design tailored to each client.", suggestion);
+    }
+
+    [Fact]
+    public async Task OutputValidation_WhitespaceResponse_ReturnsBadRequest()
+    {
+        var email = $"ai-empty-{Guid.NewGuid():N}@sparovia-test.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Empty Studio", email);
+
+        var req = new AIImproveContentRequest
+        {
+            SectionKey = "hero",
+            Field = "subheadline",
+            Operation = AIOperationTypes.ImproveWording,
+            CurrentText = "Interior text __SIMULATE_EMPTY_RESPONSE__"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/v1/ai/content/improve", req);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var errJson = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(AIErrorCodes.OutputInvalid, errJson.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task OutputValidation_ProviderTimeout_ReturnsGatewayTimeout_SafeRecovery()
+    {
+        var email = $"ai-timeout-{Guid.NewGuid():N}@sparovia-test.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Timeout Studio", email);
+
+        // 1. Trigger timeout
+        var timeoutReq = new AIImproveContentRequest
+        {
+            SectionKey = "hero",
+            Field = "subheadline",
+            Operation = AIOperationTypes.ImproveWording,
+            CurrentText = "Interior text __SIMULATE_TIMEOUT__"
+        };
+
+        var timeoutResponse = await client.PostAsJsonAsync("/api/v1/ai/content/improve", timeoutReq);
+        Assert.Equal(HttpStatusCode.GatewayTimeout, timeoutResponse.StatusCode);
+
+        var timeoutErr = await timeoutResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(AIErrorCodes.ProcessingTimeout, timeoutErr.GetProperty("code").GetString());
+
+        // 2. Safe Recovery / Retry: Subsequent normal request succeeds without stale failure state
+        var validReq = new AIImproveContentRequest
+        {
+            SectionKey = "hero",
+            Field = "subheadline",
+            Operation = AIOperationTypes.ImproveWording,
+            CurrentText = "KVN Interior provides professional interior design and execution services."
+        };
+
+        var validResponse = await client.PostAsJsonAsync("/api/v1/ai/content/improve", validReq);
+        Assert.Equal(HttpStatusCode.OK, validResponse.StatusCode);
+
+        var validJson = await validResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(AIReviewStatus.PendingReview, validJson.GetProperty("data").GetProperty("reviewStatus").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(validJson.GetProperty("data").GetProperty("suggestion").GetString()));
+    }
 }

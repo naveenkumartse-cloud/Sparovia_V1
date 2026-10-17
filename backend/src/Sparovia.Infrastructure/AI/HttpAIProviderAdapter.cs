@@ -459,19 +459,53 @@ public class HttpAIProviderAdapter : IAIProvider
                             candidates.GetArrayLength() > 0 &&
                             candidates[0].TryGetProperty("content", out var candContent) &&
                             candContent.TryGetProperty("parts", out var parts) &&
-                            parts.GetArrayLength() > 0 &&
-                            parts[0].TryGetProperty("text", out var textElem))
+                            parts.GetArrayLength() > 0)
                         {
-                            generatedContent = textElem.GetString();
+                            var sb = new StringBuilder();
+                            foreach (var part in parts.EnumerateArray())
+                            {
+                                if (part.TryGetProperty("thought", out var thoughtElem) && thoughtElem.GetBoolean())
+                                {
+                                    continue;
+                                }
+                                if (part.TryGetProperty("text", out var textElem))
+                                {
+                                    var t = textElem.GetString();
+                                    if (!string.IsNullOrEmpty(t))
+                                    {
+                                        sb.Append(t);
+                                    }
+                                }
+                            }
+                            if (sb.Length > 0)
+                            {
+                                generatedContent = sb.ToString();
+                            }
                         }
                     }
                     else if (provider == AIProviders.Claude)
                     {
                         if (doc.RootElement.TryGetProperty("content", out var contentArr) &&
-                            contentArr.GetArrayLength() > 0 &&
-                            contentArr[0].TryGetProperty("text", out var textElem))
+                            contentArr.GetArrayLength() > 0)
                         {
-                            generatedContent = textElem.GetString();
+                            var sb = new StringBuilder();
+                            foreach (var block in contentArr.EnumerateArray())
+                            {
+                                if (block.TryGetProperty("type", out var typeElem) &&
+                                    string.Equals(typeElem.GetString(), "text", StringComparison.OrdinalIgnoreCase) &&
+                                    block.TryGetProperty("text", out var textElem))
+                                {
+                                    var t = textElem.GetString();
+                                    if (!string.IsNullOrEmpty(t))
+                                    {
+                                        sb.Append(t);
+                                    }
+                                }
+                            }
+                            if (sb.Length > 0)
+                            {
+                                generatedContent = sb.ToString();
+                            }
                         }
                     }
                     else
@@ -479,10 +513,27 @@ public class HttpAIProviderAdapter : IAIProvider
                         // OpenAI, OpenRouter, and NVIDIA NIM all use choices[0].message.content
                         if (doc.RootElement.TryGetProperty("choices", out var choices) &&
                             choices.GetArrayLength() > 0 &&
-                            choices[0].TryGetProperty("message", out var msg) &&
-                            msg.TryGetProperty("content", out var textElem))
+                            choices[0].TryGetProperty("message", out var msg))
                         {
-                            generatedContent = textElem.GetString();
+                            if (msg.TryGetProperty("content", out var textElem) && textElem.ValueKind == JsonValueKind.String)
+                            {
+                                generatedContent = textElem.GetString();
+                            }
+                            else if (msg.TryGetProperty("refusal", out var refusalElem) && refusalElem.ValueKind == JsonValueKind.String)
+                            {
+                                var refusal = refusalElem.GetString();
+                                if (!string.IsNullOrWhiteSpace(refusal))
+                                {
+                                    stopwatch.Stop();
+                                    return new AIProviderResult
+                                    {
+                                        Success = false,
+                                        ErrorCode = AIErrorCodes.OutputInvalid,
+                                        ErrorMessage = $"AI provider refused request: {refusal}",
+                                        DurationMs = stopwatch.ElapsedMilliseconds
+                                    };
+                                }
+                            }
                         }
                     }
 
@@ -589,6 +640,22 @@ public class HttpAIProviderAdapter : IAIProvider
     private static string CleanGeneratedText(string text)
     {
         var cleaned = text.Trim();
+
+        // Strip reasoning tags (<think>...</think> or <thought>...</thought>)
+        cleaned = System.Text.RegularExpressions.Regex.Replace(
+            cleaned, @"<(think|thought)>[\s\S]*?</(think|thought)>", string.Empty, System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
+
+        // Strip markdown code fences if wrapped
+        if (cleaned.StartsWith("```", StringComparison.Ordinal))
+        {
+            var firstNewline = cleaned.IndexOf('\n');
+            var lastFence = cleaned.LastIndexOf("```", StringComparison.Ordinal);
+            if (firstNewline > 0 && lastFence > firstNewline)
+            {
+                cleaned = cleaned.Substring(firstNewline + 1, lastFence - firstNewline - 1).Trim();
+            }
+        }
+
         if (cleaned.StartsWith("\"") && cleaned.EndsWith("\"") && cleaned.Length > 2)
         {
             cleaned = cleaned[1..^1].Trim();

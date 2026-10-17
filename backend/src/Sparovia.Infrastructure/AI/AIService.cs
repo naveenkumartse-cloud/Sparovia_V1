@@ -271,7 +271,7 @@ public class AIService : IAIService
         aiRecord.ProviderReference = providerResult.ProviderReference;
         aiRecord.ModelReference = providerResult.ModelReference;
 
-        if (providerResult.Success && !string.IsNullOrWhiteSpace(providerResult.OutputText))
+        if (providerResult.Success)
         {
             var (isOutputValid, sanitizedOutput, outErrCode, outErrMsg) = AIRequestValidator.ValidateAndSanitizeAIOutput(
                 providerResult.OutputText,
