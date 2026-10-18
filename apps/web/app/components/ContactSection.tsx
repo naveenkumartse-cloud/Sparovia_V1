@@ -7,7 +7,7 @@ import { Container } from '@/components/ui/Container';
 import { Eyebrow } from '@/components/ui/Typography';
 import { Button } from '@/components/ui/Button';
 import { FadeIn } from '@/components/ui/Motion';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Clock, MapPin, Phone, Mail, Info } from 'lucide-react';
 
 export default function ContactSection() {
   const { contact, ourWork, tenantCategories, website } = useTemplateContent();
@@ -15,6 +15,13 @@ export default function ContactSection() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isSubmittingRef = useRef(false);
+
+  const hasHours = Boolean(contact.operatingHours && contact.operatingHours.trim().length > 0);
+  const hasNotice = Boolean(contact.publicNotice && contact.publicNotice.trim().length > 0);
+  const hasPhone = Boolean(contact.phone && contact.phone.trim().length > 0);
+  const hasEmail = Boolean(contact.email && contact.email.trim().length > 0);
+  const hasAddress = Boolean(contact.address && contact.address.trim().length > 0);
+  const hasPresenceInfo = hasHours || hasNotice || hasPhone || hasEmail || hasAddress;
 
   // Authoritative tenant categories (excluding navigation concept "All")
   const areaOptions = Array.isArray(tenantCategories) && tenantCategories.length > 0
@@ -157,188 +164,322 @@ export default function ContactSection() {
 
   const brandName = website?.name || 'Sparovia';
 
+  const renderFormContent = (includeHeader: boolean) => {
+    if (submitted) {
+      return (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 rounded-[8px] bg-brand-50 border border-brand-200 flex items-center justify-center mx-auto mb-6 text-brand-600">
+            <CheckCircle2 className="w-8 h-8" />
+          </div>
+          <h3 className="font-sans text-2xl font-bold text-charcoal-900 mb-2">
+            Inquiry Received
+          </h3>
+          <p className="text-sm text-charcoal-600 font-normal mb-8 max-w-sm mx-auto">
+            Thank you for contacting {brandName}. Your enquiry has been submitted successfully.
+          </p>
+          <Button onClick={() => setSubmitted(false)} variant="primary" size="md">
+            Send Another Request
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {includeHeader && (
+          <div>
+            <Eyebrow icon={false}>{contact.eyebrow || 'CONTACT'}</Eyebrow>
+
+            <h3 className="font-sans text-2xl sm:text-3xl font-bold text-charcoal-900 mb-2">
+              {contact.heading || 'Request a Quote'}
+            </h3>
+
+            {contact.description && (
+              <p className="text-sm text-charcoal-600 mb-6 font-normal">
+                {contact.description}
+              </p>
+            )}
+          </div>
+        )}
+
+        {!includeHeader && (
+          <div className="mb-2">
+            <h3 className="font-sans text-xl sm:text-2xl font-bold text-charcoal-900">
+              {contact.ctaLabel ? 'Request a Quote' : 'Send an Enquiry'}
+            </h3>
+            <p className="text-xs text-charcoal-500 mt-1">
+              Share your requirements and we will connect with you promptly.
+            </p>
+          </div>
+        )}
+
+        <div>
+          <label htmlFor="user-name" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
+            Your Name *
+          </label>
+          <input
+            id="user-name"
+            type="text"
+            required
+            disabled={loading}
+            placeholder="Enter your full name"
+            value={formData.name}
+            onChange={(e) => {
+              setFormData({ ...formData, name: e.target.value });
+              if (error) setError(null);
+            }}
+            className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="user-phone" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold">
+                Phone Number *
+              </label>
+              <span className="text-[11px] text-gray-500 font-medium">10-digit mobile</span>
+            </div>
+            <div className="relative flex items-center rounded-[6px] border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#315FEA] focus-within:border-[#315FEA] shadow-xs">
+              <span className="inline-flex items-center px-3.5 py-3.5 bg-gray-100 text-charcoal-800 font-semibold text-xs sm:text-sm select-none border-r border-gray-300">
+                +91
+              </span>
+              <input
+                id="user-phone"
+                type="tel"
+                inputMode="numeric"
+                required
+                disabled={loading}
+                placeholder="9876543210"
+                maxLength={10}
+                value={formData.phone}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setFormData({ ...formData, phone: digits });
+                  if (error) setError(null);
+                }}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pasted = e.clipboardData.getData('text');
+                  let cleaned = pasted.replace(/\D/g, '');
+                  if (cleaned.startsWith('91') && cleaned.length > 10) {
+                    cleaned = cleaned.slice(2);
+                  } else if (cleaned.startsWith('0') && cleaned.length > 10) {
+                    cleaned = cleaned.slice(1);
+                  }
+                  cleaned = cleaned.slice(0, 10);
+                  setFormData({ ...formData, phone: cleaned });
+                  if (error) setError(null);
+                }}
+                className="w-full px-4 py-3.5 bg-white text-charcoal-900 text-xs sm:text-sm outline-none border-0 focus:ring-0 disabled:opacity-60"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="user-email" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
+              Email Address
+            </label>
+            <input
+              id="user-email"
+              type="email"
+              disabled={loading}
+              placeholder="name@example.com"
+              value={formData.email}
+              onChange={(e) => {
+                setFormData({ ...formData, email: e.target.value });
+                if (error) setError(null);
+              }}
+              className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="user-service" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
+            Area of Interest
+          </label>
+          <select
+            id="user-service"
+            disabled={loading}
+            value={formData.areaOfInterest}
+            onChange={(e) => {
+              setFormData({ ...formData, areaOfInterest: e.target.value });
+              if (error) setError(null);
+            }}
+            className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs"
+          >
+            <option value="">Select an area of interest</option>
+            {areaOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="user-message" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
+            Project Details *
+          </label>
+          <textarea
+            id="user-message"
+            required
+            disabled={loading}
+            rows={4}
+            placeholder="Tell us about your project requirements..."
+            value={formData.projectDetails}
+            onChange={(e) => {
+              setFormData({ ...formData, projectDetails: e.target.value });
+              if (error) setError(null);
+            }}
+            className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring resize-none disabled:opacity-60 shadow-xs"
+          />
+        </div>
+
+        {error && (
+          <div className="p-3.5 rounded-[6px] bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          icon
+          disabled={loading}
+          className="w-full justify-center"
+        >
+          {loading ? 'Submitting...' : (contact.ctaLabel || 'Request Consultation')}
+        </Button>
+      </form>
+    );
+  };
+
   return (
     <Section id="contact" background="white" padding="spacious">
       <Container>
-        <div className="max-w-2xl mx-auto w-full">
-          <FadeIn direction="up">
-            <div className="bg-surface p-5 sm:p-8 md:p-12 rounded-[8px] border border-gray-200 shadow-soft-sm">
-              {submitted ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 rounded-[8px] bg-brand-50 border border-brand-200 flex items-center justify-center mx-auto mb-6 text-brand-600">
-                    <CheckCircle2 className="w-8 h-8" />
-                  </div>
-                  <h3 className="font-sans text-2xl font-bold text-charcoal-900 mb-2">
-                    Inquiry Received
-                  </h3>
-                  <p className="text-sm text-charcoal-600 font-normal mb-8 max-w-sm mx-auto">
-                    Thank you for contacting {brandName}. Your enquiry has been submitted successfully.
+        {hasPresenceInfo ? (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start max-w-6xl mx-auto w-full">
+            {/* Left Column: Presence Information & Business Details */}
+            <FadeIn direction="up" className="lg:col-span-5 space-y-6">
+              <div>
+                <Eyebrow icon={false}>{contact.eyebrow || 'CONTACT'}</Eyebrow>
+
+                <h2 className="font-sans text-2xl sm:text-3xl font-bold text-charcoal-900 mt-2 mb-3">
+                  {contact.heading || "Let's Discuss Your Project."}
+                </h2>
+
+                {contact.description && (
+                  <p className="text-sm text-charcoal-600 font-normal leading-relaxed">
+                    {contact.description}
                   </p>
-                  <Button onClick={() => setSubmitted(false)} variant="primary" size="md">
-                    Send Another Request
-                  </Button>
+                )}
+              </div>
+
+              {/* Optional Public Notice / Advisory (ONLY rendered when non-empty) */}
+              {hasNotice && (
+                <div className="p-4 rounded-[8px] bg-blue-50/70 border border-blue-200/80 text-blue-950 text-xs sm:text-sm">
+                  <div className="flex items-start gap-2.5">
+                    <Info className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <span className="font-semibold text-xs uppercase tracking-wider text-brand-700 block">
+                        Notice
+                      </span>
+                      <p className="text-charcoal-800 leading-relaxed whitespace-pre-line">
+                        {contact.publicNotice}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <Eyebrow icon={false}>{contact.eyebrow || 'CONTACT'}</Eyebrow>
-
-                  <h3 className="font-sans text-2xl sm:text-3xl font-bold text-charcoal-900 mb-2">
-                    {contact.heading || 'Request a Quote'}
-                  </h3>
-
-                  {contact.description && (
-                    <p className="text-sm text-charcoal-600 mb-6 font-normal">
-                      {contact.description}
-                    </p>
-                  )}
-
-
-                  <div>
-                    <label htmlFor="user-name" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
-                      Your Name *
-                    </label>
-                    <input
-                      id="user-name"
-                      type="text"
-                      required
-                      disabled={loading}
-                      placeholder="Enter your full name"
-                      value={formData.name}
-                      onChange={(e) => {
-                        setFormData({ ...formData, name: e.target.value });
-                        if (error) setError(null);
-                      }}
-                      className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label htmlFor="user-phone" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold">
-                          Phone Number *
-                        </label>
-                        <span className="text-[11px] text-gray-500 font-medium">10-digit mobile</span>
-                      </div>
-                      <div className="relative flex items-center rounded-[6px] border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#315FEA] focus-within:border-[#315FEA] shadow-xs">
-                        <span className="inline-flex items-center px-3.5 py-3.5 bg-gray-100 text-charcoal-800 font-semibold text-xs sm:text-sm select-none border-r border-gray-300">
-                          +91
-                        </span>
-                        <input
-                          id="user-phone"
-                          type="tel"
-                          inputMode="numeric"
-                          required
-                          disabled={loading}
-                          placeholder="9876543210"
-                          maxLength={10}
-                          value={formData.phone}
-                          onChange={(e) => {
-                            const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-                            setFormData({ ...formData, phone: digits });
-                            if (error) setError(null);
-                          }}
-                          onPaste={(e) => {
-                            e.preventDefault();
-                            const pasted = e.clipboardData.getData('text');
-                            let cleaned = pasted.replace(/\D/g, '');
-                            if (cleaned.startsWith('91') && cleaned.length > 10) {
-                              cleaned = cleaned.slice(2);
-                            } else if (cleaned.startsWith('0') && cleaned.length > 10) {
-                              cleaned = cleaned.slice(1);
-                            }
-                            cleaned = cleaned.slice(0, 10);
-                            setFormData({ ...formData, phone: cleaned });
-                            if (error) setError(null);
-                          }}
-                          className="w-full px-4 py-3.5 bg-white text-charcoal-900 text-xs sm:text-sm outline-none border-0 focus:ring-0 disabled:opacity-60"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label htmlFor="user-email" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
-                        Email Address
-                      </label>
-                      <input
-                        id="user-email"
-                        type="email"
-                        disabled={loading}
-                        placeholder="name@example.com"
-                        value={formData.email}
-                        onChange={(e) => {
-                          setFormData({ ...formData, email: e.target.value });
-                          if (error) setError(null);
-                        }}
-                        className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="user-service" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
-                      Area of Interest
-                    </label>
-                    <select
-                      id="user-service"
-                      disabled={loading}
-                      value={formData.areaOfInterest}
-                      onChange={(e) => {
-                        setFormData({ ...formData, areaOfInterest: e.target.value });
-                        if (error) setError(null);
-                      }}
-                      className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs"
-                    >
-                      <option value="">Select an area of interest</option>
-                      {areaOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="user-message" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
-                      Project Details *
-                    </label>
-                    <textarea
-                      id="user-message"
-                      required
-                      disabled={loading}
-                      rows={4}
-                      placeholder="Tell us about your project requirements..."
-                      value={formData.projectDetails}
-                      onChange={(e) => {
-                        setFormData({ ...formData, projectDetails: e.target.value });
-                        if (error) setError(null);
-                      }}
-                      className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring resize-none disabled:opacity-60 shadow-xs"
-                    />
-                  </div>
-
-                  {error && (
-                    <div className="p-3.5 rounded-[6px] bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
-                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                      <span>{error}</span>
-                    </div>
-                  )}
-
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="lg"
-                    icon
-                    disabled={loading}
-                    className="w-full justify-center"
-                  >
-                    {loading ? 'Submitting...' : (contact.ctaLabel || 'Request Consultation')}
-                  </Button>
-                </form>
               )}
-            </div>
-          </FadeIn>
-        </div>
+
+              {/* Operating Hours Card (ONLY rendered when non-empty, preserves line breaks) */}
+              {hasHours && (
+                <div className="p-5 rounded-[8px] bg-surface border border-gray-200 shadow-soft-sm space-y-2.5">
+                  <div className="flex items-center gap-2 text-charcoal-900 font-semibold text-sm">
+                    <Clock className="w-4 h-4 text-brand-600 shrink-0" />
+                    <span>Operating Hours</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed whitespace-pre-line font-normal pl-6">
+                    {contact.operatingHours}
+                  </p>
+                </div>
+              )}
+
+              {/* Canonical Contact Details (Address, Phone, Email) */}
+              {(hasPhone || hasEmail || hasAddress) && (
+                <div className="p-5 rounded-[8px] bg-surface border border-gray-200 shadow-soft-sm space-y-3.5">
+                  {hasAddress && (
+                    <div className="flex items-start gap-2.5 text-xs sm:text-sm">
+                      <MapPin className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500 block mb-0.5">
+                          Operating Address
+                        </span>
+                        <span className="text-charcoal-800 leading-relaxed">
+                          {contact.address}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {hasPhone && (
+                    <div className="flex items-start gap-2.5 text-xs sm:text-sm">
+                      <Phone className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500 block mb-0.5">
+                          Phone
+                        </span>
+                        <a
+                          href={`tel:${contact.phone!.replace(/[^\d+]/g, '')}`}
+                          className="text-charcoal-800 hover:text-brand-600 font-medium transition-colors"
+                        >
+                          {contact.phone}
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {hasEmail && (
+                    <div className="flex items-start gap-2.5 text-xs sm:text-sm">
+                      <Mail className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500 block mb-0.5">
+                          Email
+                        </span>
+                        <a
+                          href={`mailto:${contact.email}`}
+                          className="text-charcoal-800 hover:text-brand-600 font-medium transition-colors break-all"
+                        >
+                          {contact.email}
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </FadeIn>
+
+            {/* Right Column: Quote Inquiry Form */}
+            <FadeIn direction="up" className="lg:col-span-7 w-full">
+              <div className="bg-surface p-5 sm:p-8 md:p-10 rounded-[8px] border border-gray-200 shadow-soft-sm">
+                {renderFormContent(false)}
+              </div>
+            </FadeIn>
+          </div>
+        ) : (
+          /* Standalone Centered Form when no presence info is configured */
+          <div className="max-w-2xl mx-auto w-full">
+            <FadeIn direction="up">
+              <div className="bg-surface p-5 sm:p-8 md:p-12 rounded-[8px] border border-gray-200 shadow-soft-sm">
+                {renderFormContent(true)}
+              </div>
+            </FadeIn>
+          </div>
+        )}
       </Container>
     </Section>
   );

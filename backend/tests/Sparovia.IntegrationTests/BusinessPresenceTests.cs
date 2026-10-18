@@ -6,7 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Sparovia.Application.BusinessPresence;
 using Sparovia.Application.Identity;
 using Sparovia.Application.Onboarding;
+using Sparovia.Application.WebsiteContent;
 using Sparovia.Infrastructure.Data;
+using System.Text.Json;
 
 namespace Sparovia.IntegrationTests;
 
@@ -59,7 +61,7 @@ public class BusinessPresenceTests : IClassFixture<WebApplicationFactory<Program
         return client;
     }
 
-    private async Task SetupAndConfirmBusinessContextAsync(HttpClient client, string businessName, string email)
+    private async Task SetupAndConfirmBusinessContextAsync(HttpClient client, string businessName, string email, string? websiteUrl = null)
     {
         var basics = new BusinessBasicsDto
         {
@@ -68,7 +70,7 @@ public class BusinessPresenceTests : IClassFixture<WebApplicationFactory<Program
             PrimaryCategory = "Consulting",
             BusinessEmail = email,
             BusinessPhone = "+1 555-0199",
-            Website = "https://example.com"
+            Website = websiteUrl ?? "https://example.com"
         };
         var respBasics = await client.PutAsJsonAsync("/api/v1/onboarding/business-basics", basics);
         respBasics.EnsureSuccessStatusCode();
@@ -296,4 +298,154 @@ public class BusinessPresenceTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal(1, presence.VerifiedNap.ServicesCount);
         Assert.Contains("Sustainable Design", presence.VerifiedNap.ServiceNames!);
     }
+
+    [Fact]
+    public async Task PublishedContent_IncludesBusinessPresenceAndCanonicalContactDetails_WhenSaved()
+    {
+        var email = $"presence-public-{Guid.NewGuid():N}@test.com";
+        var uniqueDomain = $"presence-{Guid.NewGuid():N}.sparovia.test";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Northstar Studio", email, $"https://{uniqueDomain}");
+
+        // Initialize website
+        var initWebsite = await client.GetAsync("/api/v1/website");
+        initWebsite.EnsureSuccessStatusCode();
+
+        // Update presence with multiline operating hours (including closed day) and public notice
+        var expectedHours = "Monday – Friday: 8:00 AM – 6:00 PM\nSaturday: 9:00 AM – 1:00 PM\nSunday: Closed";
+        var expectedNotice = "Holiday hours in effect for the upcoming long weekend.";
+        var updateReq = new UpdateBusinessPresenceRequest
+        {
+            OperatingHours = expectedHours,
+            PublicNotice = expectedNotice
+        };
+        var updateResp = await client.PutAsJsonAsync("/api/v1/business-presence", updateReq);
+        updateResp.EnsureSuccessStatusCode();
+
+        // Call public published-content endpoint anonymously
+        var unauthenticatedClient = _factory.CreateClient();
+        var publicResp = await unauthenticatedClient.GetAsync($"/api/v1/website/published-content?domain={uniqueDomain}");
+        publicResp.EnsureSuccessStatusCode();
+
+        var publicData = await publicResp.Content.ReadFromJsonAsync<PublishedWebsiteContentDto>();
+        Assert.NotNull(publicData);
+        Assert.NotNull(publicData.Sections);
+
+        // Verify businessPresence section
+        Assert.True(publicData.Sections.ContainsKey("businessPresence"));
+        var presenceElement = publicData.Sections["businessPresence"];
+        Assert.Equal(expectedHours, presenceElement.GetProperty("operatingHours").GetString());
+        Assert.Equal(expectedNotice, presenceElement.GetProperty("publicNotice").GetString());
+        Assert.Equal("+1 555-0199", presenceElement.GetProperty("phone").GetString());
+        Assert.Equal(email, presenceElement.GetProperty("email").GetString());
+        Assert.Equal("Northstar Studio", presenceElement.GetProperty("businessName").GetString());
+        Assert.Equal("100 Innovation Way, Tech City, CA, 94016, United States", presenceElement.GetProperty("address").GetString());
+
+        // Verify contact section enrichment
+        Assert.True(publicData.Sections.ContainsKey("contact"));
+        var contactElement = publicData.Sections["contact"];
+        Assert.Equal(expectedHours, contactElement.GetProperty("operatingHours").GetString());
+        Assert.Equal(expectedNotice, contactElement.GetProperty("publicNotice").GetString());
+        Assert.Equal("+1 555-0199", contactElement.GetProperty("phone").GetString());
+        Assert.Equal(email, contactElement.GetProperty("email").GetString());
+        Assert.Equal("Northstar Studio", contactElement.GetProperty("businessName").GetString());
+        Assert.Equal("100 Innovation Way, Tech City, CA, 94016, United States", contactElement.GetProperty("address").GetString());
+
+        // Verify presence alias
+        Assert.True(publicData.Sections.ContainsKey("presence"));
+        var aliasElement = publicData.Sections["presence"];
+        Assert.Equal(expectedHours, aliasElement.GetProperty("operatingHours").GetString());
+    }
+
+    [Fact]
+    public async Task PublishedContent_TenantIsolation_WebsiteReceivesOnlyItsOwnTenantPresence()
+    {
+        var emailA = $"tenantA-public-{Guid.NewGuid():N}@test.com";
+        var domainA = $"tenantA-{Guid.NewGuid():N}.sparovia.test";
+        var clientA = await GetAuthenticatedClientAsync(emailA);
+        await SetupAndConfirmBusinessContextAsync(clientA, "Tenant A Studio", emailA, $"https://{domainA}");
+        var initA = await clientA.GetAsync("/api/v1/website");
+        initA.EnsureSuccessStatusCode();
+
+        var emailB = $"tenantB-public-{Guid.NewGuid():N}@test.com";
+        var domainB = $"tenantB-{Guid.NewGuid():N}.sparovia.test";
+        var clientB = await GetAuthenticatedClientAsync(emailB);
+        await SetupAndConfirmBusinessContextAsync(clientB, "Tenant B Studio", emailB, $"https://{domainB}");
+        var initB = await clientB.GetAsync("/api/v1/website");
+        initB.EnsureSuccessStatusCode();
+
+        // Update Tenant A presence
+        var updateA = new UpdateBusinessPresenceRequest
+        {
+            OperatingHours = "Tenant A Hours: Mon-Fri 9-5",
+            PublicNotice = "Notice for Tenant A customers"
+        };
+        var putA = await clientA.PutAsJsonAsync("/api/v1/business-presence", updateA);
+        putA.EnsureSuccessStatusCode();
+
+        // Update Tenant B presence
+        var updateB = new UpdateBusinessPresenceRequest
+        {
+            OperatingHours = "Tenant B Hours: Mon-Sat 10-8",
+            PublicNotice = "Notice for Tenant B customers"
+        };
+        var putB = await clientB.PutAsJsonAsync("/api/v1/business-presence", updateB);
+        putB.EnsureSuccessStatusCode();
+
+        var unauthClient = _factory.CreateClient();
+
+        // Check Site A public endpoint
+        var respA = await unauthClient.GetAsync($"/api/v1/website/published-content?domain={domainA}");
+        respA.EnsureSuccessStatusCode();
+        var dataA = await respA.Content.ReadFromJsonAsync<PublishedWebsiteContentDto>();
+        Assert.NotNull(dataA);
+        Assert.Equal("Tenant A Hours: Mon-Fri 9-5", dataA.Sections["businessPresence"].GetProperty("operatingHours").GetString());
+        Assert.Equal("Notice for Tenant A customers", dataA.Sections["businessPresence"].GetProperty("publicNotice").GetString());
+        Assert.Equal("Tenant A Studio", dataA.Sections["businessPresence"].GetProperty("businessName").GetString());
+
+        // Check Site B public endpoint
+        var respB = await unauthClient.GetAsync($"/api/v1/website/published-content?domain={domainB}");
+        respB.EnsureSuccessStatusCode();
+        var dataB = await respB.Content.ReadFromJsonAsync<PublishedWebsiteContentDto>();
+        Assert.NotNull(dataB);
+        Assert.Equal("Tenant B Hours: Mon-Sat 10-8", dataB.Sections["businessPresence"].GetProperty("operatingHours").GetString());
+        Assert.Equal("Notice for Tenant B customers", dataB.Sections["businessPresence"].GetProperty("publicNotice").GetString());
+        Assert.Equal("Tenant B Studio", dataB.Sections["businessPresence"].GetProperty("businessName").GetString());
+    }
+
+    [Fact]
+    public async Task PublishedContent_HandlesNullOrEmptyPresenceSafely()
+    {
+        var email = $"empty-presence-{Guid.NewGuid():N}@test.com";
+        var uniqueDomain = $"empty-presence-{Guid.NewGuid():N}.sparovia.test";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Clean Minimalist Co", email, $"https://{uniqueDomain}");
+
+        var initWebsite = await client.GetAsync("/api/v1/website");
+        initWebsite.EnsureSuccessStatusCode();
+
+        // Notice we do NOT call update on BusinessPresence - default state is empty/null hours and notice.
+
+        var unauthenticatedClient = _factory.CreateClient();
+        var publicResp = await unauthenticatedClient.GetAsync($"/api/v1/website/published-content?domain={uniqueDomain}");
+        publicResp.EnsureSuccessStatusCode();
+
+        var publicData = await publicResp.Content.ReadFromJsonAsync<PublishedWebsiteContentDto>();
+        Assert.NotNull(publicData);
+        Assert.True(publicData.Sections.ContainsKey("businessPresence"));
+        Assert.True(publicData.Sections.ContainsKey("contact"));
+
+        var presence = publicData.Sections["businessPresence"];
+        Assert.True(presence.TryGetProperty("operatingHours", out var hoursProp));
+        Assert.True(hoursProp.ValueKind == JsonValueKind.Null || string.IsNullOrEmpty(hoursProp.GetString()));
+
+        Assert.True(presence.TryGetProperty("publicNotice", out var noticeProp));
+        Assert.True(noticeProp.ValueKind == JsonValueKind.Null || string.IsNullOrEmpty(noticeProp.GetString()));
+
+        // Canonical NAP should still be safely present
+        Assert.Equal("+1 555-0199", presence.GetProperty("phone").GetString());
+        Assert.Equal(email, presence.GetProperty("email").GetString());
+        Assert.Equal("Clean Minimalist Co", presence.GetProperty("businessName").GetString());
+    }
 }
+

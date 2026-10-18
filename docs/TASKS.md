@@ -182,7 +182,31 @@ pass; record actual viewport verification.
 
 ## Task 5 --- Fix Business Presence data flow to the public website
 
-**Priority:** High \| **Status:** Pending
+**Priority:** High | **Status:** COMPLETED
+
+**Audit Outcome & Verified Scope (18 October 2026):**
+- **Status:** COMPLETED. All acceptance criteria fully verified through automated integration tests and live headless Chrome browser end-to-end verification.
+- **Automated Verification:**
+  - 10/10 `BusinessPresenceTests` integration tests passing (`FullyQualifiedName~BusinessPresenceTests`).
+  - 17/17 `WebsiteContentTests` integration tests passing (`FullyQualifiedName~WebsiteContentTests`).
+  - Frontend TypeScript compilation passing with 0 errors (`npx tsc --noEmit`).
+  - ESLint passing with 0 warnings (`npm run lint --workspace=apps/web`).
+  - Production build passing with clean static generation (`npm run build:web`).
+- **Live Browser Verification (Headless Chrome via DevTools Protocol):**
+  1. *Admin Load:* Verified NAP details (name, phone, address) render correctly on `http://localhost:3001/admin/business-presence`.
+  2. *Admin Input & Save:* Configured 3-line operating hours (`Monday – Friday: 8:00 AM – 6:00 PM\nSaturday: 9:00 AM – 2:00 PM\nSunday: Closed`) and public notice (`Special holiday consultation hours are now in effect.`). Successfully saved via UI.
+  3. *Persistence on Reload:* Reloaded Admin page in browser; readback from DOM textareas confirmed exact persistence of hours and notice.
+  4. *Public Published Content API:* Verified `GET /api/v1/website/published-content?domain={domain}` returns `operatingHours`, `publicNotice`, `phone`, `email`, `address`, and `serviceAreas`.
+  5. *Public Desktop (1440x900):* Verified 2-column contact presentation with `whitespace-pre-line` formatting for operating hours, advisory notice card with `Info` icon, canonical NAP details, and quote inquiry form.
+  6. *Public Mobile (375x812):* Verified clean vertical stacking, readable typography, and zero horizontal overflow (`scrollWidth <= clientWidth`).
+  7. *Clean Empty-State Fallback:* Cleared optional fields in Admin and saved; verified public website cleanly collapses presence cards without empty containers, placeholder text, or broken layouts.
+  8. *Tenant Isolation:* Provisioned independent Tenant B (`Vanguard Structural Group`); verified Tenant A and Tenant B data remain strictly isolated on both Admin and Public sites.
+  9. *Screenshots Captured:* `admin-presence-saved.png`, `admin-presence-reloaded.png`, `public-contact-desktop-1440.png`, `public-contact-mobile-375.png`, `public-contact-cleared-desktop.png`, `public-contact-tenantB-desktop.png`.
+- **Root Cause & Fix Applied:**
+  1. `backend/src/Sparovia.Infrastructure/WebsiteContent/WebsiteContentService.cs`: In `GetPublishedContentAsync`, queried tenant-scoped `BusinessPresence` and canonical `BusinessContext` with `AsNoTracking()`. Enriched `sectionsMap["businessPresence"]`, alias `sectionsMap["presence"]`, and `sectionsMap["contact"]`.
+  2. `apps/web/components/providers/WebsiteContentProvider.tsx`: Added `BusinessPresenceContent` typing, extended `ContactContent`, added `businessPresence` alias, and supported `?domain=` query parameter for multi-tenant testing/preview.
+  3. `apps/web/app/components/ContactSection.tsx`: Implemented responsive contact section with Lucide icons (`Clock`, `MapPin`, `Phone`, `Mail`, `Info`), multiline preservation via `whitespace-pre-line`, advisory notice card, and clean empty-state fallback to centered quote form.
+  4. `backend/tests/Sparovia.IntegrationTests/BusinessPresenceTests.cs`: Added integration tests verifying anonymous public access, multiline hours, closed days, public notice, canonical contact enrichment, tenant isolation, and safe handling of null/empty presence.
 
 **Observed issue:** Business Presence shows operating hours and optional
 public notice/announcement fields, but the user reports these are not

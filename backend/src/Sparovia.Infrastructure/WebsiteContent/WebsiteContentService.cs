@@ -909,6 +909,98 @@ public class WebsiteContentService : IWebsiteContentService
         var tenantOnlyCategories = dynamicCategories.Where(c => !c.Equals("All", StringComparison.OrdinalIgnoreCase)).ToList();
         sectionsMap["tenantCategories"] = JsonDocument.Parse(JsonSerializer.Serialize(tenantOnlyCategories)).RootElement.Clone();
 
+        // Enrich with tenant-scoped Business Presence and canonical verified Business Context (Tenant isolated)
+        var presence = await _dbContext.BusinessPresences
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.TenantId == website.TenantId, cancellationToken);
+
+        var businessContext = await _dbContext.BusinessContexts
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.TenantId == website.TenantId, cancellationToken);
+
+        var operatingHours = presence?.OperatingHours;
+        var publicNotice = presence?.PublicNotice;
+
+        var addressParts = new[]
+        {
+            businessContext?.AddressLine1,
+            businessContext?.AddressLine2,
+            businessContext?.City,
+            businessContext?.State,
+            businessContext?.PostalCode,
+            businessContext?.Country
+        }.Where(s => !string.IsNullOrWhiteSpace(s));
+        var fullAddress = string.Join(", ", addressParts);
+
+        var presenceObj = new
+        {
+            operatingHours = operatingHours,
+            publicNotice = publicNotice,
+            businessName = businessContext?.BusinessName,
+            businessPhone = businessContext?.BusinessPhone,
+            phone = businessContext?.BusinessPhone,
+            businessEmail = businessContext?.BusinessEmail,
+            email = businessContext?.BusinessEmail,
+            website = businessContext?.Website,
+            address = !string.IsNullOrWhiteSpace(fullAddress) ? fullAddress : null,
+            addressLine1 = businessContext?.AddressLine1,
+            addressLine2 = businessContext?.AddressLine2,
+            city = businessContext?.City,
+            state = businessContext?.State,
+            postalCode = businessContext?.PostalCode,
+            country = businessContext?.Country,
+            serviceAreas = businessContext?.ServiceAreas ?? new List<string>()
+        };
+
+        using var presDoc = JsonDocument.Parse(JsonSerializer.Serialize(presenceObj, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        sectionsMap["businessPresence"] = presDoc.RootElement.Clone();
+        sectionsMap["presence"] = presDoc.RootElement.Clone();
+
+        // Enrich contact section with presence and canonical contact details
+        try
+        {
+            JsonObject contactObj;
+            if (sectionsMap.TryGetValue("contact", out var existingContact))
+            {
+                contactObj = JsonNode.Parse(existingContact.GetRawText()) as JsonObject ?? new JsonObject();
+            }
+            else
+            {
+                contactObj = new JsonObject
+                {
+                    ["eyebrow"] = "GET IN TOUCH",
+                    ["heading"] = "Let's Discuss Your Project.",
+                    ["description"] = "Reach out to schedule an initial design consultation, explore material finishes, or discuss floorplan specifications.",
+                    ["ctaLabel"] = "Request Consultation"
+                };
+            }
+
+            contactObj["operatingHours"] = operatingHours;
+            contactObj["publicNotice"] = publicNotice;
+            if (!string.IsNullOrWhiteSpace(businessContext?.BusinessPhone))
+            {
+                contactObj["phone"] = businessContext.BusinessPhone;
+                contactObj["businessPhone"] = businessContext.BusinessPhone;
+            }
+            if (!string.IsNullOrWhiteSpace(businessContext?.BusinessEmail))
+            {
+                contactObj["email"] = businessContext.BusinessEmail;
+                contactObj["businessEmail"] = businessContext.BusinessEmail;
+            }
+            if (!string.IsNullOrWhiteSpace(fullAddress))
+                contactObj["address"] = fullAddress;
+            if (!string.IsNullOrWhiteSpace(businessContext?.BusinessName))
+                contactObj["businessName"] = businessContext.BusinessName;
+            if (businessContext?.ServiceAreas != null && businessContext.ServiceAreas.Count > 0)
+                contactObj["serviceAreas"] = JsonSerializer.SerializeToNode(businessContext.ServiceAreas);
+
+            sectionsMap["contact"] = JsonDocument.Parse(contactObj.ToJsonString()).RootElement.Clone();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to enrich contact section with presence info for TenantId={TenantId}", website.TenantId);
+        }
+
         return new PublishedWebsiteContentDto
         {
             Website = new WebsiteDto

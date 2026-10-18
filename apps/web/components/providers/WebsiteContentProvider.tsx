@@ -116,6 +116,26 @@ export interface ContactContent {
   heading: string;
   description: string;
   ctaLabel: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  operatingHours?: string;
+  publicNotice?: string;
+  serviceAreas?: string[];
+}
+
+export interface BusinessPresenceContent {
+  operatingHours?: string;
+  publicNotice?: string;
+  businessName?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  serviceAreas?: string[];
 }
 
 export interface FooterContent {
@@ -166,6 +186,8 @@ export interface AdaptedTemplateContent {
   testimonials: TestimonialsContent;
   faq: FaqContent;
   contact: ContactContent;
+  businessPresence: BusinessPresenceContent;
+  presence: BusinessPresenceContent;
   footer: FooterContent;
   tenantCategories: string[];
   whatsapp: WhatsAppContent;
@@ -208,6 +230,8 @@ const SECTION_ALIASES: Record<string, string[]> = {
   faqs: ['faq'],
   contact: ['contact'],
   footer: ['footer'],
+  businessPresence: ['presence'],
+  presence: ['businessPresence'],
 };
 
 /* ────────────────────────────────────────────────────────────────
@@ -390,12 +414,73 @@ export function adaptTemplateContent(
     list: faqList,
   };
 
-  // 8. Contact
+  // 8. Contact & Business Presence (Canonical Context & Schedule)
+  const rawPresence = getRaw('businessPresence') || getRaw('presence') || {};
+  const operatingHours = typeof rawContact.operatingHours === 'string'
+    ? rawContact.operatingHours.trim()
+    : typeof rawPresence.operatingHours === 'string'
+    ? rawPresence.operatingHours.trim()
+    : '';
+
+  const publicNotice = typeof rawContact.publicNotice === 'string'
+    ? rawContact.publicNotice.trim()
+    : typeof rawPresence.publicNotice === 'string'
+    ? rawPresence.publicNotice.trim()
+    : '';
+
+  const phone = typeof rawContact.phone === 'string'
+    ? rawContact.phone.trim()
+    : typeof rawPresence.businessPhone === 'string'
+    ? rawPresence.businessPhone.trim()
+    : typeof rawPresence.phone === 'string'
+    ? rawPresence.phone.trim()
+    : '';
+
+  const email = typeof rawContact.email === 'string'
+    ? rawContact.email.trim()
+    : typeof rawPresence.businessEmail === 'string'
+    ? rawPresence.businessEmail.trim()
+    : typeof rawPresence.email === 'string'
+    ? rawPresence.email.trim()
+    : '';
+
+  const address = typeof rawContact.address === 'string'
+    ? rawContact.address.trim()
+    : typeof rawPresence.address === 'string'
+    ? rawPresence.address.trim()
+    : '';
+
+  const serviceAreas: string[] = Array.isArray(rawPresence.serviceAreas)
+    ? rawPresence.serviceAreas
+    : Array.isArray(rawContact.serviceAreas)
+    ? rawContact.serviceAreas
+    : [];
+
+  const businessPresence: BusinessPresenceContent = {
+    operatingHours: operatingHours || undefined,
+    publicNotice: publicNotice || undefined,
+    businessName: rawPresence.businessName || brandName || undefined,
+    phone: phone || undefined,
+    email: email || undefined,
+    address: address || undefined,
+    city: rawPresence.city || undefined,
+    state: rawPresence.state || undefined,
+    postalCode: rawPresence.postalCode || undefined,
+    country: rawPresence.country || undefined,
+    serviceAreas,
+  };
+
   const contact: ContactContent = {
     eyebrow: rawContact.eyebrow || '',
     heading: rawContact.heading || rawContact.title || (isLoading ? '' : 'Get in Touch'),
     description: rawContact.description || '',
     ctaLabel: rawContact.ctaLabel || templateConfig.ui.contactFormSubmit,
+    phone: phone || undefined,
+    email: email || undefined,
+    address: address || undefined,
+    operatingHours: operatingHours || undefined,
+    publicNotice: publicNotice || undefined,
+    serviceAreas,
   };
 
   // 9. Footer
@@ -461,6 +546,8 @@ export function adaptTemplateContent(
     testimonials,
     faq,
     contact,
+    businessPresence,
+    presence: businessPresence,
     footer,
     tenantCategories,
     whatsapp,
@@ -513,7 +600,8 @@ export function WebsiteContentProvider({ children }: { children: React.ReactNode
     try {
       let domainParam = '';
       if (typeof window !== 'undefined') {
-        domainParam = process.env.NEXT_PUBLIC_WEBSITE_DOMAIN || window.location.hostname || '';
+        const urlParams = new URLSearchParams(window.location.search);
+        domainParam = urlParams.get('domain') || process.env.NEXT_PUBLIC_WEBSITE_DOMAIN || window.location.hostname || '';
       }
 
       const queryString = domainParam ? `?domain=${encodeURIComponent(domainParam)}` : '';
