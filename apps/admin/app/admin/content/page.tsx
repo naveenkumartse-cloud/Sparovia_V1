@@ -42,63 +42,7 @@ import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { apiClient } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 
-export interface AIConnectionDto {
-  status: string;
-  providerKey?: string;
-  providerDisplayName?: string;
-  selectedModelKey?: string;
-  selectedModelDisplayName?: string;
-  maskedApiKey?: string;
-  supportedCapability?: string;
-  isContentAIAvailable?: boolean;
-  isImageEnhancementAvailable?: boolean;
-  lastValidatedAt?: string;
-  updatedAt?: string;
-}
-
-export interface AIContentResponseDto {
-  aiRequestId: string;
-  suggestion: string;
-  status: string;
-  reviewStatus?: string;
-  originalText?: string;
-  sectionKey?: string;
-  field?: string;
-  targetResourceVersion?: number;
-}
-
-const AI_OPERATIONS = [
-  {
-    key: 'ImproveWording',
-    label: 'Improve Wording',
-    description: 'Refine flow, phrasing, and client appeal while maintaining factual meaning.',
-  },
-  {
-    key: 'MakeMoreProfessional',
-    label: 'Make More Professional',
-    description: 'Elevate tone to be sophisticated, authoritative, and brand-consistent.',
-  },
-  {
-    key: 'MakeShorter',
-    label: 'Make Shorter',
-    description: 'Craft a punchy, concise version optimized for fast website scanning.',
-  },
-  {
-    key: 'MakeClearer',
-    label: 'Make Clearer',
-    description: 'Simplify phrasing and structure for maximum clarity and directness.',
-  },
-  {
-    key: 'ImproveServiceDescription',
-    label: 'Improve Service Description',
-    description: 'Highlight craft, client value, and distinct outcomes.',
-  },
-  {
-    key: 'CustomInstruction',
-    label: 'Custom Instruction',
-    description: 'Provide custom refinement instructions grounded in your business facts.',
-  },
-];
+import { AIContentModal } from '@/components/ai/AIContentModal';
 
 export interface SubFieldSchemaDto {
   key: string;
@@ -197,30 +141,22 @@ export default function ContentPage() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('editor');
 
-  // AI Content Assistant state
-  const [aiConnection, setAiConnection] = useState<AIConnectionDto | null>(null);
-  const [isLoadingAiConnection, setIsLoadingAiConnection] = useState<boolean>(true);
-  const [aiConnectionError, setAiConnectionError] = useState<string | null>(null);
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-  const [aiFieldInfo, setAiFieldInfo] = useState<{
-    key: string;
-    label: string;
-    sectionTitle: string;
-    sectionKey: string;
+  // AI Content Assistant modal state
+  const [aiModalProps, setAiModalProps] = useState<{
+    isOpen: boolean;
+    fieldKey: string;
+    fieldLabel: string;
+    sectionKey?: string;
+    sectionTitle?: string;
     currentText: string;
     onApply: (improvedText: string) => void;
-  } | null>(null);
-  const [aiOperation, setAiOperation] = useState<string>('ImproveWording');
-  const [aiInstruction, setAiInstruction] = useState<string>('');
-  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
-  const [currentAiRequestId, setCurrentAiRequestId] = useState<string | null>(null);
-  const [aiReviewStatus, setAiReviewStatus] = useState<string>('PendingReview');
-  const [isAcceptingAi, setIsAcceptingAi] = useState(false);
-  const [isRejectingAi, setIsRejectingAi] = useState(false);
-  const [aiConflictError, setAiConflictError] = useState<string | null>(null);
-  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
-  const [aiEditableSuggestion, setAiEditableSuggestion] = useState<string>('');
-  const [aiError, setAiError] = useState<string | null>(null);
+  }>({
+    isOpen: false,
+    fieldKey: '',
+    fieldLabel: '',
+    currentText: '',
+    onApply: () => {},
+  });
 
   // Authoritative normalized sections list - guaranteed to be an array
   const sections = useMemo(() => {
@@ -231,30 +167,6 @@ export default function ContentPage() {
   const activeSection = useMemo(() => {
     return sections.find((s) => s.sectionKey === selectedKey) ?? null;
   }, [sections, selectedKey]);
-
-  // Load tenant AI provider connection
-  const loadAiConnection = useCallback(async () => {
-    setIsLoadingAiConnection(true);
-    setAiConnectionError(null);
-    try {
-      const res = await apiClient.get<any>('/ai/connection');
-      const data: AIConnectionDto = res?.data ?? res;
-      setAiConnection(data);
-    } catch (err: any) {
-      setAiConnection(null);
-      setAiConnectionError(err?.message || 'Unable to verify your AI connection right now.');
-    } finally {
-      setIsLoadingAiConnection(false);
-    }
-  }, []);
-
-  const isContentAiAvailable = useMemo(() => {
-    if (!aiConnection || aiConnection.status !== 'Connected') return false;
-    if (typeof aiConnection.isContentAIAvailable === 'boolean') {
-      return aiConnection.isContentAIAvailable;
-    }
-    return aiConnection.supportedCapability === 'Content' || aiConnection.supportedCapability === 'Both';
-  }, [aiConnection]);
 
   // Load website & sections overview
   const loadOverview = useCallback(async () => {
@@ -290,8 +202,7 @@ export default function ContentPage() {
 
   useEffect(() => {
     loadOverview();
-    loadAiConnection();
-  }, [loadOverview, loadAiConnection]);
+  }, [loadOverview]);
 
   // Open AI modal for a specific field
   const handleOpenAiModal = (
@@ -300,139 +211,15 @@ export default function ContentPage() {
     currentText: string,
     onApply: (improvedText: string) => void
   ) => {
-    setAiFieldInfo({
-      key: fieldKey,
-      label: fieldLabel,
-      sectionTitle: activeSection?.schema?.displayName || activeSection?.title || selectedKey,
+    setAiModalProps({
+      isOpen: true,
+      fieldKey,
+      fieldLabel,
       sectionKey: selectedKey,
+      sectionTitle: activeSection?.schema?.displayName || activeSection?.title || selectedKey,
       currentText,
       onApply,
     });
-    setAiOperation('ImproveWording');
-    setAiInstruction('');
-    setAiSuggestion(null);
-    setAiEditableSuggestion('');
-    setCurrentAiRequestId(null);
-    setAiReviewStatus('PendingReview');
-    setAiConflictError(null);
-    setAiError(null);
-    setIsAiModalOpen(true);
-    // Refresh authoritative AI connection status to avoid stale state
-    loadAiConnection();
-  };
-
-  // Call Content AI improvement endpoint
-  const handleGenerateAi = async () => {
-    if (!aiFieldInfo || isGeneratingAi) return;
-    setIsGeneratingAi(true);
-    setAiError(null);
-    setAiConflictError(null);
-    // Clear previous suggestion immediately so stale content cannot persist if request fails
-    setAiSuggestion(null);
-    setAiEditableSuggestion('');
-    setCurrentAiRequestId(null);
-
-    try {
-      const resp = await apiClient.post<any>('/ai/content/improve', {
-        sectionKey: aiFieldInfo.sectionKey,
-        field: aiFieldInfo.key,
-        operation: aiOperation,
-        currentText: aiFieldInfo.currentText,
-        instruction: aiOperation === 'CustomInstruction' ? aiInstruction.trim() : undefined,
-      });
-
-      const data: AIContentResponseDto = resp?.data ?? resp;
-      const suggestionText = (data?.suggestion || '').trim();
-
-      if (!suggestionText) {
-        setAiError("We couldn't create a suggestion. Your original content is unchanged.");
-        return;
-      }
-
-      setCurrentAiRequestId(data.aiRequestId);
-      setAiReviewStatus(data.reviewStatus || 'PendingReview');
-      setAiSuggestion(suggestionText);
-      setAiEditableSuggestion(suggestionText);
-    } catch (err: any) {
-      setAiError(err?.message || "We couldn't create a suggestion. Your original content is unchanged.");
-    } finally {
-      setIsGeneratingAi(false);
-    }
-  };
-
-  // Human review: Explicit server-side Accept suggestion into draft
-  const handleAcceptAiSuggestion = async () => {
-    if (!aiFieldInfo || !aiEditableSuggestion.trim()) return;
-
-    // If an AI request ID exists, call server-side accept to ensure validation & conflict protection
-    if (currentAiRequestId) {
-      setIsAcceptingAi(true);
-      setAiError(null);
-      setAiConflictError(null);
-
-      try {
-        const isEdited = aiEditableSuggestion.trim() !== aiSuggestion?.trim();
-        const resp = await apiClient.post<any>(`/ai/requests/${currentAiRequestId}/accept`, {
-          editedText: isEdited ? aiEditableSuggestion.trim() : undefined,
-        });
-
-        // Apply to local draft state
-        aiFieldInfo.onApply(aiEditableSuggestion.trim());
-
-        // Close modal & notify user
-        setIsAiModalOpen(false);
-        toast.success(
-          isEdited
-            ? 'Edited AI suggestion accepted into draft. Changes are not live until explicitly published.'
-            : 'AI suggestion accepted into draft. Changes are not live until explicitly published.'
-        );
-      } catch (err: any) {
-        if (err?.code === 'AI_RESULT_STALE_CONFLICT' || err?.status === 409) {
-          setAiConflictError(
-            err?.message ||
-              'The section draft was updated after this suggestion was generated. To prevent overwriting newer edits, please refresh and review again.'
-          );
-        } else {
-          setAiError(err?.message || 'Failed to accept AI suggestion.');
-        }
-      } finally {
-        setIsAcceptingAi(false);
-      }
-    } else {
-      // Fallback local apply
-      aiFieldInfo.onApply(aiEditableSuggestion.trim());
-      setIsAiModalOpen(false);
-      toast.success('Draft updated with suggestion.');
-    }
-  };
-
-  // Human review: Explicit server-side Reject suggestion
-  const handleRejectAiSuggestion = async () => {
-    if (currentAiRequestId) {
-      setIsRejectingAi(true);
-      try {
-        await apiClient.post(`/ai/requests/${currentAiRequestId}/reject`, {
-          reason: 'User discarded suggestion in content editor.',
-        });
-      } catch {
-        // Safe to ignore rejection errors
-      } finally {
-        setIsRejectingAi(false);
-      }
-    }
-
-    setIsAiModalOpen(false);
-    toast.info('AI suggestion discarded. Existing content and draft remain unchanged.');
-  };
-
-  // Human review: Reset and try another operation
-  const handleResetAiSuggestion = () => {
-    setAiSuggestion(null);
-    setAiEditableSuggestion('');
-    setCurrentAiRequestId(null);
-    setAiReviewStatus('PendingReview');
-    setAiConflictError(null);
-    setAiError(null);
   };
 
   // When selected section changes from outside or overview updates
@@ -725,9 +512,9 @@ export default function ContentPage() {
                     type="button"
                     onClick={() => handleSelectSection(sec.sectionKey)}
                     className={cn(
-                      'w-full text-left p-3 rounded-[6px] transition-all flex items-center justify-between gap-3 group',
+                      'w-full text-left p-3 rounded-[6px] transition-all flex items-center justify-between gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]',
                       isSelected
-                        ? 'bg-amber-50 dark:bg-amber-950/20 border border-amber-300/80 dark:border-amber-600/40 text-amber-900 dark:text-amber-200 shadow-xs'
+                        ? 'bg-[#315FEA]/10 border border-[#315FEA]/30 text-[#172033] dark:text-white shadow-xs font-semibold'
                         : 'hover:bg-slate-50 dark:hover:bg-[#1E293B]/50 border border-transparent text-slate-700 dark:text-slate-300'
                     )}
                   >
@@ -968,6 +755,7 @@ export default function ContentPage() {
         onClose={() => !isPublishing && setIsConfirmModalOpen(false)}
         title="Publish Website Content?"
         description="Your approved changes will become visible on the public website."
+        preventOutsideClose={isPublishing}
         footer={
           <>
             <Button
@@ -1035,478 +823,17 @@ export default function ContentPage() {
       </Modal>
 
       {/* AI Content Assistance Modal */}
-      <Modal
-        isOpen={isAiModalOpen}
-        onClose={() => !isGeneratingAi && !isAcceptingAi && setIsAiModalOpen(false)}
-        title="AI Content Assistance"
-        description={
-          aiFieldInfo
-            ? `Refine "${aiFieldInfo.label}" in ${aiFieldInfo.sectionTitle} using your configured AI model.`
-            : 'Refine your content with AI assistance.'
-        }
-        maxWidth="ai"
-        footer={
-          // Dynamic dedicated footer pinned to bottom of modal
-          (() => {
-            if (isLoadingAiConnection && !aiConnection) {
-              return (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAiModalOpen(false)}
-                >
-                  Close
-                </Button>
-              );
-            }
+      <AIContentModal
+        isOpen={aiModalProps.isOpen}
+        onClose={() => setAiModalProps((prev) => ({ ...prev, isOpen: false }))}
+        fieldKey={aiModalProps.fieldKey}
+        fieldLabel={aiModalProps.fieldLabel}
+        sectionKey={aiModalProps.sectionKey}
+        sectionTitle={aiModalProps.sectionTitle}
+        currentText={aiModalProps.currentText}
+        onApply={aiModalProps.onApply}
+      />
 
-            if (
-              (aiConnectionError && !aiConnection) ||
-              aiConnection?.status !== 'Connected' ||
-              !isContentAiAvailable
-            ) {
-              return (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAiModalOpen(false)}
-                >
-                  Close
-                </Button>
-              );
-            }
-
-            // Step 2: Review & Accept Actions
-            if (aiSuggestion) {
-              return (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 w-full">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    disabled={isAcceptingAi || isRejectingAi}
-                    onClick={handleResetAiSuggestion}
-                    leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
-                    className="w-full sm:w-auto justify-center"
-                  >
-                    Try Another Operation
-                  </Button>
-
-                  <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={isAcceptingAi || isRejectingAi}
-                      isLoading={isRejectingAi}
-                      loadingText="Discarding..."
-                      onClick={handleRejectAiSuggestion}
-                      className="w-full sm:w-auto justify-center"
-                    >
-                      Discard / Reject
-                    </Button>
-
-                    <Button
-                      type="button"
-                      variant="primary"
-                      size="sm"
-                      onClick={handleAcceptAiSuggestion}
-                      isLoading={isAcceptingAi}
-                      loadingText="Accepting..."
-                      disabled={!aiEditableSuggestion.trim() || isAcceptingAi || isRejectingAi}
-                      leftIcon={<Check className="w-3.5 h-3.5" />}
-                      className="w-full sm:w-auto justify-center bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 focus:ring-emerald-500 whitespace-nowrap"
-                    >
-                      Accept Suggestion
-                    </Button>
-                  </div>
-                </div>
-              );
-            }
-
-            // Step 1: Operation Selection & Generate Actions
-            return (
-              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 w-full">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAiModalOpen(false)}
-                  disabled={isGeneratingAi}
-                  className="w-full sm:w-auto justify-center"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="sm"
-                  onClick={handleGenerateAi}
-                  isLoading={isGeneratingAi}
-                  loadingText="Refining content..."
-                  disabled={isGeneratingAi || (aiOperation === 'CustomInstruction' && !aiInstruction.trim())}
-                  leftIcon={<Sparkles className="w-3.5 h-3.5 text-white" />}
-                  className="w-full sm:w-auto justify-center bg-purple-600 hover:bg-purple-700 shadow-purple-600/20 focus:ring-purple-500 whitespace-nowrap"
-                >
-                  Generate Suggestion
-                </Button>
-              </div>
-            );
-          })()
-        }
-      >
-        <div className="space-y-4 sm:space-y-4.5 pb-1">
-          {/* Case 1: Checking / Loading AI Connection state */}
-          {isLoadingAiConnection && !aiConnection && (
-            <div className="p-8 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155] flex flex-col items-center justify-center text-center space-y-3">
-              <RefreshCw className="w-6 h-6 text-purple-600 dark:text-purple-400 animate-spin" />
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                  Checking AI Connection...
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Verifying tenant AI configuration and capabilities...
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Case 2: Verification Error (Unable to verify, network error, 500, etc.) */}
-          {!isLoadingAiConnection && aiConnectionError && !aiConnection && (
-            <div className="p-4 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
-              <div className="flex items-start gap-2.5">
-                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <div className="text-xs text-amber-900 dark:text-amber-200 space-y-1">
-                  <p className="font-semibold text-sm">Unable to verify your AI connection right now</p>
-                  <p className="text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
-                    {aiConnectionError}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 pt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={loadAiConnection}
-                  leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-                >
-                  Retry Verification
-                </Button>
-                <Link href="/admin/ai-models">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    leftIcon={<ExternalLink className="w-3.5 h-3.5" />}
-                  >
-                    Manage AI Connection
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Case 3: AI Provider Not Connected */}
-          {!isLoadingAiConnection && aiConnection && aiConnection.status === 'NotConnected' && (
-            <div className="p-4 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
-              <div className="flex items-start gap-2.5">
-                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <div className="text-xs text-amber-900 dark:text-amber-200 space-y-1">
-                  <p className="font-semibold text-sm">AI Provider Connection Required</p>
-                  <p className="text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
-                    To use AI Content Assistance, you must first connect an external AI provider (such as Google Gemini, OpenAI, or Anthropic Claude) in AI Connections.
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-1">
-                <Link href="/admin/ai-models">
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="sm"
-                    leftIcon={<ExternalLink className="w-3.5 h-3.5" />}
-                  >
-                    Connect AI Provider
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Case 4: Invalid Configuration (failed credential) */}
-          {!isLoadingAiConnection && aiConnection && aiConnection.status === 'Invalid' && (
-            <div className="p-4 rounded-[8px] bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 space-y-3">
-              <div className="flex items-start gap-2.5">
-                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-                <div className="text-xs text-red-900 dark:text-red-200 space-y-1">
-                  <p className="font-semibold text-sm">AI Provider Credential Invalid</p>
-                  <p className="text-red-800/90 dark:text-red-300/80 leading-relaxed">
-                    Your stored AI provider API key could not be validated. Please update or re-enter your credential in AI Connections.
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-1">
-                <Link href="/admin/ai-models">
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="sm"
-                    leftIcon={<ExternalLink className="w-3.5 h-3.5" />}
-                  >
-                    Update AI Connection
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Case 5: Connected but Model Does Not Support Content AI */}
-          {!isLoadingAiConnection && aiConnection && aiConnection.status === 'Connected' && !isContentAiAvailable && (
-            <div className="p-4 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
-              <div className="flex items-start gap-2.5">
-                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <div className="text-xs text-amber-900 dark:text-amber-200 space-y-1">
-                  <p className="font-semibold text-sm">Content AI Unavailable for Selected Model</p>
-                  <p className="text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
-                    Your connected model ({aiConnection.selectedModelDisplayName || aiConnection.selectedModelKey}) does not support Content AI workflows. Please select a model supporting text generation in AI Connections.
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-1">
-                <Link href="/admin/ai-models">
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="sm"
-                    leftIcon={<ExternalLink className="w-3.5 h-3.5" />}
-                  >
-                    Manage AI Connection
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Case 6: Active Flow: Provider is Connected and supports Content AI */}
-          {aiConnection && aiConnection.status === 'Connected' && isContentAiAvailable && (
-            <>
-              {/* AI Provider & Model Status Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200/90 dark:border-[#334155]">
-                <div className="flex flex-wrap items-center gap-2 min-w-0">
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      Connected AI:
-                    </span>
-                  </div>
-                  <span className="text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-[4px] border border-purple-200 dark:border-purple-800/40">
-                    {aiConnection.providerDisplayName || aiConnection.providerKey} • {aiConnection.selectedModelDisplayName || aiConnection.selectedModelKey}
-                  </span>
-                  <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-[4px] border border-emerald-200 dark:border-emerald-800/40 shrink-0">
-                    Content AI available
-                  </span>
-                </div>
-
-                <Link
-                  href="/admin/ai-models"
-                  className="text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] dark:text-[#60A5FA] flex items-center gap-1 transition-colors shrink-0 self-start sm:self-auto"
-                >
-                  <span>Manage AI Provider</span>
-                  <ExternalLink className="w-3 h-3" />
-                </Link>
-              </div>
-
-              {/* Original Content Card */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
-                    Current Content
-                  </span>
-                  <span className="text-[11px] font-medium text-slate-400">
-                    {aiFieldInfo?.currentText.length || 0} characters
-                  </span>
-                </div>
-                <div className="p-3 rounded-[8px] bg-slate-50 dark:bg-[#0B1120] border border-slate-200 dark:border-[#1E293B] text-xs text-slate-800 dark:text-slate-200 max-h-24 overflow-y-auto leading-relaxed select-text font-normal break-words">
-                  {aiFieldInfo?.currentText || <span className="italic text-slate-400">No content entered</span>}
-                </div>
-              </div>
-
-              {/* Step 1: Operation Selection (if no suggestion generated yet) */}
-              {!aiSuggestion && (
-                <div className="space-y-3.5">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-2">
-                      Choose AI Operation
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
-                      {AI_OPERATIONS.map((op) => {
-                        const isSelected = aiOperation === op.key;
-                        return (
-                          <button
-                            key={op.key}
-                            type="button"
-                            disabled={isGeneratingAi}
-                            onClick={() => setAiOperation(op.key)}
-                            className={cn(
-                              'text-left p-3 rounded-[8px] border transition-all text-xs flex flex-col justify-start gap-1 group min-h-[68px] sm:min-h-[72px]',
-                              isSelected
-                                ? 'bg-purple-50 dark:bg-purple-950/30 border-purple-500/80 dark:border-purple-600 text-purple-950 dark:text-purple-200 ring-2 ring-purple-500/20 shadow-xs'
-                                : 'bg-white dark:bg-[#0F172A] border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300',
-                              isGeneratingAi && 'opacity-60 cursor-not-allowed'
-                            )}
-                          >
-                            <div className="flex items-center justify-between gap-2 w-full">
-                              <span className="font-semibold text-slate-900 dark:text-white">
-                                {op.label}
-                              </span>
-                              {isSelected && (
-                                <Check className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
-                              )}
-                            </div>
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                              {op.description}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Custom Instruction Input */}
-                  {aiOperation === 'CustomInstruction' && (
-                    <FormField
-                      label="Custom Instruction"
-                      required
-                      helperText="Specify the exact adjustment while keeping factual accuracy (e.g., 'Emphasize fast turnaround and warranty')."
-                    >
-                      <input
-                        type="text"
-                        maxLength={500}
-                        spellCheck={true}
-                        autoCorrect="on"
-                        autoCapitalize="sentences"
-                        lang="en"
-                        disabled={isGeneratingAi}
-                        value={aiInstruction}
-                        onChange={(e) => setAiInstruction(e.target.value)}
-                        placeholder="e.g., Make it emphasize our 15 years of bespoke residential experience"
-                        className="w-full px-3.5 py-2.5 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
-                      />
-                    </FormField>
-                  )}
-
-                  {/* AI Error Alert */}
-                  {aiError && (
-                    <div className="p-3.5 rounded-[8px] bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5">
-                      <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="font-semibold">Unable to Generate Suggestion</p>
-                        <p className="mt-0.5">{aiError}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Step 2: Suggestion Review (Accept / Edit / Reject) */}
-              {aiSuggestion && (
-                <div className="space-y-3.5">
-                  {/* Status Badges & Validation State */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155]">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-semibold text-slate-500 dark:text-[#94A3B8]">Review Status:</span>
-                      <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-[4px] border border-amber-200 dark:border-amber-800/40">
-                        {aiReviewStatus === 'PendingReview' ? 'Pending Human Review' : aiReviewStatus}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-[4px] border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                        Server-Validated
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Information Guidance Banner */}
-                  <div className="p-3.5 rounded-[8px] bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-800/40 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2.5">
-                    <InfoTooltip content="AI suggestions are untrusted until explicitly accepted. Accepting applies the suggestion to your draft only. Live website content is never modified automatically." />
-                    <div className="space-y-0.5">
-                      <p className="font-semibold text-blue-950 dark:text-blue-100">Human Review Required</p>
-                      <p className="text-blue-800/90 dark:text-blue-300/80 leading-relaxed text-[11px]">
-                        Review this suggestion carefully. You may edit the copy before accepting. Accepting updates your draft only — changes are never published automatically.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Conflict Alert (Stale draft protection) */}
-                  {aiConflictError && (
-                    <div className="p-3.5 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700/50 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
-                      <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                      <div className="space-y-1">
-                        <p className="font-semibold">Draft Conflict Detected</p>
-                        <p className="text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
-                          {aiConflictError}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* AI Error Alert */}
-                  {aiError && !aiConflictError && (
-                    <div className="p-3.5 rounded-[8px] bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5">
-                      <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-semibold">Review Action Failed</p>
-                        <p className="mt-0.5">{aiError}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                          AI Suggestion
-                        </span>
-                        <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-2 py-0.5 rounded-[4px] border border-purple-200 dark:border-purple-800/40">
-                          Editable before acceptance
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-slate-400">
-                        {aiEditableSuggestion.length} characters
-                      </span>
-                    </div>
-
-                    <textarea
-                      rows={4}
-                      spellCheck={true}
-                      autoCorrect="on"
-                      autoCapitalize="sentences"
-                      lang="en"
-                      value={aiEditableSuggestion}
-                      onChange={(e) => setAiEditableSuggestion(e.target.value)}
-                      className="w-full p-3.5 rounded-[6px] border border-purple-300 dark:border-purple-700 bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 leading-relaxed font-normal shadow-xs"
-                      placeholder="AI suggestion will appear here..."
-                    />
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                      <Edit3 className="w-3 h-3 text-slate-400 shrink-0" />
-                      <span>You can edit this suggestion directly before accepting it into your draft.</span>
-                    </p>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </Modal>
     </div>
   );
 }

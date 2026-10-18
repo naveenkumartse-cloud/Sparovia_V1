@@ -15,6 +15,8 @@ export interface ModalProps {
   className?: string;
   bodyClassName?: string;
   footerClassName?: string;
+  preventOutsideClose?: boolean;
+  initialFocusRef?: React.RefObject<HTMLElement>;
 }
 
 const maxWidthMap: Record<string, string> = {
@@ -38,25 +40,93 @@ export function Modal({
   className,
   bodyClassName,
   footerClassName,
+  preventOutsideClose = false,
+  initialFocusRef,
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
 
-  // Close on Escape key and lock background scroll
+  // Focus trap, initial focus, focus restoration, Escape key, and scroll locking
   useEffect(() => {
+    if (!isOpen) return;
+
+    // Save previous active element for focus restoration upon modal close
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      previousActiveElementRef.current = document.activeElement;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    // Initial focus placement
+    const focusTimer = setTimeout(() => {
+      if (initialFocusRef?.current) {
+        initialFocusRef.current.focus();
+      } else if (modalRef.current) {
+        const focusable = Array.from(
+          modalRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href]:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter((el) => el.offsetParent !== null);
+        if (focusable.length > 0) {
+          focusable[0].focus();
+        } else if (closeButtonRef.current) {
+          closeButtonRef.current.focus();
+        }
+      }
+    }, 30);
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
         onClose();
+        return;
+      }
+
+      // Focus trap containment
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusables = Array.from(
+          modalRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href]:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter((el) => el.offsetParent !== null);
+
+        if (focusables.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const firstElement = focusables[0];
+        const lastElement = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement || !modalRef.current.contains(document.activeElement)) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement || !modalRef.current.contains(document.activeElement)) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
       }
     };
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    }
+
+    document.addEventListener('keydown', handleKeyDown);
+
     return () => {
+      clearTimeout(focusTimer);
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = originalOverflow;
+
+      // Restore focus to initiating control
+      if (previousActiveElementRef.current && typeof previousActiveElementRef.current.focus === 'function') {
+        previousActiveElementRef.current.focus();
+      }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, initialFocusRef]);
 
   if (!isOpen) return null;
 
@@ -71,7 +141,7 @@ export function Modal({
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
-        onClick={onClose}
+        onClick={preventOutsideClose ? undefined : onClose}
         aria-hidden="true"
       />
 
@@ -103,6 +173,7 @@ export function Modal({
             )}
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-[6px] text-[#475569] hover:text-[#172033] dark:hover:text-slate-200 hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] transition-colors shrink-0 -mr-1 -mt-1 focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]"

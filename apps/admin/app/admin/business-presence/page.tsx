@@ -664,14 +664,15 @@ export default function BusinessPresencePage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-100 dark:border-[#1E293B]">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-slate-100 dark:border-[#1E293B]">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               type="submit"
               variant="primary"
               isLoading={isSaving}
               loadingText="Saving Changes..."
               disabled={!isDirty || isSaving}
+              className="w-full sm:w-auto"
             >
               Save Presence Info
             </Button>
@@ -692,6 +693,7 @@ export default function BusinessPresencePage() {
             isLoading={isReviewing}
             loadingText="Verifying..."
             leftIcon={<CalendarCheck className="w-4 h-4 text-[#315FEA]" />}
+            className="w-full sm:w-auto"
           >
             Mark as Reviewed
           </Button>

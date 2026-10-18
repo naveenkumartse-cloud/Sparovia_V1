@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { 
   LayoutDashboard, 
   Building2, 
@@ -74,7 +74,7 @@ function SidebarView({
           <button
             type="button"
             onClick={onClose}
-            className="h-10 w-10 flex items-center justify-center rounded-[6px] text-slate-500 hover:text-slate-900 dark:text-[#94A3B8] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
+            className="h-10 w-10 flex items-center justify-center rounded-[6px] text-slate-500 hover:text-slate-900 dark:text-[#94A3B8] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
             aria-label="Close navigation menu"
           >
             <X className="h-5 w-5" aria-hidden="true" />
@@ -242,21 +242,62 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const mobileTriggerRef = useRef<HTMLButtonElement>(null);
 
   // Close mobile drawer on route changes
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  // Close mobile drawer on Escape key press
+  // Focus trap, Escape key handling, and focus restoration for mobile drawer
   useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const previouslyFocusedElement = document.activeElement as HTMLElement | null;
+    const triggerNode = mobileTriggerRef.current;
+
+    const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const timer = setTimeout(() => {
+      const focusable = drawerRef.current?.querySelectorAll<HTMLElement>(focusableSelector);
+      if (focusable && focusable.length > 0) {
+        focusable[0].focus();
+      }
+    }, 50);
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && mobileMenuOpen) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
         setMobileMenuOpen(false);
+        return;
+      }
+
+      if (e.key === 'Tab' && drawerRef.current) {
+        const focusable = drawerRef.current.querySelectorAll<HTMLElement>(focusableSelector);
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('keydown', handleKeyDown);
+      if (triggerNode) {
+        triggerNode.focus();
+      } else if (previouslyFocusedElement) {
+        previouslyFocusedElement.focus();
+      }
+    };
   }, [mobileMenuOpen]);
 
   // Lock body scroll when mobile drawer is open
@@ -326,7 +367,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           />
 
           {/* Drawer slide-in panel */}
-          <div className="fixed inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-white dark:bg-[#0F172A] border-r border-slate-200 dark:border-[#1E293B] shadow-2xl">
+          <div
+            ref={drawerRef}
+            className="fixed inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-white dark:bg-[#0F172A] border-r border-slate-200 dark:border-[#1E293B] shadow-2xl"
+          >
             <SidebarView
               isConfirmed={isConfirmed}
               pathname={pathname}
@@ -366,8 +410,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center space-x-3">
             {/* Mobile/Tablet Hamburger Toggle (< lg) */}
             <button
+              ref={mobileTriggerRef}
               type="button"
-              className="lg:hidden h-10 w-10 flex items-center justify-center rounded-[6px] bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] text-slate-700 dark:text-slate-200 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
+              className="lg:hidden h-10 w-10 flex items-center justify-center rounded-[6px] bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] text-slate-700 dark:text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
               onClick={() => setMobileMenuOpen(true)}
               aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={mobileMenuOpen}
@@ -389,7 +434,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             {/* Desktop Sidebar Rail Toggle Button (lg+) */}
             <button
               type="button"
-              className="hidden lg:flex h-9 w-9 items-center justify-center rounded-[6px] bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] text-slate-600 dark:text-slate-300 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
+              className="hidden lg:flex h-9 w-9 items-center justify-center rounded-[6px] bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] text-slate-600 dark:text-slate-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
               onClick={() => setDesktopCollapsed(!desktopCollapsed)}
               aria-label={desktopCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               title={desktopCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -413,7 +458,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setTheme('light')}
-                className={`p-1.5 rounded-[6px] text-xs transition-colors ${
+                className={`p-1.5 rounded-[6px] text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
                   theme === 'light' 
                     ? 'bg-white text-[#315FEA] shadow-xs font-semibold' 
                     : 'text-slate-400 hover:text-slate-700 dark:text-[#64748B] dark:hover:text-white'
@@ -425,7 +470,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setTheme('dark')}
-                className={`p-1.5 rounded-[6px] text-xs transition-colors ${
+                className={`p-1.5 rounded-[6px] text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
                   theme === 'dark' 
                     ? 'bg-[#0B1220] text-[#315FEA] shadow-xs font-semibold' 
                     : 'text-slate-400 hover:text-slate-700 dark:text-[#64748B] dark:hover:text-white'
@@ -437,7 +482,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setTheme('system')}
-                className={`p-1.5 rounded-[6px] text-xs transition-colors ${
+                className={`p-1.5 rounded-[6px] text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
                   theme === 'system' 
                     ? 'bg-white dark:bg-[#0B1220] text-[#315FEA] shadow-xs font-semibold' 
                     : 'text-slate-400 hover:text-slate-700 dark:text-[#64748B] dark:hover:text-white'
@@ -450,7 +495,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
             <button
               onClick={handleLogout}
-              className="flex items-center text-xs font-medium text-slate-500 dark:text-[#94A3B8] hover:text-[#B91C1C] dark:hover:text-[#B91C1C] transition-colors py-1.5 px-3 rounded-[6px] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B]"
+              className="flex items-center text-xs font-medium text-slate-500 dark:text-[#94A3B8] hover:text-[#B91C1C] dark:hover:text-[#B91C1C] transition-colors py-1.5 px-3 rounded-[6px] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
             >
               <LogOut className="mr-1.5 h-3.5 w-3.5" />
               <span className="hidden sm:inline">Sign Out</span>

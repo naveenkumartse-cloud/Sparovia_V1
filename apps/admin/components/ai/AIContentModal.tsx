@@ -264,6 +264,7 @@ export function AIContentModal({
           : `Refine "${fieldLabel}" while preserving your verified business facts.`
       }
       maxWidth="ai"
+      preventOutsideClose={Boolean(aiSuggestion || isGeneratingAi || isAcceptingAi)}
       footer={
         (() => {
           if (isLoadingAiConnection && !aiConnection) {
@@ -322,14 +323,14 @@ export function AIContentModal({
 
                   <Button
                     type="button"
-                    variant="primary"
+                    variant="success"
                     size="sm"
                     onClick={handleAcceptAiSuggestion}
                     isLoading={isAcceptingAi}
                     loadingText="Accepting..."
                     disabled={!aiEditableSuggestion.trim() || isAcceptingAi || isRejectingAi}
                     leftIcon={<Check className="w-3.5 h-3.5" />}
-                    className="w-full sm:w-auto justify-center bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 focus:ring-emerald-500 whitespace-nowrap"
+                    className="w-full sm:w-auto justify-center whitespace-nowrap"
                   >
                     Accept Suggestion
                   </Button>
@@ -360,7 +361,7 @@ export function AIContentModal({
                 loadingText="Refining content..."
                 disabled={isGeneratingAi || (aiOperation === 'CustomInstruction' && !aiInstruction.trim())}
                 leftIcon={<Sparkles className="w-3.5 h-3.5 text-white" />}
-                className="w-full sm:w-auto justify-center bg-purple-600 hover:bg-purple-700 shadow-purple-600/20 focus:ring-purple-500 whitespace-nowrap"
+                className="w-full sm:w-auto justify-center whitespace-nowrap"
               >
                 Generate Suggestion
               </Button>
@@ -537,9 +538,9 @@ export function AIContentModal({
                           disabled={isGeneratingAi}
                           onClick={() => setAiOperation(op.key)}
                           className={cn(
-                            'text-left p-3 rounded-[8px] border transition-all text-xs flex flex-col justify-start gap-1 group min-h-[64px]',
+                            'text-left p-3 rounded-[8px] border transition-all text-xs flex flex-col justify-start gap-1 group min-h-[64px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7950B8]',
                             isSelected
-                              ? 'bg-purple-50 dark:bg-purple-950/30 border-purple-500/80 dark:border-purple-600 text-purple-950 dark:text-purple-200 ring-2 ring-purple-500/20 shadow-xs'
+                              ? 'bg-[#7950B8]/10 border-[#7950B8] text-[#172033] dark:text-white ring-1 ring-[#7950B8]/30 shadow-xs'
                               : 'bg-white dark:bg-[#0F172A] border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300',
                             isGeneratingAi && 'opacity-60 cursor-not-allowed'
                           )}
@@ -549,7 +550,7 @@ export function AIContentModal({
                               {op.label}
                             </span>
                             {isSelected && (
-                              <Check className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 shrink-0" />
+                              <Check className="w-3.5 h-3.5 text-[#7950B8] shrink-0" />
                             )}
                           </div>
                           <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
@@ -579,7 +580,7 @@ export function AIContentModal({
                       value={aiInstruction}
                       onChange={(e) => setAiInstruction(e.target.value)}
                       placeholder="e.g. Emphasize fast delivery and certified craftsmen"
-                      className="w-full px-3.5 py-2.5 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="w-full px-3.5 py-2.5 rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7950B8] focus:border-[#7950B8] disabled:opacity-60 disabled:cursor-not-allowed"
                     />
                   </FormField>
                 )}
@@ -656,11 +657,11 @@ export function AIContentModal({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#7950B8] flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-[#7950B8]" />
                         AI Suggestion
                       </span>
-                      <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-2 py-0.5 rounded-[4px] border border-purple-200 dark:border-purple-800/40">
+                      <span className="text-[10px] font-semibold text-[#7950B8] bg-[#7950B8]/10 px-2 py-0.5 rounded-[4px] border border-[#7950B8]/20">
                         Editable before acceptance
                       </span>
                     </div>
@@ -677,7 +678,7 @@ export function AIContentModal({
                     lang="en"
                     value={aiEditableSuggestion}
                     onChange={(e) => setAiEditableSuggestion(e.target.value)}
-                    className="w-full p-3.5 rounded-[6px] border border-purple-300 dark:border-purple-700 bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 leading-relaxed font-normal shadow-xs"
+                    className="w-full p-3.5 rounded-[6px] border border-[#7950B8]/40 dark:border-[#7950B8]/60 bg-white dark:bg-[#0B1120] text-sm text-slate-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7950B8] focus:border-[#7950B8] leading-relaxed font-normal shadow-xs"
                     placeholder="AI suggestion will appear here..."
                   />
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">

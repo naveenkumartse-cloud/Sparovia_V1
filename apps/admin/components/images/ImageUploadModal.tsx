@@ -240,6 +240,7 @@ export function ImageUploadModal({
       onClose={onClose}
       title={replacingImage ? `Replace Image: ${replacingImage.slot || replacingImage.projectWorkName || 'Source'}` : slot ? `Upload Image for Slot: ${slot}` : 'Upload Project Image'}
       maxWidth="lg"
+      preventOutsideClose={Boolean(selectedFile || isUploading)}
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {errorMessage && (
@@ -319,7 +320,7 @@ export function ImageUploadModal({
               value={projectWorkName}
               onChange={(e) => setProjectWorkName(e.target.value)}
               placeholder="e.g. Modern Villa Kitchen"
-              className="w-full px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
+              className="w-full px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
             />
           </div>
 
@@ -351,7 +352,7 @@ export function ImageUploadModal({
                         setSelectedCategory(e.target.value);
                       }
                     }}
-                    className="flex-1 px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
+                    className="flex-1 px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
                   >
                     <option value="">Select category</option>
                     {categories.map((c) => (
@@ -369,7 +370,7 @@ export function ImageUploadModal({
                     value={newCatName}
                     onChange={(e) => setNewCatName(e.target.value)}
                     placeholder="New category name"
-                    className="flex-1 px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
+                    className="flex-1 px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
                   />
                   <Button variant="secondary" size="sm" type="button" onClick={handleCreateCategory}>
                     Add
@@ -392,18 +393,19 @@ export function ImageUploadModal({
             onChange={(e) => setCaption(e.target.value)}
             rows={2}
             placeholder="Brief caption or finish details for your customers..."
-            className="w-full px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8] resize-none"
+            className="w-full px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] resize-none"
           />
         </div>
 
         {/* Modal Actions */}
-        <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#E3E7ED] dark:border-[#1E293B]">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5 pt-3 border-t border-[#E3E7ED] dark:border-[#1E293B]">
           <div>
             {selectedFile && dimensions && localPreviewUrl && onOpenStudio && (
               <Button
                 variant="studio"
                 size="md"
                 type="button"
+                className="w-full sm:w-auto"
                 onClick={() => {
                   onOpenStudio({
                     file: selectedFile,
@@ -424,7 +426,7 @@ export function ImageUploadModal({
               </Button>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2 w-full sm:w-auto">
             <Button variant="ghost" size="md" type="button" onClick={onClose} disabled={isUploading}>
               Cancel
             </Button>

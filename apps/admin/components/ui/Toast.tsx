@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { CheckCircle2, AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -116,14 +116,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
 function ToastCard({ toast, onClose }: { toast: ToastItem; onClose: () => void }) {
   const isError = toast.type === 'error';
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: -16, scale: 0.95 }}
+      layout={!shouldReduceMotion}
+      initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -12, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
-      transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+      exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, transition: { duration: 0.12 } }}
+      transition={{ duration: 0.15 }}
       role={isError ? 'alert' : 'status'}
       aria-live={isError ? 'assertive' : 'polite'}
       className={cn(
@@ -138,22 +139,22 @@ function ToastCard({ toast, onClose }: { toast: ToastItem; onClose: () => void }
       {/* Icon */}
       <div className="shrink-0 mt-0.5">
         {toast.type === 'success' && (
-          <div className="p-1 rounded-full bg-[#15803D]/10 text-[#15803D]">
+          <div className="p-1 rounded-[6px] bg-[#15803D]/10 text-[#15803D]">
             <CheckCircle2 className="w-4 h-4" />
           </div>
         )}
         {toast.type === 'error' && (
-          <div className="p-1 rounded-full bg-[#B91C1C]/10 text-[#B91C1C]">
+          <div className="p-1 rounded-[6px] bg-[#B91C1C]/10 text-[#B91C1C]">
             <AlertCircle className="w-4 h-4" />
           </div>
         )}
         {toast.type === 'warning' && (
-          <div className="p-1 rounded-full bg-[#B45309]/10 text-[#B45309]">
+          <div className="p-1 rounded-[6px] bg-[#B45309]/10 text-[#B45309]">
             <AlertTriangle className="w-4 h-4" />
           </div>
         )}
         {toast.type === 'info' && (
-          <div className="p-1 rounded-full bg-[#1D4ED8]/10 text-[#1D4ED8]">
+          <div className="p-1 rounded-[6px] bg-[#1D4ED8]/10 text-[#1D4ED8]">
             <Info className="w-4 h-4" />
           </div>
         )}
@@ -169,7 +170,7 @@ function ToastCard({ toast, onClose }: { toast: ToastItem; onClose: () => void }
         type="button"
         onClick={onClose}
         aria-label="Dismiss notification"
-        className="shrink-0 p-1 text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white rounded-[6px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]"
+        className="shrink-0 min-h-[36px] min-w-[36px] -mr-1 -mt-1 flex items-center justify-center p-1.5 text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white rounded-[6px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]"
       >
         <X className="w-3.5 h-3.5" />
       </button>

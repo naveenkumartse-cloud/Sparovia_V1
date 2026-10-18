@@ -88,16 +88,39 @@ export default function ProjectGallerySection() {
     };
   }, [selectedIndex]);
 
-  // Keyboard navigation for lightbox
+  const lightboxRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard navigation & focus containment for lightbox
   useEffect(() => {
     if (selectedIndex === null) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        e.preventDefault();
         setSelectedIndex(null);
-      } else if (e.key === 'ArrowRight') {
+        return;
+      }
+      if (e.key === 'ArrowRight') {
         navigateNext();
-      } else if (e.key === 'ArrowLeft') {
+        return;
+      }
+      if (e.key === 'ArrowLeft') {
         navigatePrev();
+        return;
+      }
+      if (e.key === 'Tab' && lightboxRef.current) {
+        const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        const focusable = lightboxRef.current.querySelectorAll<HTMLElement>(focusableSelector);
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -249,6 +272,7 @@ export default function ProjectGallerySection() {
       <AnimatePresence>
         {selectedItem !== null && (
           <div
+            ref={lightboxRef}
             className="fixed inset-0 z-50 bg-charcoal-900/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 lg:p-8"
             role="dialog"
             aria-modal="true"

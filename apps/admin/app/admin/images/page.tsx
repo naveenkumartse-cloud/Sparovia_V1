@@ -694,7 +694,7 @@ export default function ImagesPage() {
                             <button
                               type="button"
                               onClick={() => openPreviewModal(assignedImage)}
-                              className="px-4 py-2 rounded-lg bg-white/95 text-slate-900 text-xs font-semibold hover:bg-white flex items-center gap-1.5 shadow-md transition-transform hover:scale-105"
+                              className="px-4 py-2 rounded-[6px] bg-white/95 text-slate-900 text-xs font-semibold hover:bg-white flex items-center gap-1.5 shadow-md transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
                             >
                               <Eye className="w-3.5 h-3.5" />
                               View Preview
@@ -1329,7 +1329,7 @@ export default function ImagesPage() {
               value={editProjectName}
               onChange={(e) => setEditProjectName(e.target.value)}
               placeholder="e.g. Master Bedroom Wardrobe"
-              className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              className="w-full text-xs px-3 py-2 rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
             />
           </div>
 
@@ -1340,7 +1340,7 @@ export default function ImagesPage() {
             <select
               value={editCategory}
               onChange={(e) => setEditCategory(e.target.value)}
-              className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              className="w-full text-xs px-3 py-2 rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
             >
               <option value="">Select category</option>
               {categories.map((c) => (
@@ -1360,7 +1360,7 @@ export default function ImagesPage() {
               onChange={(e) => setEditCaption(e.target.value)}
               rows={3}
               placeholder="Describe the bespoke craft and materials used..."
-              className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full text-xs px-3 py-2 rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] resize-none"
             />
           </div>
         </div>
@@ -1522,7 +1522,7 @@ export default function ImagesPage() {
                 onChange={(e) => setNewCatInput(e.target.value)}
                 placeholder="e.g. Bespoke Wardrobes"
                 maxLength={100}
-                className="flex-1 text-xs px-3 py-2 rounded-[6px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#315FEA]"
+                className="flex-1 text-xs px-3 py-2 rounded-[6px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0F172A] text-slate-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
               />
               <Button
                 type="button"
@@ -1561,7 +1561,7 @@ export default function ImagesPage() {
                           }}
                           autoFocus
                           maxLength={100}
-                          className="flex-1 text-xs px-2.5 py-1.5 rounded-[6px] border border-[#315FEA] bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#315FEA]"
+                          className="flex-1 text-xs px-2.5 py-1.5 rounded-[6px] border border-[#315FEA] bg-white dark:bg-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
                         />
                         <Button
                           type="button"

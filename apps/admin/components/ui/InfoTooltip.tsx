@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Info } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 interface InfoTooltipProps {
   content: string;
@@ -13,6 +13,7 @@ export function InfoTooltip({ content, align = 'left' }: InfoTooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [effectiveAlign, setEffectiveAlign] = useState<'left' | 'right' | 'center'>(align);
   const containerRef = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   // Close on outside click or touch
   useEffect(() => {
@@ -52,12 +53,12 @@ export function InfoTooltip({ content, align = 'left' }: InfoTooltipProps) {
         ? 'left-1/2 -translate-x-1/2' 
         : 'right-0';
 
-  const arrowClass = 
-    effectiveAlign === 'left' 
-      ? 'left-1.5' 
-      : effectiveAlign === 'center' 
-        ? 'left-1/2 -translate-x-1/2' 
-        : 'right-1.5';
+  const arrowClass =
+    effectiveAlign === 'left'
+      ? 'left-2'
+      : effectiveAlign === 'center'
+        ? 'left-1/2 -translate-x-1/2'
+        : 'right-2';
 
   return (
     <div 
@@ -77,17 +78,19 @@ export function InfoTooltip({ content, align = 'left' }: InfoTooltipProps) {
       <button 
         type="button" 
         onClick={() => setIsVisible(!isVisible)}
-        onFocus={() => {
-          if (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches) {
-            setIsVisible(true);
+        onFocus={() => setIsVisible(true)}
+        onBlur={(e) => {
+          if (!containerRef.current?.contains(e.relatedTarget as Node)) {
+            setIsVisible(false);
           }
         }}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
+            e.stopPropagation();
             setIsVisible(false);
           }
         }}
-        className="text-[#64748B] hover:text-[#94A3B8] focus:text-[#315FEA] focus:outline-none rounded-[4px] p-0.5 transition-colors touch-manipulation"
+        className="text-[#64748B] hover:text-[#172033] dark:hover:text-[#CBD5E1] focus:text-[#315FEA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] rounded-[4px] p-1.5 -m-1 inline-flex items-center justify-center min-h-[32px] min-w-[32px] transition-colors touch-manipulation"
         aria-label="Field information"
         aria-expanded={isVisible}
       >
@@ -97,11 +100,11 @@ export function InfoTooltip({ content, align = 'left' }: InfoTooltipProps) {
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            initial={{ opacity: 0, y: 4, scale: 0.97 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 3, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 3, scale: 0.97 }}
-            transition={{ duration: 0.12 }}
-            className={`absolute z-50 w-56 sm:w-64 max-w-[calc(100vw-3rem)] p-2.5 top-full mt-1.5 bg-[#0B1220] border border-[#1E293B] rounded-[8px] shadow-2xl shadow-black/60 pointer-events-auto ${alignmentClass}`}
+            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 2, scale: 0.98 }}
+            transition={{ duration: shouldReduceMotion ? 0.05 : 0.12 }}
+            className={`absolute z-50 w-56 sm:w-64 max-w-[calc(100vw-2rem)] p-2.5 top-full mt-1.5 bg-[#0B1220] border border-[#1E293B] rounded-[8px] shadow-2xl shadow-black/60 pointer-events-auto ${alignmentClass}`}
             role="tooltip"
           >
             {/* Arrow */}

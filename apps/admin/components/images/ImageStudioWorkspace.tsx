@@ -701,7 +701,7 @@ export function ImageStudioWorkspace({
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-[6px] text-[#475569] hover:text-[#172033] dark:text-slate-400 dark:hover:text-white hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] transition-colors focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
+              className="w-8 h-8 flex items-center justify-center rounded-[6px] text-[#475569] hover:text-[#172033] dark:text-slate-400 dark:hover:text-white hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
               aria-label="Close workspace"
               title="Close workspace"
             >
@@ -879,7 +879,7 @@ export function ImageStudioWorkspace({
                         aria-valuemin={0}
                         aria-valuemax={100}
                         onKeyDown={handleSliderKeyDown}
-                        className="pointer-events-auto absolute w-8 h-8 rounded-full bg-white text-[#172033] shadow-md border-2 border-[#315FEA] flex items-center justify-center cursor-ew-resize hover:scale-105 active:scale-95 transition-transform focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8]"
+                        className="pointer-events-auto absolute w-8 h-8 rounded-full bg-white text-[#172033] shadow-md border-2 border-[#315FEA] flex items-center justify-center cursor-ew-resize hover:scale-105 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] before:absolute before:-inset-2 before:content-['']"
                       >
                         <SplitSquareVertical className="w-4 h-4 text-[#315FEA]" />
                       </div>
@@ -1168,7 +1168,7 @@ export function ImageStudioWorkspace({
                         aria-checked={isSelected}
                         aria-label={op.name}
                         onClick={() => handleSelectOp(op.id)}
-                        className={`text-left px-3 py-2 rounded-[6px] border transition-all text-xs flex items-center justify-between gap-2.5 focus:outline-hidden focus:ring-2 focus:ring-[#1D4ED8] ${
+                        className={`text-left px-3 py-2 rounded-[6px] border transition-all text-xs flex items-center justify-between gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
                           isSelected
                             ? 'bg-[#315FEA]/5 border-[#315FEA] text-[#172033] dark:text-white shadow-xs'
                             : 'bg-white dark:bg-[#1E293B] border-[#E3E7ED] dark:border-[#334155] text-[#475569] dark:text-slate-300 hover:border-[#CBD5E1]'
@@ -1360,7 +1360,7 @@ export function ImageStudioWorkspace({
                     <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
                       Confirm visual quality before approving this {selectedOpDef.name} candidate for website usage.
                     </p>
-                    <div className="grid grid-cols-2 gap-2 mt-0.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-0.5">
                       <Button
                         variant="success"
                         size="sm"

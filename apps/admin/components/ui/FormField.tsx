@@ -42,9 +42,12 @@ export function FormField({
           >
             {label}
             {required && (
-              <span className="text-[#B91C1C] ml-1" aria-hidden="true">
-                *
-              </span>
+              <>
+                <span className="sr-only"> (required)</span>
+                <span className="text-[#B91C1C] ml-1" aria-hidden="true">
+                  *
+                </span>
+              </>
             )}
           </label>
           {tooltip && <InfoTooltip content={tooltip} />}
@@ -55,7 +58,10 @@ export function FormField({
       <div>{children}</div>
 
       {helperText && !error && (
-        <p className="mt-1 text-xs text-[#475569] dark:text-[#94A3B8] leading-tight">
+        <p
+          id={id ? `${id}-helper` : undefined}
+          className="mt-1 text-xs text-[#475569] dark:text-[#94A3B8] leading-tight"
+        >
           {helperText}
         </p>
       )}
