@@ -539,4 +539,152 @@ public class AIImageEnhancementTests : IClassFixture<WebApplicationFactory<Progr
         var catElement = getJson.GetProperty("data").GetProperty("category");
         Assert.True(catElement.ValueKind == JsonValueKind.Null || string.IsNullOrEmpty(catElement.GetString()));
     }
+
+    [Fact]
+    public async Task EnhanceForWebsite_EndToEndLifecycle_PreservesOriginal_AllowsKeepApprove_AndExplicitPublish()
+    {
+        var email = $"enhance_lifecycle_{Guid.NewGuid():N}@sparovia.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Lifecycle Architecture Studio", email);
+
+        // 1. Upload immutable original image
+        var originalJpegBytes = CreateValidJpegBytes();
+        var uploadContent = CreateUploadContent(originalJpegBytes, "building-facade.jpg", "image/jpeg", "WebsiteImage", "hero");
+        var uploadRes = await client.PostAsync("/api/v1/website/images", uploadContent);
+        uploadRes.EnsureSuccessStatusCode();
+        var uploadJson = await uploadRes.Content.ReadFromJsonAsync<JsonElement>();
+        var imageId = uploadJson.GetProperty("data").GetProperty("id").GetString()!;
+        var originalUrl = uploadJson.GetProperty("data").GetProperty("previewUrl").GetString()!;
+
+        // 2. Enhance for Website
+        var enhanceRes = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/enhance", new { Operation = "EnhanceForWebsite" });
+        Assert.Equal(HttpStatusCode.Created, enhanceRes.StatusCode);
+        var enhanceJson = await enhanceRes.Content.ReadFromJsonAsync<JsonElement>();
+        var variantData = enhanceJson.GetProperty("data");
+        var variantId = variantData.GetProperty("id").GetString()!;
+        Assert.Equal("EnhanceForWebsite", variantData.GetProperty("operation").GetString());
+        Assert.Equal("image/webp", variantData.GetProperty("mimeType").GetString());
+        Assert.Equal("Enhanced", variantData.GetProperty("status").GetString());
+
+        // 3. Verify original remains immutable and distinct from candidate
+        var getResAfterEnhance = await client.GetAsync($"/api/v1/website/images/{imageId}");
+        getResAfterEnhance.EnsureSuccessStatusCode();
+        var getImageJson = await getResAfterEnhance.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.StartsWith($"/api/v1/website/images/{imageId}/file", getImageJson.GetProperty("data").GetProperty("previewUrl").GetString());
+        Assert.NotEqual("Published", getImageJson.GetProperty("data").GetProperty("status").GetString());
+
+        // 4. Review: Keep Enhanced (Approve candidate)
+        var approveRes = await client.PostAsync($"/api/v1/website/images/{imageId}/variants/{variantId}/approve", null);
+        approveRes.EnsureSuccessStatusCode();
+        var approveJson = await approveRes.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Approved", approveJson.GetProperty("data").GetProperty("status").GetString());
+
+        // 5. Verify Approval does NOT automatically publish
+        var getResAfterApprove = await client.GetAsync($"/api/v1/website/images/{imageId}");
+        getResAfterApprove.EnsureSuccessStatusCode();
+        var getApprovedJson = await getResAfterApprove.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.NotEqual("Published", getApprovedJson.GetProperty("data").GetProperty("status").GetString());
+
+        var variantsAfterApprove = getApprovedJson.GetProperty("data").GetProperty("variants");
+        bool variantIsApprovedNotPublished = false;
+        foreach (var v in variantsAfterApprove.EnumerateArray())
+        {
+            if (v.GetProperty("id").GetString() == variantId)
+            {
+                Assert.Equal("Approved", v.GetProperty("status").GetString());
+                Assert.NotEqual("Published", v.GetProperty("status").GetString());
+                variantIsApprovedNotPublished = true;
+            }
+        }
+        Assert.True(variantIsApprovedNotPublished, "Candidate variant must be Approved but not yet Published.");
+
+        // 6. Explicit Publishing: Publishes the approved enhanced variant
+        var publishRes = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/publish", new { VariantId = variantId });
+        publishRes.EnsureSuccessStatusCode();
+
+        // 7. Verify live status reflects publication of the enhanced candidate
+        var getResAfterPublish = await client.GetAsync($"/api/v1/website/images/{imageId}");
+        getResAfterPublish.EnsureSuccessStatusCode();
+        var getPublishedJson = await getResAfterPublish.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Published", getPublishedJson.GetProperty("data").GetProperty("status").GetString());
+        Assert.True(getPublishedJson.GetProperty("data").GetProperty("isActiveWebsiteUsage").GetBoolean());
+
+        var variants = getPublishedJson.GetProperty("data").GetProperty("variants");
+        bool foundPublishedVariant = false;
+        foreach (var v in variants.EnumerateArray())
+        {
+            if (v.GetProperty("id").GetString() == variantId && v.GetProperty("status").GetString() == "Published")
+            {
+                foundPublishedVariant = true;
+                break;
+            }
+        }
+        Assert.True(foundPublishedVariant, "Approved enhanced variant must be transitioned to Published.");
+    }
+
+    [Fact]
+    public async Task EnhanceForWebsite_DiscardCandidate_PreservesOriginalPhotograph()
+    {
+        var email = $"discard_{Guid.NewGuid():N}@sparovia.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Discard Preservation Co", email);
+
+        var uploadContent = CreateUploadContent(CreateValidJpegBytes(), "interior.jpg", "image/jpeg", "WebsiteImage", "gallery-1");
+        var uploadRes = await client.PostAsync("/api/v1/website/images", uploadContent);
+        uploadRes.EnsureSuccessStatusCode();
+        var uploadJson = await uploadRes.Content.ReadFromJsonAsync<JsonElement>();
+        var imageId = uploadJson.GetProperty("data").GetProperty("id").GetString()!;
+
+        // Enhance
+        var enhanceRes = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/enhance", new { Operation = "EnhanceForWebsite" });
+        enhanceRes.EnsureSuccessStatusCode();
+        var enhanceJson = await enhanceRes.Content.ReadFromJsonAsync<JsonElement>();
+        var variantId = enhanceJson.GetProperty("data").GetProperty("id").GetString()!;
+
+        // Discard candidate
+        var rejectRes = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/variants/{variantId}/reject", new { Reason = "User preferred original" });
+        rejectRes.EnsureSuccessStatusCode();
+
+        // Verify variant is rejected but master image is intact
+        var getRes = await client.GetAsync($"/api/v1/website/images/{imageId}");
+        getRes.EnsureSuccessStatusCode();
+        var getJson = await getRes.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.NotEqual("Rejected", getJson.GetProperty("data").GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public async Task EnhanceForWebsite_TenantIsolation_UnauthorizedTenantCannotAccessOrModify()
+    {
+        var emailA = $"tenant_a_{Guid.NewGuid():N}@sparovia.com";
+        var clientA = await GetAuthenticatedClientAsync(emailA);
+        await SetupAndConfirmBusinessContextAsync(clientA, "Tenant A Architecture", emailA);
+
+        var emailB = $"tenant_b_{Guid.NewGuid():N}@sparovia.com";
+        var clientB = await GetAuthenticatedClientAsync(emailB);
+        await SetupAndConfirmBusinessContextAsync(clientB, "Tenant B Construction", emailB);
+
+        // Tenant A uploads and enhances
+        var uploadContent = CreateUploadContent(CreateValidJpegBytes(), "exclusive.jpg", "image/jpeg", "WebsiteImage", "hero");
+        var uploadRes = await clientA.PostAsync("/api/v1/website/images", uploadContent);
+        uploadRes.EnsureSuccessStatusCode();
+        var uploadJson = await uploadRes.Content.ReadFromJsonAsync<JsonElement>();
+        var imageIdA = uploadJson.GetProperty("data").GetProperty("id").GetString()!;
+
+        var enhanceRes = await clientA.PostAsJsonAsync($"/api/v1/website/images/{imageIdA}/enhance", new { Operation = "EnhanceForWebsite" });
+        enhanceRes.EnsureSuccessStatusCode();
+        var enhanceJson = await enhanceRes.Content.ReadFromJsonAsync<JsonElement>();
+        var variantIdA = enhanceJson.GetProperty("data").GetProperty("id").GetString()!;
+
+        // Tenant B attempts to read Tenant A's image
+        var getRes = await clientB.GetAsync($"/api/v1/website/images/{imageIdA}");
+        Assert.Equal(HttpStatusCode.NotFound, getRes.StatusCode);
+
+        // Tenant B attempts to approve Tenant A's variant
+        var approveRes = await clientB.PostAsync($"/api/v1/website/images/{imageIdA}/variants/{variantIdA}/approve", null);
+        Assert.Equal(HttpStatusCode.NotFound, approveRes.StatusCode);
+
+        // Tenant B attempts to publish Tenant A's image
+        var publishRes = await clientB.PostAsJsonAsync($"/api/v1/website/images/{imageIdA}/publish", new { VariantId = variantIdA });
+        Assert.Equal(HttpStatusCode.NotFound, publishRes.StatusCode);
+    }
 }

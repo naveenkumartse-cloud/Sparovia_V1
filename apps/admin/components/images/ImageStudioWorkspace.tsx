@@ -3,12 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Sparkles,
-  SlidersHorizontal,
-  Layers,
   Maximize2,
-  Eye,
-  RefreshCw,
-  Sun,
   Check,
   CheckCircle2,
   AlertCircle,
@@ -18,14 +13,13 @@ import {
   Columns,
   SplitSquareVertical,
   Rows,
-  ExternalLink,
-  ShieldCheck,
-  ArrowRight,
-  Info,
-  Loader2,
-  Upload,
   Globe,
-  Trash2
+  Trash2,
+  Upload,
+  RefreshCw,
+  Loader2,
+  Info,
+  ShieldCheck,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
@@ -101,7 +95,15 @@ export interface EnhancementOpDef {
   description: string;
 }
 
+// Retained for contract compatibility with existing caller types
 export const APPROVED_OPERATIONS: EnhancementOpDef[] = [
+  {
+    id: 'EnhanceForWebsite',
+    name: 'Enhance for Website',
+    icon: Sparkles,
+    tagline: 'Clarity, tone & web optimization',
+    description: 'Deterministic highlight balancing, edge-preserving denoising, subtle structural contrast, and WebP compression.',
+  },
   {
     id: 'ImproveClarity',
     name: 'Improve Clarity',
@@ -112,14 +114,14 @@ export const APPROVED_OPERATIONS: EnhancementOpDef[] = [
   {
     id: 'ImproveSharpness',
     name: 'Improve Sharpness',
-    icon: SlidersHorizontal,
+    icon: Sparkles,
     tagline: 'Controlled edge definition',
     description: 'Restrained edge enhancement that avoids artificial halos and maintains authentic materials.',
   },
   {
     id: 'ReduceNoise',
     name: 'Reduce Noise',
-    icon: Layers,
+    icon: Sparkles,
     tagline: 'Texture-aware smoothing',
     description: 'Suppresses grain in flat and shadowy surfaces while preserving fine wood and masonry grain.',
   },
@@ -133,14 +135,14 @@ export const APPROVED_OPERATIONS: EnhancementOpDef[] = [
   {
     id: 'ClassicLook',
     name: 'Classic Look',
-    icon: Eye,
+    icon: Sparkles,
     tagline: 'Warm editorial contrast',
     description: 'Refined tonal curve with organic warmth and rich midtones suited for architectural showcase.',
   },
   {
     id: 'ModernLook',
     name: 'Modern Look',
-    icon: Sun,
+    icon: Sparkles,
     tagline: 'Crisp contemporary finish',
     description: 'Contemporary contrast, clean highlights, and true-to-life architectural material color fidelity.',
   },
@@ -149,7 +151,7 @@ export const APPROVED_OPERATIONS: EnhancementOpDef[] = [
     name: 'Web Optimize',
     icon: Globe,
     tagline: 'Lightweight web delivery',
-    description: 'Lossless & efficient WebP compression calibrated for ultra-fast website loading.',
+    description: 'Efficient WebP compression calibrated for fast website loading.',
   },
 ];
 
@@ -159,6 +161,12 @@ function formatBytes(bytes: number): string {
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+function calculateSavings(originalSize: number, candidateSize: number): string | null {
+  if (!originalSize || !candidateSize || candidateSize >= originalSize) return null;
+  const pct = Math.round(((originalSize - candidateSize) / originalSize) * 100);
+  return pct > 0 ? `${pct}% smaller` : null;
 }
 
 export function ImageStudioWorkspace({
@@ -172,79 +180,43 @@ export function ImageStudioWorkspace({
 }: ImageStudioWorkspaceProps) {
   const [currentImage, setCurrentImage] = useState<ImageDto | null>(image || null);
 
-  // Currently inspected variant (defaults to newest enhanced variant if one exists)
-  const [activeVariant, setActiveVariant] = useState<ImageVariantDto | null>(() => {
-    const enhanced = [...(image?.variants || [])]
-      .filter((v) => v.status !== 'Rejected')
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    return enhanced[0] || null;
-  });
+  // Helper to find the newest non-rejected variant (preferring newest EnhanceForWebsite or approved variant)
+  const getLatestCandidate = useCallback((variants?: ImageVariantDto[] | null): ImageVariantDto | null => {
+    if (!variants || variants.length === 0) return null;
+    const nonRejected = [...variants].filter((v) => v.status !== 'Rejected');
+    if (nonRejected.length === 0) return null;
 
-  // Selected operation for processing (defaults to newest existing variant's operation for reopen persistence)
-  const [selectedOp, setSelectedOp] = useState<string>(() => {
-    const enhanced = [...(image?.variants || [])]
-      .filter((v) => v.status !== 'Rejected')
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-    if (enhanced?.operation) {
-      const base = enhanced.operation.split(':')[0].trim();
-      const found = APPROVED_OPERATIONS.find((o) => o.id.toLowerCase() === base.toLowerCase());
-      if (found) return found.id;
+    // Prefer newest EnhanceForWebsite if present
+    const enhanceForWebsiteVariants = nonRejected.filter(
+      (v) => v.operation?.toLowerCase().startsWith('enhanceforwebsite')
+    );
+    if (enhanceForWebsiteVariants.length > 0) {
+      return enhanceForWebsiteVariants.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )[0];
     }
-    return 'ImproveClarity';
-  });
 
-  // Selected preset intensity (Light, Balanced, High - Default: Balanced)
-  const [selectedPreset, setSelectedPreset] = useState<'Light' | 'Balanced' | 'High'>(() => {
-    const enhanced = [...(image?.variants || [])]
-      .filter((v) => v.status !== 'Rejected')
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-    if (enhanced?.operation && enhanced.operation.includes(':')) {
-      const p = enhanced.operation.split(':')[1].trim();
-      if (p === 'Light' || p === 'Balanced' || p === 'High') return p;
-    }
-    return 'Balanced';
-  });
+    // Otherwise sort newest first
+    return nonRejected.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0];
+  }, []);
 
-  // Helper to match operation ignoring preset suffix
-  const isOpMatch = (variantOp?: string | null, targetOp?: string | null) => {
-    if (!variantOp || !targetOp) return false;
-    const vBase = variantOp.split(':')[0].trim().toLowerCase();
-    const tBase = targetOp.split(':')[0].trim().toLowerCase();
-    return vBase === tBase;
-  };
+  // Currently inspected candidate variant
+  const [activeVariant, setActiveVariant] = useState<ImageVariantDto | null>(() =>
+    getLatestCandidate(image?.variants)
+  );
 
-  const selectedOpDef = APPROVED_OPERATIONS.find((o) => o.id === selectedOp) || APPROVED_OPERATIONS[0];
-
-  // Check if a variant matching selectedOp already exists (sorted newest first)
-  const matchingVariant = [...(currentImage?.variants || [])]
-    .filter((v) => isOpMatch(v.operation, selectedOp) && v.status !== 'Rejected')
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] || null;
-
-  // Variant for current operation strictly matches selectedOp; prefer newly active variant if matching
-  const displayedVariant = (activeVariant && isOpMatch(activeVariant.operation, selectedOp) && activeVariant.status !== 'Rejected')
-    ? activeVariant
-    : matchingVariant;
-
-  const isCurrentOpGenerated = Boolean(displayedVariant);
-
-  const handleSelectOp = (opId: string) => {
-    setSelectedOp(opId);
-    const matching = [...(currentImage?.variants || [])]
-      .filter((v) => isOpMatch(v.operation, opId) && v.status !== 'Rejected')
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] || null;
-    setActiveVariant(matching || null);
-    if (matching?.operation && matching.operation.includes(':')) {
-      const p = matching.operation.split(':')[1].trim();
-      if (p === 'Light' || p === 'Balanced' || p === 'High') {
-        setSelectedPreset(p);
-      }
-    }
-  };
+  // Displayed variant
+  const displayedVariant =
+    activeVariant && activeVariant.status !== 'Rejected'
+      ? activeVariant
+      : getLatestCandidate(currentImage?.variants);
 
   // Comparison view mode
   const [viewMode, setViewMode] = useState<'split' | 'side-by-side' | 'stacked'>('split');
   const [splitPos, setSplitPos] = useState<number>(50); // percentage (0 - 100)
-  const [zoomLevel, setZoomLevel] = useState<number>(1); // 1, 1.5, 2
+  const [zoomLevel, setZoomLevel] = useState<number>(1); // 1, 1.5, 2, 2.5
 
   // Action states
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -280,23 +252,30 @@ export function ImageStudioWorkspace({
     setEnhancedLoadError(false);
   }, [displayedVariant?.previewUrl, retryKey]);
 
-  // Sync active variant when currentImage updates or selectedOp changes
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isProcessing && !isApproving && !isRejecting && !isPublishing) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, isProcessing, isApproving, isRejecting, isPublishing]);
+
+  // Sync active variant when currentImage updates
   useEffect(() => {
     if (currentImage?.variants?.length) {
       setActiveVariant((prev) => {
-        if (prev && prev.operation?.toLowerCase() === selectedOp.toLowerCase()) {
-          const found = currentImage.variants.find((v) => v.id === prev.id);
+        if (prev) {
+          const found = currentImage.variants.find((v) => v.id === prev.id && v.status !== 'Rejected');
           if (found) return found;
         }
-        const matchingCurrent = [...currentImage.variants]
-          .filter((v) => v.operation?.toLowerCase() === selectedOp.toLowerCase() && v.status !== 'Rejected')
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-        return matchingCurrent || null;
+        return getLatestCandidate(currentImage.variants);
       });
     } else {
       setActiveVariant(null);
     }
-  }, [currentImage, selectedOp]);
+  }, [currentImage, getLatestCandidate]);
 
   // Draggable Split Divider Handlers
   const handleSplitMove = useCallback((clientX: number) => {
@@ -351,7 +330,7 @@ export function ImageStudioWorkspace({
     }
   };
 
-  // Run selected enhancement operation
+  // Run Enhance for Website
   const handleRunEnhancement = async () => {
     if (isProcessing) return;
     setIsProcessing(true);
@@ -377,7 +356,10 @@ export function ImageStudioWorkspace({
 
         let uploadRes;
         if (pendingUpload.replacingImageId) {
-          uploadRes = await apiClient.postFormData<{ data: ImageDto }>(`/website/images/${pendingUpload.replacingImageId}/replace`, formData);
+          uploadRes = await apiClient.postFormData<{ data: ImageDto }>(
+            `/website/images/${pendingUpload.replacingImageId}/replace`,
+            formData
+          );
         } else if (pendingUpload.usageType === 'ExploreOurWork' && !pendingUpload.slot) {
           uploadRes = await apiClient.postFormData<{ data: ImageDto }>('/website/images/explore-our-work', formData);
         } else {
@@ -397,15 +379,16 @@ export function ImageStudioWorkspace({
         throw new Error('No image available to enhance.');
       }
 
+      // Execute Enhance for Website pipeline
       const res = await apiClient.post<{ data: ImageVariantDto; message: string }>(
         `/website/images/${targetImage.id}/enhance`,
-        { operation: selectedOp, preset: selectedPreset }
+        { operation: 'EnhanceForWebsite' }
       );
 
       const newVariant = res?.data;
       if (newVariant) {
         setActiveVariant(newVariant);
-        // Refresh entire image to get updated variants list
+        // Refresh master image record
         const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${targetImage.id}`);
         if (updatedImgRes?.data) {
           setCurrentImage(updatedImgRes.data);
@@ -415,16 +398,16 @@ export function ImageStudioWorkspace({
             setActiveVariant(freshNew);
           }
         }
-        setSuccessMessage(`Enhanced with ${APPROVED_OPERATIONS.find((o) => o.id === selectedOp)?.name || selectedOp}. Candidate ready for human review.`);
+        setSuccessMessage('Enhancement complete. Candidate ready for your review.');
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to process enhancement. The original image remains safe and untouched.');
+      setErrorMessage(err?.message || 'Failed to enhance image. The original photograph remains safe and untouched.');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Human Review: Approve Enhancement
+  // Review: Keep Enhanced (Approves candidate)
   const handleApproveVariant = async () => {
     if (!currentImage || !displayedVariant || isApproving) return;
     setIsApproving(true);
@@ -453,15 +436,15 @@ export function ImageStudioWorkspace({
           }
         }
       }
-      setSuccessMessage('Variant approved for website usage. Note: Publishing remains an explicit, separate action.');
+      setSuccessMessage('Candidate approved for website. Publishing remains a separate, explicit action.');
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to approve variant.');
+      setErrorMessage(err?.message || 'Failed to approve candidate.');
     } finally {
       setIsApproving(false);
     }
   };
 
-  // Human Review: Reject Enhancement
+  // Review: Discard Candidate (Rejects variant, keeps original safe)
   const handleRejectVariant = async () => {
     if (!currentImage || !displayedVariant || isRejecting) return;
     setIsRejecting(true);
@@ -470,23 +453,19 @@ export function ImageStudioWorkspace({
 
     try {
       await apiClient.post(`/website/images/${currentImage.id}/variants/${displayedVariant.id}/reject`, {
-        reason: 'Discarded by user during before/after comparison',
+        reason: 'Discarded by user during candidate comparison',
       });
 
-      // Fetch updated image
       const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${currentImage.id}`);
       if (updatedImgRes?.data) {
         setCurrentImage(updatedImgRes.data);
         onImageUpdated(updatedImgRes.data);
-        // Select next available non-rejected variant for this op or null
-        const nextVariant = [...updatedImgRes.data.variants]
-          .filter((v) => isOpMatch(v.operation, selectedOp) && v.status !== 'Rejected')
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-        setActiveVariant(nextVariant || null);
+        const nextCandidate = getLatestCandidate(updatedImgRes.data.variants);
+        setActiveVariant(nextCandidate);
       }
-      setSuccessMessage('Variant rejected. Original image remains preserved.');
+      setSuccessMessage('Candidate discarded. Original photograph remains preserved.');
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to reject variant.');
+      setErrorMessage(err?.message || 'Failed to discard candidate.');
     } finally {
       setIsRejecting(false);
     }
@@ -544,7 +523,7 @@ export function ImageStudioWorkspace({
           }
         }
       }
-      setSuccessMessage('Image safely removed from live website. Original source and variants remain preserved in media library.');
+      setSuccessMessage('Image safely removed from live website. Master records remain preserved in media library.');
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to unpublish image.');
     } finally {
@@ -562,21 +541,35 @@ export function ImageStudioWorkspace({
   const enhancedUrl = rawEnhancedUrl && retryKey > 0
     ? `${rawEnhancedUrl}${rawEnhancedUrl.includes('?') ? '&' : '?'}retry=${retryKey}`
     : rawEnhancedUrl;
-  const isVariantPendingReview = displayedVariant && (displayedVariant.status === 'Enhanced' || displayedVariant.status === 'ReadyForReview');
+
+  const isVariantPendingReview =
+    displayedVariant && (displayedVariant.status === 'Enhanced' || displayedVariant.status === 'ReadyForReview');
   const isVariantApproved = displayedVariant && displayedVariant.status === 'Approved';
+  const isVariantPublished = displayedVariant && displayedVariant.status === 'Published';
   const isImagePublished = effectiveImage?.status === 'Published';
+
   const displayName = effectiveImage
     ? (effectiveImage.projectWorkName || effectiveImage.originalFileName || effectiveImage.slot || 'Image Workspace')
     : (pendingUpload?.projectWorkName || pendingUpload?.file.name || pendingUpload?.slot || 'New Image');
+
   const displayWidth = effectiveImage?.width || pendingUpload?.dimensions.width || 0;
   const displayHeight = effectiveImage?.height || pendingUpload?.dimensions.height || 0;
   const displaySize = effectiveImage?.fileSize || pendingUpload?.file.size || 0;
-  const displayMime = (effectiveImage?.mimeType || pendingUpload?.file.type || 'image/jpeg').replace('image/', '').toUpperCase();
+  const displayMime = (effectiveImage?.mimeType || pendingUpload?.file.type || 'image/jpeg')
+    .replace('image/', '')
+    .toUpperCase();
   const displayCategory = effectiveImage?.category || pendingUpload?.category;
   const displaySlot = effectiveImage?.slot || pendingUpload?.slot;
 
+  const savingsText = displayedVariant ? calculateSavings(displaySize, displayedVariant.fileSize) : null;
+
   return (
-    <div className="fixed inset-0 z-50 bg-[#172033]/70 backdrop-blur-xs flex flex-col items-center justify-center p-3 sm:p-5 overflow-hidden">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="image-studio-title"
+      className="fixed inset-0 z-50 bg-[#172033]/70 backdrop-blur-xs flex flex-col items-center justify-center p-3 sm:p-5 overflow-hidden"
+    >
       {/* Workspace Card */}
       <div className="bg-white dark:bg-[#0F172A] w-full max-w-7xl h-[95vh] max-h-[95vh] rounded-[10px] shadow-2xl flex flex-col border border-[#CBD5E1] dark:border-[#1E293B] overflow-hidden">
         {/* Workspace Top Bar */}
@@ -587,7 +580,7 @@ export function ImageStudioWorkspace({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-semibold text-[#172033] dark:text-white truncate">
+                <h2 id="image-studio-title" className="text-base font-semibold text-[#172033] dark:text-white truncate">
                   {displayName}
                 </h2>
                 <span
@@ -601,7 +594,13 @@ export function ImageStudioWorkspace({
                       : 'bg-[#F3F6FA] text-[#475569] border-[#E3E7ED] dark:bg-[#1E293B] dark:text-[#94A3B8]'
                   }`}
                 >
-                  {isImagePublished ? 'Published' : isVariantApproved ? 'Approved' : isVariantPendingReview ? 'Pending Review' : (effectiveImage?.status || 'Draft')}
+                  {isImagePublished
+                    ? 'Published'
+                    : isVariantApproved
+                    ? 'Approved'
+                    : isVariantPendingReview
+                    ? 'Pending Review'
+                    : (effectiveImage?.status || 'Draft')}
                 </span>
                 {displaySlot && (
                   <span className="text-[11px] text-[#475569] dark:text-slate-400 bg-[#F3F6FA] dark:bg-[#1E293B] px-2 py-0.5 rounded-[4px] border border-[#E3E7ED] dark:border-[#334155]">
@@ -743,7 +742,7 @@ export function ImageStudioWorkspace({
           </div>
         )}
 
-        {/* Main Body: Split into Left Workspace Arena & Right Control Rail */}
+        {/* Main Body: Left Inspection Canvas & Right Control Rail */}
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden bg-[#F3F6FA] dark:bg-[#0B1220]">
           {/* Comparison Inspection Area */}
           <div className="flex-1 min-h-[300px] flex flex-col p-3 sm:p-5 overflow-auto relative">
@@ -758,9 +757,9 @@ export function ImageStudioWorkspace({
               {isProcessing && (
                 <div className="absolute inset-0 z-30 bg-[#172033]/75 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-white text-center">
                   <Loader2 className="w-10 h-10 animate-spin text-[#315FEA] mb-3" />
-                  <p className="text-sm font-semibold tracking-wide">Executing Deterministic Enhancement</p>
+                  <p className="text-sm font-semibold tracking-wide">Enhancing for Website</p>
                   <p className="text-xs text-slate-300 mt-1 max-w-sm">
-                    Preserving raw original photograph while calculating adaptive highlight protection and edge tone curves...
+                    Preserving raw original photograph while calculating adaptive highlight protection, edge-preserving denoising, and web delivery optimization...
                   </p>
                 </div>
               )}
@@ -771,15 +770,15 @@ export function ImageStudioWorkspace({
                   className="w-full h-full relative flex items-center justify-center overflow-hidden"
                   style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }}
                 >
-                  {/* Under layer: Enhanced / Processed Variant */}
+                  {/* Under layer: Enhanced Candidate */}
                   {displayedVariant && enhancedUrl && enhancedLoadError ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950 text-slate-300 select-none z-10">
                       <div className="w-12 h-12 rounded-[6px] bg-slate-900 border border-amber-900/60 text-amber-400 flex items-center justify-center mb-3">
                         <AlertCircle className="w-6 h-6" />
                       </div>
-                      <p className="text-sm font-semibold text-white">Enhanced Variant Preview Unavailable</p>
+                      <p className="text-sm font-semibold text-white">Enhanced Candidate Preview Unavailable</p>
                       <p className="text-xs text-slate-400 mt-1 max-w-sm leading-relaxed">
-                        Unable to load the processed variant preview from storage. You can retry loading or re-run the enhancement.
+                        Unable to load the processed candidate preview from storage. You can retry loading or re-run the enhancement.
                       </p>
                       <div className="flex items-center gap-2 mt-3">
                         <Button
@@ -800,7 +799,7 @@ export function ImageStudioWorkspace({
                           isLoading={isProcessing}
                           leftIcon={<Sparkles className="w-3.5 h-3.5" />}
                         >
-                          Re-run {selectedOpDef.name}
+                          Re-enhance
                         </Button>
                       </div>
                     </div>
@@ -809,31 +808,31 @@ export function ImageStudioWorkspace({
                     <img
                       key={`enhanced-${retryKey}`}
                       src={enhancedUrl}
-                      alt={`AFTER · ${selectedOpDef.name}`}
+                      alt="AFTER · Enhanced for Website"
                       className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
                       onError={() => setEnhancedLoadError(true)}
                     />
                   ) : (
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950 text-slate-400 select-none">
                       <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-3">
-                        <selectedOpDef.icon className="w-6 h-6" />
+                        <Sparkles className="w-6 h-6" />
                       </div>
                       <p className="text-sm font-semibold text-slate-200">
                         Enhancement Pending
                       </p>
                       <p className="text-xs text-slate-400 mt-1 max-w-sm leading-relaxed">
-                        Execute &quot;{selectedOpDef.name}&quot; to preview deterministic quality enhancements against the original.
+                        Click &quot;Enhance for Website&quot; in the control rail to generate an optimized candidate for preview.
                       </p>
                     </div>
                   )}
 
-                  {/* Over layer: Original Image (Clipped precisely via CSS clipPath without scaling offsets) */}
+                  {/* Over layer: Original Image (Clipped via clipPath) */}
                   {originalLoadError ? (
                     <div className="absolute inset-0 z-25 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center text-slate-300">
                       <div className="w-12 h-12 rounded-[6px] bg-slate-900 border border-rose-900/60 text-rose-400 flex items-center justify-center mb-3">
                         <AlertCircle className="w-6 h-6" />
                       </div>
-                      <p className="text-sm font-semibold text-white">Original Image Unavailable</p>
+                      <p className="text-sm font-semibold text-white">Original Photograph Unavailable</p>
                       <p className="text-xs text-slate-400 mt-1 max-w-sm leading-relaxed">
                         The original source image could not be loaded from storage.
                       </p>
@@ -886,7 +885,7 @@ export function ImageStudioWorkspace({
                     </div>
                   )}
 
-                  {/* Persistent Labels */}
+                  {/* Persistent Canvas Labels */}
                   <div className="absolute top-3 left-3 z-10 pointer-events-none">
                     <span className="text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-[4px] bg-[#172033]/80 text-white backdrop-blur-xs border border-white/10 shadow-xs">
                       BEFORE · Original
@@ -894,9 +893,7 @@ export function ImageStudioWorkspace({
                   </div>
                   <div className="absolute top-3 right-3 z-10 pointer-events-none">
                     <span className="text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-[4px] bg-[#315FEA]/90 text-white backdrop-blur-xs border border-white/20 shadow-xs">
-                      {displayedVariant
-                        ? `AFTER · ${selectedOpDef.name}`
-                        : 'AFTER · Pending Execution'}
+                      {displayedVariant ? 'AFTER · Enhanced for Website' : 'AFTER · Pending Enhancement'}
                     </span>
                   </div>
                 </div>
@@ -921,7 +918,7 @@ export function ImageStudioWorkspace({
                         </div>
                         <p className="text-xs font-semibold text-white">Original Unavailable</p>
                         <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
-                          Could not load original source from storage.
+                          Could not load original photograph from storage.
                         </p>
                         <Button
                           variant="secondary"
@@ -956,7 +953,7 @@ export function ImageStudioWorkspace({
                         </div>
                         <p className="text-xs font-semibold text-white">Enhanced Preview Unavailable</p>
                         <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
-                          Failed to load processed variant preview from storage.
+                          Failed to load processed candidate preview from storage.
                         </p>
                         <div className="flex items-center gap-2 mt-2.5">
                           <Button
@@ -977,7 +974,7 @@ export function ImageStudioWorkspace({
                             isLoading={isProcessing}
                             leftIcon={<Sparkles className="w-3.5 h-3.5" />}
                           >
-                            Re-run
+                            Re-enhance
                           </Button>
                         </div>
                       </div>
@@ -985,14 +982,14 @@ export function ImageStudioWorkspace({
                       <>
                         <div className="absolute top-3 left-3 z-10">
                           <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
-                            AFTER · {selectedOpDef.name}
+                            AFTER · Enhanced for Website
                           </span>
                         </div>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           key={`enhanced-${retryKey}`}
                           src={enhancedUrl}
-                          alt={`AFTER · ${selectedOpDef.name}`}
+                          alt="AFTER · Enhanced for Website"
                           className="max-h-full max-w-full object-contain"
                           onError={() => setEnhancedLoadError(true)}
                         />
@@ -1000,13 +997,13 @@ export function ImageStudioWorkspace({
                     ) : (
                       <div className="flex flex-col items-center justify-center p-6 text-center max-w-xs text-slate-400">
                         <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-2.5">
-                          <selectedOpDef.icon className="w-5 h-5" />
+                          <Sparkles className="w-5 h-5" />
                         </div>
                         <span className="text-xs font-semibold text-slate-300">
                           Enhancement Pending
                         </span>
                         <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                          Click &quot;Execute {selectedOpDef.name}&quot; to process and preview this enhancement.
+                          Click &quot;Enhance for Website&quot; in the sidebar to process and preview this candidate.
                         </p>
                       </div>
                     )}
@@ -1033,7 +1030,7 @@ export function ImageStudioWorkspace({
                         </div>
                         <p className="text-xs font-semibold text-white">Original Unavailable</p>
                         <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
-                          Could not load original source from storage.
+                          Could not load original photograph from storage.
                         </p>
                         <Button
                           variant="secondary"
@@ -1064,11 +1061,11 @@ export function ImageStudioWorkspace({
                     {displayedVariant && enhancedUrl && enhancedLoadError ? (
                       <div className="flex flex-col items-center justify-center p-6 text-center text-slate-300">
                         <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-amber-900/60 text-amber-400 flex items-center justify-center mb-2.5">
-                          <AlertCircle className="w-5 h-5" />
+                          <AlertCircle className="w-6 h-6" />
                         </div>
                         <p className="text-xs font-semibold text-white">Enhanced Preview Unavailable</p>
                         <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
-                          Failed to load processed variant preview from storage.
+                          Failed to load processed candidate preview from storage.
                         </p>
                         <div className="flex items-center gap-2 mt-2.5">
                           <Button
@@ -1089,7 +1086,7 @@ export function ImageStudioWorkspace({
                             isLoading={isProcessing}
                             leftIcon={<Sparkles className="w-3.5 h-3.5" />}
                           >
-                            Re-run
+                            Re-enhance
                           </Button>
                         </div>
                       </div>
@@ -1097,14 +1094,14 @@ export function ImageStudioWorkspace({
                       <>
                         <div className="absolute top-3 left-3 z-10">
                           <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
-                            AFTER · {selectedOpDef.name}
+                            AFTER · Enhanced for Website
                           </span>
                         </div>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           key={`enhanced-${retryKey}`}
                           src={enhancedUrl}
-                          alt={`AFTER · ${selectedOpDef.name}`}
+                          alt="AFTER · Enhanced for Website"
                           className="max-h-full max-w-full object-contain"
                           onError={() => setEnhancedLoadError(true)}
                         />
@@ -1112,13 +1109,13 @@ export function ImageStudioWorkspace({
                     ) : (
                       <div className="flex flex-col items-center justify-center p-6 text-center max-w-xs text-slate-400">
                         <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-2.5">
-                          <selectedOpDef.icon className="w-5 h-5" />
+                          <Sparkles className="w-5 h-5" />
                         </div>
                         <span className="text-xs font-semibold text-slate-300">
                           Enhancement Pending
                         </span>
                         <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                          Click &quot;Execute {selectedOpDef.name}&quot; to process and preview this enhancement.
+                          Click &quot;Enhance for Website&quot; in the sidebar to process and preview this candidate.
                         </p>
                       </div>
                     )}
@@ -1127,151 +1124,62 @@ export function ImageStudioWorkspace({
               )}
             </div>
 
-            {/* Comparison Slider Accessibility Help */}
+            {/* Comparison Slider Accessibility Tip */}
             {viewMode === 'split' && (
               <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] text-center mt-2">
-                Tip: Drag the vertical divider or focus the handle and use Left/Right arrows to inspect differences.
+                Tip: Drag the vertical divider or select the handle and use Left/Right arrows to inspect enhancements.
               </p>
             )}
           </div>
 
-          {/* Right Control Rail: 1-2-3 Calibrated Information Hierarchy */}
+          {/* Right Control Rail: Simplified 3-Step Information Hierarchy */}
           <aside className="w-full lg:w-96 bg-white dark:bg-[#0F172A] border-t lg:border-t-0 lg:border-l border-[#E3E7ED] dark:border-[#1E293B] flex flex-col shrink-0 overflow-y-auto">
-            <div className="p-5 flex flex-col gap-6">
-              {/* SECTION 1: Operations Selector & Run Action */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
+            <div className="p-5 flex flex-col gap-5">
+
+              {/* STEP 1: Primary Action — Enhance for Website */}
+              <div className="p-4 bg-[#F8FAFC] dark:bg-[#1E293B]/70 rounded-[8px] border border-[#CBD5E1] dark:border-[#334155] space-y-3">
+                <div className="flex items-center justify-between">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
                     <span className="w-4 h-4 rounded-[4px] bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">1</span>
-                    <span>Approved Enhancement Operations</span>
+                    <span>Enhance for Website</span>
                   </h3>
-                  <span className="text-[11px] font-mono text-[#475569] dark:text-[#94A3B8]">
-                    7 available
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-[4px] bg-blue-50 text-[#1D4ED8] border border-blue-200 dark:bg-blue-950/40 dark:border-blue-800">
+                    One-Click Pipeline
                   </span>
                 </div>
-                <p className="text-xs text-[#475569] dark:text-[#94A3B8] mb-3">
-                  Select an adaptive enhancement operation calibrated for architectural &amp; project photography:
+
+                <p className="text-xs text-[#475569] dark:text-[#94A3B8] leading-relaxed">
+                  Calculates balanced highlight &amp; shadow curves, preserves architectural edges, and produces an optimized WebP candidate for fast website presentation.
                 </p>
 
-                <div className="flex flex-col gap-1.5">
-                  {APPROVED_OPERATIONS.map((op) => {
-                    const isSelected = selectedOp === op.id;
-                    const IconComp = op.icon;
-                    const hasVariant = currentImage?.variants?.some(
-                      (v) => isOpMatch(v.operation, op.id) && v.status !== 'Rejected'
-                    );
-                    return (
-                      <button
-                        key={op.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={isSelected}
-                        aria-label={op.name}
-                        onClick={() => handleSelectOp(op.id)}
-                        className={`text-left px-3 py-2 rounded-[6px] border transition-all text-xs flex items-center justify-between gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
-                          isSelected
-                            ? 'bg-[#315FEA]/5 border-[#315FEA] text-[#172033] dark:text-white shadow-xs'
-                            : 'bg-white dark:bg-[#1E293B] border-[#E3E7ED] dark:border-[#334155] text-[#475569] dark:text-slate-300 hover:border-[#CBD5E1]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div
-                            className={`w-6 h-6 rounded-[4px] flex items-center justify-center shrink-0 ${
-                              isSelected
-                                ? 'bg-[#315FEA] text-white'
-                                : 'bg-[#F3F6FA] dark:bg-[#0B1220] text-[#475569] dark:text-slate-400'
-                            }`}
-                          >
-                            <IconComp className="w-3.5 h-3.5" />
-                          </div>
-                          <span className="font-semibold text-xs text-[#172033] dark:text-white truncate">
-                            {op.name}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {hasVariant && (
-                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-[3px] bg-emerald-50 text-[#15803D] border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800">
-                              Ready
-                            </span>
-                          )}
-                          {isSelected && (
-                            <Check className="w-3.5 h-3.5 text-[#315FEA] shrink-0" />
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="w-full justify-center font-semibold"
+                  isLoading={isProcessing}
+                  loadingText="Enhancing image..."
+                  onClick={handleRunEnhancement}
+                  leftIcon={<Sparkles className="w-4 h-4" />}
+                >
+                  {displayedVariant ? 'Re-enhance for Website' : 'Enhance for Website'}
+                </Button>
 
-                {/* Active Selected Operation Details & Execution Card */}
-                <div className="mt-3 p-3 bg-white dark:bg-[#1E293B]/70 rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#172033] dark:text-white">
-                      {selectedOpDef.name}
-                    </span>
-                    <span className="text-[10px] text-[#475569] dark:text-[#94A3B8]">
-                      {selectedOpDef.tagline}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
-                    {selectedOpDef.description}
-                  </p>
-
-                  {/* Preset Intensity Selector */}
-                  <div className="pt-2 border-t border-[#E3E7ED] dark:border-[#334155]">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[11px] font-semibold text-[#172033] dark:text-white">
-                        Preset Intensity:
-                      </span>
-                      <span className="text-[10px] text-[#475569] dark:text-[#94A3B8]">
-                        {selectedPreset === 'Light' ? 'Subtle, gentle touch' : selectedPreset === 'High' ? 'High definition dynamic' : 'Balanced (Default)'}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#F3F6FA] dark:bg-[#0B1220] rounded-[6px] border border-[#E3E7ED] dark:border-[#334155]">
-                      {(['Light', 'Balanced', 'High'] as const).map((preset) => (
-                        <button
-                          key={preset}
-                          type="button"
-                          onClick={() => setSelectedPreset(preset)}
-                          className={`py-1 text-center text-xs font-medium rounded-[4px] transition-all ${
-                            selectedPreset === preset
-                              ? 'bg-white dark:bg-[#315FEA] text-[#172033] dark:text-white shadow-xs font-semibold'
-                              : 'text-[#475569] dark:text-[#94A3B8] hover:text-[#172033] dark:hover:text-white'
-                          }`}
-                        >
-                          {preset}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Button
-                    variant="primary"
-                    size="md"
-                    className="w-full justify-center mt-1"
-                    isLoading={isProcessing}
-                    loadingText={`Enhancing with ${selectedOpDef.name}...`}
-                    onClick={handleRunEnhancement}
-                    leftIcon={<Sparkles className="w-4 h-4" />}
-                  >
-                    {matchingVariant ? `Re-execute ${selectedOpDef.name}` : `Execute ${selectedOpDef.name}`}
-                  </Button>
-                  <p className="text-[10px] text-[#475569] dark:text-[#94A3B8] text-center">
-                    Original image remains strictly immutable on secure private storage.
-                  </p>
-                </div>
+                <p className="text-[10px] text-[#64748B] dark:text-[#94A3B8] text-center flex items-center justify-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#15803D] shrink-0" />
+                  <span>Original photograph is immutable and never overwritten.</span>
+                </p>
               </div>
 
-              {/* SECTION 2: Results & Applied Corrections */}
-              <div className="p-3.5 bg-[#F3F6FA] dark:bg-[#1E293B] rounded-[8px] border border-[#E3E7ED] dark:border-[#334155]">
-                <div className="flex items-center justify-between mb-2">
+              {/* STEP 2: Candidate Details & Enhancements Applied */}
+              <div className="p-4 bg-[#F3F6FA] dark:bg-[#1E293B] rounded-[8px] border border-[#E3E7ED] dark:border-[#334155]">
+                <div className="flex items-center justify-between mb-2.5">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
                     <span className="w-4 h-4 rounded-[4px] bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">2</span>
                     <span>Enhancements Applied</span>
                   </h4>
                   {displayedVariant ? (
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#15803D] border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800">
-                      Generated
+                      Candidate Ready
                     </span>
                   ) : (
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[4px] bg-slate-100 text-[#475569] border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
@@ -1292,46 +1200,60 @@ export function ImageStudioWorkspace({
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-xs text-[#475569] dark:text-[#94A3B8] mb-3">
-                        No correction details recorded for this result.
-                      </p>
+                      <ul className="flex flex-col gap-1.5 mb-3">
+                        <li className="text-xs text-[#172033] dark:text-slate-200 flex items-start gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
+                          <span>Tonal dynamic range &amp; shadow headroom balanced</span>
+                        </li>
+                        <li className="text-xs text-[#172033] dark:text-slate-200 flex items-start gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
+                          <span>Edge-preserving texture noise reduction applied</span>
+                        </li>
+                        <li className="text-xs text-[#172033] dark:text-slate-200 flex items-start gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
+                          <span>High-efficiency WebP candidate calibrated for web delivery</span>
+                        </li>
+                      </ul>
                     )}
 
                     <div className="pt-2.5 border-t border-[#E3E7ED] dark:border-[#334155] grid grid-cols-2 gap-2.5 text-[11px]">
                       <div>
-                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Output Resolution:</span>
+                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Candidate Resolution:</span>
                         <span className="font-semibold text-[#172033] dark:text-white">
                           {displayedVariant.width} × {displayedVariant.height} px
                         </span>
                       </div>
                       <div>
-                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Candidate Size:</span>
-                        <span className="font-semibold text-[#172033] dark:text-white">
-                          {formatBytes(displayedVariant.fileSize)}
-                        </span>
+                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Candidate File Size:</span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-semibold text-[#172033] dark:text-white">
+                            {formatBytes(displayedVariant.fileSize)}
+                          </span>
+                          {savingsText && (
+                            <span className="text-[10px] font-medium px-1 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                              {savingsText}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div>
-                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Format:</span>
+                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Output Format:</span>
                         <span className="font-semibold text-[#172033] dark:text-white uppercase">
                           {displayedVariant.mimeType ? displayedVariant.mimeType.replace('image/', '') : 'WEBP'}
                         </span>
                       </div>
                       <div>
-                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Applied Preset:</span>
+                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Candidate Status:</span>
                         <span className="font-semibold text-[#172033] dark:text-white">
-                          {displayedVariant.operation?.includes(':')
-                            ? displayedVariant.operation.split(':')[1]
-                            : (displayedVariant.effectiveProfile?.includes(':')
-                              ? displayedVariant.effectiveProfile.split(':')[1]
-                              : selectedPreset)}
+                          {displayedVariant.status}
                         </span>
                       </div>
                     </div>
                   </>
                 ) : (
                   <div className="py-2 space-y-2">
-                    <p className="text-xs text-[#475569] dark:text-[#94A3B8]">
-                      No enhanced variant generated for {selectedOpDef.name} yet. Click &quot;Execute {selectedOpDef.name}&quot; above to process this variant.
+                    <p className="text-xs text-[#475569] dark:text-[#94A3B8] leading-relaxed">
+                      No enhanced candidate generated yet. Click &quot;Enhance for Website&quot; above to inspect candidate improvements.
                     </p>
                     <div className="pt-2 border-t border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between text-[11px] text-[#475569] dark:text-[#94A3B8]">
                       <span>Original Resolution:</span>
@@ -1343,87 +1265,116 @@ export function ImageStudioWorkspace({
                 )}
               </div>
 
-              {/* SECTION 3: Review, Approval & Separate Publishing Boundary */}
+              {/* STEP 3: Candidate Review & Publishing Boundary */}
               <div className="flex flex-col gap-2.5 pt-2 border-t border-[#E3E7ED] dark:border-[#1E293B]">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
                   <span className="w-4 h-4 rounded-[4px] bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">3</span>
                   <span>Review &amp; Publishing Boundary</span>
                 </h4>
 
-                {/* State 1: Candidate Pending Review */}
+                {/* State 1: Candidate Generated · Review Required (Keep vs Discard) */}
                 {isVariantPendingReview && (
-                  <div className="flex flex-col gap-2 p-2.5 rounded-[6px] bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                  <div className="flex flex-col gap-2 p-3 rounded-[6px] bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-900 dark:text-amber-300">
                       <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                      <span>Candidate Generated · Human Review Required</span>
+                      <span>Candidate Generated · Review Required</span>
                     </div>
                     <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
-                      Confirm visual quality before approving this {selectedOpDef.name} candidate for website usage.
+                      Compare the candidate against the original photograph. Choose to keep or discard the enhancement.
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-0.5">
+                    <div className="grid grid-cols-2 gap-2 mt-1">
                       <Button
                         variant="success"
                         size="sm"
                         isLoading={isApproving}
-                        loadingText="Approving..."
+                        loadingText="Keeping..."
                         onClick={handleApproveVariant}
                         leftIcon={<Check className="w-3.5 h-3.5" />}
+                        className="w-full justify-center font-semibold"
+                        title="Keep enhanced candidate and mark as approved"
                       >
-                        Approve Candidate
+                        Keep Enhanced
                       </Button>
                       <Button
                         variant="destructive-outline"
                         size="sm"
                         isLoading={isRejecting}
-                        loadingText="Rejecting..."
+                        loadingText="Discarding..."
                         onClick={handleRejectVariant}
                         leftIcon={<X className="w-3.5 h-3.5" />}
+                        className="w-full justify-center"
+                        title="Discard candidate and return to original source"
                       >
-                        Reject
+                        Discard
                       </Button>
                     </div>
                   </div>
                 )}
 
-                {/* State 2: Candidate Approved (Eligible to Publish / Update Live Variant) */}
+                {/* State 2: Candidate Approved · Explicit Publishing Separated */}
                 {displayedVariant?.status === 'Approved' && (
-                  <div className="flex flex-col gap-2 p-2.5 rounded-[6px] bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/60">
+                  <div className="flex flex-col gap-2 p-3 rounded-[6px] bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/60">
                     <div className="flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-800 dark:text-blue-300">
-                        <Check className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                        Candidate Approved · Ready for Publishing
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-900 dark:text-blue-300">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                        Candidate Approved
                       </span>
                       <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200">
-                        {selectedOpDef.name}
+                        Ready to Live
                       </span>
                     </div>
                     <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
-                      This approved candidate is eligible to go live. Approval does not automatically publish.
+                      Candidate is approved for website presentation. Approval does not automatically publish.
                     </p>
                     <Button
                       variant="primary"
                       size="md"
-                      className="w-full justify-center mt-0.5"
+                      className="w-full justify-center mt-1 font-semibold"
                       isLoading={isPublishing}
-                      loadingText="Publishing to Website..."
+                      loadingText="Publishing to Live Website..."
                       onClick={handlePublishImage}
                       leftIcon={<Globe className="w-4 h-4" />}
                     >
-                      {isImagePublished ? `Update Live Website with ${selectedOpDef.name}` : `Publish ${selectedOpDef.name} to Live Website`}
+                      {isImagePublished ? 'Update Live Website' : 'Publish to Live Website'}
                     </Button>
+                    <div className="pt-1 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={handleRejectVariant}
+                        disabled={isRejecting}
+                        className="text-[11px] text-[#64748B] hover:text-[#B91C1C] dark:hover:text-rose-400 underline underline-offset-2 transition-colors"
+                      >
+                        Discard Approved Candidate
+                      </button>
+                    </div>
                   </div>
                 )}
 
-                {/* State 3: Variant is Currently Published on Live Website */}
-                {displayedVariant?.status === 'Published' && (
-                  <div className="flex items-center justify-between p-2.5 rounded-[6px] bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      Active Live on Website
-                    </span>
-                    <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200">
-                      {selectedOpDef.name}
-                    </span>
+                {/* State 3: Variant is Actively Published on Live Website */}
+                {(displayedVariant?.status === 'Published' || (isImagePublished && !isVariantPendingReview)) && (
+                  <div className="flex flex-col gap-2 p-3 rounded-[6px] bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-900 dark:text-emerald-300">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        Active on Live Website
+                      </span>
+                      <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200">
+                        Published
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
+                      Live website visitors are served the optimized presentation. Master library records remain preserved.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-center text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30 mt-1"
+                      isLoading={isUnpublishing}
+                      loadingText="Unpublishing..."
+                      onClick={handleUnpublishImage}
+                    >
+                      Remove from Live Website
+                    </Button>
                   </div>
                 )}
 
@@ -1435,7 +1386,7 @@ export function ImageStudioWorkspace({
                       size="md"
                       className="w-full justify-center"
                       isLoading={isPublishing}
-                      loadingText="Publishing to Website..."
+                      loadingText="Publishing to Live Website..."
                       onClick={handlePublishImage}
                       leftIcon={<Globe className="w-4 h-4" />}
                     >
@@ -1444,24 +1395,9 @@ export function ImageStudioWorkspace({
                   </div>
                 )}
 
-                {/* Live Website Removal Action (Available whenever image is actively published) */}
-                {isImagePublished && (
-                  <div className="pt-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-center text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
-                      isLoading={isUnpublishing}
-                      loadingText="Unpublishing..."
-                      onClick={handleUnpublishImage}
-                    >
-                      Remove from Live Website
-                    </Button>
-                  </div>
-                )}
-
-                <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
-                  Publishing updates the tenant website layout. Original uploads remain permanently immutable.
+                {/* Separation Notice */}
+                <p className="text-[10px] text-[#64748B] dark:text-[#94A3B8] mt-1 leading-relaxed">
+                  Keeping or approving a candidate does not automatically modify live website content. Publishing is always explicit.
                 </p>
 
                 {/* Additional Media Management Actions */}
@@ -1490,6 +1426,7 @@ export function ImageStudioWorkspace({
                   )}
                 </div>
               </div>
+
             </div>
           </aside>
         </div>

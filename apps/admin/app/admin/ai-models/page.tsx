@@ -22,6 +22,7 @@ import {
   FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -362,20 +363,18 @@ export default function AiConnectionsPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <Badge variant="success" size="sm" dot dotPulse>
                   Connected
-                </span>
+                </Badge>
                 {(connection.isFreeTier || activeModel?.isFreeTier) && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                  <Badge variant="success" size="sm">
                     Free Tier
-                  </span>
+                  </Badge>
                 )}
                 {activeModel?.capability === 'Both' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-xs font-semibold bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20">
-                    <Sparkles className="w-3 h-3" />
+                  <Badge variant="purple" size="sm" icon={<Sparkles className="w-3 h-3" />}>
                     Multimodal
-                  </span>
+                  </Badge>
                 )}
               </div>
             </div>
@@ -517,28 +516,25 @@ export default function AiConnectionsPage() {
                             {model.displayName}
                           </h3>
                           {model.isRecommended && (
-                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-                              <Sparkles className="w-2.5 h-2.5" />
+                            <Badge variant="warning" size="xs" icon={<Sparkles className="w-2.5 h-2.5" />}>
                               Recommended
-                            </span>
+                            </Badge>
                           )}
                           {model.isFreeTier && (
-                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                            <Badge variant="success" size="xs">
                               Free Tier
-                            </span>
+                            </Badge>
                           )}
                         </div>
 
                         {isSelected ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[4px] text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
-                            <Check className="w-3 h-3" />
+                          <Badge variant="success" size="xs" icon={<Check className="w-3 h-3" />}>
                             Active
-                          </span>
+                          </Badge>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[11px] font-medium text-emerald-600 dark:text-emerald-400 shrink-0">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          <Badge variant="outline" size="xs" dot>
                             Available
-                          </span>
+                          </Badge>
                         )}
                       </div>
 

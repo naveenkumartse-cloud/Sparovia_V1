@@ -16,7 +16,7 @@ public interface ILeadService
 
     Task<LeadOperationResult> CreateWebsiteLeadAsync(Guid? tenantId, string? domain, PublicWebsiteLeadRequest request, CancellationToken cancellationToken = default);
 
-    Task<LeadOperationResult> ProcessWhatsAppWebhookAsync(Guid tenantId, WhatsAppLeadWebhookRequest request, CancellationToken cancellationToken = default);
+    Task<LeadOperationResult> ProcessWhatsAppWebhookAsync(Guid tenantId, string? webhookToken, WhatsAppLeadWebhookRequest request, CancellationToken cancellationToken = default);
 
     Task<int> GetNewLeadsCountAsync(Guid tenantId, CancellationToken cancellationToken = default);
 }

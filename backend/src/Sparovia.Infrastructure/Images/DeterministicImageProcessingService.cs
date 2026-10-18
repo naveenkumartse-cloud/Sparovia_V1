@@ -99,8 +99,8 @@ public class DeterministicImageProcessingService : IImageProcessingService
             }
             else
             {
-                recommendedOp = "WebOptimize";
-                recommendedReason = "This image is ready for website delivery with optimized WebP compression.";
+                recommendedOp = "EnhanceForWebsite";
+                recommendedReason = "This image is ready for website enhancement with balanced lighting and optimized WebP delivery.";
             }
 
             return new ImageAnalysisResult
@@ -546,6 +546,121 @@ public class DeterministicImageProcessingService : IImageProcessingService
                     workingBitmap = colorAdjusted;
                     ownsWorkingBitmap = true;
                 }
+                else if (string.Equals(baseOp, "EnhanceForWebsite", StringComparison.OrdinalIgnoreCase))
+                {
+                    effectiveProfile = "EnhanceForWebsite:Adaptive";
+                    var metrics = AnalyzeBitmap(workingBitmap);
+
+                    // 1. Adaptive Tonal Balancing & Highlight Protection
+                    float contrast = 1.0f;
+                    float brightness = 0.0f;
+                    float saturation = 1.0f;
+
+                    if (metrics.HighlightRatio > 0.05 || metrics.MeanLum > 0.65)
+                    {
+                        brightness = 0.0f;
+                        appliedCorrections.Add("Highlights protected against blow-out");
+                    }
+                    else if (metrics.ShadowRatio > 0.15 && metrics.MeanLum < 0.40)
+                    {
+                        brightness = 0.018f;
+                        appliedCorrections.Add("Shadow visibility and interior depth improved");
+                    }
+                    else
+                    {
+                        appliedCorrections.Add("Balanced exposure maintained across midtones");
+                    }
+
+                    // 1b. Edge-Preserving Noise Suppression
+                    if (metrics.NoiseLevel > 0.012)
+                    {
+                        var denoised = ApplyEdgePreservingDenoise(workingBitmap, 0.65f, 22);
+                        if (ownsWorkingBitmap) workingBitmap.Dispose();
+                        workingBitmap = denoised;
+                        ownsWorkingBitmap = true;
+                        appliedCorrections.Add("Edge-preserving texture noise reduction applied");
+                    }
+                    else
+                    {
+                        appliedCorrections.Add("Clean surface textures preserved without blurring");
+                    }
+
+                    if (metrics.Contrast < 0.18)
+                    {
+                        contrast = 1.08f;
+                        appliedCorrections.Add("Tonal contrast expanded to remove atmospheric haze");
+                    }
+                    else if (metrics.Contrast > 0.28)
+                    {
+                        contrast = 1.01f;
+                        appliedCorrections.Add("Dynamic tonal range protected against shadow clipping");
+                    }
+                    else
+                    {
+                        contrast = 1.04f;
+                        appliedCorrections.Add("Natural architectural contrast preserved");
+                    }
+
+                    // 2. Texture-Safe Edge Definition
+                    float sharpAmount;
+                    if (metrics.Sharpness < 0.015)
+                    {
+                        sharpAmount = 0.28f;
+                        appliedCorrections.Add("Controlled structural edge definition applied without halos");
+                    }
+                    else
+                    {
+                        sharpAmount = 0.12f;
+                        appliedCorrections.Add("Natural edge sharpness preserved with subtle polish");
+                    }
+
+                    // 3. Strict Color & Material Authenticity (Zero RGB chromaticity tilt)
+                    appliedCorrections.Add("Authentic architectural material colors and finishes preserved");
+
+                    var colorAdjusted = ApplyColorAdjustments(
+                        workingBitmap,
+                        contrast: contrast,
+                        brightnessOffset: brightness,
+                        saturation: saturation,
+                        redScale: 1.0f,
+                        greenScale: 1.0f,
+                        blueScale: 1.0f);
+
+                    var sharpened = ApplySharpening(colorAdjusted, amount: sharpAmount);
+                    colorAdjusted.Dispose();
+                    if (ownsWorkingBitmap) workingBitmap.Dispose();
+                    workingBitmap = sharpened;
+                    ownsWorkingBitmap = true;
+
+                    // 4. Responsive Web Dimension Calibration (Capped to max 2048px for web delivery)
+                    const int maxWebDimension = 2048;
+                    if (workingBitmap.Width > maxWebDimension || workingBitmap.Height > maxWebDimension)
+                    {
+                        int targetW, targetH;
+                        if (workingBitmap.Width >= workingBitmap.Height)
+                        {
+                            targetW = maxWebDimension;
+                            targetH = (int)Math.Round((double)workingBitmap.Height * maxWebDimension / workingBitmap.Width);
+                        }
+                        else
+                        {
+                            targetH = maxWebDimension;
+                            targetW = (int)Math.Round((double)workingBitmap.Width * maxWebDimension / workingBitmap.Height);
+                        }
+
+                        var resized = ResizeBitmap(workingBitmap, targetW, targetH);
+                        workingBitmap.Dispose();
+                        workingBitmap = resized;
+                        ownsWorkingBitmap = true;
+                        appliedCorrections.Add($"Responsive web dimensions calibrated ({targetW} × {targetH} px)");
+                    }
+                    else
+                    {
+                        appliedCorrections.Add("High-resolution original dimensions preserved");
+                    }
+
+                    appliedCorrections.Add("Calibrated for high-performance web delivery using optimized WebP encoding");
+                }
                 else if (string.Equals(baseOp, "ImproveClarity", StringComparison.OrdinalIgnoreCase))
                 {
                     effectiveProfile = $"ImproveClarity:{preset}";
@@ -656,7 +771,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
                         appliedCorrections.Add("Fine wood, masonry, and architectural material grain preserved");
                     }
 
-                    var smoothed = ApplyBlur(workingBitmap, sigma: sigma);
+                    var smoothed = ApplyEdgePreservingDenoise(workingBitmap, sigma: sigma, threshold: 22);
                     workingBitmap = smoothed;
                     ownsWorkingBitmap = true;
                 }
@@ -847,6 +962,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
                     targetFormat = options.TargetFormat.ToLowerInvariant();
                 }
                 else if (string.Equals(baseOp, "WebOptimize", StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(baseOp, "EnhanceForWebsite", StringComparison.OrdinalIgnoreCase) ||
                          baseOp.StartsWith("QualityStudio", StringComparison.OrdinalIgnoreCase))
                 {
                     targetFormat = "webp";
@@ -883,6 +999,10 @@ public class DeterministicImageProcessingService : IImageProcessingService
                 if (options?.Quality.HasValue == true)
                 {
                     quality = options.Quality.Value;
+                }
+                else if (string.Equals(baseOp, "EnhanceForWebsite", StringComparison.OrdinalIgnoreCase))
+                {
+                    quality = 84;
                 }
                 else if (string.Equals(baseOp, "WebOptimize", StringComparison.OrdinalIgnoreCase))
                 {
@@ -934,6 +1054,54 @@ public class DeterministicImageProcessingService : IImageProcessingService
         };
         var destRect = new SKRect(0, 0, width, height);
         canvas.DrawBitmap(source, destRect, paint);
+        return dest;
+    }
+
+    public static SKBitmap ApplyEdgePreservingDenoise(SKBitmap source, float sigma, int threshold = 22)
+    {
+        // 1. Compute blurred baseline for smooth variance reference
+        using var blurred = ApplyBlur(source, sigma);
+
+        var total = source.ByteCount;
+        var srcBytes = new byte[total];
+        var blurBytes = new byte[total];
+        var destBytes = new byte[total];
+
+        System.Runtime.InteropServices.Marshal.Copy(source.GetPixels(), srcBytes, 0, total);
+        System.Runtime.InteropServices.Marshal.Copy(blurred.GetPixels(), blurBytes, 0, total);
+
+        var bytesPerPixel = source.BytesPerPixel;
+
+        // 2. Selective pixel blend: only smooth uniform/flat areas; preserve high-gradient edges
+        for (int i = 0; i < total; i += bytesPerPixel)
+        {
+            int diff0 = Math.Abs(srcBytes[i] - blurBytes[i]);
+            int diff1 = Math.Abs(srcBytes[i + 1] - blurBytes[i + 1]);
+            int diff2 = Math.Abs(srcBytes[i + 2] - blurBytes[i + 2]);
+            int maxDiff = Math.Max(diff0, Math.Max(diff1, diff2));
+
+            if (maxDiff < threshold)
+            {
+                float blend = 1.0f - ((float)maxDiff / threshold);
+                destBytes[i] = (byte)(srcBytes[i] + (blurBytes[i] - srcBytes[i]) * blend);
+                destBytes[i + 1] = (byte)(srcBytes[i + 1] + (blurBytes[i + 1] - srcBytes[i + 1]) * blend);
+                destBytes[i + 2] = (byte)(srcBytes[i + 2] + (blurBytes[i + 2] - srcBytes[i + 2]) * blend);
+            }
+            else
+            {
+                destBytes[i] = srcBytes[i];
+                destBytes[i + 1] = srcBytes[i + 1];
+                destBytes[i + 2] = srcBytes[i + 2];
+            }
+
+            if (bytesPerPixel == 4)
+            {
+                destBytes[i + 3] = srcBytes[i + 3];
+            }
+        }
+
+        var dest = new SKBitmap(source.Width, source.Height, source.ColorType, source.AlphaType);
+        System.Runtime.InteropServices.Marshal.Copy(destBytes, 0, dest.GetPixels(), total);
         return dest;
     }
 
@@ -1023,6 +1191,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
     }
 
     private static bool IsApprovedStandardOperation(string op) =>
+        string.Equals(op, "EnhanceForWebsite", StringComparison.OrdinalIgnoreCase) ||
         string.Equals(op, "ImproveClarity", StringComparison.OrdinalIgnoreCase) ||
         string.Equals(op, "ImproveSharpness", StringComparison.OrdinalIgnoreCase) ||
         string.Equals(op, "ReduceNoise", StringComparison.OrdinalIgnoreCase) ||

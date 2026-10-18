@@ -9,6 +9,7 @@ import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { BusinessContextSkeleton } from '@/components/ui/Skeleton';
 import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { 
@@ -151,15 +152,21 @@ export default function BusinessContextManagementPage() {
         </div>
         <div className="shrink-0 self-start sm:self-center w-fit">
           {data.isConfirmed ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shrink-0 w-fit max-w-max leading-normal">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>Confirmed &amp; Approved</span>
-            </span>
+            <Badge
+              variant="success"
+              size="md"
+              icon={<CheckCircle2 className="w-3.5 h-3.5" />}
+            >
+              Confirmed &amp; Approved
+            </Badge>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap shrink-0 w-fit max-w-max leading-normal">
-              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-              <span>Pending Re-confirmation</span>
-            </span>
+            <Badge
+              variant="warning"
+              size="md"
+              icon={<AlertCircle className="w-3.5 h-3.5" />}
+            >
+              Pending Re-confirmation
+            </Badge>
           )}
         </div>
       </div>
@@ -262,7 +269,7 @@ export default function BusinessContextManagementPage() {
                 </dt>
                 <InfoTooltip content="Primary business email for receiving customer leads." />
               </div>
-              <dd className="mt-1 text-sm sm:text-base font-medium text-slate-800 dark:text-white">
+              <dd className="mt-1 text-sm sm:text-base font-medium text-slate-800 dark:text-white break-all">
                 {data.businessEmail || <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>}
               </dd>
             </div>
@@ -274,9 +281,9 @@ export default function BusinessContextManagementPage() {
                 </dt>
                 <InfoTooltip content="Current live domain or web address." />
               </div>
-              <dd className="mt-1 text-sm sm:text-base font-medium text-slate-800 dark:text-white">
+              <dd className="mt-1 text-sm sm:text-base font-medium text-slate-800 dark:text-white break-all">
                 {data.website ? (
-                  <a href={data.website} target="_blank" rel="noopener noreferrer" className="text-[#315FEA] hover:underline">
+                  <a href={data.website} target="_blank" rel="noopener noreferrer" className="text-[#315FEA] hover:underline break-all">
                     {data.website}
                   </a>
                 ) : (

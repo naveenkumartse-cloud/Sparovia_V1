@@ -1,4 +1,7 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Sparovia.Application.Common;
 using Sparovia.Application.Leads;
@@ -11,11 +14,13 @@ namespace Sparovia.Infrastructure.Leads;
 public class LeadService : ILeadService
 {
     private readonly SparoviaDbContext _dbContext;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<LeadService> _logger;
 
-    public LeadService(SparoviaDbContext dbContext, ILogger<LeadService> logger)
+    public LeadService(SparoviaDbContext dbContext, IConfiguration configuration, ILogger<LeadService> logger)
     {
         _dbContext = dbContext;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -645,10 +650,19 @@ public class LeadService : ILeadService
 
     public async Task<LeadOperationResult> ProcessWhatsAppWebhookAsync(
         Guid tenantId,
+        string? webhookToken,
         WhatsAppLeadWebhookRequest request,
         CancellationToken cancellationToken = default)
     {
-        // 1. Verify tenant exists
+        // 1. Verify webhook authentication token
+        var configuredToken = _configuration["WhatsApp:WebhookToken"] ?? "sparovia_wa_webhook_secret_key_v1";
+        if (string.IsNullOrWhiteSpace(webhookToken) || !CryptographicEquals(webhookToken, configuredToken))
+        {
+            _logger.LogWarning("AUDIT: LEAD_WEBHOOK_UNAUTHORIZED. TenantId={TenantId}, Reason=InvalidWebhookToken", tenantId);
+            return LeadOperationResult.Fail("UNAUTHORIZED", "Invalid or missing webhook authentication token.");
+        }
+
+        // 2. Verify tenant exists
         var tenantExists = await _dbContext.Tenants.AnyAsync(t => t.Id == tenantId, cancellationToken);
         if (!tenantExists)
         {
@@ -769,5 +783,12 @@ public class LeadService : ILeadService
         return await _dbContext.Leads
             .AsNoTracking()
             .CountAsync(l => l.TenantId == tenantId && l.Status == LeadStatus.New, cancellationToken);
+    }
+
+    private static bool CryptographicEquals(string a, string b)
+    {
+        var bytesA = Encoding.UTF8.GetBytes(a);
+        var bytesB = Encoding.UTF8.GetBytes(b);
+        return CryptographicOperations.FixedTimeEquals(bytesA, bytesB);
     }
 }

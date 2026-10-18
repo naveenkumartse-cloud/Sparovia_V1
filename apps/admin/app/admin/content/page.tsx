@@ -38,6 +38,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Modal } from '@/components/ui/Modal';
 import { toast } from '@/components/ui/Toast';
+import { Badge } from '@/components/ui/Badge';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { apiClient } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
@@ -139,6 +140,8 @@ export default function ContentPage() {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isUnsavedSwitchModalOpen, setIsUnsavedSwitchModalOpen] = useState(false);
+  const [pendingSwitchKey, setPendingSwitchKey] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('editor');
 
   // AI Content Assistant modal state
@@ -223,12 +226,7 @@ export default function ContentPage() {
   };
 
   // When selected section changes from outside or overview updates
-  const handleSelectSection = (key: string) => {
-    if (key === selectedKey) return;
-    if (isDirty) {
-      const confirmLeave = window.confirm('You have unsaved changes in this section. Discard changes and switch?');
-      if (!confirmLeave) return;
-    }
+  const performSwitchSection = (key: string) => {
     setSelectedKey(key);
     const target = sections.find((s) => s.sectionKey === key);
     if (target) {
@@ -237,6 +235,16 @@ export default function ContentPage() {
       setDraftPayload({});
     }
     setActiveTab('editor');
+  };
+
+  const handleSelectSection = (key: string) => {
+    if (key === selectedKey) return;
+    if (isDirty) {
+      setPendingSwitchKey(key);
+      setIsUnsavedSwitchModalOpen(true);
+      return;
+    }
+    performSwitchSection(key);
   };
 
   // Compare draftPayload with activeSection.draftFields
@@ -454,10 +462,9 @@ export default function ContentPage() {
 
         {/* Connected Website Status Card */}
         <div className="flex items-center gap-3 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] px-4 py-2.5 shadow-xs self-start sm:self-auto shrink-0 max-w-full">
-          <div className="relative flex items-center justify-center shrink-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className="absolute w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-75" />
-          </div>
+          <Badge variant="success" size="xs" dot={true} dotPulse={true}>
+            Live Connected
+          </Badge>
           <div className="text-left min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-semibold text-slate-900 dark:text-white truncate">
@@ -470,7 +477,7 @@ export default function ContentPage() {
                 href={website.domain.startsWith('http') ? website.domain : `http://${website.domain}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] text-slate-500 hover:text-[#315FEA] dark:text-[#94A3B8] dark:hover:text-[#315FEA] font-mono truncate max-w-[280px] flex items-center gap-1 transition-colors"
+                className="text-[11px] text-slate-500 hover:text-[#315FEA] dark:text-[#94A3B8] dark:hover:text-[#315FEA] font-mono truncate max-w-[150px] sm:max-w-[280px] flex items-center gap-1 transition-colors"
                 title="Open live website in new tab"
               >
                 <span className="truncate">{website.domain}</span>
@@ -533,17 +540,15 @@ export default function ContentPage() {
                         <div className="text-sm font-semibold truncate leading-snug">
                           {displayTitle}
                         </div>
-                        <div className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5 mt-0.5">
+                        <div className="mt-1">
                           {sec.hasUnpublishedChanges ? (
-                            <span className="text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+                            <Badge variant="warning" size="xs" dot={true}>
                               Unpublished Draft
-                            </span>
+                            </Badge>
                           ) : (
-                            <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                            <Badge variant="success" size="xs" dot={true}>
                               Live v{sec.version}
-                            </span>
+                            </Badge>
                           )}
                         </div>
                       </div>
@@ -820,6 +825,52 @@ export default function ContentPage() {
             Once published, the public website will immediately render these updates without requiring any redeployment or cache invalidation.
           </p>
         </div>
+      </Modal>
+
+      {/* Discard Unsaved Changes Section Switch Modal */}
+      <Modal
+        isOpen={isUnsavedSwitchModalOpen}
+        onClose={() => {
+          setIsUnsavedSwitchModalOpen(false);
+          setPendingSwitchKey(null);
+        }}
+        title="Unsaved Section Changes"
+        description="You have unsaved edits in this section."
+        maxWidth="sm"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => {
+                setIsUnsavedSwitchModalOpen(false);
+                setPendingSwitchKey(null);
+              }}
+            >
+              Keep Editing
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="md"
+              onClick={() => {
+                if (pendingSwitchKey) {
+                  const nextKey = pendingSwitchKey;
+                  setIsUnsavedSwitchModalOpen(false);
+                  setPendingSwitchKey(null);
+                  performSwitchSection(nextKey);
+                }
+              }}
+            >
+              Discard &amp; Switch
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          Switching to another section without saving will discard your current modifications. Are you sure you want to discard your changes?
+        </p>
       </Modal>
 
       {/* AI Content Assistance Modal */}

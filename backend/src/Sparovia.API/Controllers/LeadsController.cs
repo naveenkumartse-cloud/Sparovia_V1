@@ -310,9 +310,13 @@ public class LeadsController : ControllerBase
             return BadRequest(new { Error = "Invalid webhook payload.", Code = "INVALID_PAYLOAD" });
         }
 
-        var result = await _leadService.ProcessWhatsAppWebhookAsync(tenantId, request, cancellationToken);
+        var result = await _leadService.ProcessWhatsAppWebhookAsync(tenantId, webhookToken, request, cancellationToken);
         if (!result.Success)
         {
+            if (result.ErrorCode == "UNAUTHORIZED")
+            {
+                return Unauthorized(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+            }
             if (result.ErrorCode == "TENANT_NOT_FOUND")
             {
                 return NotFound(new { Error = result.ErrorMessage, Code = result.ErrorCode });

@@ -22,13 +22,16 @@ import {
   LayoutGrid,
   List,
   X,
-  ExternalLink,
-  Filter,
-  CheckCircle2,
   Sparkles,
-  ArrowUpDown
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
+import { FormField } from '@/components/ui/FormField';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Modal } from '@/components/ui/Modal';
@@ -79,7 +82,7 @@ function CustomerLeadsContent() {
   const [sourceFilter, setSourceFilter] = useState<string>('All');
   const [sortOrder, setSortOrder] = useState<string>('newest');
 
-  // Presentation Mode: 'table' vs 'cards'
+  // Presentation Mode: 'table' vs 'cards' (on mobile viewports, cards are automatically used)
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
 
   // Leads Data state
@@ -408,14 +411,15 @@ function CustomerLeadsContent() {
       const past = new Date(dateStr);
       const diffMs = now.getTime() - past.getTime();
       const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
       if (diffMins < 1) return 'Just now';
       if (diffMins < 60) return `${diffMins}m ago`;
-      const diffHours = Math.floor(diffMins / 60);
       if (diffHours < 24) return `${diffHours}h ago`;
-      const diffDays = Math.floor(diffHours / 24);
       if (diffDays === 1) return 'Yesterday';
       if (diffDays < 7) return `${diffDays}d ago`;
-      return formatDate(dateStr);
+      return past.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
     } catch {
       return dateStr;
     }
@@ -424,74 +428,71 @@ function CustomerLeadsContent() {
   const getInitials = (name: string) => {
     if (!name) return 'L';
     const parts = name.trim().split(/\s+/);
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return parts[0].substring(0, 2).toUpperCase();
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'New':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[4px] text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <Badge variant="success" size="sm" dot dotPulse>
             New
-          </span>
+          </Badge>
         );
       case 'Contacted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[4px] text-xs font-semibold bg-[#315FEA]/10 text-[#315FEA] dark:bg-[#315FEA]/20 dark:text-[#6085FF] border border-[#315FEA]/20">
+          <Badge variant="brand" size="sm" dot>
             Contacted
-          </span>
+          </Badge>
         );
       case 'Qualified':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[4px] text-xs font-semibold bg-[#7950B8]/10 text-[#7950B8] dark:bg-[#7950B8]/20 dark:text-[#A78BFA] border border-[#7950B8]/20">
+          <Badge variant="purple" size="sm" dot>
             Qualified
-          </span>
+          </Badge>
         );
       case 'Closed':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[4px] text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+          <Badge variant="neutral" size="sm" dot>
             Closed
-          </span>
+          </Badge>
         );
       default:
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+          <Badge variant="neutral" size="sm">
             {status}
-          </span>
+          </Badge>
         );
     }
   };
 
-  const getSourceBadge = (source: string) => {
+  const getSourceBadge = (source?: string) => {
     const s = source?.toLowerCase() || '';
     if (s === 'whatsapp') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/60">
-          <MessageCircle className="w-3 h-3 text-[#25D366]" />
+        <Badge variant="whatsapp" size="xs">
+          <MessageCircle className="w-3 h-3 text-[#25D366] mr-1" />
           WhatsApp
-        </span>
+        </Badge>
       );
     }
     if (s === 'manual') {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[11px] font-medium bg-purple-50 text-[#7950B8] dark:bg-purple-950/30 dark:text-purple-300 border border-purple-200/60 dark:border-purple-900/60">
+        <Badge variant="purple" size="xs">
           Manual
-        </span>
+        </Badge>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[11px] font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">
+      <Badge variant="neutral" size="xs">
         Website
-      </span>
+      </Badge>
     );
   };
 
   const hasActiveFilters = Boolean(
-    leadsSearch.trim() || statusFilter !== 'All' || sourceFilter !== 'All' || sortOrder !== 'newest'
+    leadsSearch.trim() || statusFilter !== 'All' || sourceFilter !== 'All'
   );
 
   const resetAllFilters = () => {
@@ -511,9 +512,9 @@ function CustomerLeadsContent() {
             <h1 className="text-2xl sm:text-3xl font-bold text-[#172033] dark:text-white tracking-tight">
               Customer Leads
             </h1>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-[4px] text-xs font-bold bg-[#315FEA]/10 text-[#315FEA] dark:bg-[#315FEA]/20 dark:text-[#6085FF] border border-[#315FEA]/20">
+            <Badge variant="brand" size="sm">
               {leadsTotalCount} Total
-            </span>
+            </Badge>
           </div>
           <p className="text-xs sm:text-sm text-[#475569] dark:text-[#94A3B8] mt-1">
             Review, qualify, and action customer enquiries captured through your website and verified channels.
@@ -521,8 +522,8 @@ function CustomerLeadsContent() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* View Mode Toggle */}
-          <div className="flex items-center bg-slate-100 dark:bg-[#1E293B] p-0.5 rounded-[6px] border border-slate-200 dark:border-slate-700">
+          {/* View Mode Toggle (Shown on tablet and desktop) */}
+          <div className="hidden sm:flex items-center bg-slate-100 dark:bg-[#1E293B] p-0.5 rounded-[6px] border border-slate-200 dark:border-slate-700">
             <button
               type="button"
               onClick={() => setViewMode('table')}
@@ -585,122 +586,117 @@ function CustomerLeadsContent() {
         </div>
       </div>
 
-      {/* 2. Executive Status KPI Strip (Interactive Filter Cards) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {/* KPI: All Enquiries */}
+      {/* 2. Interactive Status Metric Filter Pills (Replacing Bulky KPI Cards) */}
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1">
         <button
           type="button"
           onClick={() => {
             setStatusFilter('All');
             setLeadsPage(1);
           }}
-          className={`p-3.5 rounded-[8px] border text-left transition-all ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none ${
             statusFilter === 'All'
-              ? 'bg-[#315FEA]/5 border-[#315FEA] shadow-xs'
-              : 'bg-white dark:bg-[#0F172A] border-[#CBD5E1] dark:border-[#1E293B] hover:border-slate-300'
+              ? 'bg-[#315FEA] text-white shadow-xs'
+              : 'bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] text-slate-700 dark:text-slate-300 hover:border-[#315FEA]'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-[#94A3B8]">
-              All Enquiries
-            </span>
-            <Users className="w-4 h-4 text-slate-400" />
-          </div>
-          <div className="mt-2 text-xl font-bold text-[#172033] dark:text-white">
+          <span>All Enquiries</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+            statusFilter === 'All' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300'
+          }`}>
             {leadsTotalCount}
-          </div>
-          <p className="text-[10px] text-slate-400 mt-0.5">
-            Full client intake
-          </p>
+          </span>
         </button>
 
-        {/* KPI: New Enquiries */}
         <button
           type="button"
           onClick={() => {
             setStatusFilter('New');
             setLeadsPage(1);
           }}
-          className={`p-3.5 rounded-[8px] border text-left transition-all ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none ${
             statusFilter === 'New'
-              ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-500 shadow-xs'
-              : 'bg-white dark:bg-[#0F172A] border-[#CBD5E1] dark:border-[#1E293B] hover:border-emerald-300'
+              ? 'bg-[#15803D] text-white shadow-xs'
+              : 'bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] text-slate-700 dark:text-slate-300 hover:border-[#15803D]'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-              New
-            </span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          </div>
-          <div className="mt-2 text-xl font-bold text-emerald-800 dark:text-emerald-300">
+          <span className="w-2 h-2 rounded-full bg-[#15803D] dark:bg-emerald-400 animate-pulse" />
+          <span>New</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+            statusFilter === 'New' ? 'bg-white/20 text-white' : 'bg-[#15803D]/10 text-[#15803D] dark:text-emerald-400'
+          }`}>
             {statusCounts.new}
-          </div>
-          <p className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">
-            Awaiting response
-          </p>
+          </span>
         </button>
 
-        {/* KPI: Contacted */}
         <button
           type="button"
           onClick={() => {
             setStatusFilter('Contacted');
             setLeadsPage(1);
           }}
-          className={`p-3.5 rounded-[8px] border text-left transition-all ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none ${
             statusFilter === 'Contacted'
-              ? 'bg-[#315FEA]/5 border-[#315FEA] shadow-xs'
-              : 'bg-white dark:bg-[#0F172A] border-[#CBD5E1] dark:border-[#1E293B] hover:border-blue-300'
+              ? 'bg-[#315FEA] text-white shadow-xs'
+              : 'bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] text-slate-700 dark:text-slate-300 hover:border-[#315FEA]'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#315FEA] dark:text-blue-400">
-              Contacted
-            </span>
-            <Phone className="w-4 h-4 text-[#315FEA]/70" />
-          </div>
-          <div className="mt-2 text-xl font-bold text-[#172033] dark:text-white">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#315FEA]" />
+          <span>Contacted</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+            statusFilter === 'Contacted' ? 'bg-white/20 text-white' : 'bg-[#315FEA]/10 text-[#315FEA] dark:text-blue-400'
+          }`}>
             {statusCounts.contacted}
-          </div>
-          <p className="text-[10px] text-slate-400 mt-0.5">
-            In discussion
-          </p>
+          </span>
         </button>
 
-        {/* KPI: Qualified / High-Intent */}
         <button
           type="button"
           onClick={() => {
             setStatusFilter('Qualified');
             setLeadsPage(1);
           }}
-          className={`p-3.5 rounded-[8px] border text-left transition-all ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none ${
             statusFilter === 'Qualified'
-              ? 'bg-purple-50/60 dark:bg-purple-950/30 border-[#7950B8] shadow-xs'
-              : 'bg-white dark:bg-[#0F172A] border-[#CBD5E1] dark:border-[#1E293B] hover:border-purple-300'
+              ? 'bg-[#7950B8] text-white shadow-xs'
+              : 'bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] text-slate-700 dark:text-slate-300 hover:border-[#7950B8]'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#7950B8] dark:text-purple-300">
-              Qualified
-            </span>
-            <Sparkles className="w-4 h-4 text-[#7950B8]/70" />
-          </div>
-          <div className="mt-2 text-xl font-bold text-[#172033] dark:text-white">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#7950B8]" />
+          <span>Qualified</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+            statusFilter === 'Qualified' ? 'bg-white/20 text-white' : 'bg-[#7950B8]/10 text-[#7950B8] dark:text-purple-300'
+          }`}>
             {statusCounts.qualified}
-          </div>
-          <p className="text-[10px] text-slate-400 mt-0.5">
-            High client match
-          </p>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('Closed');
+            setLeadsPage(1);
+          }}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none ${
+            statusFilter === 'Closed'
+              ? 'bg-slate-700 text-white shadow-xs'
+              : 'bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] text-slate-700 dark:text-slate-300 hover:border-slate-400'
+          }`}
+        >
+          <span>Closed</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+            statusFilter === 'Closed' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-slate-300'
+          }`}>
+            {statusCounts.closed}
+          </span>
         </button>
       </div>
 
       {/* 3. Filter, Search, and Sort Toolbar */}
-      <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-4 shadow-xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+      <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-3.5 sm:p-4 shadow-xs space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
           {/* Search */}
-          <div className="relative sm:col-span-2 lg:col-span-5">
+          <div className="relative sm:col-span-2 lg:col-span-6">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
@@ -720,33 +716,15 @@ function CustomerLeadsContent() {
                   setLeadsPage(1);
                 }}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                aria-label="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
-          {/* Status Filter */}
-          <div className="lg:col-span-2 flex items-center gap-1.5">
-            <span className="text-xs text-slate-500 font-medium shrink-0">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={e => {
-                setStatusFilter(e.target.value);
-                setLeadsPage(1);
-              }}
-              className="w-full py-2 px-2.5 text-xs rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
-            >
-              {STATUS_OPTIONS.map(opt => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Source Filter */}
-          <div className="lg:col-span-2 flex items-center gap-1.5">
+          <div className="lg:col-span-3 flex items-center gap-1.5">
             <span className="text-xs text-slate-500 font-medium shrink-0">Source:</span>
             <select
               value={sourceFilter}
@@ -790,19 +768,19 @@ function CustomerLeadsContent() {
             {leadsSearch && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                 Search: &quot;{leadsSearch}&quot;
-                <button type="button" onClick={() => setLeadsSearch('')}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => setLeadsSearch('')} aria-label="Remove search filter"><X className="w-3 h-3" /></button>
               </span>
             )}
             {statusFilter !== 'All' && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                 Status: {statusFilter}
-                <button type="button" onClick={() => setStatusFilter('All')}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => setStatusFilter('All')} aria-label="Remove status filter"><X className="w-3 h-3" /></button>
               </span>
             )}
             {sourceFilter !== 'All' && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                 Source: {sourceFilter}
-                <button type="button" onClick={() => setSourceFilter('All')}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => setSourceFilter('All')} aria-label="Remove source filter"><X className="w-3 h-3" /></button>
               </span>
             )}
             <button
@@ -868,364 +846,387 @@ function CustomerLeadsContent() {
             </div>
           )}
         </div>
-      ) : viewMode === 'table' ? (
-        /* TABLE PRESENTATION */
-        <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-[#F3F6FA] dark:bg-[#1E293B]/40 border-b border-[#E3E7ED] dark:border-[#1E293B] text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
-                <tr>
-                  <th scope="col" className="px-5 py-3.5">Customer</th>
-                  <th scope="col" className="px-5 py-3.5">Contact Details</th>
-                  <th scope="col" className="px-5 py-3.5">Area of Interest</th>
-                  <th scope="col" className="px-5 py-3.5">Source</th>
-                  <th scope="col" className="px-5 py-3.5">Status</th>
-                  <th scope="col" className="px-5 py-3.5">Submitted</th>
-                  <th scope="col" className="px-5 py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-[#1E293B]">
-                {leads.map(lead => (
-                  <tr
-                    key={lead.id}
-                    onClick={() => setSelectedLead(lead)}
-                    className="hover:bg-slate-50/80 dark:hover:bg-[#1E293B]/30 cursor-pointer transition-colors group"
-                  >
-                    {/* Customer Name & Initials */}
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] font-bold text-xs flex items-center justify-center shrink-0">
-                          {getInitials(lead.name)}
-                        </div>
-                        <div className="min-w-0 max-w-xs">
-                          <p className="font-bold text-slate-900 dark:text-white truncate">
-                            {lead.name}
-                          </p>
-                          {lead.message && (
-                            <p className="text-xs text-slate-400 font-normal truncate mt-0.5">
-                              {lead.message}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Contact Details & Quick Copy */}
-                    <td className="px-5 py-4 text-slate-700 dark:text-slate-300" onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center gap-1.5 font-medium">
-                        <span>{lead.phone}</span>
-                        <button
-                          type="button"
-                          onClick={(e) => handleCopyPhone(lead.id, lead.phone, e)}
-                          className="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-                          title="Copy phone"
-                        >
-                          {copiedPhoneId === lead.id ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      </div>
-                      {lead.email && (
-                        <p className="text-xs text-slate-400 truncate max-w-[180px] mt-0.5">
-                          {lead.email}
-                        </p>
-                      )}
-                    </td>
-
-                    {/* Area of Interest */}
-                    <td className="px-5 py-4">
-                      {lead.areaOfInterest ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-xs font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                          {lead.areaOfInterest}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-slate-400">—</span>
-                      )}
-                    </td>
-
-                    {/* Source Channel */}
-                    <td className="px-5 py-4">
-                      {getSourceBadge(lead.source)}
-                    </td>
-
-                    {/* Status Dropdown */}
-                    <td className="px-5 py-4" onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(lead.status)}
-                        <select
-                          value={lead.status}
-                          onChange={e => handleStatusChange(lead.id, e.target.value)}
-                          disabled={isUpdatingStatus}
-                          className="py-0.5 px-1.5 text-xs rounded-[4px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E293B] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-[#315FEA] opacity-70 group-hover:opacity-100 transition-opacity"
-                          aria-label={`Update status for ${lead.name}`}
-                        >
-                          <option value="New">New</option>
-                          <option value="Contacted">Contacted</option>
-                          <option value="Qualified">Qualified</option>
-                          <option value="Closed">Closed</option>
-                        </select>
-                      </div>
-                    </td>
-
-                    {/* Submitted Date */}
-                    <td className="px-5 py-4 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                      <div title={formatDate(lead.submittedAt)}>
-                        {formatRelativeTime(lead.submittedAt)}
-                      </div>
-                    </td>
-
-                    {/* Action Buttons */}
-                    <td className="px-5 py-4 text-right" onClick={e => e.stopPropagation()}>
-                      <div className="inline-flex items-center gap-1.5">
-                        {lead.phone && (
-                          <a
-                            href={`tel:${lead.phone}`}
-                            className="p-1.5 rounded-[4px] text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
-                            title={`Call ${lead.name}`}
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                          </a>
-                        )}
-                        {lead.phone && (
-                          <a
-                            href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1.5 rounded-[4px] text-[#25D366] hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
-                            title={`WhatsApp ${lead.name}`}
-                          >
-                            <MessageCircle className="w-3.5 h-3.5" />
-                          </a>
-                        )}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() => {
-                            setSelectedLead(lead);
-                            openEditModal(lead);
-                          }}
-                          title="Edit lead"
-                          aria-label={`Edit ${lead.name}`}
-                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() => setLeadToDelete(lead)}
-                          title="Delete lead"
-                          aria-label={`Delete ${lead.name}`}
-                          className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Controls */}
-          <div className="p-4 border-t border-slate-100 dark:border-[#1E293B] flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50 dark:bg-[#0B1120]/50">
-            <div className="flex items-center gap-3 text-xs text-slate-500">
-              <span>
-                Showing <strong className="text-slate-700 dark:text-slate-300">{leads.length}</strong> of{' '}
-                <strong className="text-slate-700 dark:text-slate-300">{leadsTotalCount}</strong> total
-              </span>
-              <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 dark:border-slate-700 pl-3">
-                <span>Page size:</span>
-                <select
-                  value={leadsPageSize}
-                  onChange={e => {
-                    setLeadsPageSize(Number(e.target.value));
-                    setLeadsPage(1);
-                  }}
-                  className="py-1 px-1.5 rounded-[4px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E293B] text-xs font-semibold"
-                >
-                  {PAGE_SIZE_OPTIONS.map(size => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLeadsPage(p => Math.max(1, p - 1))}
-                disabled={leadsPage <= 1 || leadsLoading}
-                className="flex items-center gap-1 text-xs rounded-[6px]"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-                <span>Prev</span>
-              </Button>
-              <span className="text-xs font-medium text-slate-600 dark:text-slate-400 px-2">
-                Page {leadsPage} of {leadsTotalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLeadsPage(p => Math.min(leadsTotalPages, p + 1))}
-                disabled={leadsPage >= leadsTotalPages || leadsLoading}
-                className="flex items-center gap-1 text-xs rounded-[6px]"
-              >
-                <span>Next</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          </div>
-        </div>
       ) : (
-        /* CARD / GRID PRESENTATION */
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {leads.map(lead => (
-              <div
-                key={lead.id}
-                onClick={() => setSelectedLead(lead)}
-                className="p-5 rounded-[8px] bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs hover:border-[#315FEA] hover:shadow-sm cursor-pointer transition-all flex flex-col justify-between space-y-4"
-              >
-                <div>
-                  {/* Card Header: Avatar, Name, Status */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-9 h-9 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] font-bold text-xs flex items-center justify-center shrink-0">
-                        {getInitials(lead.name)}
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-bold text-slate-900 dark:text-white text-sm truncate">
-                          {lead.name}
-                        </h3>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+        <>
+          {/* DESKTOP TABLE VIEW (Visible on md+ screens when table view is selected) */}
+          <div className={`bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] shadow-xs overflow-hidden ${
+            viewMode === 'table' ? 'hidden md:block' : 'hidden'
+          }`}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-sm">
+                <thead className="bg-[#F3F6FA] dark:bg-[#1E293B]/40 border-b border-[#E3E7ED] dark:border-[#1E293B] text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
+                  <tr>
+                    <th scope="col" className="px-5 py-3.5">Customer</th>
+                    <th scope="col" className="px-5 py-3.5">Contact Details</th>
+                    <th scope="col" className="px-5 py-3.5">Area of Interest</th>
+                    <th scope="col" className="px-5 py-3.5">Source</th>
+                    <th scope="col" className="px-5 py-3.5">Status</th>
+                    <th scope="col" className="px-5 py-3.5">Submitted</th>
+                    <th scope="col" className="px-5 py-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-[#1E293B]">
+                  {leads.map(lead => (
+                    <tr
+                      key={lead.id}
+                      onClick={() => setSelectedLead(lead)}
+                      className="hover:bg-slate-50/80 dark:hover:bg-[#1E293B]/30 cursor-pointer transition-colors group"
+                    >
+                      {/* Customer Name & Initials */}
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] font-bold text-xs flex items-center justify-center shrink-0">
+                            {getInitials(lead.name)}
+                          </div>
+                          <div className="min-w-0 max-w-xs">
+                            <p className="font-semibold text-slate-900 dark:text-white truncate">
+                              {lead.name}
+                            </p>
+                            {lead.message && (
+                              <p className="text-xs text-slate-400 font-normal truncate mt-0.5">
+                                {lead.message}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Contact Details & Quick Copy */}
+                      <td className="px-5 py-3.5 text-slate-700 dark:text-slate-300" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center gap-1.5 font-medium">
                           <span>{lead.phone}</span>
                           <button
                             type="button"
                             onClick={(e) => handleCopyPhone(lead.id, lead.phone, e)}
-                            className="p-0.5 rounded text-slate-400 hover:text-slate-600"
+                            className="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                             title="Copy phone"
+                            aria-label={`Copy phone number for ${lead.name}`}
                           >
                             {copiedPhoneId === lead.id ? (
-                              <Check className="w-3 h-3 text-emerald-600" />
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
                             ) : (
-                              <Copy className="w-3 h-3" />
+                              <Copy className="w-3.5 h-3.5" />
                             )}
                           </button>
                         </div>
-                      </div>
-                    </div>
-                    {getStatusBadge(lead.status)}
-                  </div>
+                        {lead.email && (
+                          <p className="text-xs text-slate-400 truncate max-w-[180px] mt-0.5">
+                            {lead.email}
+                          </p>
+                        )}
+                      </td>
 
-                  {/* Badges: Source and Interest */}
-                  <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                    {getSourceBadge(lead.source)}
-                    {lead.areaOfInterest && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                        {lead.areaOfInterest}
-                      </span>
-                    )}
-                  </div>
+                      {/* Area of Interest */}
+                      <td className="px-5 py-3.5">
+                        {lead.areaOfInterest ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-xs font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                            {lead.areaOfInterest}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400">—</span>
+                        )}
+                      </td>
 
-                  {/* Message Preview */}
-                  {lead.message && (
-                    <div className="mt-3 p-2.5 rounded-[4px] bg-slate-50 dark:bg-[#1E293B]/40 text-xs text-slate-700 dark:text-slate-300 line-clamp-2 leading-relaxed">
-                      &quot;{lead.message}&quot;
-                    </div>
-                  )}
-                </div>
+                      {/* Source Channel */}
+                      <td className="px-5 py-3.5">
+                        {getSourceBadge(lead.source)}
+                      </td>
 
-                {/* Card Footer: Fast actions & time */}
-                <div className="pt-3 border-t border-slate-100 dark:border-[#1E293B] flex items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
-                  <span className="text-[11px] text-slate-400">
-                    {formatRelativeTime(lead.submittedAt)}
-                  </span>
+                      {/* Status */}
+                      <td className="px-5 py-3.5" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(lead.status)}
+                          <select
+                            value={lead.status}
+                            onChange={e => handleStatusChange(lead.id, e.target.value)}
+                            disabled={isUpdatingStatus}
+                            className="py-0.5 px-1.5 text-xs rounded-[4px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E293B] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-[#315FEA] opacity-70 group-hover:opacity-100 transition-opacity"
+                            aria-label={`Update status for ${lead.name}`}
+                          >
+                            <option value="New">New</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Qualified">Qualified</option>
+                            <option value="Closed">Closed</option>
+                          </select>
+                        </div>
+                      </td>
 
-                  <div className="flex items-center gap-1.5">
-                    {lead.phone && (
-                      <a
-                        href={`tel:${lead.phone}`}
-                        className="p-1.5 rounded-[4px] text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
-                        title="Call"
-                      >
-                        <Phone className="w-3.5 h-3.5" />
-                      </a>
-                    )}
-                    {lead.phone && (
-                      <a
-                        href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-1.5 rounded-[4px] text-[#25D366] hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
-                        title="WhatsApp"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                      </a>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedLead(lead);
-                        openEditModal(lead);
-                      }}
-                      className="p-1.5 rounded-[4px] text-slate-400 hover:text-slate-600 transition-colors"
-                      title="Edit"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLeadToDelete(lead)}
-                      className="p-1.5 rounded-[4px] text-slate-400 hover:text-rose-600 transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                      {/* Submitted Date */}
+                      <td className="px-5 py-3.5 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                        <div title={formatDate(lead.submittedAt)}>
+                          {formatRelativeTime(lead.submittedAt)}
+                        </div>
+                      </td>
+
+                      {/* Action Buttons */}
+                      <td className="px-5 py-3.5 text-right" onClick={e => e.stopPropagation()}>
+                        <div className="inline-flex items-center gap-1">
+                          {lead.phone && (
+                            <a
+                              href={`tel:${lead.phone}`}
+                              className="p-1.5 rounded-[4px] text-[#15803D] hover:bg-[#15803D]/10 transition-colors"
+                              title={`Call ${lead.name}`}
+                              aria-label={`Call ${lead.name}`}
+                            >
+                              <Phone className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                          {lead.phone && (
+                            <a
+                              href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 rounded-[4px] text-[#25D366] hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
+                              title={`WhatsApp ${lead.name}`}
+                              aria-label={`WhatsApp ${lead.name}`}
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedLead(lead);
+                              openEditModal(lead);
+                            }}
+                            title="Edit lead"
+                            aria-label={`Edit ${lead.name}`}
+                            className="p-1.5 rounded-[4px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setLeadToDelete(lead)}
+                            title="Delete lead"
+                            aria-label={`Delete ${lead.name}`}
+                            className="p-1.5 rounded-[4px] text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Desktop Table Pagination */}
+            <div className="p-3.5 sm:p-4 border-t border-slate-100 dark:border-[#1E293B] flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50 dark:bg-[#0B1120]/50">
+              <div className="flex items-center gap-3 text-xs text-slate-500">
+                <span>
+                  Showing <strong className="text-slate-700 dark:text-slate-300">{leads.length}</strong> of{' '}
+                  <strong className="text-slate-700 dark:text-slate-300">{leadsTotalCount}</strong> total
+                </span>
+                <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 dark:border-slate-700 pl-3">
+                  <span>Page size:</span>
+                  <select
+                    value={leadsPageSize}
+                    onChange={e => {
+                      setLeadsPageSize(Number(e.target.value));
+                      setLeadsPage(1);
+                    }}
+                    className="py-1 px-1.5 rounded-[4px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1E293B] text-xs font-semibold"
+                  >
+                    {PAGE_SIZE_OPTIONS.map(size => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
-            ))}
-          </div>
 
-          {/* Card View Pagination */}
-          <div className="p-4 bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] flex items-center justify-between text-xs">
-            <span className="text-slate-500">
-              Showing {leads.length} of {leadsTotalCount} leads
-            </span>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLeadsPage(p => Math.max(1, p - 1))}
-                disabled={leadsPage <= 1}
-                className="rounded-[6px]"
-              >
-                Previous
-              </Button>
-              <span className="font-semibold text-slate-700 dark:text-slate-300">
-                {leadsPage} / {leadsTotalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLeadsPage(p => Math.min(leadsTotalPages, p + 1))}
-                disabled={leadsPage >= leadsTotalPages}
-                className="rounded-[6px]"
-              >
-                Next
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLeadsPage(p => Math.max(1, p - 1))}
+                  disabled={leadsPage <= 1 || leadsLoading}
+                  className="flex items-center gap-1 text-xs rounded-[6px]"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Prev</span>
+                </Button>
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400 px-2">
+                  Page {leadsPage} of {leadsTotalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLeadsPage(p => Math.min(leadsTotalPages, p + 1))}
+                  disabled={leadsPage >= leadsTotalPages || leadsLoading}
+                  className="flex items-center gap-1 text-xs rounded-[6px]"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+
+          {/* MOBILE CARDS VIEW (Automatically shown on mobile < md, or when cards view mode is toggled) */}
+          <div className={`space-y-3.5 ${viewMode === 'table' ? 'block md:hidden' : 'block'}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {leads.map(lead => (
+                <div
+                  key={lead.id}
+                  onClick={() => setSelectedLead(lead)}
+                  className="p-4 rounded-[8px] bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs hover:border-[#315FEA] cursor-pointer transition-all flex flex-col justify-between space-y-3"
+                >
+                  <div className="space-y-2.5">
+                    {/* Card Top: Customer Avatar, Name, Status & Time */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] font-bold text-xs flex items-center justify-center shrink-0">
+                          {getInitials(lead.name)}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-slate-900 dark:text-white text-sm truncate">
+                            {lead.name}
+                          </h3>
+                          <span className="text-[11px] text-slate-400">
+                            {formatRelativeTime(lead.submittedAt)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="shrink-0">
+                        {getStatusBadge(lead.status)}
+                      </div>
+                    </div>
+
+                    {/* Contact Info Row */}
+                    <div className="flex items-center justify-between text-xs text-slate-700 dark:text-slate-300 pt-1" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-1.5 font-medium min-w-0">
+                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate">{lead.phone}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleCopyPhone(lead.id, lead.phone, e)}
+                          className="p-1 rounded text-slate-400 hover:text-slate-600 shrink-0"
+                          title="Copy phone"
+                          aria-label={`Copy phone for ${lead.name}`}
+                        >
+                          {copiedPhoneId === lead.id ? (
+                            <Check className="w-3 h-3 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </button>
+                      </div>
+                      {lead.email && (
+                        <span className="text-[11px] text-slate-400 truncate max-w-[120px] ml-2">
+                          {lead.email}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Badges: Source and Area of Interest */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      {getSourceBadge(lead.source)}
+                      {lead.areaOfInterest && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                          {lead.areaOfInterest}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Message Preview */}
+                    {lead.message && (
+                      <div className="p-2.5 rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/40 text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                        &quot;{lead.message}&quot;
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Bottom: Fast actions */}
+                  <div className="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] flex items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
+                    <span className="text-[11px] text-slate-400">
+                      Tap card for details
+                    </span>
+
+                    <div className="flex items-center gap-1">
+                      {lead.phone && (
+                        <a
+                          href={`tel:${lead.phone}`}
+                          className="h-8 w-8 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-[6px] text-[#15803D] hover:bg-[#15803D]/10 transition-colors"
+                          title="Call customer"
+                          aria-label={`Call ${lead.name}`}
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                      {lead.phone && (
+                        <a
+                          href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="h-8 w-8 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-[6px] text-[#25D366] hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
+                          title="WhatsApp customer"
+                          aria-label={`WhatsApp ${lead.name}`}
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedLead(lead);
+                          openEditModal(lead);
+                        }}
+                        className="h-8 w-8 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-[6px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        title="Edit lead"
+                        aria-label={`Edit ${lead.name}`}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLeadToDelete(lead)}
+                        className="h-8 w-8 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-[6px] text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                        title="Delete lead"
+                        aria-label={`Delete ${lead.name}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Mobile Cards Pagination */}
+            <div className="p-3 bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] flex items-center justify-between text-xs">
+              <span className="text-slate-500">
+                {leads.length} of {leadsTotalCount} leads
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLeadsPage(p => Math.max(1, p - 1))}
+                  disabled={leadsPage <= 1}
+                  className="rounded-[6px]"
+                >
+                  Prev
+                </Button>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  {leadsPage} / {leadsTotalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLeadsPage(p => Math.min(leadsTotalPages, p + 1))}
+                  disabled={leadsPage >= leadsTotalPages}
+                  className="rounded-[6px]"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {/* 5. Lead Detail Inspection Modal with Pipeline Stepper */}
@@ -1245,7 +1246,7 @@ function CustomerLeadsContent() {
                 {selectedLead.phone && (
                   <a
                     href={`tel:${selectedLead.phone}`}
-                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[6px] bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[6px] bg-[#15803D] hover:bg-[#15803D]/90 text-white transition-colors"
                   >
                     <Phone className="w-3.5 h-3.5" />
                     <span>Call Customer</span>
@@ -1298,7 +1299,7 @@ function CustomerLeadsContent() {
         }
       >
         {selectedLead && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {statusUpdateError && (
               <div className="p-3 rounded-[6px] bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
@@ -1307,11 +1308,11 @@ function CustomerLeadsContent() {
             )}
 
             {/* Pipeline Stage Stepper */}
-            <div className="p-4 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/40 border border-slate-200 dark:border-slate-800">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2.5">
+            <div className="p-3.5 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/40 border border-slate-200 dark:border-slate-800">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
                 Conversion Pipeline Stage
               </span>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {(['New', 'Contacted', 'Qualified', 'Closed'] as const).map((stage) => {
                   const isActive = selectedLead.status === stage;
                   return (
@@ -1320,7 +1321,7 @@ function CustomerLeadsContent() {
                       type="button"
                       disabled={isUpdatingStatus}
                       onClick={() => handleStatusChange(selectedLead.id, stage)}
-                      className={`p-2 rounded-[6px] text-center border text-xs font-bold transition-all ${
+                      className={`p-2 rounded-[6px] text-center border text-xs font-semibold transition-all ${
                         isActive
                           ? 'bg-[#315FEA] border-[#315FEA] text-white shadow-xs'
                           : 'bg-white dark:bg-[#0F172A] border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-400'
@@ -1334,28 +1335,29 @@ function CustomerLeadsContent() {
             </div>
 
             {/* Customer Contact Details Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <div className="p-3.5 rounded-[8px] bg-white dark:bg-[#1E293B]/60 border border-slate-200 dark:border-slate-800">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 rounded-[8px] bg-white dark:bg-[#1E293B]/60 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Customer Name
                 </span>
-                <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white mt-1">
                   {selectedLead.name}
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-[8px] bg-white dark:bg-[#1E293B]/60 border border-slate-200 dark:border-slate-800">
+              <div className="p-3 rounded-[8px] bg-white dark:bg-[#1E293B]/60 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Phone Number
                 </span>
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">
                     {selectedLead.phone}
                   </p>
                   <button
                     type="button"
                     onClick={(e) => handleCopyPhone(selectedLead.id, selectedLead.phone, e)}
                     className="text-xs text-[#315FEA] font-semibold hover:underline inline-flex items-center gap-1"
+                    aria-label={`Copy phone for ${selectedLead.name}`}
                   >
                     <Copy className="w-3 h-3" />
                     Copy
@@ -1363,25 +1365,25 @@ function CustomerLeadsContent() {
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-[8px] bg-white dark:bg-[#1E293B]/60 border border-slate-200 dark:border-slate-800">
+              <div className="p-3 rounded-[8px] bg-white dark:bg-[#1E293B]/60 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Email Address
                 </span>
-                <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white mt-1">
                   {selectedLead.email || 'Not provided'}
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-[8px] bg-white dark:bg-[#1E293B]/60 border border-slate-200 dark:border-slate-800">
+              <div className="p-3 rounded-[8px] bg-white dark:bg-[#1E293B]/60 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Area of Interest
                 </span>
-                <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white mt-1">
                   {selectedLead.areaOfInterest || 'Not specified'}
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-[8px] bg-white dark:bg-[#1E293B]/60 border border-slate-200 dark:border-slate-800 sm:col-span-2">
+              <div className="p-3 rounded-[8px] bg-white dark:bg-[#1E293B]/60 border border-slate-200 dark:border-slate-800 sm:col-span-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Intake Source & Status
                 </span>
@@ -1393,7 +1395,7 @@ function CustomerLeadsContent() {
             </div>
 
             {/* Customer Message Card */}
-            <div className="p-4 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/40 border border-slate-200 dark:border-slate-800 space-y-1.5">
+            <div className="p-3.5 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/40 border border-slate-200 dark:border-slate-800 space-y-1">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                 <MessageSquare className="w-3.5 h-3.5" />
                 Customer Inquiry Requirements
@@ -1431,6 +1433,7 @@ function CustomerLeadsContent() {
           setIsAddModalOpen(false);
           setAddError(null);
         }}
+        preventOutsideClose={isAddingLead}
         title="Add Customer Lead"
         description="Record a new customer enquiry manually into your workspace."
         maxWidth="md"
@@ -1443,28 +1446,18 @@ function CustomerLeadsContent() {
             </div>
           )}
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Customer Name *
-            </label>
-            <input
+          <FormField label="Customer Name" required>
+            <Input
               type="text"
               required
               placeholder="e.g. Anand Kumar"
               value={addForm.name}
               onChange={e => setAddForm({ ...addForm, name: e.target.value })}
-              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
             />
-          </div>
+          </FormField>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Phone Number *
-                </label>
-                <span className="text-[11px] text-slate-400">10-digit mobile</span>
-              </div>
+            <FormField label="Phone Number" required helperText="10-digit mobile number">
               <div className="flex items-stretch w-full rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-slate-50 dark:bg-[#1E293B]/50 focus-within:ring-2 focus-within:ring-[#315FEA]">
                 <div
                   aria-hidden="true"
@@ -1490,60 +1483,45 @@ function CustomerLeadsContent() {
                   className="w-full bg-transparent px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
                 />
               </div>
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Email Address (Optional)
-              </label>
-              <input
+            <FormField label="Email Address (Optional)">
+              <Input
                 type="email"
                 placeholder="customer@example.com"
                 value={addForm.email}
                 onChange={e => setAddForm({ ...addForm, email: e.target.value })}
-                className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
               />
-            </div>
+            </FormField>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Source Channel
-              </label>
-              <select
+            <FormField label="Source Channel">
+              <Select
                 value={addForm.source}
                 onChange={e => setAddForm({ ...addForm, source: e.target.value })}
-                className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
               >
                 <option value="Manual">Manual</option>
                 <option value="Website">Website</option>
                 <option value="WhatsApp">WhatsApp</option>
-              </select>
-            </div>
+              </Select>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Initial Status
-              </label>
-              <select
+            <FormField label="Initial Status">
+              <Select
                 value={addForm.status}
                 onChange={e => setAddForm({ ...addForm, status: e.target.value })}
-                className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
               >
                 <option value="New">New</option>
                 <option value="Contacted">Contacted</option>
                 <option value="Qualified">Qualified</option>
                 <option value="Closed">Closed</option>
-              </select>
-            </div>
+              </Select>
+            </FormField>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Area of Interest
-            </label>
-            <select
+          <FormField label="Area of Interest">
+            <Select
               value={addForm.areaOfInterest}
               onChange={e => {
                 const selected = tenantCategories.find(c => c.name === e.target.value);
@@ -1553,7 +1531,6 @@ function CustomerLeadsContent() {
                   areaOfInterestCategoryId: selected ? selected.id : '',
                 });
               }}
-              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
             >
               <option value="">Select an area of interest (optional)</option>
               {tenantCategories.map(cat => (
@@ -1561,22 +1538,18 @@ function CustomerLeadsContent() {
                   {cat.name}
                 </option>
               ))}
-            </select>
-          </div>
+            </Select>
+          </FormField>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Project Enquiry / Requirements *
-            </label>
-            <textarea
+          <FormField label="Project Enquiry / Requirements" required>
+            <Textarea
               required
               rows={3}
               placeholder="Enter customer enquiry message or project scope..."
               value={addForm.message}
               onChange={e => setAddForm({ ...addForm, message: e.target.value })}
-              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA] resize-none"
             />
-          </div>
+          </FormField>
 
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-[#1E293B]">
             <Button
@@ -1594,9 +1567,11 @@ function CustomerLeadsContent() {
               variant="primary"
               size="sm"
               disabled={isAddingLead}
+              isLoading={isAddingLead}
+              loadingText="Saving..."
               className="rounded-[6px]"
             >
-              {isAddingLead ? 'Saving...' : 'Save Lead'}
+              Save Lead
             </Button>
           </div>
         </form>
@@ -1609,6 +1584,7 @@ function CustomerLeadsContent() {
           setIsEditModalOpen(false);
           setEditError(null);
         }}
+        preventOutsideClose={isEditingLead}
         title="Edit Customer Lead"
         description="Update contact information or enquiry specifications."
         maxWidth="md"
@@ -1621,27 +1597,17 @@ function CustomerLeadsContent() {
             </div>
           )}
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Customer Name *
-            </label>
-            <input
+          <FormField label="Customer Name" required>
+            <Input
               type="text"
               required
               value={editForm.name}
               onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
             />
-          </div>
+          </FormField>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Phone Number *
-                </label>
-                <span className="text-[11px] text-slate-400">10-digit mobile</span>
-              </div>
+            <FormField label="Phone Number" required helperText="10-digit mobile number">
               <div className="flex items-stretch w-full rounded-[6px] border border-slate-200 dark:border-[#1E293B] bg-slate-50 dark:bg-[#1E293B]/50 focus-within:ring-2 focus-within:ring-[#315FEA]">
                 <div
                   aria-hidden="true"
@@ -1667,27 +1633,21 @@ function CustomerLeadsContent() {
                   className="w-full bg-transparent px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
                 />
               </div>
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Email Address
-              </label>
-              <input
+            <FormField label="Email Address">
+              <Input
                 type="email"
+                placeholder="customer@example.com"
                 value={editForm.email}
                 onChange={e => setEditForm({ ...editForm, email: e.target.value })}
-                className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
               />
-            </div>
+            </FormField>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Area of Interest
-              </label>
-              <select
+            <FormField label="Area of Interest">
+              <Select
                 value={editForm.areaOfInterest}
                 onChange={e => {
                   const selected = tenantCategories.find(c => c.name === e.target.value);
@@ -1697,7 +1657,6 @@ function CustomerLeadsContent() {
                     areaOfInterestCategoryId: selected ? selected.id : '',
                   });
                 }}
-                className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
               >
                 <option value="">Select an area of interest (optional)</option>
                 {tenantCategories.map(cat => (
@@ -1705,38 +1664,30 @@ function CustomerLeadsContent() {
                     {cat.name}
                   </option>
                 ))}
-              </select>
-            </div>
+              </Select>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Status
-              </label>
-              <select
+            <FormField label="Status">
+              <Select
                 value={editForm.status}
                 onChange={e => setEditForm({ ...editForm, status: e.target.value })}
-                className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
               >
                 <option value="New">New</option>
                 <option value="Contacted">Contacted</option>
                 <option value="Qualified">Qualified</option>
                 <option value="Closed">Closed</option>
-              </select>
-            </div>
+              </Select>
+            </FormField>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Project Enquiry / Requirements *
-            </label>
-            <textarea
+          <FormField label="Project Enquiry / Requirements" required>
+            <Textarea
               required
               rows={3}
               value={editForm.message}
               onChange={e => setEditForm({ ...editForm, message: e.target.value })}
-              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-[6px] bg-slate-50 dark:bg-[#1E293B]/50 border border-slate-200 dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA] resize-none"
             />
-          </div>
+          </FormField>
 
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-[#1E293B]">
             <Button
@@ -1754,9 +1705,11 @@ function CustomerLeadsContent() {
               variant="primary"
               size="sm"
               disabled={isEditingLead}
+              isLoading={isEditingLead}
+              loadingText="Saving..."
               className="rounded-[6px]"
             >
-              {isEditingLead ? 'Saving...' : 'Save Changes'}
+              Save Changes
             </Button>
           </div>
         </form>
@@ -1769,6 +1722,7 @@ function CustomerLeadsContent() {
           setLeadToDelete(null);
           setDeleteError(null);
         }}
+        preventOutsideClose={isDeleting}
         title="Delete Customer Lead"
         description="Are you sure you want to delete this enquiry? This action cannot be undone."
         maxWidth="sm"

@@ -24,6 +24,8 @@ import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Badge } from '@/components/ui/Badge';
+import { toast } from '@/components/ui/Toast';
 import {
   ImageStudioWorkspace,
   ImageDto,
@@ -161,6 +163,8 @@ export default function ImagesPage() {
   const [newCatInput, setNewCatInput] = useState('');
   const [categoryActionLoading, setCategoryActionLoading] = useState(false);
   const [categoryActionError, setCategoryActionError] = useState<string | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<WorkCategoryDto | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState(false);
 
   // Fetch images and categories from backend
   const fetchImages = async () => {
@@ -251,8 +255,9 @@ export default function ImagesPage() {
       if (previewModalOpen && previewImage?.id === image.id) {
         setPreviewImage({ ...previewImage, status: 'Published' });
       }
+      toast.success('Image published to website successfully.');
     } catch (err: any) {
-      alert(err?.message || 'Publishing failed. Your previous live image remains unchanged.');
+      toast.error(err?.message || 'Publishing failed. Your previous live image remains unchanged.');
     } finally {
       setPublishing(false);
     }
@@ -266,8 +271,9 @@ export default function ImagesPage() {
       if (previewModalOpen && previewImage?.id === image.id) {
         setPreviewImage({ ...previewImage, status: 'Approved', isActiveWebsiteUsage: false });
       }
+      toast.success('Image removed from live website.');
     } catch (err: any) {
-      alert(err?.message || 'Failed to unpublish image from live website.');
+      toast.error(err?.message || 'Failed to unpublish image from live website.');
     }
   };
 
@@ -279,8 +285,9 @@ export default function ImagesPage() {
       if (previewModalOpen && previewImage?.id === image.id) {
         setPreviewImage({ ...previewImage, status: 'Approved' });
       }
+      toast.success('Image approved.');
     } catch (err: any) {
-      alert(err?.message || 'Failed to approve image.');
+      toast.error(err?.message || 'Failed to approve image.');
     }
   };
 
@@ -298,8 +305,9 @@ export default function ImagesPage() {
       setEditingImage(null);
       await fetchImages();
       await fetchCategories();
+      toast.success('Project details updated successfully.');
     } catch (err: any) {
-      alert(err?.message || 'Failed to update image details.');
+      toast.error(err?.message || 'Failed to update image details.');
     } finally {
       setSavingMetadata(false);
     }
@@ -320,8 +328,9 @@ export default function ImagesPage() {
       setRemoveModalOpen(false);
       setRemovingImage(null);
       await fetchCategories();
+      toast.success('Image deleted from library.');
     } catch (err: any) {
-      alert(err?.message || 'Failed to delete image.');
+      toast.error(err?.message || 'Failed to delete image.');
     } finally {
       setRemoving(false);
     }
@@ -374,20 +383,33 @@ export default function ImagesPage() {
     }
   };
 
-  const handleDeleteCategoryFromModal = async (catId: string) => {
-    if (!window.confirm('Are you sure you want to delete this category?')) return;
+  const handleDeleteCategoryFromModal = (catId: string) => {
+    const target = categories.find((c) => c.id === catId);
+    if (target) {
+      setCategoryToDelete(target);
+    }
+  };
+
+  const handleConfirmCategoryDelete = async () => {
+    if (!categoryToDelete) return;
+    setDeletingCategory(true);
     setCategoryActionLoading(true);
     setCategoryActionError(null);
     try {
-      await apiClient.delete(`/website/categories/${catId}`);
-      if (categoryFilter.toLowerCase() === categories.find((c) => c.id === catId)?.name.toLowerCase()) {
+      await apiClient.delete(`/website/categories/${categoryToDelete.id}`);
+      if (categoryFilter.toLowerCase() === categoryToDelete.name.toLowerCase()) {
         setCategoryFilter('All');
       }
+      toast.success(`Category "${categoryToDelete.name}" deleted successfully.`);
+      setCategoryToDelete(null);
       await fetchCategories();
       await fetchImages();
     } catch (err: any) {
-      setCategoryActionError(err?.message || 'Failed to delete category.');
+      const msg = err?.message || 'Failed to delete category.';
+      setCategoryActionError(msg);
+      toast.error(msg);
     } finally {
+      setDeletingCategory(false);
       setCategoryActionLoading(false);
     }
   };
@@ -426,6 +448,7 @@ export default function ImagesPage() {
   // Bulk actions execution
   const handleBulkDelete = async () => {
     if (selectedImageIds.size === 0) return;
+    const count = selectedImageIds.size;
     setBulkProcessing(true);
     try {
       await apiClient.post('/website/images/bulk-delete', {
@@ -435,8 +458,9 @@ export default function ImagesPage() {
       setBulkDeleteModalOpen(false);
       await fetchImages();
       await fetchCategories();
+      toast.success(`Deleted ${count} image${count === 1 ? '' : 's'} successfully.`);
     } catch (err: any) {
-      alert(err?.message || 'Failed during bulk delete.');
+      toast.error(err?.message || 'Failed during bulk delete.');
     } finally {
       setBulkProcessing(false);
     }
@@ -444,6 +468,7 @@ export default function ImagesPage() {
 
   const handleBulkPublish = async () => {
     if (selectedImageIds.size === 0) return;
+    const count = selectedImageIds.size;
     setBulkProcessing(true);
     try {
       await apiClient.post('/website/images/bulk-publish', {
@@ -452,8 +477,9 @@ export default function ImagesPage() {
       clearSelection();
       setBulkPublishModalOpen(false);
       await fetchImages();
+      toast.success(`Published ${count} image${count === 1 ? '' : 's'} to website successfully.`);
     } catch (err: any) {
-      alert(err?.message || 'Failed during bulk publish.');
+      toast.error(err?.message || 'Failed during bulk publish.');
     } finally {
       setBulkProcessing(false);
     }
@@ -517,11 +543,11 @@ export default function ImagesPage() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-[#1E293B] gap-6">
+      <div className="flex border-b border-slate-200 dark:border-[#1E293B] gap-6 overflow-x-auto no-scrollbar">
         <button
           type="button"
           onClick={() => handleTabChange('website')}
-          className={`pb-3 text-sm font-semibold transition-colors border-b-2 -mb-px flex items-center gap-2 ${
+          className={`pb-3 text-sm font-semibold transition-colors border-b-2 -mb-px flex items-center gap-2 shrink-0 whitespace-nowrap ${
             activeTab === 'website'
               ? 'border-[#315FEA] text-[#315FEA]'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -534,7 +560,7 @@ export default function ImagesPage() {
         <button
           type="button"
           onClick={() => handleTabChange('explore')}
-          className={`pb-3 text-sm font-semibold transition-colors border-b-2 -mb-px flex items-center gap-2 ${
+          className={`pb-3 text-sm font-semibold transition-colors border-b-2 -mb-px flex items-center gap-2 shrink-0 whitespace-nowrap ${
             activeTab === 'explore'
               ? 'border-[#315FEA] text-[#315FEA]'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -649,17 +675,13 @@ export default function ImagesPage() {
                         </p>
                       </div>
 
-                      <span
-                        className={`px-2.5 py-0.5 rounded-[4px] text-[10px] font-semibold shrink-0 ${
-                          assignedImage
-                            ? isAssignedPublished
-                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                              : 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
-                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-                        }`}
+                      <Badge
+                        variant={assignedImage ? (isAssignedPublished ? 'success' : 'brand') : 'neutral'}
+                        size="xs"
+                        dot={assignedImage && isAssignedPublished}
                       >
                         {assignedImage ? (isAssignedPublished ? 'Published' : 'Assigned') : 'Not Set'}
-                      </span>
+                      </Badge>
                     </div>
 
                     {/* Image Preview Area - Large Workspace Viewport */}
@@ -971,24 +993,18 @@ export default function ImagesPage() {
                           {/* Top-Right Badges */}
                           <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10 pointer-events-none">
                             {image.category && (
-                              <span className="px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-[#172033]/85 text-white backdrop-blur-xs tracking-wide">
+                              <Badge variant="neutral" size="xs" className="bg-[#172033]/85 text-white border-transparent backdrop-blur-xs tracking-wide">
                                 {image.category}
-                              </span>
+                              </Badge>
                             )}
-                            <span
-                              className={`px-2 py-0.5 rounded-[4px] text-[10px] font-bold tracking-wider uppercase border backdrop-blur-xs flex items-center gap-1 ${
-                                isPublished
-                                  ? 'bg-emerald-50/95 text-[#15803D] border-emerald-200 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800'
-                                  : isApproved
-                                  ? 'bg-blue-50/95 text-[#1D4ED8] border-blue-200 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800'
-                                  : 'bg-slate-100/95 text-[#475569] border-slate-200 dark:bg-slate-800/90 dark:text-slate-300 dark:border-slate-700'
-                              }`}
+                            <Badge
+                              variant={isPublished ? 'success' : isApproved ? 'brand' : 'neutral'}
+                              size="xs"
+                              dot={isPublished}
+                              className="uppercase tracking-wider backdrop-blur-xs"
                             >
-                              {isPublished && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#15803D]" />
-                              )}
                               {image.status}
-                            </span>
+                            </Badge>
                           </div>
                         </div>
 
@@ -1626,6 +1642,43 @@ export default function ImagesPage() {
             )}
           </div>
         </div>
+      </Modal>
+
+      {/* MODAL 8: Category Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!categoryToDelete}
+        onClose={() => !deletingCategory && setCategoryToDelete(null)}
+        title="Delete Work Category"
+        description={`Are you sure you want to delete the category "${categoryToDelete?.name}"?`}
+        maxWidth="sm"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              disabled={deletingCategory}
+              onClick={() => setCategoryToDelete(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="md"
+              disabled={deletingCategory}
+              isLoading={deletingCategory}
+              loadingText="Deleting..."
+              onClick={handleConfirmCategoryDelete}
+            >
+              Delete Category
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          Deleting this category will unassign it from any associated project photographs. The photographs themselves will not be deleted.
+        </p>
       </Modal>
     </div>
   );

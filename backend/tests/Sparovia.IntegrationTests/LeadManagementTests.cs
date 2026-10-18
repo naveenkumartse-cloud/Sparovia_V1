@@ -371,12 +371,35 @@ public class LeadManagementTests : IClassFixture<WebApplicationFactory<Program>>
             Timestamp = DateTime.UtcNow
         };
 
-        // 1. First webhook event delivery
-        var res1 = await publicClient.PostAsJsonAsync($"/api/v1/leads/webhook/whatsapp?tenantId={tenantId}", webhookReq);
+        // 1. Missing webhook authentication token rejected with 401 Unauthorized
+        var unauthenticatedRes = await publicClient.PostAsJsonAsync($"/api/v1/leads/webhook/whatsapp?tenantId={tenantId}", webhookReq);
+        Assert.Equal(HttpStatusCode.Unauthorized, unauthenticatedRes.StatusCode);
+
+        // 2. Forged / invalid webhook token rejected with 401 Unauthorized
+        var invalidReq = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/leads/webhook/whatsapp?tenantId={tenantId}")
+        {
+            Content = JsonContent.Create(webhookReq)
+        };
+        invalidReq.Headers.Add("X-WhatsApp-Token", "unauthorized_forged_token_123");
+        var invalidRes = await publicClient.SendAsync(invalidReq);
+        Assert.Equal(HttpStatusCode.Unauthorized, invalidRes.StatusCode);
+
+        // 3. Authorized webhook delivery with valid token succeeds
+        var validReq1 = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/leads/webhook/whatsapp?tenantId={tenantId}")
+        {
+            Content = JsonContent.Create(webhookReq)
+        };
+        validReq1.Headers.Add("X-WhatsApp-Token", "sparovia_wa_webhook_secret_key_v1");
+        var res1 = await publicClient.SendAsync(validReq1);
         Assert.Equal(HttpStatusCode.OK, res1.StatusCode);
 
-        // 2. Second webhook event delivery with identical MessageId (idempotent retry)
-        var res2 = await publicClient.PostAsJsonAsync($"/api/v1/leads/webhook/whatsapp?tenantId={tenantId}", webhookReq);
+        // 4. Second webhook event delivery with identical MessageId and valid token (idempotent retry)
+        var validReq2 = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/leads/webhook/whatsapp?tenantId={tenantId}")
+        {
+            Content = JsonContent.Create(webhookReq)
+        };
+        validReq2.Headers.Add("X-WhatsApp-Token", "sparovia_wa_webhook_secret_key_v1");
+        var res2 = await publicClient.SendAsync(validReq2);
         Assert.Equal(HttpStatusCode.OK, res2.StatusCode);
 
         // 3. Verify exactly 1 lead created

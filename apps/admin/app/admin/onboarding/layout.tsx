@@ -24,7 +24,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
     <div className="max-w-4xl mx-auto pb-16 px-4 sm:px-6">
       {/* Top Banner / Progress Indicator */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <span className="text-xs uppercase tracking-wider font-semibold text-[#315FEA]">
               {fromAdmin ? 'Business Context Management' : 'Business Context Onboarding'}
@@ -36,7 +36,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
           {fromAdmin && (
             <Link
               href="/admin/business-context"
-              className="text-xs font-semibold text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-white transition-colors bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] px-3.5 py-2 rounded-[6px] shadow-xs"
+              className="text-xs font-semibold text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-white transition-colors bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] px-3.5 py-2 rounded-[6px] shadow-xs shrink-0 self-start sm:self-center"
             >
               Back to Business Context
             </Link>
@@ -44,7 +44,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
         </div>
 
         {/* Step Progression Bar */}
-        <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-3 sm:p-4 shadow-sm overflow-x-auto">
+        <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-3 sm:p-4 shadow-sm overflow-x-auto no-scrollbar">
           <nav aria-label="Progress" className="min-w-[600px] sm:min-w-0">
             <ol className="flex items-center justify-between space-x-2 sm:space-x-4">
               {ONBOARDING_STEPS.map((step, index) => {
@@ -57,7 +57,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
                       <div
                         className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors ${
                           isCompleted
-                            ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40'
+                            ? 'bg-[#15803D]/10 text-[#15803D] dark:text-[#4ADE80] border border-[#15803D]/30'
                             : isCurrent
                             ? 'bg-[#315FEA] text-white shadow-xs'
                             : 'bg-slate-100 dark:bg-[#1E293B] text-slate-400 dark:text-[#64748B] border border-slate-200 dark:border-[#334155]'
@@ -86,7 +86,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
       </div>
 
       {/* Step Content */}
-      <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-sm">
+      <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-4 sm:p-6 lg:p-8 shadow-sm">
         {children}
       </div>
     </div>

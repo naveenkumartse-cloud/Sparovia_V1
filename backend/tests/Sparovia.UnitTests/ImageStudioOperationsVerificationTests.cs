@@ -699,4 +699,108 @@ public class ImageStudioOperationsVerificationTests
             _output.WriteLine($"Tiny 48x48 JPEG WebOptimize: In = {tinyJpeg.Length} B, Out = {res.FileSize} B (Delta: {res.FileSize - tinyJpeg.Length} B)");
         }
     }
+
+    [Fact]
+    public async Task EnhanceForWebsite_DeterministicPipeline_ValidWebPCandidate_PreservesOriginalImmutability()
+    {
+        var originalBytes = CreateArchitecturalTestImage(800, 600, SKEncodedImageFormat.Jpeg, 90);
+        var originalHashBefore = ComputeHash(originalBytes);
+
+        using var inStream = new MemoryStream(originalBytes);
+        var result = await _service.ProcessImageAsync(inStream, "EnhanceForWebsite");
+
+        // 1. Output verification
+        Assert.NotNull(result);
+        Assert.NotEmpty(result.Bytes);
+        Assert.Equal("image/webp", result.MimeType);
+        Assert.Equal(".webp", result.FileExtension);
+        Assert.Equal(800, result.Width);
+        Assert.Equal(600, result.Height);
+        Assert.True(result.FileSize > 0);
+        Assert.Contains(result.AppliedCorrections, c => c.Contains("Highlights protected against blow-out") || c.Contains("Balanced exposure maintained"));
+        Assert.Contains(result.AppliedCorrections, c => c.Contains("Clean surface textures preserved") || c.Contains("noise reduction"));
+        Assert.Contains(result.AppliedCorrections, c => c.Contains("structural edge definition") || c.Contains("edge sharpness"));
+        Assert.Contains(result.AppliedCorrections, c => c.Contains("Authentic architectural material colors"));
+        Assert.Contains(result.AppliedCorrections, c => c.Contains("WebP encoding"));
+
+        // 2. Output is decodable
+        using var outData = SKData.CreateCopy(result.Bytes);
+        using var outBmp = SKBitmap.Decode(outData);
+        Assert.NotNull(outBmp);
+        Assert.Equal(800, outBmp.Width);
+        Assert.Equal(600, outBmp.Height);
+
+        // 3. Immutability: original bytes must be byte-for-byte identical
+        var originalHashAfter = ComputeHash(originalBytes);
+        Assert.Equal(originalHashBefore, originalHashAfter);
+    }
+
+    [Fact]
+    public async Task EnhanceForWebsite_ColorFidelity_PreservesMaterialColorBalance()
+    {
+        // Plaster: (220, 215, 205), Wood: (160, 110, 60), Hearth: (120, 90, 85)
+        var originalBytes = CreateArchitecturalTestImage(400, 300, SKEncodedImageFormat.Jpeg, 95);
+
+        using var inStream = new MemoryStream(originalBytes);
+        var result = await _service.ProcessImageAsync(inStream, "EnhanceForWebsite");
+
+        using var origData = SKData.CreateCopy(originalBytes);
+        using var origBmp = SKBitmap.Decode(origData);
+        using var outData = SKData.CreateCopy(result.Bytes);
+        using var outBmp = SKBitmap.Decode(outData);
+
+        // Check plaster wall color at (100, 50)
+        var origPlaster = origBmp.GetPixel(100, 50);
+        var outPlaster = outBmp.GetPixel(100, 50);
+
+        // EnhanceForWebsite preserves color fidelity without warm or cool tint
+        double origRgRatio = (double)origPlaster.Red / Math.Max((int)origPlaster.Green, 1);
+        double outRgRatio = (double)outPlaster.Red / Math.Max((int)outPlaster.Green, 1);
+        Assert.True(Math.Abs(origRgRatio - outRgRatio) < 0.05,
+            $"Plaster color balance altered unexpectedly: Orig R/G = {origRgRatio:F3}, Out R/G = {outRgRatio:F3}");
+
+        // Check wood flooring color at (100, 250)
+        var origWood = origBmp.GetPixel(100, 250);
+        var outWood = outBmp.GetPixel(100, 250);
+        double origWoodRg = (double)origWood.Red / Math.Max((int)origWood.Green, 1);
+        double outWoodRg = (double)outWood.Red / Math.Max((int)outWood.Green, 1);
+        Assert.True(Math.Abs(origWoodRg - outWoodRg) < 0.08,
+            $"Wood color balance altered unexpectedly: Orig R/G = {origWoodRg:F3}, Out R/G = {outWoodRg:F3}");
+    }
+
+    [Fact]
+    public async Task ReduceNoise_EdgePreservingFilter_PreservesSharpArchitecturalEdges()
+    {
+        // Create an image with a high-contrast architectural boundary:
+        // Left half = dark slate (50, 50, 50), Right half = white marble (220, 220, 220)
+        // Edge difference = 170 >> threshold 22.
+        int width = 200;
+        int height = 100;
+        using var bmp = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            using var darkPaint = new SKPaint { Color = new SKColor(50, 50, 50) };
+            canvas.DrawRect(0, 0, width / 2, height, darkPaint);
+            using var lightPaint = new SKPaint { Color = new SKColor(220, 220, 220) };
+            canvas.DrawRect(width / 2, 0, width / 2, height, lightPaint);
+        }
+        using var img = SKImage.FromBitmap(bmp);
+        using var encoded = img.Encode(SKEncodedImageFormat.Png, 100);
+        var inputBytes = encoded.ToArray();
+
+        using var inStream = new MemoryStream(inputBytes);
+        var result = await _service.ProcessImageAsync(inStream, "ReduceNoise", new ImageProcessingOptions { Preset = "Balanced" });
+
+        using var outData = SKData.CreateCopy(result.Bytes);
+        using var outBmp = SKBitmap.Decode(outData);
+
+        // Check pixels just left of edge (x = 95) and right of edge (x = 105)
+        var leftPixel = outBmp.GetPixel(95, 50);
+        var rightPixel = outBmp.GetPixel(105, 50);
+
+        int edgeDelta = Math.Abs(rightPixel.Red - leftPixel.Red);
+        // Naive Gaussian blur with sigma=1.5 on a boundary reduces the step delta drastically.
+        // Edge-preserving filter should preserve the sharp step delta >= 150.
+        Assert.True(edgeDelta >= 150, $"Edge-preserving filter obliterated the architectural edge: edgeDelta = {edgeDelta}");
+    }
 }

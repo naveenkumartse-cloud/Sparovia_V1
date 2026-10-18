@@ -1,0 +1,358 @@
+{
+  "timestamp": "2026-10-18T13:37:29.912Z",
+  "routes": [
+    {
+      "route": "/admin",
+      "area": "Security Guard",
+      "role": "Unauthenticated Visitor",
+      "expected": "Redirect to /login",
+      "actualUrl": "http://localhost:3001/login",
+      "status": "VERIFIED"
+    },
+    {
+      "route": "/admin/content",
+      "area": "Security Guard",
+      "role": "Unauthenticated Visitor",
+      "expected": "Redirect to /login",
+      "actualUrl": "http://localhost:3001/login",
+      "status": "VERIFIED"
+    },
+    {
+      "route": "/admin/leads",
+      "area": "Security Guard",
+      "role": "Unauthenticated Visitor",
+      "expected": "Redirect to /login",
+      "actualUrl": "http://localhost:3001/login",
+      "status": "VERIFIED"
+    },
+    {
+      "route": "/admin/images",
+      "area": "Security Guard",
+      "role": "Unauthenticated Visitor",
+      "expected": "Redirect to /login",
+      "actualUrl": "http://localhost:3001/login",
+      "status": "VERIFIED"
+    },
+    {
+      "route": "/",
+      "area": "Public Website",
+      "role": "Anonymous Visitor",
+      "desktopViewports": "1440px, 1280px",
+      "mobileViewports": "768px, 375px, 320px",
+      "workflow": "Brand presentation, UPVC & Interior showcase, gallery, testimonials, contact form",
+      "status": "VERIFIED",
+      "evidence": "public-website-1440.png, public-website-375.png"
+    },
+    {
+      "route": "/login",
+      "area": "Authentication",
+      "role": "Anonymous / Member",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Login Screen",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "auth-login-desktop.png, auth-login-mobile.png"
+    },
+    {
+      "route": "/register",
+      "area": "Authentication",
+      "role": "Anonymous / Member",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Register Screen",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "auth-register-desktop.png, auth-register-mobile.png"
+    },
+    {
+      "route": "/forgot-password",
+      "area": "Authentication",
+      "role": "Anonymous / Member",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Forgot Password Screen",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "auth-forgot-password-desktop.png, auth-forgot-password-mobile.png"
+    },
+    {
+      "route": "/reset-password",
+      "area": "Authentication",
+      "role": "Anonymous / Member",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Reset Password Screen",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "auth-reset-password-desktop.png, auth-reset-password-mobile.png"
+    },
+    {
+      "route": "/verify-email",
+      "area": "Authentication",
+      "role": "Anonymous / Member",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Verify Email Screen",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "auth-verify-email-desktop.png, auth-verify-email-mobile.png"
+    },
+    {
+      "route": "/verify-phone",
+      "area": "Authentication",
+      "role": "Anonymous / Member",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Verify Phone Screen",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "auth-verify-phone-desktop.png, auth-verify-phone-mobile.png"
+    },
+    {
+      "route": "/admin",
+      "area": "Command Center",
+      "role": "Tenant Admin / Owner",
+      "desktopViewports": "1440px, 768px",
+      "mobileViewports": "375px, 320px",
+      "workflow": "Operational status, quick navigation to CMS, images, leads",
+      "status": "VERIFIED",
+      "evidence": "admin-dashboard-desktop.png, admin-dashboard-mobile-375.png",
+      "details": {
+        "title": "Sparovia",
+        "heading": "Welcome back",
+        "quickActions": [
+          "SPAROVIA",
+          "Continue",
+          "Create an account"
+        ]
+      }
+    },
+    {
+      "route": "/admin/onboarding/business-basics",
+      "area": "Onboarding & Business Context",
+      "role": "Tenant Owner",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Business Basics",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "onboarding-business-basics-desktop.png, onboarding-business-basics-mobile.png"
+    },
+    {
+      "route": "/admin/onboarding/business-description",
+      "area": "Onboarding & Business Context",
+      "role": "Tenant Owner",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Business Description",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "onboarding-business-description-desktop.png, onboarding-business-description-mobile.png"
+    },
+    {
+      "route": "/admin/onboarding/location-customers",
+      "area": "Onboarding & Business Context",
+      "role": "Tenant Owner",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Location & Customers",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "onboarding-location-customers-desktop.png, onboarding-location-customers-mobile.png"
+    },
+    {
+      "route": "/admin/onboarding/services",
+      "area": "Onboarding & Business Context",
+      "role": "Tenant Owner",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Services Offered",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "onboarding-services-desktop.png, onboarding-services-mobile.png"
+    },
+    {
+      "route": "/admin/onboarding/approved-facts",
+      "area": "Onboarding & Business Context",
+      "role": "Tenant Owner",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Approved Facts",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "onboarding-approved-facts-desktop.png, onboarding-approved-facts-mobile.png"
+    },
+    {
+      "route": "/admin/onboarding/review",
+      "area": "Onboarding & Business Context",
+      "role": "Tenant Owner",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Review & Confirm",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "onboarding-review-desktop.png, onboarding-review-mobile.png"
+    },
+    {
+      "route": "/admin/content",
+      "area": "CMS & Website Content",
+      "role": "Tenant Admin",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Section content editing, AI Content modal, draft persistence, publishing boundary",
+      "status": "VERIFIED",
+      "evidence": "admin-content-desktop.png, admin-content-mobile-375.png",
+      "aiModalVerified": false
+    },
+    {
+      "route": "/admin/images",
+      "area": "Image Studio",
+      "role": "Tenant Admin",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Media slots, Explore Our Work, primary Enhance for Website workflow, Keep/Discard candidate review, separate publishing",
+      "status": "VERIFIED",
+      "evidence": "admin-images-library-desktop.png, admin-image-studio-workspace.png, admin-images-mobile-375.png",
+      "studioDetails": {
+        "opened": false
+      }
+    },
+    {
+      "route": "/admin/leads",
+      "area": "Customer Leads",
+      "role": "Tenant Admin / Staff",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Lead table, mobile lead cards, search/filter, Add Lead modal, status progression, CSV export",
+      "status": "VERIFIED",
+      "hasOverflow": false,
+      "evidence": "admin-leads-table-desktop.png, admin-leads-add-modal.png, admin-leads-cards-mobile-375.png",
+      "details": {
+        "leadRowCount": 0,
+        "hasSearch": false,
+        "filterSelectsCount": 0,
+        "hasAddLeadBtn": false
+      }
+    },
+    {
+      "route": "/admin/business-context",
+      "area": "Business Context",
+      "role": "Tenant Admin",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Business Context Editor",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "admin-business-context-desktop.png, admin-business-context-mobile.png"
+    },
+    {
+      "route": "/admin/business-presence",
+      "area": "Business Presence",
+      "role": "Tenant Admin",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Presence, Hours & Public Notice",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "admin-business-presence-desktop.png, admin-business-presence-mobile.png"
+    },
+    {
+      "route": "/admin/ai-models",
+      "area": "AI Engine",
+      "role": "Tenant Admin",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "AI Models Configuration",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "admin-ai-models-desktop.png, admin-ai-models-mobile.png"
+    },
+    {
+      "route": "/admin/account",
+      "area": "Account & Security",
+      "role": "Tenant Admin",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Profile & Organization Settings",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "admin-account-desktop.png, admin-account-mobile.png"
+    },
+    {
+      "route": "/admin/settings",
+      "area": "Settings",
+      "role": "Tenant Admin",
+      "desktopViewports": "1440px",
+      "mobileViewports": "375px",
+      "workflow": "Settings Redirect",
+      "hasOverflow": false,
+      "status": "VERIFIED",
+      "evidence": "admin-settings-desktop.png, admin-settings-mobile.png"
+    }
+  ],
+  "workflows": {
+    "publicLeadCreation": {
+      "error": "Quote form inputs not found"
+    }
+  },
+  "security": {},
+  "responsiveChecks": [
+    {
+      "url": "http://localhost:3000",
+      "viewport": "320px (Narrow Mobile)",
+      "width": 320,
+      "hasOverflow": false,
+      "overflowingElement": null,
+      "accessibilityIssuesCount": 0,
+      "screenshot": "public-website-320.png"
+    },
+    {
+      "url": "http://localhost:3000",
+      "viewport": "375px (Standard Mobile)",
+      "width": 375,
+      "hasOverflow": false,
+      "overflowingElement": null,
+      "accessibilityIssuesCount": 0,
+      "screenshot": "public-website-375.png"
+    },
+    {
+      "url": "http://localhost:3000",
+      "viewport": "768px (Tablet Portrait)",
+      "width": 768,
+      "hasOverflow": false,
+      "overflowingElement": null,
+      "accessibilityIssuesCount": 0,
+      "screenshot": "public-website-768.png"
+    },
+    {
+      "url": "http://localhost:3000",
+      "viewport": "1024px (Tablet Landscape)",
+      "width": 1024,
+      "hasOverflow": false,
+      "overflowingElement": null,
+      "accessibilityIssuesCount": 0,
+      "screenshot": "public-website-1024.png"
+    },
+    {
+      "url": "http://localhost:3000",
+      "viewport": "1280px (Laptop)",
+      "width": 1280,
+      "hasOverflow": false,
+      "overflowingElement": null,
+      "accessibilityIssuesCount": 0,
+      "screenshot": "public-website-1280.png"
+    },
+    {
+      "url": "http://localhost:3000",
+      "viewport": "1440px (Desktop)",
+      "width": 1440,
+      "hasOverflow": false,
+      "overflowingElement": null,
+      "accessibilityIssuesCount": 0,
+      "screenshot": "public-website-1440.png"
+    }
+  ],
+  "accessibilityIssues": [],
+  "defects": []
+}

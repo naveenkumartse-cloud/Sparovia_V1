@@ -8,6 +8,7 @@ import { useTheme } from '@/lib/theme/ThemeContext';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { apiClient } from '@/lib/api/client';
 import { cleanPhoneInput, handlePhoneKeyDown, handlePhonePaste, isValidIndianPhone } from '@/lib/validation/authValidation';
 import { 
@@ -541,11 +542,11 @@ export default function AccountPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-[#1E293B] space-x-2 sm:space-x-4">
+      <div className="flex border-b border-slate-200 dark:border-[#1E293B] space-x-2 sm:space-x-4 overflow-x-auto no-scrollbar">
         <button
           type="button"
           onClick={() => handleTabChange('profile')}
-          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors ${
+          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors shrink-0 whitespace-nowrap ${
             activeTab === 'profile'
               ? 'border-[#315FEA] text-[#315FEA]'
               : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-white'
@@ -558,7 +559,7 @@ export default function AccountPage() {
         <button
           type="button"
           onClick={() => handleTabChange('settings')}
-          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors ${
+          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors shrink-0 whitespace-nowrap ${
             activeTab === 'settings'
               ? 'border-[#315FEA] text-[#315FEA]'
               : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-white'
@@ -571,7 +572,7 @@ export default function AccountPage() {
         <button
           type="button"
           onClick={() => handleTabChange('integrations')}
-          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors ${
+          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors shrink-0 whitespace-nowrap ${
             activeTab === 'integrations'
               ? 'border-[#315FEA] text-[#315FEA]'
               : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-white'
@@ -584,7 +585,7 @@ export default function AccountPage() {
         <button
           type="button"
           onClick={() => handleTabChange('security')}
-          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors ${
+          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors shrink-0 whitespace-nowrap ${
             activeTab === 'security'
               ? 'border-[#315FEA] text-[#315FEA]'
               : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-white'
@@ -612,10 +613,9 @@ export default function AccountPage() {
                     <span className="text-xs text-slate-500 dark:text-[#94A3B8] font-mono">
                       {user?.email}
                     </span>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                    <Badge variant="success" size="xs" icon={<CheckCircle2 className="w-3 h-3 mr-1" />}>
                       Verified
-                    </span>
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -633,10 +633,9 @@ export default function AccountPage() {
                     Edit Account
                   </Button>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-semibold bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20">
-                    <Edit3 className="w-3.5 h-3.5" />
+                  <Badge variant="brand" size="sm" icon={<Edit3 className="w-3.5 h-3.5 mr-1" />}>
                     Editing Mode
-                  </span>
+                  </Badge>
                 )}
               </div>
             </div>
@@ -966,13 +965,9 @@ export default function AccountPage() {
                 <div>
                   <h2 className="text-lg font-bold text-[#172033] dark:text-white flex items-center gap-2">
                     WhatsApp Contact &amp; Templates
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold border ${
-                      waEnabled
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
-                        : 'bg-[#F3F6FA] text-[#475569] dark:bg-slate-800 dark:text-slate-400 border-[#E3E7ED] dark:border-slate-700'
-                    }`}>
+                    <Badge variant={waEnabled ? "whatsapp" : "neutral"} size="xs">
                       {waEnabled ? 'Active' : 'Inactive'}
-                    </span>
+                    </Badge>
                   </h2>
                   <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-0.5">
                     Connect your WhatsApp business number and manage 3–4 client-authored templates for website visitors.
@@ -1119,17 +1114,13 @@ export default function AccountPage() {
                               {template.title || `Template #${idx + 1}`}
                             </span>
                             {template.category && (
-                              <span className="text-[10px] px-2 py-0.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] font-semibold">
+                              <Badge variant="brand" size="xs">
                                 {template.category}
-                              </span>
+                              </Badge>
                             )}
-                            <span className={`text-[10px] px-2 py-0.5 rounded-[4px] font-medium ${
-                              template.isActive
-                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
-                            }`}>
+                            <Badge variant={template.isActive ? "whatsapp" : "neutral"} size="xs">
                               {template.isActive ? 'Active' : 'Inactive'}
-                            </span>
+                            </Badge>
                           </div>
 
                           <div className="flex items-center gap-1.5 shrink-0">

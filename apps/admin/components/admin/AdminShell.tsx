@@ -154,7 +154,7 @@ function SidebarView({
                   href={item.href}
                   title={item.name}
                   className={`
-                    group relative flex items-center justify-center rounded-[6px] p-2.5 text-xs font-medium transition-all
+                    group relative flex items-center justify-center rounded-[6px] p-2.5 text-xs font-medium transition-all motion-reduce:transition-none
                     ${isActive 
                       ? 'bg-[#315FEA]/10 dark:bg-[#1E293B] text-[#315FEA] dark:text-white shadow-xs border border-[#315FEA]/20 dark:border-[#334155]/60 font-semibold' 
                       : 'text-[#475569] dark:text-[#94A3B8] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B]/50 hover:text-[#172033] dark:hover:text-white'}
@@ -162,7 +162,7 @@ function SidebarView({
                   onClick={onNavigate}
                 >
                   <item.icon
-                    className={`h-5 w-5 shrink-0 transition-colors ${isActive ? 'text-[#315FEA]' : 'text-[#64748B] group-hover:text-[#315FEA]'}`}
+                    className={`h-5 w-5 shrink-0 transition-colors motion-reduce:transition-none ${isActive ? 'text-[#315FEA]' : 'text-[#64748B] group-hover:text-[#315FEA]'}`}
                     aria-hidden="true"
                   />
                   {isActive && (
@@ -177,7 +177,7 @@ function SidebarView({
                 key={item.name}
                 href={item.href}
                 className={`
-                  group flex items-center rounded-[6px] px-3.5 py-2.5 text-xs font-medium transition-all
+                  group flex items-center rounded-[6px] px-3.5 py-2.5 text-xs font-medium transition-all motion-reduce:transition-none
                   ${isActive 
                     ? 'bg-[#315FEA]/10 dark:bg-[#1E293B] text-[#315FEA] dark:text-white shadow-xs border border-[#315FEA]/20 dark:border-[#334155]/60 font-semibold' 
                     : 'text-[#475569] dark:text-[#94A3B8] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B]/50 hover:text-[#172033] dark:hover:text-white'}
@@ -186,7 +186,7 @@ function SidebarView({
               >
                 <item.icon
                   className={`
-                    mr-3 h-4 w-4 flex-shrink-0 transition-colors
+                    mr-3 h-4 w-4 flex-shrink-0 transition-colors motion-reduce:transition-none
                     ${isActive ? 'text-[#315FEA]' : 'text-[#64748B] group-hover:text-[#315FEA]'}
                   `}
                   aria-hidden="true"
@@ -406,13 +406,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className={`flex flex-1 flex-col transition-[padding-left] duration-200 ease-in-out ${desktopCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
         {/* Sticky Unified Top Header */}
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 dark:border-[#1E293B] bg-white/80 dark:bg-[#0F172A]/70 backdrop-blur-md px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center space-x-3">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 dark:border-[#1E293B] bg-white/80 dark:bg-[#0F172A]/70 backdrop-blur-md px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
             {/* Mobile/Tablet Hamburger Toggle (< lg) */}
             <button
               ref={mobileTriggerRef}
               type="button"
-              className="lg:hidden h-10 w-10 flex items-center justify-center rounded-[6px] bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] text-slate-700 dark:text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
+              className="lg:hidden h-10 w-10 flex items-center justify-center rounded-[6px] bg-slate-100 hover:bg-slate-200 dark:bg-[#1E293B] dark:hover:bg-[#334155] text-slate-700 dark:text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] shrink-0"
               onClick={() => setMobileMenuOpen(true)}
               aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={mobileMenuOpen}
@@ -422,10 +422,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </button>
 
             {/* Mobile Branding (< lg) */}
-            <div className="lg:hidden flex items-center space-x-2">
-              <Link href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} className="flex items-center space-x-2">
-                <span className="font-extrabold text-lg text-brand-gradient tracking-tight">SPAROVIA</span>
-                <span className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20">
+            <div className="lg:hidden flex items-center space-x-1.5 min-w-0">
+              <Link href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} className="flex items-center space-x-1.5 min-w-0">
+                <span className="font-extrabold text-base sm:text-lg text-brand-gradient tracking-tight truncate">SPAROVIA</span>
+                <span className="hidden min-[380px]:inline-block text-[9px] uppercase font-bold tracking-widest px-1 py-0.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20 shrink-0">
                   ADMIN
                 </span>
               </Link>
@@ -452,13 +452,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
             {/* Quick theme toggle */}
-            <div className="flex items-center bg-slate-100 dark:bg-[#1E293B] p-1 rounded-[8px] border border-slate-200 dark:border-[#334155]/60" title={`Current appearance: ${theme}`}>
+            <div className="flex items-center bg-slate-100 dark:bg-[#1E293B] p-0.5 sm:p-1 rounded-[8px] border border-slate-200 dark:border-[#334155]/60" title={`Current appearance: ${theme}`}>
               <button
                 type="button"
                 onClick={() => setTheme('light')}
-                className={`p-1.5 rounded-[6px] text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
+                className={`p-1 sm:p-1.5 rounded-[6px] text-xs transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
                   theme === 'light' 
                     ? 'bg-white text-[#315FEA] shadow-xs font-semibold' 
                     : 'text-slate-400 hover:text-slate-700 dark:text-[#64748B] dark:hover:text-white'
@@ -470,7 +470,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setTheme('dark')}
-                className={`p-1.5 rounded-[6px] text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
+                className={`p-1 sm:p-1.5 rounded-[6px] text-xs transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
                   theme === 'dark' 
                     ? 'bg-[#0B1220] text-[#315FEA] shadow-xs font-semibold' 
                     : 'text-slate-400 hover:text-slate-700 dark:text-[#64748B] dark:hover:text-white'
@@ -482,7 +482,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setTheme('system')}
-                className={`p-1.5 rounded-[6px] text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
+                className={`p-1 sm:p-1.5 rounded-[6px] text-xs transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
                   theme === 'system' 
                     ? 'bg-white dark:bg-[#0B1220] text-[#315FEA] shadow-xs font-semibold' 
                     : 'text-slate-400 hover:text-slate-700 dark:text-[#64748B] dark:hover:text-white'
@@ -495,9 +495,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
             <button
               onClick={handleLogout}
-              className="flex items-center text-xs font-medium text-slate-500 dark:text-[#94A3B8] hover:text-[#B91C1C] dark:hover:text-[#B91C1C] transition-colors py-1.5 px-3 rounded-[6px] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
+              aria-label="Sign Out"
+              title="Sign Out"
+              className="flex items-center text-xs font-medium text-slate-500 dark:text-[#94A3B8] hover:text-[#B91C1C] dark:hover:text-[#B91C1C] transition-colors motion-reduce:transition-none py-1.5 px-2 sm:px-3 rounded-[6px] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] shrink-0"
             >
-              <LogOut className="mr-1.5 h-3.5 w-3.5" />
+              <LogOut className="sm:mr-1.5 h-3.5 w-3.5" />
               <span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
@@ -505,7 +507,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto max-w-7xl p-3.5 sm:p-6 lg:p-8">
             {children}
           </div>
         </main>

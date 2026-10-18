@@ -28,6 +28,7 @@ public class WebsiteImageService : IWebsiteImageService
 
     private static readonly HashSet<string> AllowedEnhancementOperations = new(StringComparer.OrdinalIgnoreCase)
     {
+        "EnhanceForWebsite",
         "ImproveClarity",
         "ImproveSharpness",
         "ReduceNoise",
@@ -709,8 +710,9 @@ public class WebsiteImageService : IWebsiteImageService
         else
         {
             var optVariant = image.Variants
-                .Where(v => v.VariantType == "WebsiteOptimized" && (v.Status == "Approved" || v.Status == "Published"))
-                .OrderByDescending(v => v.CreatedAt)
+                .Where(v => v.Status == "Approved" || v.Status == "Published")
+                .OrderByDescending(v => v.UpdatedAt)
+                .ThenByDescending(v => v.CreatedAt)
                 .FirstOrDefault();
 
             if (optVariant != null)
@@ -1940,8 +1942,9 @@ public class WebsiteImageService : IWebsiteImageService
                 websiteId = image.WebsiteId;
 
                 var optVariant = image.Variants
-                    .Where(v => v.VariantType == "WebsiteOptimized" && (v.Status == "Approved" || v.Status == "Published"))
-                    .OrderByDescending(v => v.CreatedAt)
+                    .Where(v => v.Status == "Approved" || v.Status == "Published")
+                    .OrderByDescending(v => v.UpdatedAt)
+                    .ThenByDescending(v => v.CreatedAt)
                     .FirstOrDefault();
 
                 if (optVariant != null)
@@ -2675,6 +2678,16 @@ public class WebsiteImageService : IWebsiteImageService
             {
                 "Improved tonal clarity",
                 "Preserved natural material colors"
+            };
+        }
+        if (op.Equals("EnhanceForWebsite", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string>
+            {
+                "Balanced exposure and shadow visibility",
+                "Controlled structural edge clarity",
+                "Authentic material colors and finishes preserved",
+                "Calibrated for high-performance web delivery (WebP)"
             };
         }
         if (op.Equals("WebOptimize", StringComparison.OrdinalIgnoreCase))

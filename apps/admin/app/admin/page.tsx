@@ -5,6 +5,7 @@ import { apiClient } from '@/lib/api/client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DashboardSkeleton } from '@/components/ui/Skeleton';
+import { Badge } from '@/components/ui/Badge';
 import { 
   Building2, 
   Laptop2, 
@@ -56,9 +57,9 @@ export default function AdminDashboard() {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Welcome Banner */}
-      <div className="bg-white dark:bg-[#0F172A] p-6 sm:p-8 rounded-[8px] border border-slate-200 dark:border-[#1E293B] shadow-xs relative overflow-hidden">
+      <div className="bg-white dark:bg-[#0F172A] p-4 sm:p-6 lg:p-8 rounded-[8px] border border-slate-200 dark:border-[#1E293B] shadow-xs relative overflow-hidden">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div>
+          <div className="min-w-0">
             <div className="inline-flex items-center px-2.5 py-1 rounded-[4px] text-xs font-semibold bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20 mb-3">
               <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
               Authenticated Workspace
@@ -66,15 +67,15 @@ export default function AdminDashboard() {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#172033] dark:text-white tracking-tight">
               Welcome back, {user?.fullName || 'Business Owner'}
             </h1>
-            <p className="text-sm text-[#475569] dark:text-[#94A3B8] mt-1">
-              Tenant context: <span className="font-mono text-slate-700 dark:text-[#CBD5E1]">{user?.tenantId}</span>
+            <p className="text-sm text-[#475569] dark:text-[#94A3B8] mt-1 break-all">
+              Tenant context: <span className="font-mono text-slate-700 dark:text-[#CBD5E1] break-all">{user?.tenantId}</span>
             </p>
           </div>
 
-          <div className="shrink-0">
+          <div className="shrink-0 w-full sm:w-auto">
             <Link
               href={isConfirmed ? "/admin/business-context" : "/admin/onboarding/business-basics"}
-              className="inline-flex items-center justify-center h-10 min-h-[40px] px-5 rounded-[6px] text-sm font-semibold text-white bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] transition-all shadow-xs"
+              className="inline-flex items-center justify-center w-full sm:w-auto h-10 min-h-[40px] px-5 rounded-[6px] text-sm font-semibold text-white bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] transition-all shadow-xs"
             >
               {isConfirmed ? 'Manage Business Context' : 'Complete Onboarding'}
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -93,15 +94,13 @@ export default function AdminDashboard() {
                 <Building2 className="w-5 h-5" />
               </div>
               {isConfirmed ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#15803D]/10 text-[#15803D] border border-[#15803D]/20 whitespace-nowrap shrink-0">
-                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                  <span>Approved</span>
-                </span>
+                <Badge variant="success" size="xs" icon={<CheckCircle2 className="w-3.5 h-3.5 shrink-0" />}>
+                  Approved
+                </Badge>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#B45309]/10 text-[#B45309] border border-[#B45309]/20 whitespace-nowrap shrink-0">
-                  <Clock className="w-3.5 h-3.5 shrink-0" />
-                  <span>Pending</span>
-                </span>
+                <Badge variant="warning" size="xs" icon={<Clock className="w-3.5 h-3.5 shrink-0" />}>
+                  Pending
+                </Badge>
               )}
             </div>
             <h2 className="text-base font-bold text-[#172033] dark:text-white">Business Context</h2>
@@ -128,9 +127,9 @@ export default function AdminDashboard() {
               <div className="w-10 h-10 rounded-[6px] bg-[#7950B8]/10 border border-[#7950B8]/20 flex items-center justify-center text-[#7950B8]">
                 <Laptop2 className="w-5 h-5" />
               </div>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20">
+              <Badge variant="brand" size="xs">
                 Connected
-              </span>
+              </Badge>
             </div>
             <h2 className="text-base font-bold text-[#172033] dark:text-white">Connected Website</h2>
             <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
@@ -155,13 +154,13 @@ export default function AdminDashboard() {
                 <Users className="w-5 h-5" />
               </div>
               {newLeadsCount !== null && newLeadsCount > 0 ? (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#15803D]/10 text-[#15803D] border border-[#15803D]/20">
+                <Badge variant="success" size="xs">
                   {newLeadsCount} New {newLeadsCount === 1 ? 'Lead' : 'Leads'}
-                </span>
+                </Badge>
               ) : (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-[#F3F6FA] dark:bg-[#1E293B] text-[#475569] dark:text-[#94A3B8]">
+                <Badge variant="neutral" size="xs">
                   Intake Active
-                </span>
+                </Badge>
               )}
             </div>
             <h2 className="text-base font-bold text-[#172033] dark:text-white">Customer Leads</h2>
@@ -226,7 +225,7 @@ export default function AdminDashboard() {
 
           <div className="flex items-start justify-between p-3.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200/80 dark:border-[#1E293B] rounded-[6px]">
             <div className="flex items-start space-x-3">
-              <div className="p-1.5 rounded-[4px] bg-emerald-500/10 text-emerald-500 shrink-0 mt-0.5">
+              <div className="p-1.5 rounded-[4px] bg-[#15803D]/10 text-[#15803D] shrink-0 mt-0.5">
                 <ImageIcon className="w-4 h-4" />
               </div>
               <div>

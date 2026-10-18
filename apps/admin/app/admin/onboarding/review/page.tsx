@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { BusinessContextSkeleton } from '@/components/ui/Skeleton';
 import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { 
   CheckCircle2, 
@@ -144,10 +145,9 @@ export default function OnboardingReviewPage() {
             </p>
           </div>
           {data.isConfirmed && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shrink-0 w-fit max-w-max leading-normal self-start sm:self-center">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span>Confirmed</span>
-            </span>
+            <Badge variant="success" size="sm" icon={<CheckCircle2 className="w-3.5 h-3.5 shrink-0" />}>
+              Confirmed
+            </Badge>
           )}
         </div>
       </div>

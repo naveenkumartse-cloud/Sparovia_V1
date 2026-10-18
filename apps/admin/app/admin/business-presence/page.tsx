@@ -29,6 +29,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { FormField } from '@/components/ui/FormField';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -281,10 +282,10 @@ export default function BusinessPresencePage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs font-medium bg-slate-100 dark:bg-[#1E293B] text-slate-700 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
-            <CalendarCheck className="w-3.5 h-3.5 text-blue-500" />
+          <Badge variant="neutral" size="sm">
+            <CalendarCheck className="w-3.5 h-3.5 text-[#315FEA] mr-1" />
             <span>Reviewed: {formatReviewedDate(data.lastReviewedAt)}</span>
-          </div>
+          </Badge>
         </div>
       </div>
 
@@ -300,9 +301,9 @@ export default function BusinessPresencePage() {
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">
                   Understanding Business Presence in Sparovia
                 </h2>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                <Badge variant="brand" size="xs">
                   Pilot V1 Guidance
-                </span>
+                </Badge>
               </div>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-[#94A3B8] mt-1 leading-relaxed">
                 Your business presence represents how your company is identified, discovered, and contacted by potential clients across digital channels.
@@ -312,7 +313,7 @@ export default function BusinessPresencePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1 text-xs text-slate-600 dark:text-[#94A3B8]">
               <div className="p-3 rounded-[8px] bg-slate-50 dark:bg-[#0B1220] border border-slate-200/60 dark:border-[#1E293B] space-y-1">
                 <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-white">
-                  <ShieldCheck className="w-4 h-4 text-blue-500" />
+                  <ShieldCheck className="w-4 h-4 text-[#315FEA]" />
                   <span>What Sparovia Manages</span>
                 </div>
                 <p className="leading-relaxed">
@@ -322,7 +323,7 @@ export default function BusinessPresencePage() {
 
               <div className="p-3 rounded-[8px] bg-slate-50 dark:bg-[#0B1220] border border-slate-200/60 dark:border-[#1E293B] space-y-1">
                 <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-white">
-                  <Globe className="w-4 h-4 text-blue-500" />
+                  <Globe className="w-4 h-4 text-[#315FEA]" />
                   <span>How Sparovia Uses It</span>
                 </div>
                 <p className="leading-relaxed">
@@ -332,7 +333,7 @@ export default function BusinessPresencePage() {
 
               <div className="p-3 rounded-[8px] bg-slate-50 dark:bg-[#0B1220] border border-slate-200/60 dark:border-[#1E293B] space-y-1">
                 <div className="flex items-center gap-1.5 font-semibold text-slate-900 dark:text-white">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <CheckCircle2 className="w-4 h-4 text-[#15803D]" />
                   <span>Why Consistency Matters</span>
                 </div>
                 <p className="leading-relaxed">
@@ -360,13 +361,13 @@ export default function BusinessPresencePage() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <ShieldCheck className="w-5 h-5 text-[#315FEA] dark:text-blue-400" />
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                   Verified Business Information (NAP)
                 </h2>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                <Badge variant="brand" size="xs">
                   Source of Truth
-                </span>
+                </Badge>
               </div>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-[#94A3B8]">
                 Canonical facts confirmed in your Business Context. Each field below is maintained in Sparovia for your website and presence experiences.
@@ -420,9 +421,9 @@ export default function BusinessPresencePage() {
               <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                 Managed in Sparovia
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
+              <Badge variant="brand" size="xs">
                 Context Source
-              </span>
+              </Badge>
             </div>
           </div>
 
@@ -449,9 +450,9 @@ export default function BusinessPresencePage() {
               <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                 Managed in Sparovia
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
+              <Badge variant="brand" size="xs">
                 Context Source
-              </span>
+              </Badge>
             </div>
           </div>
 
@@ -475,9 +476,9 @@ export default function BusinessPresencePage() {
               <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                 Managed in Sparovia
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
+              <Badge variant="brand" size="xs">
                 Context Source
-              </span>
+              </Badge>
             </div>
           </div>
 
@@ -501,9 +502,9 @@ export default function BusinessPresencePage() {
               <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                 Managed in Sparovia
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
+              <Badge variant="brand" size="xs">
                 Context Source
-              </span>
+              </Badge>
             </div>
           </div>
 
@@ -527,9 +528,9 @@ export default function BusinessPresencePage() {
               <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                 Managed in Sparovia
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
+              <Badge variant="brand" size="xs">
                 Context Source
-              </span>
+              </Badge>
             </div>
           </div>
 
@@ -564,9 +565,9 @@ export default function BusinessPresencePage() {
               <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                 Managed in Sparovia
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
+              <Badge variant="brand" size="xs">
                 Context Source
-              </span>
+              </Badge>
             </div>
           </div>
 
@@ -598,9 +599,9 @@ export default function BusinessPresencePage() {
                 <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                   Managed in Sparovia
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-400">
+                <Badge variant="brand" size="xs">
                   Context Source
-                </span>
+                </Badge>
               </div>
             </div>
           )}
@@ -621,9 +622,9 @@ export default function BusinessPresencePage() {
               Configure public client hours and timely announcements. Clear, up-to-date presence info prevents customer drop-off.
             </p>
           </div>
-          <span className="self-start sm:self-auto text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-[4px] bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
+          <Badge variant="neutral" size="xs">
             Managed in Sparovia
-          </span>
+          </Badge>
         </div>
 
         <div className="space-y-6">
@@ -709,9 +710,9 @@ export default function BusinessPresencePage() {
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                 Approved Context for Search & Discovery
               </h2>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-semibold bg-purple-50 dark:bg-purple-900/30 text-[#7950B8] dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+              <Badge variant="purple" size="xs">
                 Presence Signals
-              </span>
+              </Badge>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-[#94A3B8]">
               Approved positioning, service catalog, and verifiable claims used by Sparovia for your website presence.
@@ -765,9 +766,9 @@ export default function BusinessPresencePage() {
                 <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                   Managed in Sparovia
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-purple-50 dark:bg-purple-900/30 text-[#7950B8] dark:text-purple-400">
+                <Badge variant="purple" size="xs">
                   Business Context
-                </span>
+                </Badge>
               </div>
             </div>
 
@@ -791,9 +792,9 @@ export default function BusinessPresencePage() {
                 <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                   Managed in Sparovia
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-purple-50 dark:bg-purple-900/30 text-[#7950B8] dark:text-purple-400">
+                <Badge variant="purple" size="xs">
                   Business Context
-                </span>
+                </Badge>
               </div>
             </div>
 
@@ -828,9 +829,9 @@ export default function BusinessPresencePage() {
                 <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                   Managed in Sparovia
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                <Badge variant="purple" size="xs">
                   Business Context
-                </span>
+                </Badge>
               </div>
             </div>
 
@@ -865,9 +866,9 @@ export default function BusinessPresencePage() {
                 <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                   {nap?.servicesCount || 0} Services Configured
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                <Badge variant="purple" size="xs">
                   Business Context
-                </span>
+                </Badge>
               </div>
             </div>
 
@@ -885,9 +886,9 @@ export default function BusinessPresencePage() {
                 </div>
                 <div className="flex flex-wrap gap-2 pt-1">
                   {nap?.yearsInBusiness ? (
-                    <span className="px-2.5 py-1 rounded-[4px] text-xs font-semibold bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                    <Badge variant="brand" size="sm">
                       {nap.yearsInBusiness}+ Years in Business
-                    </span>
+                    </Badge>
                   ) : null}
                   {nap?.certifications?.map((c, i) => (
                     <span key={i} className="px-2.5 py-1 rounded-[4px] text-xs font-medium bg-slate-100 dark:bg-[#0B1220] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#334155]">
@@ -918,9 +919,9 @@ export default function BusinessPresencePage() {
                 <span className="text-[10px] font-medium text-slate-400 dark:text-[#64748B]">
                   Managed in Sparovia
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-[4px] bg-purple-50 dark:bg-purple-900/30 text-[#7950B8] dark:text-purple-400">
+                <Badge variant="purple" size="xs">
                   Business Context
-                </span>
+                </Badge>
               </div>
             </div>
           </div>
@@ -939,9 +940,9 @@ export default function BusinessPresencePage() {
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
                   External Presence Capability Boundary
                 </h3>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-slate-200 dark:bg-[#1E293B] text-slate-700 dark:text-[#94A3B8]">
+                <Badge variant="neutral" size="xs">
                   Managed in Sparovia
-                </span>
+                </Badge>
               </div>
               <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
                 External presence integrations are not connected in Pilot V1.
@@ -970,9 +971,9 @@ export default function BusinessPresencePage() {
                     Google Business Profile
                   </h4>
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
+                <Badge variant="neutral" size="xs">
                   Manual Alignment
-                </span>
+                </Badge>
               </div>
               <p className="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed">
                 Google Business Profile is maintained separately. Ensure your Google listing information matches your verified Sparovia NAP details character-for-character to maximize local search ranking.
@@ -1012,9 +1013,9 @@ export default function BusinessPresencePage() {
                     Apple Maps Connect
                   </h4>
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
+                <Badge variant="neutral" size="xs">
                   Manual Alignment
-                </span>
+                </Badge>
               </div>
               <p className="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed">
                 Powers Siri and Apple Maps place cards for iOS customers. Apple place cards are updated independently through Apple Business Connect using your verified NAP profile.
@@ -1054,9 +1055,9 @@ export default function BusinessPresencePage() {
                     Bing Places for Business
                   </h4>
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
+                <Badge variant="neutral" size="xs">
                   Manual Alignment
-                </span>
+                </Badge>
               </div>
               <p className="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed">
                 Powers Microsoft Copilot and Bing local searches. Bing Places allows fast synchronization from your verified Google Business Profile.
@@ -1096,9 +1097,9 @@ export default function BusinessPresencePage() {
                     Local Citations & Directories
                   </h4>
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-slate-100 dark:bg-[#1E293B] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#334155]">
+                <Badge variant="neutral" size="xs">
                   Manual Alignment
-                </span>
+                </Badge>
               </div>
               <p className="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed">
                 Industry portals, local Chamber of Commerce, and Yelp. Uniform citations across the web signal reliability and raise organic search ranking.
