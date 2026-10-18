@@ -55,6 +55,18 @@ export interface Lead {
   updatedAt: string;
 }
 
+export interface LeadFollowUp {
+  id: string;
+  leadId: string;
+  followedUpAt: string;
+  method: string;
+  notes: string;
+  nextAction?: string | null;
+  nextFollowUpAt?: string | null;
+  createdByUserId?: string | null;
+  createdAt: string;
+}
+
 export interface TenantWorkCategory {
   id: string;
   name: string;
@@ -99,6 +111,23 @@ function CustomerLeadsContent() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [statusUpdateError, setStatusUpdateError] = useState<string | null>(null);
+
+  // Follow-ups state for selected lead
+  const [followUps, setFollowUps] = useState<LeadFollowUp[]>([]);
+  const [followUpsLoading, setFollowUpsLoading] = useState(false);
+  const [followUpsError, setFollowUpsError] = useState<string | null>(null);
+
+  // Follow-up form state
+  const [isRecordingFollowUp, setIsRecordingFollowUp] = useState(false);
+  const [followUpForm, setFollowUpForm] = useState({
+    followedUpAt: '',
+    method: 'Call',
+    notes: '',
+    nextAction: '',
+    nextFollowUpAt: '',
+  });
+  const [followUpSubmitError, setFollowUpSubmitError] = useState<string | null>(null);
+  const [isSubmittingFollowUp, setIsSubmittingFollowUp] = useState(false);
 
   // Copied feedback state
   const [copiedPhoneId, setCopiedPhoneId] = useState<string | null>(null);
@@ -185,6 +214,91 @@ function CustomerLeadsContent() {
     };
     fetchCategories();
   }, []);
+
+  const fetchFollowUps = useCallback(async (leadId: string) => {
+    setFollowUpsLoading(true);
+    setFollowUpsError(null);
+    try {
+      const data = await apiClient.fetch<LeadFollowUp[]>(`/leads/${leadId}/follow-ups`);
+      setFollowUps(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      setFollowUpsError(err.message || 'Failed to load follow-up history.');
+      setFollowUps([]);
+    } finally {
+      setFollowUpsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedLead?.id) {
+      fetchFollowUps(selectedLead.id);
+      const now = new Date();
+      const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      setFollowUpForm({
+        followedUpAt: localIso,
+        method: 'Call',
+        notes: '',
+        nextAction: '',
+        nextFollowUpAt: '',
+      });
+      setFollowUpSubmitError(null);
+      setIsRecordingFollowUp(false);
+    } else {
+      setFollowUps([]);
+      setFollowUpsError(null);
+    }
+  }, [selectedLead?.id, fetchFollowUps]);
+
+  const handleRecordFollowUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedLead || isSubmittingFollowUp) return;
+
+    const trimmedNotes = followUpForm.notes.trim();
+    if (!trimmedNotes) {
+      setFollowUpSubmitError('Please enter conversation notes.');
+      return;
+    }
+    if (trimmedNotes.length > 4000) {
+      setFollowUpSubmitError('Notes must not exceed 4000 characters.');
+      return;
+    }
+
+    setIsSubmittingFollowUp(true);
+    setFollowUpSubmitError(null);
+
+    try {
+      const payload = {
+        followedUpAt: followUpForm.followedUpAt ? new Date(followUpForm.followedUpAt).toISOString() : new Date().toISOString(),
+        method: followUpForm.method,
+        notes: trimmedNotes,
+        nextAction: followUpForm.nextAction.trim() || null,
+        nextFollowUpAt: followUpForm.nextFollowUpAt ? new Date(followUpForm.nextFollowUpAt).toISOString() : null,
+      };
+
+      const created = await apiClient.fetch<LeadFollowUp>(`/leads/${selectedLead.id}/follow-ups`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      setFollowUps((prev) => [created, ...prev]);
+      toast.success('Follow-up recorded successfully.');
+
+      const now = new Date();
+      const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      setFollowUpForm({
+        followedUpAt: localIso,
+        method: 'Call',
+        notes: '',
+        nextAction: '',
+        nextFollowUpAt: '',
+      });
+      setIsRecordingFollowUp(false);
+    } catch (err: any) {
+      setFollowUpSubmitError(err.message || 'Failed to record follow-up.');
+    } finally {
+      setIsSubmittingFollowUp(false);
+    }
+  };
 
   // Compute status summary counts from current loaded items
   const statusCounts = useMemo(() => {
@@ -489,6 +603,46 @@ function CustomerLeadsContent() {
         Website
       </Badge>
     );
+  };
+
+  const getFollowUpMethodBadge = (method?: string) => {
+    switch (method) {
+      case 'Call':
+        return (
+          <Badge variant="success" size="xs">
+            <Phone className="w-3 h-3 mr-1" />
+            Call
+          </Badge>
+        );
+      case 'WhatsApp':
+        return (
+          <Badge variant="whatsapp" size="xs">
+            <MessageCircle className="w-3 h-3 mr-1 text-[#25D366]" />
+            WhatsApp
+          </Badge>
+        );
+      case 'Email':
+        return (
+          <Badge variant="cobalt" size="xs">
+            <Mail className="w-3 h-3 mr-1" />
+            Email
+          </Badge>
+        );
+      case 'Meeting':
+        return (
+          <Badge variant="purple" size="xs">
+            <Users className="w-3 h-3 mr-1" />
+            Meeting
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="neutral" size="xs">
+            <MessageSquare className="w-3 h-3 mr-1" />
+            {method || 'Other'}
+          </Badge>
+        );
+    }
   };
 
   const hasActiveFilters = Boolean(
@@ -1335,7 +1489,7 @@ function CustomerLeadsContent() {
         }}
         title="Lead Inspection & Follow-up"
         description="Review customer inquiry details and update status in the conversion pipeline."
-        maxWidth="lg"
+        maxWidth="xl"
         footer={
           selectedLead && (
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
@@ -1514,6 +1668,238 @@ function CustomerLeadsContent() {
               <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed pt-0.5">
                 {selectedLead.message || 'No project description entered.'}
               </p>
+            </div>
+
+            {/* Follow-up Progression & History */}
+            <div className="space-y-3 pt-2 border-t border-slate-200/80 dark:border-slate-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#315FEA]" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                    Follow-up Interactions & History ({followUps.length})
+                  </h4>
+                </div>
+                <Button
+                  type="button"
+                  variant={isRecordingFollowUp ? 'ghost' : 'outline'}
+                  size="sm"
+                  onClick={() => setIsRecordingFollowUp((v) => !v)}
+                  className="text-xs h-7 px-2.5 rounded-[6px]"
+                  leftIcon={isRecordingFollowUp ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                >
+                  {isRecordingFollowUp ? 'Cancel' : 'Record Follow-up'}
+                </Button>
+              </div>
+
+              {/* Inline Follow-up Recording Form */}
+              {isRecordingFollowUp && (
+                <form
+                  onSubmit={handleRecordFollowUp}
+                  className="p-3.5 rounded-[8px] bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] shadow-soft-sm space-y-3"
+                >
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                    <span className="text-xs font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <Pencil className="w-3.5 h-3.5 text-[#315FEA]" />
+                      Record Customer Follow-up
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      Does not alter pipeline stage
+                    </span>
+                  </div>
+
+                  {followUpSubmitError && (
+                    <div className="p-2.5 rounded-[6px] bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{followUpSubmitError}</span>
+                    </div>
+                  )}
+
+                  {/* Method & Timestamp */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
+                        Contact Method <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(['Call', 'WhatsApp', 'Email', 'Meeting', 'Other'] as const).map((method) => {
+                          const isSelected = followUpForm.method === method;
+                          return (
+                            <button
+                              key={method}
+                              type="button"
+                              onClick={() => setFollowUpForm((prev) => ({ ...prev, method }))}
+                              className={`py-1.5 px-3 text-center rounded-[6px] text-xs font-semibold border transition-colors select-none active:scale-[0.99] motion-reduce:transition-none ${
+                                isSelected
+                                  ? 'bg-[#315FEA] border-[#315FEA] text-white shadow-xs'
+                                  : 'bg-white dark:bg-[#1E293B] border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                              }`}
+                            >
+                              {method}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
+                        Interaction Date & Time <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="datetime-local"
+                        value={followUpForm.followedUpAt}
+                        onChange={(e) => setFollowUpForm((prev) => ({ ...prev, followedUpAt: e.target.value }))}
+                        required
+                        className="text-xs py-1.5"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Conversation Notes */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label htmlFor="follow-up-notes-textarea" className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        Conversation Notes <span className="text-red-500">*</span>
+                      </label>
+                      <span className="text-[10px] text-slate-400">
+                        {followUpForm.notes.length}/4000
+                      </span>
+                    </div>
+                    <Textarea
+                      id="follow-up-notes-textarea"
+                      rows={3}
+                      value={followUpForm.notes}
+                      onChange={(e) => setFollowUpForm((prev) => ({ ...prev, notes: e.target.value }))}
+                      placeholder="Details discussed with customer, project specifications, pricing feedback, objections or clarifications..."
+                      maxLength={4000}
+                      required
+                      className="text-xs"
+                    />
+                  </div>
+
+                  {/* Next Action & Next Follow-up Date */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
+                        Next Action (Optional)
+                      </label>
+                      <Input
+                        id="follow-up-next-action-input"
+                        type="text"
+                        placeholder="e.g. Share quotation, follow up on design proposal"
+                        value={followUpForm.nextAction}
+                        onChange={(e) => setFollowUpForm((prev) => ({ ...prev, nextAction: e.target.value }))}
+                        maxLength={500}
+                        className="text-xs py-1.5"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
+                        Next Follow-up Date (Optional)
+                      </label>
+                      <Input
+                        type="datetime-local"
+                        value={followUpForm.nextFollowUpAt}
+                        onChange={(e) => setFollowUpForm((prev) => ({ ...prev, nextFollowUpAt: e.target.value }))}
+                        className="text-xs py-1.5"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsRecordingFollowUp(false)}
+                      className="text-xs h-8 rounded-[6px]"
+                      disabled={isSubmittingFollowUp}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      id="save-followup-submit-btn"
+                      type="submit"
+                      variant="primary"
+                      size="sm"
+                      isLoading={isSubmittingFollowUp}
+                      disabled={isSubmittingFollowUp || !followUpForm.notes.trim()}
+                      className="text-xs h-8 rounded-[6px]"
+                    >
+                      Save Follow-up
+                    </Button>
+                  </div>
+                </form>
+              )}
+
+              {/* Follow-up Timeline List */}
+              <div className="space-y-2">
+                {followUpsLoading ? (
+                  <div className="p-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#315FEA]" />
+                    <span>Loading interaction history...</span>
+                  </div>
+                ) : followUpsError ? (
+                  <div className="p-3 rounded-[6px] bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-xs flex items-center justify-between">
+                    <span>{followUpsError}</span>
+                    <button
+                      type="button"
+                      onClick={() => selectedLead && fetchFollowUps(selectedLead.id)}
+                      className="text-[#315FEA] font-semibold underline text-xs"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : followUps.length === 0 ? (
+                  <div className="p-4 rounded-[8px] border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-[#1E293B]/20 text-center">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                      No follow-up interactions recorded yet.
+                    </p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                      Click &quot;Record Follow-up&quot; above to document your call or message with this customer.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+                    {followUps.map((fu) => (
+                      <div
+                        key={fu.id}
+                        className="p-3 rounded-[8px] bg-white dark:bg-[#0F172A] border border-slate-200/90 dark:border-slate-800 text-xs shadow-soft-sm space-y-1.5"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-1.5">
+                          <div className="flex items-center gap-2">
+                            {getFollowUpMethodBadge(fu.method)}
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                              {formatDate(fu.followedUpAt)}
+                            </span>
+                          </div>
+                          {fu.nextFollowUpAt && (
+                            <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-[4px] border border-amber-200 dark:border-amber-800/50 inline-flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              Next: {formatDate(fu.nextFollowUpAt)}
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed pt-0.5">
+                          {fu.notes}
+                        </p>
+
+                        {fu.nextAction && (
+                          <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-400">
+                            <span className="font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[9px]">
+                              Next Action:
+                            </span>
+                            <span className="text-slate-700 dark:text-slate-300 font-medium">{fu.nextAction}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Audit Timestamps */}

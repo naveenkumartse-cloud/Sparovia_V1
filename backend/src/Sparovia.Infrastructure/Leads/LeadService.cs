@@ -785,6 +785,134 @@ public class LeadService : ILeadService
             .CountAsync(l => l.TenantId == tenantId && l.Status == LeadStatus.New, cancellationToken);
     }
 
+    public async Task<List<LeadFollowUpDto>?> GetFollowUpsAsync(Guid tenantId, Guid leadId, CancellationToken cancellationToken = default)
+    {
+        var leadExists = await _dbContext.Leads
+            .AsNoTracking()
+            .AnyAsync(l => l.Id == leadId && l.TenantId == tenantId, cancellationToken);
+
+        if (!leadExists)
+        {
+            _logger.LogWarning("AUDIT: LEAD_FOLLOWUPS_GET_NOT_FOUND_OR_DENIED. LeadId={LeadId}, TenantId={TenantId}", leadId, tenantId);
+            return null;
+        }
+
+        var followUps = await _dbContext.LeadFollowUps
+            .AsNoTracking()
+            .Where(f => f.TenantId == tenantId && f.LeadId == leadId)
+            .OrderByDescending(f => f.FollowedUpAt)
+            .ThenByDescending(f => f.CreatedAt)
+            .Select(f => new LeadFollowUpDto
+            {
+                Id = f.Id,
+                LeadId = f.LeadId,
+                FollowedUpAt = f.FollowedUpAt,
+                Method = f.Method,
+                Notes = f.Notes,
+                NextAction = f.NextAction,
+                NextFollowUpAt = f.NextFollowUpAt,
+                CreatedByUserId = f.CreatedByUserId,
+                CreatedAt = f.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return followUps;
+    }
+
+    public async Task<LeadFollowUpOperationResult> CreateFollowUpAsync(
+        Guid tenantId,
+        Guid leadId,
+        CreateLeadFollowUpRequest request,
+        Guid? createdByUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var lead = await _dbContext.Leads
+            .FirstOrDefaultAsync(l => l.Id == leadId && l.TenantId == tenantId, cancellationToken);
+
+        if (lead == null)
+        {
+            _logger.LogWarning("AUDIT: LEAD_FOLLOWUP_CREATE_NOT_FOUND_OR_DENIED. LeadId={LeadId}, TenantId={TenantId}", leadId, tenantId);
+            return LeadFollowUpOperationResult.Fail("NOT_FOUND", "Lead not found.");
+        }
+
+        var notes = request.Notes?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(notes))
+        {
+            return LeadFollowUpOperationResult.Fail("VALIDATION_ERROR", "Follow-up conversation notes are required.");
+        }
+        if (notes.Length > 4000)
+        {
+            return LeadFollowUpOperationResult.Fail("VALIDATION_ERROR", "Follow-up notes cannot exceed 4000 characters.");
+        }
+
+        var method = LeadFollowUpMethod.Normalize(request.Method);
+        if (!LeadFollowUpMethod.IsValid(method))
+        {
+            return LeadFollowUpOperationResult.Fail("VALIDATION_ERROR", $"Invalid contact method '{request.Method}'. Approved methods are Call, WhatsApp, Email, Meeting, and Other.");
+        }
+
+        var nextAction = request.NextAction?.Trim();
+        if (!string.IsNullOrEmpty(nextAction) && nextAction.Length > 500)
+        {
+            return LeadFollowUpOperationResult.Fail("VALIDATION_ERROR", "Next action must not exceed 500 characters.");
+        }
+
+        var followedUpAt = request.FollowedUpAt == default ? DateTime.UtcNow : request.FollowedUpAt;
+        if (followedUpAt.Kind == DateTimeKind.Unspecified)
+        {
+            followedUpAt = DateTime.SpecifyKind(followedUpAt, DateTimeKind.Utc);
+        }
+        else
+        {
+            followedUpAt = followedUpAt.ToUniversalTime();
+        }
+
+        DateTime? nextFollowUpAt = null;
+        if (request.NextFollowUpAt.HasValue && request.NextFollowUpAt.Value != default)
+        {
+            var nextDate = request.NextFollowUpAt.Value;
+            nextFollowUpAt = nextDate.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(nextDate, DateTimeKind.Utc)
+                : nextDate.ToUniversalTime();
+        }
+
+        var followUp = new LeadFollowUp
+        {
+            TenantId = tenantId,
+            LeadId = leadId,
+            FollowedUpAt = followedUpAt,
+            Method = method,
+            Notes = notes,
+            NextAction = string.IsNullOrWhiteSpace(nextAction) ? null : nextAction,
+            NextFollowUpAt = nextFollowUpAt,
+            CreatedByUserId = createdByUserId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.LeadFollowUps.Add(followUp);
+        // Persist follow-up without modifying lead status (Rule 5: Keep follow-up recording separate from status transitions)
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "AUDIT: LEAD_FOLLOWUP_CREATED. TenantId={TenantId}, LeadId={LeadId}, FollowUpId={FollowUpId}, Method={Method}, UserId={UserId}",
+            tenantId, leadId, followUp.Id, followUp.Method, createdByUserId);
+
+        var dto = new LeadFollowUpDto
+        {
+            Id = followUp.Id,
+            LeadId = followUp.LeadId,
+            FollowedUpAt = followUp.FollowedUpAt,
+            Method = followUp.Method,
+            Notes = followUp.Notes,
+            NextAction = followUp.NextAction,
+            NextFollowUpAt = followUp.NextFollowUpAt,
+            CreatedByUserId = followUp.CreatedByUserId,
+            CreatedAt = followUp.CreatedAt
+        };
+
+        return LeadFollowUpOperationResult.Ok(dto);
+    }
+
     private static bool CryptographicEquals(string a, string b)
     {
         var bytesA = Encoding.UTF8.GetBytes(a);

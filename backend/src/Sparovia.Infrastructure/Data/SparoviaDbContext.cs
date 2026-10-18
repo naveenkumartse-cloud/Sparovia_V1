@@ -25,6 +25,7 @@ public class SparoviaDbContext : DbContext
     public DbSet<WebsiteWorkCategory> WebsiteWorkCategories => Set<WebsiteWorkCategory>();
     public DbSet<PhoneVerification> PhoneVerifications => Set<PhoneVerification>();
     public DbSet<Lead> Leads => Set<Lead>();
+    public DbSet<LeadFollowUp> LeadFollowUps => Set<LeadFollowUp>();
     public DbSet<ContactActivity> ContactActivities => Set<ContactActivity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -378,6 +379,35 @@ public class SparoviaDbContext : DbContext
             entity.HasOne(e => e.Website)
                 .WithMany(w => w.ContactActivities)
                 .HasForeignKey(e => e.WebsiteId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<LeadFollowUp>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.TenantId);
+            entity.HasIndex(e => new { e.TenantId, e.LeadId });
+            entity.HasIndex(e => new { e.LeadId, e.FollowedUpAt });
+
+            entity.Property(e => e.Method).IsRequired().HasMaxLength(50).HasDefaultValue("Call");
+            entity.Property(e => e.Notes).IsRequired().HasMaxLength(4000);
+            entity.Property(e => e.NextAction).HasMaxLength(500);
+            entity.Property(e => e.FollowedUpAt).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+
+            entity.HasOne(e => e.Tenant)
+                .WithMany()
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Lead)
+                .WithMany(l => l.FollowUps)
+                .HasForeignKey(e => e.LeadId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
     }

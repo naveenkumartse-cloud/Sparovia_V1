@@ -40,4 +40,7 @@ public class Lead
     // Operational audit identifiers
     public Guid? UpdatedByUserId { get; set; }
     public User? UpdatedByUser { get; set; }
+
+    // Follow-up interaction records
+    public List<LeadFollowUp> FollowUps { get; set; } = new();
 }

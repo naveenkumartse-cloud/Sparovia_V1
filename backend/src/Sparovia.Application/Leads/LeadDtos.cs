@@ -96,3 +96,36 @@ public record LeadOperationResult
     public static LeadOperationResult Ok(LeadDto lead) => new() { Success = true, Lead = lead };
     public static LeadOperationResult Fail(string code, string message) => new() { Success = false, ErrorCode = code, ErrorMessage = message };
 }
+
+public record LeadFollowUpDto
+{
+    public Guid Id { get; init; }
+    public Guid LeadId { get; init; }
+    public DateTime FollowedUpAt { get; init; }
+    public string Method { get; init; } = string.Empty;
+    public string Notes { get; init; } = string.Empty;
+    public string? NextAction { get; init; }
+    public DateTime? NextFollowUpAt { get; init; }
+    public Guid? CreatedByUserId { get; init; }
+    public DateTime CreatedAt { get; init; }
+}
+
+public record CreateLeadFollowUpRequest
+{
+    public DateTime FollowedUpAt { get; init; } = DateTime.UtcNow;
+    public string Method { get; init; } = "Call";
+    public string Notes { get; init; } = string.Empty;
+    public string? NextAction { get; init; }
+    public DateTime? NextFollowUpAt { get; init; }
+}
+
+public record LeadFollowUpOperationResult
+{
+    public bool Success { get; init; }
+    public LeadFollowUpDto? FollowUp { get; init; }
+    public string? ErrorCode { get; init; }
+    public string? ErrorMessage { get; init; }
+
+    public static LeadFollowUpOperationResult Ok(LeadFollowUpDto followUp) => new() { Success = true, FollowUp = followUp };
+    public static LeadFollowUpOperationResult Fail(string code, string message) => new() { Success = false, ErrorCode = code, ErrorMessage = message };
+}

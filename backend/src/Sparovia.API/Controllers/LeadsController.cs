@@ -242,6 +242,76 @@ public class LeadsController : ControllerBase
         return Ok(result.Lead);
     }
 
+    [HttpGet("{id:guid}/follow-ups")]
+    [Authorize]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> GetFollowUps(Guid id, CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError))
+        {
+            return authError!;
+        }
+
+        var isConfirmed = await IsOnboardingCompleteAsync(tenantId, cancellationToken);
+        if (!isConfirmed)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                Error = "Onboarding incomplete. Business Context must be confirmed before managing Leads.",
+                Code = "ONBOARDING_REQUIRED",
+                RedirectUrl = "/admin/onboarding/business-basics"
+            });
+        }
+
+        var followUps = await _leadService.GetFollowUpsAsync(tenantId, id, cancellationToken);
+        if (followUps == null)
+        {
+            return NotFound(new { Error = "Lead not found.", Code = "NOT_FOUND" });
+        }
+
+        return Ok(followUps);
+    }
+
+    [HttpPost("{id:guid}/follow-ups")]
+    [Authorize]
+    public async Task<IActionResult> CreateFollowUp(Guid id, [FromBody] CreateLeadFollowUpRequest request, CancellationToken cancellationToken)
+    {
+        if (!TryGetTenantId(out var tenantId, out var authError))
+        {
+            return authError!;
+        }
+
+        var isConfirmed = await IsOnboardingCompleteAsync(tenantId, cancellationToken);
+        if (!isConfirmed)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                Error = "Onboarding incomplete. Business Context must be confirmed before managing Leads.",
+                Code = "ONBOARDING_REQUIRED",
+                RedirectUrl = "/admin/onboarding/business-basics"
+            });
+        }
+
+        if (request == null)
+        {
+            return BadRequest(new { Error = "Invalid follow-up payload.", Code = "INVALID_PAYLOAD" });
+        }
+
+        var userId = TryGetUserId();
+        var result = await _leadService.CreateFollowUpAsync(tenantId, id, request, userId, cancellationToken);
+
+        if (!result.Success)
+        {
+            if (result.ErrorCode == "NOT_FOUND")
+            {
+                return NotFound(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+            }
+            return BadRequest(new { Error = result.ErrorMessage, Code = result.ErrorCode });
+        }
+
+        return StatusCode(StatusCodes.Status201Created, result.FollowUp);
+    }
+
     [HttpPost("public")]
     [AllowAnonymous]
     [EnableRateLimiting("PublicLeadIntake")]

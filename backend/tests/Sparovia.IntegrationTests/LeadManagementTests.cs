@@ -518,4 +518,134 @@ public class LeadManagementTests : IClassFixture<WebApplicationFactory<Program>>
         var getAfterDelete = await client.GetAsync($"/api/v1/leads/{createdLead.Id}");
         Assert.Equal(HttpStatusCode.NotFound, getAfterDelete.StatusCode);
     }
+
+    [Fact]
+    public async Task LeadFollowUps_EndToEndWorkflow_CreatesRetrievesAndEnforcesTenantIsolation()
+    {
+        // Setup Tenant A
+        var (clientA, tenantIdA, userIdA) = await SetupTenantAsync("followup.owner@example.com", "Followup Corp", "followup.example.com");
+
+        // 1. Create a lead for Tenant A
+        var createLeadReq = new CreateLeadRequest
+        {
+            Name = "Priya Sharma",
+            Phone = "+91 98765 44332",
+            Email = "priya.sharma@example.com",
+            Message = "Interested in turnkey villa construction",
+            Status = LeadStatus.New
+        };
+
+        var leadResp = await clientA.PostAsJsonAsync("/api/v1/leads", createLeadReq);
+        Assert.Equal(HttpStatusCode.Created, leadResp.StatusCode);
+        var createdLead = await leadResp.Content.ReadFromJsonAsync<LeadDto>();
+        Assert.NotNull(createdLead);
+        Assert.Equal(LeadStatus.New, createdLead.Status);
+
+        // 2. Add first follow-up (Call)
+        var followUp1Req = new CreateLeadFollowUpRequest
+        {
+            FollowedUpAt = DateTime.UtcNow.AddMinutes(-30),
+            Method = "Call",
+            Notes = "Called client to introduce our portfolio. She requested catalog via WhatsApp.",
+            NextAction = "Send catalog link on WhatsApp",
+            NextFollowUpAt = DateTime.UtcNow.AddHours(2)
+        };
+
+        var fu1Resp = await clientA.PostAsJsonAsync($"/api/v1/leads/{createdLead.Id}/follow-ups", followUp1Req);
+        Assert.Equal(HttpStatusCode.Created, fu1Resp.StatusCode);
+        var createdFu1 = await fu1Resp.Content.ReadFromJsonAsync<LeadFollowUpDto>();
+        Assert.NotNull(createdFu1);
+        Assert.Equal(createdLead.Id, createdFu1.LeadId);
+        Assert.Equal("Call", createdFu1.Method);
+        Assert.Equal(followUp1Req.Notes, createdFu1.Notes);
+        Assert.Equal("Send catalog link on WhatsApp", createdFu1.NextAction);
+
+        // Verify lead status is still 'New' (Follow-up recording must NOT change status automatically)
+        var leadCheckResp = await clientA.GetAsync($"/api/v1/leads/{createdLead.Id}");
+        var leadCheck = await leadCheckResp.Content.ReadFromJsonAsync<LeadDto>();
+        Assert.NotNull(leadCheck);
+        Assert.Equal(LeadStatus.New, leadCheck.Status);
+
+        // 3. Add second follow-up (WhatsApp) with newer timestamp
+        var followUp2Req = new CreateLeadFollowUpRequest
+        {
+            FollowedUpAt = DateTime.UtcNow,
+            Method = "WhatsApp",
+            Notes = "Sent brochure and scheduled site visit for Saturday morning.",
+            NextAction = "Conduct site visit with engineering team",
+            NextFollowUpAt = DateTime.UtcNow.AddDays(3)
+        };
+
+        var fu2Resp = await clientA.PostAsJsonAsync($"/api/v1/leads/{createdLead.Id}/follow-ups", followUp2Req);
+        Assert.Equal(HttpStatusCode.Created, fu2Resp.StatusCode);
+        var createdFu2 = await fu2Resp.Content.ReadFromJsonAsync<LeadFollowUpDto>();
+        Assert.NotNull(createdFu2);
+        Assert.Equal("WhatsApp", createdFu2.Method);
+
+        // 4. Retrieve chronological history (should return newest first)
+        var historyResp = await clientA.GetAsync($"/api/v1/leads/{createdLead.Id}/follow-ups");
+        Assert.Equal(HttpStatusCode.OK, historyResp.StatusCode);
+        var history = await historyResp.Content.ReadFromJsonAsync<List<LeadFollowUpDto>>();
+        Assert.NotNull(history);
+        Assert.Equal(2, history.Count);
+        // FollowUp 2 is newest, so it should be first in chronological descending order
+        Assert.Equal("WhatsApp", history[0].Method);
+        Assert.Equal("Call", history[1].Method);
+
+        // 5. Update lead status to Contacted separately (status transitions remain intact and independent)
+        var statusResp = await clientA.PatchAsJsonAsync($"/api/v1/leads/{createdLead.Id}/status", new UpdateLeadStatusRequest { Status = LeadStatus.Contacted });
+        Assert.Equal(HttpStatusCode.OK, statusResp.StatusCode);
+
+        // Verify follow-ups are preserved after status change
+        var historyAfterStatusChange = await clientA.GetAsync($"/api/v1/leads/{createdLead.Id}/follow-ups");
+        var historyPreserved = await historyAfterStatusChange.Content.ReadFromJsonAsync<List<LeadFollowUpDto>>();
+        Assert.NotNull(historyPreserved);
+        Assert.Equal(2, historyPreserved.Count);
+
+        // 6. Test Validation Errors
+        // Empty notes
+        var emptyNotesReq = new CreateLeadFollowUpRequest
+        {
+            Method = "Call",
+            Notes = "   "
+        };
+        var emptyResp = await clientA.PostAsJsonAsync($"/api/v1/leads/{createdLead.Id}/follow-ups", emptyNotesReq);
+        Assert.Equal(HttpStatusCode.BadRequest, emptyResp.StatusCode);
+
+        // Invalid Method
+        var invalidMethodReq = new CreateLeadFollowUpRequest
+        {
+            Method = "CarrierPigeon",
+            Notes = "Sent bird with note"
+        };
+        var invalidMethodResp = await clientA.PostAsJsonAsync($"/api/v1/leads/{createdLead.Id}/follow-ups", invalidMethodReq);
+        Assert.Equal(HttpStatusCode.BadRequest, invalidMethodResp.StatusCode);
+
+        // 7. Nonexistent Lead
+        var fakeId = Guid.NewGuid();
+        var nonExistentGet = await clientA.GetAsync($"/api/v1/leads/{fakeId}/follow-ups");
+        Assert.Equal(HttpStatusCode.NotFound, nonExistentGet.StatusCode);
+
+        var nonExistentPost = await clientA.PostAsJsonAsync($"/api/v1/leads/{fakeId}/follow-ups", followUp1Req);
+        Assert.Equal(HttpStatusCode.NotFound, nonExistentPost.StatusCode);
+
+        // 8. Test Strict Tenant Isolation
+        var (clientB, tenantIdB, userIdB) = await SetupTenantAsync("followup.competitor@example.com", "Rival Corp", "rival.example.com");
+
+        // Tenant B cannot GET Tenant A's follow-ups
+        var crossTenantGet = await clientB.GetAsync($"/api/v1/leads/{createdLead.Id}/follow-ups");
+        Assert.Equal(HttpStatusCode.NotFound, crossTenantGet.StatusCode);
+
+        // Tenant B cannot POST follow-up to Tenant A's lead
+        var crossTenantPost = await clientB.PostAsJsonAsync($"/api/v1/leads/{createdLead.Id}/follow-ups", followUp1Req);
+        Assert.Equal(HttpStatusCode.NotFound, crossTenantPost.StatusCode);
+
+        // 9. Cascade Delete: Deleting Lead deletes follow-ups
+        var delLeadResp = await clientA.DeleteAsync($"/api/v1/leads/{createdLead.Id}");
+        Assert.Equal(HttpStatusCode.OK, delLeadResp.StatusCode);
+
+        // Verifying follow-ups now return 404 since lead is gone
+        var getFollowUpsAfterDelete = await clientA.GetAsync($"/api/v1/leads/{createdLead.Id}/follow-ups");
+        Assert.Equal(HttpStatusCode.NotFound, getFollowUpsAfterDelete.StatusCode);
+    }
 }

@@ -1,0 +1,762 @@
+{
+  "timestamp": "2026-10-18T17:09:31.877Z",
+  "environment": {
+    "adminUrl": "http://localhost:3001",
+    "publicUrl": "http://localhost:3000",
+    "apiUrl": "http://localhost:5043"
+  },
+  "designSystemTokens": {
+    "primaryBrand": "#315FEA (Editorial Cobalt)",
+    "secondaryBrand": "#7950B8 (Restrained Purple)",
+    "whatsapp": "#25D366",
+    "radiusIndicator": "4px",
+    "radiusControl": "6px",
+    "radiusPanel": "8px",
+    "radiusDialog": "10px"
+  },
+  "routesAudited": [],
+  "viewportOverflowSummary": [
+    {
+      "route": "/admin",
+      "routeName": "Command Center / Dashboard",
+      "viewport": "1440px_desktop",
+      "width": 1440,
+      "height": 900,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_1440px_desktop.png"
+    },
+    {
+      "route": "/admin",
+      "routeName": "Command Center / Dashboard",
+      "viewport": "1280px_laptop",
+      "width": 1280,
+      "height": 800,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_1280px_laptop.png"
+    },
+    {
+      "route": "/admin",
+      "routeName": "Command Center / Dashboard",
+      "viewport": "1024px_tablet_landscape",
+      "width": 1024,
+      "height": 768,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_1024px_tablet_landscape.png"
+    },
+    {
+      "route": "/admin",
+      "routeName": "Command Center / Dashboard",
+      "viewport": "768px_tablet_portrait",
+      "width": 768,
+      "height": 1024,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_768px_tablet_portrait.png"
+    },
+    {
+      "route": "/admin",
+      "routeName": "Command Center / Dashboard",
+      "viewport": "375px_mobile",
+      "width": 375,
+      "height": 812,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_375px_mobile.png"
+    },
+    {
+      "route": "/admin",
+      "routeName": "Command Center / Dashboard",
+      "viewport": "320px_narrow_mobile",
+      "width": 320,
+      "height": 568,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_320px_narrow_mobile.png"
+    },
+    {
+      "route": "/admin/leads",
+      "routeName": "Customer Leads",
+      "viewport": "1440px_desktop",
+      "width": 1440,
+      "height": 900,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_leads_1440px_desktop.png"
+    },
+    {
+      "route": "/admin/leads",
+      "routeName": "Customer Leads",
+      "viewport": "1280px_laptop",
+      "width": 1280,
+      "height": 800,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_leads_1280px_laptop.png"
+    },
+    {
+      "route": "/admin/leads",
+      "routeName": "Customer Leads",
+      "viewport": "1024px_tablet_landscape",
+      "width": 1024,
+      "height": 768,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_leads_1024px_tablet_landscape.png"
+    },
+    {
+      "route": "/admin/leads",
+      "routeName": "Customer Leads",
+      "viewport": "768px_tablet_portrait",
+      "width": 768,
+      "height": 1024,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_leads_768px_tablet_portrait.png"
+    },
+    {
+      "route": "/admin/leads",
+      "routeName": "Customer Leads",
+      "viewport": "375px_mobile",
+      "width": 375,
+      "height": 812,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_leads_375px_mobile.png"
+    },
+    {
+      "route": "/admin/leads",
+      "routeName": "Customer Leads",
+      "viewport": "320px_narrow_mobile",
+      "width": 320,
+      "height": 568,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_leads_320px_narrow_mobile.png"
+    },
+    {
+      "route": "/admin/images",
+      "routeName": "Images & Image Studio",
+      "viewport": "1440px_desktop",
+      "width": 1440,
+      "height": 900,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_images_1440px_desktop.png"
+    },
+    {
+      "route": "/admin/images",
+      "routeName": "Images & Image Studio",
+      "viewport": "1280px_laptop",
+      "width": 1280,
+      "height": 800,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_images_1280px_laptop.png"
+    },
+    {
+      "route": "/admin/images",
+      "routeName": "Images & Image Studio",
+      "viewport": "1024px_tablet_landscape",
+      "width": 1024,
+      "height": 768,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_images_1024px_tablet_landscape.png"
+    },
+    {
+      "route": "/admin/images",
+      "routeName": "Images & Image Studio",
+      "viewport": "768px_tablet_portrait",
+      "width": 768,
+      "height": 1024,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_images_768px_tablet_portrait.png"
+    },
+    {
+      "route": "/admin/images",
+      "routeName": "Images & Image Studio",
+      "viewport": "375px_mobile",
+      "width": 375,
+      "height": 812,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_images_375px_mobile.png"
+    },
+    {
+      "route": "/admin/images",
+      "routeName": "Images & Image Studio",
+      "viewport": "320px_narrow_mobile",
+      "width": 320,
+      "height": 568,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_images_320px_narrow_mobile.png"
+    },
+    {
+      "route": "/admin/content",
+      "routeName": "Website Content / CMS",
+      "viewport": "1440px_desktop",
+      "width": 1440,
+      "height": 900,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_content_1440px_desktop.png"
+    },
+    {
+      "route": "/admin/content",
+      "routeName": "Website Content / CMS",
+      "viewport": "1280px_laptop",
+      "width": 1280,
+      "height": 800,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_content_1280px_laptop.png"
+    },
+    {
+      "route": "/admin/content",
+      "routeName": "Website Content / CMS",
+      "viewport": "1024px_tablet_landscape",
+      "width": 1024,
+      "height": 768,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_content_1024px_tablet_landscape.png"
+    },
+    {
+      "route": "/admin/content",
+      "routeName": "Website Content / CMS",
+      "viewport": "768px_tablet_portrait",
+      "width": 768,
+      "height": 1024,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_content_768px_tablet_portrait.png"
+    },
+    {
+      "route": "/admin/content",
+      "routeName": "Website Content / CMS",
+      "viewport": "375px_mobile",
+      "width": 375,
+      "height": 812,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_content_375px_mobile.png"
+    },
+    {
+      "route": "/admin/content",
+      "routeName": "Website Content / CMS",
+      "viewport": "320px_narrow_mobile",
+      "width": 320,
+      "height": 568,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_content_320px_narrow_mobile.png"
+    },
+    {
+      "route": "/admin/business-presence",
+      "routeName": "Business Presence & Hours",
+      "viewport": "1440px_desktop",
+      "width": 1440,
+      "height": 900,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_business-presence_1440px_desktop.png"
+    },
+    {
+      "route": "/admin/business-presence",
+      "routeName": "Business Presence & Hours",
+      "viewport": "1280px_laptop",
+      "width": 1280,
+      "height": 800,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_business-presence_1280px_laptop.png"
+    },
+    {
+      "route": "/admin/business-presence",
+      "routeName": "Business Presence & Hours",
+      "viewport": "1024px_tablet_landscape",
+      "width": 1024,
+      "height": 768,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_business-presence_1024px_tablet_landscape.png"
+    },
+    {
+      "route": "/admin/business-presence",
+      "routeName": "Business Presence & Hours",
+      "viewport": "768px_tablet_portrait",
+      "width": 768,
+      "height": 1024,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_business-presence_768px_tablet_portrait.png"
+    },
+    {
+      "route": "/admin/business-presence",
+      "routeName": "Business Presence & Hours",
+      "viewport": "375px_mobile",
+      "width": 375,
+      "height": 812,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_business-presence_375px_mobile.png"
+    },
+    {
+      "route": "/admin/business-presence",
+      "routeName": "Business Presence & Hours",
+      "viewport": "320px_narrow_mobile",
+      "width": 320,
+      "height": 568,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_business-presence_320px_narrow_mobile.png"
+    },
+    {
+      "route": "/admin/business-context",
+      "routeName": "Business Context & Facts",
+      "viewport": "1440px_desktop",
+      "width": 1440,
+      "height": 900,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_business-context_1440px_desktop.png"
+    },
+    {
+      "route": "/admin/business-context",
+      "routeName": "Business Context & Facts",
+      "viewport": "1280px_laptop",
+      "width": 1280,
+      "height": 800,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_business-context_1280px_laptop.png"
+    },
+    {
+      "route": "/admin/business-context",
+      "routeName": "Business Context & Facts",
+      "viewport": "1024px_tablet_landscape",
+      "width": 1024,
+      "height": 768,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_business-context_1024px_tablet_landscape.png"
+    },
+    {
+      "route": "/admin/business-context",
+      "routeName": "Business Context & Facts",
+      "viewport": "768px_tablet_portrait",
+      "width": 768,
+      "height": 1024,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_business-context_768px_tablet_portrait.png"
+    },
+    {
+      "route": "/admin/business-context",
+      "routeName": "Business Context & Facts",
+      "viewport": "375px_mobile",
+      "width": 375,
+      "height": 812,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_business-context_375px_mobile.png"
+    },
+    {
+      "route": "/admin/business-context",
+      "routeName": "Business Context & Facts",
+      "viewport": "320px_narrow_mobile",
+      "width": 320,
+      "height": 568,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_business-context_320px_narrow_mobile.png"
+    },
+    {
+      "route": "/admin/account",
+      "routeName": "Account & Security Settings",
+      "viewport": "1440px_desktop",
+      "width": 1440,
+      "height": 900,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_account_1440px_desktop.png"
+    },
+    {
+      "route": "/admin/account",
+      "routeName": "Account & Security Settings",
+      "viewport": "1280px_laptop",
+      "width": 1280,
+      "height": 800,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_account_1280px_laptop.png"
+    },
+    {
+      "route": "/admin/account",
+      "routeName": "Account & Security Settings",
+      "viewport": "1024px_tablet_landscape",
+      "width": 1024,
+      "height": 768,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_account_1024px_tablet_landscape.png"
+    },
+    {
+      "route": "/admin/account",
+      "routeName": "Account & Security Settings",
+      "viewport": "768px_tablet_portrait",
+      "width": 768,
+      "height": 1024,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_account_768px_tablet_portrait.png"
+    },
+    {
+      "route": "/admin/account",
+      "routeName": "Account & Security Settings",
+      "viewport": "375px_mobile",
+      "width": 375,
+      "height": 812,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_account_375px_mobile.png"
+    },
+    {
+      "route": "/admin/account",
+      "routeName": "Account & Security Settings",
+      "viewport": "320px_narrow_mobile",
+      "width": 320,
+      "height": 568,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit__admin_account_320px_narrow_mobile.png"
+    },
+    {
+      "route": "/",
+      "routeName": "Public Website",
+      "viewport": "1440px_desktop",
+      "width": 1440,
+      "height": 900,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit_public_website_1440px_desktop.png"
+    },
+    {
+      "route": "/",
+      "routeName": "Public Website",
+      "viewport": "1280px_laptop",
+      "width": 1280,
+      "height": 800,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit_public_website_1280px_laptop.png"
+    },
+    {
+      "route": "/",
+      "routeName": "Public Website",
+      "viewport": "1024px_tablet_landscape",
+      "width": 1024,
+      "height": 768,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit_public_website_1024px_tablet_landscape.png"
+    },
+    {
+      "route": "/",
+      "routeName": "Public Website",
+      "viewport": "768px_tablet_portrait",
+      "width": 768,
+      "height": 1024,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit_public_website_768px_tablet_portrait.png"
+    },
+    {
+      "route": "/",
+      "routeName": "Public Website",
+      "viewport": "375px_mobile",
+      "width": 375,
+      "height": 812,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit_public_website_375px_mobile.png"
+    },
+    {
+      "route": "/",
+      "routeName": "Public Website",
+      "viewport": "320px_narrow_mobile",
+      "width": 320,
+      "height": 568,
+      "hasOverflow": false,
+      "overflowElement": null,
+      "screenshot": "shared_audit_public_website_320px_narrow_mobile.png"
+    }
+  ],
+  "sharedComponentsReuse": {},
+  "dialogInteractions": [
+    {
+      "dialog": "Lead Inspection & Follow-up Modal",
+      "result": {
+        "success": true,
+        "modalTitle": "Lead Inspection & Follow-up",
+        "modalDescription": "Review customer inquiry details and update status in the conversion pipeline.",
+        "ariaModal": "true",
+        "focusableCount": 11,
+        "activeElementInside": true,
+        "widthStable": true,
+        "modalClosedOnEscape": true
+      }
+    },
+    {
+      "dialog": "AI Content Assistance Modal",
+      "result": {
+        "opened": true,
+        "modalTitle": "Improve with AI",
+        "focusables": 3,
+        "closedOnEscape": true
+      }
+    },
+    {
+      "dialog": "Image Studio Workspace Modal",
+      "result": {
+        "error": "Image Studio Modal did not open"
+      }
+    }
+  ],
+  "tooltipInteractions": [
+    {
+      "found": true,
+      "openedOnClick": true,
+      "tooltipContent": "What to review: The official, legally recognized trading name of your business. Why it matters: Primary brand identifier that establishes trust and local presence. How Sparovia uses it: Displayed across your website header, footer, page titles, and structured schema (JSON-LD). External sync: External presence integrations are not connected in Pilot V1. Managed within Sparovia.",
+      "closedOnEscape": true
+    }
+  ],
+  "typographyAudits": [
+    {
+      "element": "body",
+      "fontFamily": "Inter, system-ui, -apple-system, sans-serif",
+      "isInter": true
+    },
+    {
+      "element": "h1",
+      "fontFamily": "Inter, system-ui, -apple-system, sans-serif",
+      "fontSize": "30px",
+      "fontWeight": "700",
+      "lineHeight": "36px"
+    }
+  ],
+  "colorAudits": [],
+  "radiusAudits": {
+    "buttonRadii": [
+      {
+        "text": "",
+        "borderRadius": "6px",
+        "bg": "rgb(241, 245, 249)",
+        "isPill": false
+      },
+      {
+        "text": "",
+        "borderRadius": "6px",
+        "bg": "rgb(241, 245, 249)",
+        "isPill": false
+      },
+      {
+        "text": "",
+        "borderRadius": "6px",
+        "bg": "rgba(0, 0, 0, 0)",
+        "isPill": false
+      },
+      {
+        "text": "",
+        "borderRadius": "6px",
+        "bg": "rgba(0, 0, 0, 0)",
+        "isPill": false
+      },
+      {
+        "text": "",
+        "borderRadius": "6px",
+        "bg": "rgb(255, 255, 255)",
+        "isPill": false
+      },
+      {
+        "text": "Sign Out",
+        "borderRadius": "6px",
+        "bg": "rgba(0, 0, 0, 0)",
+        "isPill": false
+      },
+      {
+        "text": "",
+        "borderRadius": "4px",
+        "bg": "rgb(255, 255, 255)",
+        "isPill": false
+      },
+      {
+        "text": "",
+        "borderRadius": "4px",
+        "bg": "rgba(0, 0, 0, 0)",
+        "isPill": false
+      },
+      {
+        "text": "Export",
+        "borderRadius": "6px",
+        "bg": "rgb(255, 255, 255)",
+        "isPill": false
+      },
+      {
+        "text": "Refresh",
+        "borderRadius": "6px",
+        "bg": "rgb(255, 255, 255)",
+        "isPill": false
+      },
+      {
+        "text": "Add Lead",
+        "borderRadius": "6px",
+        "bg": "rgb(49, 95, 234)",
+        "isPill": false
+      },
+      {
+        "text": "All Enquiries\n2",
+        "borderRadius": "6px",
+        "bg": "rgb(49, 95, 234)",
+        "isPill": false
+      },
+      {
+        "text": "New\n1",
+        "borderRadius": "6px",
+        "bg": "rgb(255, 255, 255)",
+        "isPill": false
+      },
+      {
+        "text": "Contacted\n1",
+        "borderRadius": "6px",
+        "bg": "rgb(255, 255, 255)",
+        "isPill": false
+      },
+      {
+        "text": "Qualified\n0",
+        "borderRadius": "6px",
+        "bg": "rgb(255, 255, 255)",
+        "isPill": false
+      },
+      {
+        "text": "Closed\n0",
+        "borderRadius": "6px",
+        "bg": "rgb(255, 255, 255)",
+        "isPill": false
+      },
+      {
+        "text": "",
+        "borderRadius": "4px",
+        "bg": "rgba(0, 0, 0, 0)",
+        "isPill": false
+      },
+      {
+        "text": "Details",
+        "borderRadius": "6px",
+        "bg": "rgba(0, 0, 0, 0)",
+        "isPill": false
+      },
+      {
+        "text": "",
+        "borderRadius": "6px",
+        "bg": "rgba(0, 0, 0, 0)",
+        "isPill": false
+      },
+      {
+        "text": "",
+        "borderRadius": "6px",
+        "bg": "rgba(0, 0, 0, 0)",
+        "isPill": false
+      }
+    ],
+    "badgeRadii": [
+      {
+        "text": "ADMIN",
+        "borderRadius": "4px",
+        "color": "rgb(49, 95, 234)",
+        "bg": "rgba(49, 95, 234, 0.1)"
+      },
+      {
+        "text": "ADMIN",
+        "borderRadius": "4px",
+        "color": "rgb(49, 95, 234)",
+        "bg": "rgba(49, 95, 234, 0.1)"
+      },
+      {
+        "text": "2 Total",
+        "borderRadius": "4px",
+        "color": "rgb(49, 95, 234)",
+        "bg": "rgba(49, 95, 234, 0.1)"
+      },
+      {
+        "text": "Contacted",
+        "borderRadius": "4px",
+        "color": "rgb(49, 95, 234)",
+        "bg": "rgba(49, 95, 234, 0.1)"
+      },
+      {
+        "text": "WhatsApp",
+        "borderRadius": "4px",
+        "color": "rgb(18, 140, 126)",
+        "bg": "rgba(37, 211, 102, 0.1)"
+      },
+      {
+        "text": "New",
+        "borderRadius": "4px",
+        "color": "rgb(21, 128, 61)",
+        "bg": "rgba(21, 128, 61, 0.1)"
+      },
+      {
+        "text": "Website",
+        "borderRadius": "4px",
+        "color": "rgb(71, 85, 105)",
+        "bg": "rgb(243, 246, 250)"
+      }
+    ],
+    "cardRadii": [
+      {
+        "borderRadius": "6px",
+        "border": "0px solid rgb(229, 231, 235)",
+        "bg": "rgb(49, 95, 234)"
+      },
+      {
+        "borderRadius": "8px",
+        "border": "1px solid rgb(226, 232, 240)",
+        "bg": "rgb(241, 245, 249)"
+      },
+      {
+        "borderRadius": "8px",
+        "border": "1px solid rgb(203, 213, 225)",
+        "bg": "rgb(255, 255, 255)"
+      },
+      {
+        "borderRadius": "8px",
+        "border": "1px solid rgb(203, 213, 225)",
+        "bg": "rgb(255, 255, 255)"
+      },
+      {
+        "borderRadius": "8px",
+        "border": "1px solid rgb(203, 213, 225)",
+        "bg": "rgb(255, 255, 255)"
+      },
+      {
+        "borderRadius": "8px",
+        "border": "1px solid rgb(203, 213, 225)",
+        "bg": "rgb(255, 255, 255)"
+      }
+    ],
+    "pillShapedButtons": []
+  },
+  "motionAudits": [
+    {
+      "motionReducedElementsCount": 20,
+      "hasReducedMotionClasses": true
+    }
+  ],
+  "defects": []
+}
