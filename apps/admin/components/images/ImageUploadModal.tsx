@@ -402,7 +402,7 @@ export function ImageUploadModal({
           <div>
             {selectedFile && dimensions && localPreviewUrl && onOpenStudio && (
               <Button
-                variant="studio"
+                variant="primary"
                 size="md"
                 type="button"
                 className="w-full sm:w-auto"

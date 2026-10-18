@@ -158,6 +158,7 @@ pass without destructive data changes.
   2. `ImageUploadModal.tsx`: Added `preventOutsideClose` for selected files/in-flight uploads.
   3. `AIContentModal.tsx`: Added `preventOutsideClose` for unaccepted/in-flight suggestions.
   4. `content/page.tsx`: Added `preventOutsideClose` to publish confirmation dialog.
+  5. `leads/page.tsx`: Implemented approved card-first SaaS presentation, eliminated horizontal scrollbar and clipped table actions, redesigned Lead Detail modal to remove 6 nested boxed cards, integrated shared `PhoneInput` with +91 validation, and verified across all 6 viewports (320px–1440px) with 0 overflow. Unit tests (25/25) and integration tests (9/9) passed.
 
 **Observed issues** - Image Studio comparison and controls feel cramped
 at 320px width. - AI Content Assistance dialog/results need polish. -

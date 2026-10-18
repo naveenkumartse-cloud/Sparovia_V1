@@ -57,7 +57,12 @@ export function Modal({
     }
 
     const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = 'hidden';
+    if (scrollBarWidth > 0) {
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
+    }
 
     // Initial focus placement
     const focusTimer = setTimeout(() => {
@@ -120,6 +125,7 @@ export function Modal({
       clearTimeout(focusTimer);
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
 
       // Restore focus to initiating control
       if (previousActiveElementRef.current && typeof previousActiveElementRef.current.focus === 'function') {
@@ -145,11 +151,11 @@ export function Modal({
         aria-hidden="true"
       />
 
-      {/* Modal Card */}
+      {/* Modal Card — Stable dimensions without layout shaking */}
       <div
         ref={modalRef}
         className={cn(
-          'relative flex flex-col max-h-[calc(100dvh-20px)] sm:max-h-[85vh] my-auto bg-white dark:bg-[#0F172A] border border-[#E3E7ED] dark:border-[#1E293B] rounded-[10px] shadow-[0_12px_32px_rgb(23_32_51_/_16%)] z-10 overflow-hidden transform transition-all',
+          'relative flex flex-col max-h-[calc(100dvh-20px)] sm:max-h-[85vh] my-auto bg-white dark:bg-[#0F172A] border border-[#E3E7ED] dark:border-[#1E293B] rounded-[10px] shadow-[0_12px_32px_rgb(23_32_51_/_16%)] z-10 overflow-hidden',
           maxWidthMap[maxWidth] || maxWidthMap.md,
           className
         )}

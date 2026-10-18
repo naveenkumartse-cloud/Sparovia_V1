@@ -1,0 +1,68 @@
+{
+  "viewportsTested": [
+    "1440x900",
+    "1280x800",
+    "1024x768",
+    "768x1024",
+    "375x812",
+    "320x568"
+  ],
+  "overflowResults": {
+    "320": {
+      "hasOverflow": false,
+      "docW": 320,
+      "winW": 320,
+      "overflowingSelector": null
+    },
+    "375": {
+      "hasOverflow": false,
+      "docW": 375,
+      "winW": 375,
+      "overflowingSelector": null
+    },
+    "768": {
+      "hasOverflow": false,
+      "docW": 768,
+      "winW": 768,
+      "overflowingSelector": null
+    },
+    "1024": {
+      "hasOverflow": false,
+      "docW": 1024,
+      "winW": 1024,
+      "overflowingSelector": null
+    },
+    "1280": {
+      "hasOverflow": false,
+      "docW": 1280,
+      "winW": 1280,
+      "overflowingSelector": null
+    },
+    "1440": {
+      "hasOverflow": false,
+      "docW": 1440,
+      "winW": 1440,
+      "overflowingSelector": null
+    }
+  },
+  "screenshots": [
+    "admin-leads-cards-1440.png",
+    "admin-leads-cards-1280.png",
+    "admin-leads-cards-1024.png",
+    "admin-leads-cards-768.png",
+    "admin-leads-cards-375.png",
+    "admin-leads-cards-320.png",
+    "admin-leads-detail-modal-1440.png",
+    "admin-leads-detail-modal-375.png",
+    "admin-leads-add-modal-1440.png",
+    "admin-leads-add-modal-375.png",
+    "admin-leads-edit-modal-1440.png",
+    "admin-leads-delete-modal-1440.png",
+    "admin-leads-table-view-1440.png"
+  ],
+  "interactionsTested": [
+    "Pipeline stage update via detail modal",
+    "Lead creation verified"
+  ],
+  "errors": []
+}

@@ -752,28 +752,30 @@ export default function ImagesPage() {
                   </div>
 
                   {/* Slot Actions Footer */}
-                  <div className="pt-4 mt-auto border-t border-slate-100 dark:border-[#1E293B] flex items-center justify-between gap-3">
+                  <div className="pt-4 mt-auto border-t border-slate-100 dark:border-[#1E293B] flex flex-wrap items-center justify-between gap-3">
                     {assignedImage ? (
                       <>
                         <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant={isAssignedPublished ? 'secondary' : 'primary'}
+                            size="sm"
+                            onClick={() => handleOpenStudio(assignedImage)}
+                            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+                            title="Open Image Studio for enhancement"
+                            className="font-semibold"
+                          >
+                            Enhance
+                          </Button>
                           <Button
                             type="button"
                             variant="secondary"
                             size="sm"
                             onClick={() => openUploadModal(slot.key, assignedImage)}
                             leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                            title="Replace image file"
                           >
                             Replace
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="studio"
-                            size="sm"
-                            onClick={() => handleOpenStudio(assignedImage)}
-                            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
-                            title="Open Image Studio"
-                          >
-                            Studio
                           </Button>
                         </div>
 
@@ -781,9 +783,11 @@ export default function ImagesPage() {
                           {!isAssignedPublished ? (
                             <Button
                               type="button"
-                              variant="primary"
+                              variant="outline"
                               size="sm"
                               onClick={() => handlePublishImage(assignedImage)}
+                              className="font-medium text-[#172033] dark:text-white"
+                              title="Publish image to live website"
                             >
                               Publish
                             </Button>
@@ -794,6 +798,7 @@ export default function ImagesPage() {
                               size="sm"
                               onClick={() => handleUnpublishImage(assignedImage)}
                               className="text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
+                              title="Remove from public website"
                             >
                               Unpublish
                             </Button>
@@ -803,7 +808,7 @@ export default function ImagesPage() {
                             variant="ghost"
                             size="icon-sm"
                             onClick={() => openRemoveModal(assignedImage)}
-                            aria-label="Delete image"
+                            aria-label={`Delete image for slot ${slot.title}`}
                             title="Delete image from media library"
                             className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                           >
