@@ -161,9 +161,49 @@ export default function AiConnectionsPage() {
 
   const isConnected = connection?.status === 'Connected';
 
+  const hasSavedKeyForSelectedProvider = useMemo(() => {
+    return !!(
+      connection?.providerKey &&
+      connection.providerKey.toLowerCase() === selectedProviderKey.toLowerCase() &&
+      connection.maskedApiKey
+    );
+  }, [connection, selectedProviderKey]);
+
+  // Handle Testing Active Saved Connection
+  const handleTestSavedConnection = async () => {
+    if (!connection?.providerKey) return;
+    setTestingConnection(true);
+    setTestResult(null);
+
+    try {
+      const res = await apiClient.fetch<{ data: { success: boolean; message: string } }>('/ai/connection/test', {
+        method: 'POST',
+        body: JSON.stringify({
+          providerKey: connection.providerKey,
+          selectedModelKey: connection.selectedModelKey
+        })
+      });
+
+      if (res?.data?.success) {
+        setTestResult({ success: true, message: res.data.message || 'Connection verified successfully.' });
+        toast.success('Connection verified successfully!');
+        await loadData();
+      } else {
+        setTestResult({ success: false, message: 'Authentication failed. Please verify your API key.' });
+      }
+    } catch (err: any) {
+      const msg = err.message || 'Could not authenticate with provider. Please check your API key.';
+      setTestResult({ success: false, message: msg });
+      toast.error(msg);
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
   // Handle Testing Connection in Setup Mode
   const handleTestConnection = async () => {
-    if (!apiKeyInput.trim()) {
+    const trimmedKey = apiKeyInput.trim();
+    if (!trimmedKey && !hasSavedKeyForSelectedProvider) {
       toast.error('Please enter an API key to test the connection.');
       return;
     }
@@ -176,7 +216,7 @@ export default function AiConnectionsPage() {
         method: 'POST',
         body: JSON.stringify({
           providerKey: selectedProviderKey,
-          apiKey: apiKeyInput.trim(),
+          apiKey: trimmedKey || undefined,
           selectedModelKey: selectedModelKey
         })
       });
@@ -444,7 +484,23 @@ export default function AiConnectionsPage() {
 
             {/* Actions Row */}
             <div className="px-6 py-4 border-t border-slate-100 dark:border-[#1E293B] bg-slate-50/30 dark:bg-[#0F172A]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleTestSavedConnection}
+                  disabled={testingConnection}
+                  leftIcon={
+                    testingConnection ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Zap className="w-3.5 h-3.5 text-[#315FEA]" />
+                    )
+                  }
+                  className="text-xs"
+                >
+                  {testingConnection ? 'Testing Connection...' : 'Test Connection'}
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"
@@ -481,6 +537,30 @@ export default function AiConnectionsPage() {
                 Disconnect
               </Button>
             </div>
+
+            {testResult && (
+              <div className={`px-6 py-3 text-xs flex items-center justify-between gap-2 font-medium border-t ${
+                testResult.success
+                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                  : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20'
+              }`}>
+                <div className="flex items-center gap-2">
+                  {testResult.success ? (
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                  )}
+                  <span>{testResult.message}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTestResult(null)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-[11px] underline ml-2 shrink-0"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
           </section>
 
           {/* AVAILABLE MODELS FOR CONNECTED PROVIDER */}
@@ -713,7 +793,7 @@ export default function AiConnectionsPage() {
                       setApiKeyInput(e.target.value);
                       setTestResult(null);
                     }}
-                    placeholder={activeProvider?.placeholder || 'sk-...'}
+                    placeholder={hasSavedKeyForSelectedProvider && !apiKeyInput ? (connection?.maskedApiKey || '••••••••••••••••') : (activeProvider?.placeholder || 'sk-...')}
                     className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] text-xs font-mono text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] transition-all pr-10"
                     autoComplete="off"
                     spellCheck="false"
@@ -727,6 +807,12 @@ export default function AiConnectionsPage() {
                     {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {hasSavedKeyForSelectedProvider && !apiKeyInput && (
+                  <p className="text-[11px] text-slate-500 dark:text-[#94A3B8] mt-1 flex items-center gap-1">
+                    <Lock className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span>Using saved encrypted credential ({connection?.maskedApiKey}). Enter a new key only to replace it.</span>
+                  </p>
+                )}
               </div>
 
               {/* Clean Baseline Test Connection Row */}
@@ -736,7 +822,7 @@ export default function AiConnectionsPage() {
                   size="sm"
                   variant="outline"
                   onClick={handleTestConnection}
-                  disabled={testingConnection || !apiKeyInput.trim()}
+                  disabled={testingConnection || (!apiKeyInput.trim() && !hasSavedKeyForSelectedProvider)}
                   leftIcon={
                     testingConnection ? (
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />

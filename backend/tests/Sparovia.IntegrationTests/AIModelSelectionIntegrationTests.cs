@@ -581,4 +581,127 @@ public class AIModelSelectionIntegrationTests : IClassFixture<WebApplicationFact
         var draftHeadline = sectionJson.GetProperty("draftFields").GetProperty("headline").GetString();
         Assert.Equal(improveDto.Suggestion, draftHeadline);
     }
+
+    [Fact]
+    public async Task TestConnection_WithSavedCredential_SucceedsWithoutSendingApiKey()
+    {
+        var email = $"ai-test-saved-{Guid.NewGuid():N}@sparovia-test.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        var plainApiKey = "sk-live-secret-test-key-5555";
+
+        // 1. Establish connection first
+        var connReq = new ConnectAIProviderRequest
+        {
+            ProviderKey = AIProviders.OpenAI,
+            ApiKey = plainApiKey,
+            SelectedModelKey = "gpt-4o"
+        };
+        var connResp = await client.PostAsJsonAsync("/api/v1/ai/connection", connReq);
+        connResp.EnsureSuccessStatusCode();
+
+        // 2. Call POST /api/v1/ai/connection/test without ApiKey
+        var testReq = new TestAIConnectionRequest
+        {
+            ProviderKey = AIProviders.OpenAI,
+            ApiKey = null,
+            SelectedModelKey = "gpt-4o"
+        };
+        var testResp = await client.PostAsJsonAsync("/api/v1/ai/connection/test", testReq);
+        Assert.Equal(HttpStatusCode.OK, testResp.StatusCode);
+
+        var testResult = await ReadDataAsync<TestAIConnectionResponse>(testResp);
+        Assert.True(testResult.Success);
+        Assert.Equal("openai", testResult.ProviderKey);
+
+        // Verify plain key is NEVER returned in response
+        var rawContent = await testResp.Content.ReadAsStringAsync();
+        Assert.DoesNotContain(plainApiKey, rawContent);
+
+        // 3. Verify LastValidatedAt was updated in database
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<SparoviaDbContext>();
+        var user = await db.Users.SingleAsync(u => u.Email == email);
+        var membership = await db.Memberships.FirstAsync(m => m.UserId == user.Id);
+        var config = await db.TenantAIConfigurations.FirstOrDefaultAsync(c => c.TenantId == membership.TenantId);
+        Assert.NotNull(config);
+        Assert.NotNull(config.LastValidatedAt);
+    }
+
+    [Fact]
+    public async Task TestConnection_WithoutSavedCredentialAndNoKey_ReturnsBadRequestValidationError()
+    {
+        var email = $"ai-test-nokey-{Guid.NewGuid():N}@sparovia-test.com";
+        var client = await GetAuthenticatedClientAsync(email);
+
+        // Call POST /api/v1/ai/connection/test with no saved credential and no ApiKey in request
+        var testReq = new TestAIConnectionRequest
+        {
+            ProviderKey = AIProviders.OpenAI,
+            ApiKey = null,
+            SelectedModelKey = "gpt-4o-mini"
+        };
+        var testResp = await client.PostAsJsonAsync("/api/v1/ai/connection/test", testReq);
+        Assert.Equal(HttpStatusCode.BadRequest, testResp.StatusCode);
+
+        var json = await testResp.Content.ReadFromJsonAsync<JsonElement>();
+        var errCode = json.GetProperty("error").GetProperty("code").GetString();
+        var errMsg = json.GetProperty("error").GetProperty("message").GetString();
+        Assert.Equal(AIErrorCodes.ValidationError, errCode);
+        Assert.Contains("No saved credential was found", errMsg);
+    }
+
+    [Fact]
+    public async Task TestConnection_WithDifferentProviderThanSaved_ReturnsValidationErrorWhenNoKey()
+    {
+        var email = $"ai-test-mismatch-{Guid.NewGuid():N}@sparovia-test.com";
+        var client = await GetAuthenticatedClientAsync(email);
+
+        // 1. Save connection for Google Gemini
+        var connReq = new ConnectAIProviderRequest
+        {
+            ProviderKey = AIProviders.Google,
+            ApiKey = "AIzaSySavedKeyForGemini",
+            SelectedModelKey = "gemini-1.5-flash"
+        };
+        var connResp = await client.PostAsJsonAsync("/api/v1/ai/connection", connReq);
+        connResp.EnsureSuccessStatusCode();
+
+        // 2. Attempt to test OpenAI without providing an ApiKey (should NOT send Gemini key to OpenAI)
+        var testReq = new TestAIConnectionRequest
+        {
+            ProviderKey = AIProviders.OpenAI,
+            ApiKey = null,
+            SelectedModelKey = "gpt-4o-mini"
+        };
+        var testResp = await client.PostAsJsonAsync("/api/v1/ai/connection/test", testReq);
+        Assert.Equal(HttpStatusCode.BadRequest, testResp.StatusCode);
+
+        var json = await testResp.Content.ReadFromJsonAsync<JsonElement>();
+        var errCode = json.GetProperty("error").GetProperty("code").GetString();
+        var errMsg = json.GetProperty("error").GetProperty("message").GetString();
+        Assert.Equal(AIErrorCodes.ValidationError, errCode);
+        Assert.Contains("No saved credential was found for OpenAI", errMsg);
+    }
+
+    [Fact]
+    public async Task TestConnection_QuotaExhaustion_ReturnsQuotaExceededWithAccurateMessage()
+    {
+        var email = $"ai-test-quota-{Guid.NewGuid():N}@sparovia-test.com";
+        var client = await GetAuthenticatedClientAsync(email);
+
+        var testReq = new TestAIConnectionRequest
+        {
+            ProviderKey = AIProviders.OpenAI,
+            ApiKey = "sk-test-__SIMULATE_QUOTA_EXCEEDED__",
+            SelectedModelKey = "gpt-4o-mini"
+        };
+        var testResp = await client.PostAsJsonAsync("/api/v1/ai/connection/test", testReq);
+        Assert.Equal(HttpStatusCode.BadRequest, testResp.StatusCode);
+
+        var json = await testResp.Content.ReadFromJsonAsync<JsonElement>();
+        var errCode = json.GetProperty("error").GetProperty("code").GetString();
+        var errMsg = json.GetProperty("error").GetProperty("message").GetString();
+        Assert.Equal(AIErrorCodes.QuotaExceeded, errCode);
+        Assert.Contains("exhausted its quota or prepaid credit balance", errMsg);
+    }
 }

@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Sparovia.Application.AI;
@@ -20,14 +21,20 @@ public class HttpAIProviderAdapter : IAIProvider
     private readonly HttpClient _httpClient;
     private readonly IOptions<AIOptions> _options;
     private readonly ILogger<HttpAIProviderAdapter> _logger;
+    private readonly IHostEnvironment? _environment;
 
     public string ProviderName => "HttpAIProvider";
 
-    public HttpAIProviderAdapter(HttpClient httpClient, IOptions<AIOptions> options, ILogger<HttpAIProviderAdapter> logger)
+    public HttpAIProviderAdapter(
+        HttpClient httpClient, 
+        IOptions<AIOptions> options, 
+        ILogger<HttpAIProviderAdapter> logger,
+        IHostEnvironment? environment = null)
     {
         _httpClient = httpClient;
         _options = options;
         _logger = logger;
+        _environment = environment;
     }
 
     public async Task<bool> TestConnectionAsync(string providerKey, string apiKey, CancellationToken cancellationToken = default)
@@ -55,27 +62,42 @@ public class HttpAIProviderAdapter : IAIProvider
 
         var trimmedKey = apiKey.Trim();
 
-        // Automated unit/integration test simulation hooks
-        if (trimmedKey.Contains("__SIMULATE_INVALID_KEY__", StringComparison.OrdinalIgnoreCase) ||
-            trimmedKey.Equals("invalid", StringComparison.OrdinalIgnoreCase) ||
-            trimmedKey.Equals("invalid-key", StringComparison.OrdinalIgnoreCase))
+        // Automated unit/integration test simulation hooks (strictly disabled in Production)
+        var isProduction = _environment?.IsProduction() ?? false;
+        if (!isProduction)
         {
-            return new AIConnectionTestResult
+            if (trimmedKey.Contains("__SIMULATE_INVALID_KEY__", StringComparison.OrdinalIgnoreCase) ||
+                trimmedKey.Equals("invalid", StringComparison.OrdinalIgnoreCase) ||
+                trimmedKey.Equals("invalid-key", StringComparison.OrdinalIgnoreCase))
             {
-                Success = false,
-                ErrorCode = AIErrorCodes.ConnectionTestFailed,
-                ErrorMessage = "AI connection could not be authenticated. Please verify your API key.",
-                StatusCode = 401
-            };
-        }
+                return new AIConnectionTestResult
+                {
+                    Success = false,
+                    ErrorCode = AIErrorCodes.ConnectionTestFailed,
+                    ErrorMessage = "AI connection could not be authenticated. Please verify your API key.",
+                    StatusCode = 401
+                };
+            }
 
-        if (trimmedKey.Contains("__SIMULATE_VALID_KEY__", StringComparison.OrdinalIgnoreCase))
-        {
-            return new AIConnectionTestResult
+            if (trimmedKey.Contains("__SIMULATE_QUOTA_EXCEEDED__", StringComparison.OrdinalIgnoreCase))
             {
-                Success = true,
-                StatusCode = 200
-            };
+                return new AIConnectionTestResult
+                {
+                    Success = false,
+                    ErrorCode = AIErrorCodes.QuotaExceeded,
+                    ErrorMessage = "The AI provider rejected the request because your account has exhausted its quota or prepaid credit balance. Please check your provider billing and credit balance.",
+                    StatusCode = 429
+                };
+            }
+
+            if (trimmedKey.Contains("__SIMULATE_VALID_KEY__", StringComparison.OrdinalIgnoreCase))
+            {
+                return new AIConnectionTestResult
+                {
+                    Success = true,
+                    StatusCode = 200
+                };
+            }
         }
 
         var provider = (providerKey ?? string.Empty).ToLowerInvariant();
@@ -733,16 +755,25 @@ public class HttpAIProviderAdapter : IAIProvider
             return (AIErrorCodes.ModelUnavailable, $"The configured AI model{modelDisplay} is unavailable. Please verify the selected model in AI Connections.");
         }
 
-        // 3. Rate Limit / Quota Exceeded (429 or RESOURCE_EXHAUSTED / credit exhaustion)
+        // 3. Quota / Billing / Credit Exhaustion
+        if (bodyLower.Contains("insufficient_quota") ||
+            bodyLower.Contains("quota exceeded") ||
+            bodyLower.Contains("insufficient credits") ||
+            bodyLower.Contains("credits exhausted") ||
+            bodyLower.Contains("credit balance is too low") ||
+            bodyLower.Contains("out of credits") ||
+            bodyLower.Contains("payment_required") ||
+            (bodyLower.Contains("billing") && (intCode == 400 || intCode == 402 || intCode == 429)))
+        {
+            return (AIErrorCodes.QuotaExceeded, "The AI provider rejected the request because your account has exhausted its quota or prepaid credit balance. Please check your provider billing and credit balance.");
+        }
+
+        // 4. Rate Limit (429 or RESOURCE_EXHAUSTED / rate limit)
         if (intCode == 429 ||
             bodyLower.Contains("resource_exhausted") ||
             bodyLower.Contains("rate_limit_exceeded") ||
             bodyLower.Contains("rate limit") ||
-            bodyLower.Contains("insufficient_quota") ||
-            bodyLower.Contains("quota exceeded") ||
-            bodyLower.Contains("insufficient credits") ||
-            bodyLower.Contains("credits exhausted") ||
-            bodyLower.Contains("out of credits"))
+            bodyLower.Contains("too many requests"))
         {
             return (AIErrorCodes.RateLimited, "The AI provider is temporarily rate limited. Please try again later.");
         }

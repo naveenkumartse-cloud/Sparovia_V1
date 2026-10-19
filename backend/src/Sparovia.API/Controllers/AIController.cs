@@ -239,21 +239,33 @@ public class AIController : ControllerBase
         var provider = AIProviderRegistry.GetProviderByKey(request.ProviderKey)!;
 
         var apiKeyToTest = request.ApiKey;
+        TenantAIConfiguration? matchingSavedConfig = null;
+
         if (string.IsNullOrWhiteSpace(apiKeyToTest))
         {
             var config = await _dbContext.TenantAIConfigurations
-                .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.TenantId == tenantId, cancellationToken);
 
-            if (config != null && !string.IsNullOrWhiteSpace(config.EncryptedApiKey))
+            if (config != null && 
+                !string.IsNullOrWhiteSpace(config.EncryptedApiKey) && 
+                string.Equals(config.ProviderKey, provider.Key, StringComparison.OrdinalIgnoreCase))
             {
                 apiKeyToTest = _encryptionService.Decrypt(config.EncryptedApiKey);
+                matchingSavedConfig = config;
             }
         }
 
         if (string.IsNullOrWhiteSpace(apiKeyToTest))
         {
-            return BadRequest(new { Error = "API key is required to test the connection.", Code = AIErrorCodes.ValidationError });
+            return BadRequest(new 
+            { 
+                error = new 
+                { 
+                    code = AIErrorCodes.ValidationError, 
+                    message = $"An API key is required to test the connection. No saved credential was found for {provider.DisplayName}." 
+                },
+                requestId = HttpContext.TraceIdentifier 
+            });
         }
 
         var testResult = await _aiProvider.TestConnectionDetailedAsync(provider.Key, apiKeyToTest, request.SelectedModelKey, cancellationToken);
@@ -277,6 +289,13 @@ public class AIController : ControllerBase
         _logger.LogInformation("AUDIT: AI_CONNECTION_TESTED. TenantId={TenantId}, ProviderKey={ProviderKey}, ModelKey={ModelKey}, Success=True",
             tenantId, provider.Key, request.SelectedModelKey);
 
+        if (matchingSavedConfig != null)
+        {
+            matchingSavedConfig.LastValidatedAt = DateTime.UtcNow;
+            matchingSavedConfig.UpdatedAt = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         return Ok(new
         {
             data = new TestAIConnectionResponse
@@ -286,7 +305,7 @@ public class AIController : ControllerBase
                 Message = $"Connection to {provider.DisplayName} verified successfully.",
                 Status = "CONNECTED",
                 Provider = provider.DisplayName,
-                Model = request.SelectedModelKey ?? AIModelRegistry.DefaultModelKeyFor(provider.Key)
+                Model = request.SelectedModelKey ?? matchingSavedConfig?.SelectedModelKey ?? AIModelRegistry.DefaultModelKeyFor(provider.Key)
             },
             requestId = HttpContext.TraceIdentifier
         });

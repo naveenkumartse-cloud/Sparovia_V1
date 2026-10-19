@@ -80,6 +80,7 @@ public static class AIErrorCodes
     public const string ResourceNotFound = "RESOURCE_NOT_FOUND";
     public const string OnboardingRequired = "ONBOARDING_REQUIRED";
     public const string ConnectionTestFailed = "CONNECTION_TEST_FAILED";
+    public const string QuotaExceeded = "QUOTA_EXCEEDED";
 
     // Standardized Model & Provider persistence error codes
     public const string ModelNotFound = "AI_MODEL_NOT_FOUND";

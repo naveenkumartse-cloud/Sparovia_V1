@@ -47,6 +47,17 @@ public class StubAIProviderAdapter : IAIProvider
             };
         }
 
+        if (apiKey.Contains("__SIMULATE_QUOTA_EXCEEDED__", StringComparison.OrdinalIgnoreCase))
+        {
+            return new AIConnectionTestResult
+            {
+                Success = false,
+                ErrorCode = AIErrorCodes.QuotaExceeded,
+                ErrorMessage = "The AI provider rejected the request because your account has exhausted its quota or prepaid credit balance. Please check your provider billing and credit balance.",
+                StatusCode = 429
+            };
+        }
+
         return new AIConnectionTestResult
         {
             Success = true,
