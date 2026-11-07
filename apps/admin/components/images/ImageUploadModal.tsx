@@ -15,6 +15,9 @@ import {
 import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
 import { ImageDto } from './ImageStudioWorkspace';
 
 export interface WorkCategoryDto {
@@ -118,13 +121,21 @@ export function ImageUploadModal({
   const handleFile = (file: File) => {
     setErrorMessage(null);
 
+    const fileName = file.name.toLowerCase();
+    if (file.type === 'image/heic' || file.type === 'image/heif' || fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
+      setErrorMessage(
+        'Apple HEIC/HEIF photos are not directly supported yet. Please export as JPG or PNG from your iPhone Photos app before uploading.'
+      );
+      return;
+    }
+
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      setErrorMessage('Unsupported format. Only JPG, PNG, and WebP images are supported.');
+      setErrorMessage('Unsupported file format. Please select a JPG, PNG, or WebP photograph.');
       return;
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      setErrorMessage(`File exceeds 10 MB maximum limit (${formatBytes(file.size)}).`);
+      setErrorMessage(`This photo is ${formatBytes(file.size)}, exceeding our 10 MB limit. Please select a photo under 10 MB.`);
       return;
     }
 
@@ -144,7 +155,7 @@ export function ImageUploadModal({
 
       if (totalPixels > MAX_DECODED_PIXELS) {
         setErrorMessage(
-          `Image resolution exceeds maximum decoded limit of 25 megapixels (${Math.round(totalPixels / 1_000_000)} MP).`
+          `Photo resolution is ${Math.round(totalPixels / 1_000_000)} megapixels, exceeding our 25 megapixel limit. Please select a photo under 25 MP.`
         );
         setSelectedFile(null);
         cleanupPreview();
@@ -241,12 +252,73 @@ export function ImageUploadModal({
       title={replacingImage ? `Replace Image: ${replacingImage.slot || replacingImage.projectWorkName || 'Source'}` : slot ? `Upload Image for Slot: ${slot}` : 'Upload Project Image'}
       maxWidth="lg"
       preventOutsideClose={Boolean(selectedFile || isUploading)}
+      footer={
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5 w-full">
+          <div>
+            {selectedFile && dimensions && localPreviewUrl && onOpenStudio && (
+              <Button
+                variant="primary"
+                size="md"
+                type="button"
+                className="w-full sm:w-auto"
+                onClick={() => {
+                  onOpenStudio({
+                    file: selectedFile,
+                    previewUrl: localPreviewUrl,
+                    dimensions,
+                    slot,
+                    usageType: slot ? 'WebsiteImage' : usageType,
+                    projectWorkName: projectWorkName.trim(),
+                    caption: caption.trim(),
+                    category: !slot && selectedCategory.trim() ? selectedCategory.trim() : undefined,
+                    replacingImageId: replacingImage?.id,
+                  });
+                  onClose();
+                }}
+                leftIcon={<Sparkles className="w-4 h-4" />}
+              >
+                Enhance in Studio
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center justify-end gap-2 w-full sm:w-auto">
+            <Button variant="ghost" size="md" type="button" onClick={onClose} disabled={isUploading}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              type="submit"
+              form="image-upload-form"
+              isLoading={isUploading}
+              loadingText={replacingImage ? 'Replacing...' : 'Uploading...'}
+              disabled={!selectedFile}
+              leftIcon={<Upload className="w-4 h-4" />}
+            >
+              {replacingImage ? 'Confirm Replacement' : 'Upload Image'}
+            </Button>
+          </div>
+        </div>
+      }
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form id="image-upload-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
         {errorMessage && (
           <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-[6px] flex items-center gap-2.5 text-xs text-[#B91C1C] dark:text-rose-300">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {/* Replacement Reassurance Notice */}
+        {replacingImage && (
+          <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-[6px] text-xs text-blue-900 dark:text-blue-300">
+            <div className="flex items-center gap-1.5 font-semibold text-[#1D4ED8] dark:text-blue-300">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Replacing: {replacingImage.slot || replacingImage.projectWorkName || 'Live Website Image'}</span>
+            </div>
+            <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
+              Your currently published image remains live on your website. Once uploaded, you can review and explicitly publish this replacement whenever you are ready.
+            </p>
           </div>
         )}
 
@@ -290,7 +362,7 @@ export function ImageUploadModal({
                   ({dimensions.width} × {dimensions.height} px • {formatBytes(selectedFile?.size || 0)})
                 </span>
               </div>
-              <p className="text-[11px] text-[#315FEA]">Click or drop another file to replace</p>
+              <p className="text-[11px] text-[#315FEA]">Tap or drop another file to replace</p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
@@ -299,7 +371,7 @@ export function ImageUploadModal({
               </div>
               <div>
                 <p className="text-sm font-semibold text-[#172033] dark:text-white">
-                  Click to select or drag and drop image
+                  Tap to choose photo or drag &amp; drop
                 </p>
                 <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-0.5">
                   JPG, PNG, or WebP up to 10 MB (Max 25 megapixels)
@@ -315,12 +387,11 @@ export function ImageUploadModal({
             <label className="block text-xs font-semibold text-[#172033] dark:text-slate-200 mb-1">
               Project / Work Name (Optional)
             </label>
-            <input
+            <Input
               type="text"
               value={projectWorkName}
               onChange={(e) => setProjectWorkName(e.target.value)}
               placeholder="e.g. Modern Villa Kitchen"
-              className="w-full px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
             />
           </div>
 
@@ -329,11 +400,11 @@ export function ImageUploadModal({
               <label className="block text-xs font-semibold text-[#172033] dark:text-slate-200 mb-1">
                 Target Website Slot
               </label>
-              <input
+              <Input
                 type="text"
                 readOnly
                 value={slot}
-                className="w-full px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-[#F3F6FA] dark:bg-[#1E293B] text-[#475569] dark:text-slate-300 font-mono"
+                className="font-mono bg-[#F3F6FA] dark:bg-[#1E293B] text-[#475569] dark:text-slate-300"
               />
             </div>
           ) : (
@@ -343,7 +414,7 @@ export function ImageUploadModal({
               </label>
               {!isCreatingCategory ? (
                 <div className="flex gap-2">
-                  <select
+                  <Select
                     value={selectedCategory}
                     onChange={(e) => {
                       if (e.target.value === '__new__') {
@@ -352,7 +423,6 @@ export function ImageUploadModal({
                         setSelectedCategory(e.target.value);
                       }
                     }}
-                    className="flex-1 px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
                   >
                     <option value="">Select category</option>
                     {categories.map((c) => (
@@ -361,16 +431,16 @@ export function ImageUploadModal({
                       </option>
                     ))}
                     <option value="__new__">+ Create New Category...</option>
-                  </select>
+                  </Select>
                 </div>
               ) : (
                 <div className="flex gap-2">
-                  <input
+                  <Input
                     type="text"
                     value={newCatName}
                     onChange={(e) => setNewCatName(e.target.value)}
                     placeholder="New category name"
-                    className="flex-1 px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
+                    className="flex-1"
                   />
                   <Button variant="secondary" size="sm" type="button" onClick={handleCreateCategory}>
                     Add
@@ -388,60 +458,13 @@ export function ImageUploadModal({
           <label className="block text-xs font-semibold text-[#172033] dark:text-slate-200 mb-1">
             Caption / Descriptive Context (Optional)
           </label>
-          <textarea
+          <Textarea
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             rows={2}
             placeholder="Brief caption or finish details for your customers..."
-            className="w-full px-3 py-2 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] resize-none"
+            className="resize-none"
           />
-        </div>
-
-        {/* Modal Actions */}
-        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5 pt-3 border-t border-[#E3E7ED] dark:border-[#1E293B]">
-          <div>
-            {selectedFile && dimensions && localPreviewUrl && onOpenStudio && (
-              <Button
-                variant="primary"
-                size="md"
-                type="button"
-                className="w-full sm:w-auto"
-                onClick={() => {
-                  onOpenStudio({
-                    file: selectedFile,
-                    previewUrl: localPreviewUrl,
-                    dimensions,
-                    slot,
-                    usageType: slot ? 'WebsiteImage' : usageType,
-                    projectWorkName: projectWorkName.trim(),
-                    caption: caption.trim(),
-                    category: !slot && selectedCategory.trim() ? selectedCategory.trim() : undefined,
-                    replacingImageId: replacingImage?.id,
-                  });
-                  onClose();
-                }}
-                leftIcon={<Sparkles className="w-4 h-4" />}
-              >
-                Enhance in Studio
-              </Button>
-            )}
-          </div>
-          <div className="flex items-center justify-end gap-2 w-full sm:w-auto">
-            <Button variant="ghost" size="md" type="button" onClick={onClose} disabled={isUploading}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              type="submit"
-              isLoading={isUploading}
-              loadingText={replacingImage ? 'Replacing...' : 'Uploading...'}
-              disabled={!selectedFile}
-              leftIcon={<Upload className="w-4 h-4" />}
-            >
-              {replacingImage ? 'Confirm Replacement' : 'Upload Image'}
-            </Button>
-          </div>
         </div>
       </form>
     </Modal>

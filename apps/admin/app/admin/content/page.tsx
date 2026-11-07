@@ -152,6 +152,8 @@ export default function ContentPage() {
     sectionKey?: string;
     sectionTitle?: string;
     currentText: string;
+    maxLength?: number;
+    fieldRole?: string;
     onApply: (improvedText: string) => void;
   }>({
     isOpen: false,
@@ -212,7 +214,9 @@ export default function ContentPage() {
     fieldKey: string,
     fieldLabel: string,
     currentText: string,
-    onApply: (improvedText: string) => void
+    onApply: (improvedText: string) => void,
+    maxLength?: number,
+    fieldRole?: string
   ) => {
     setAiModalProps({
       isOpen: true,
@@ -221,7 +225,12 @@ export default function ContentPage() {
       sectionKey: selectedKey,
       sectionTitle: activeSection?.schema?.displayName || activeSection?.title || selectedKey,
       currentText,
-      onApply,
+      maxLength,
+      fieldRole,
+      onApply: (improvedText: string) => {
+        onApply(improvedText);
+        toast.success('AI suggestion applied to draft. Save changes to keep.');
+      },
     });
   };
 
@@ -882,6 +891,8 @@ export default function ContentPage() {
         sectionKey={aiModalProps.sectionKey}
         sectionTitle={aiModalProps.sectionTitle}
         currentText={aiModalProps.currentText}
+        maxLength={aiModalProps.maxLength}
+        fieldRole={aiModalProps.fieldRole}
         onApply={aiModalProps.onApply}
       />
 
@@ -901,7 +912,9 @@ interface SectionEditorProps {
     fieldKey: string,
     fieldLabel: string,
     currentText: string,
-    onApply: (improvedText: string) => void
+    onApply: (improvedText: string) => void,
+    maxLength?: number,
+    fieldRole?: string
   ) => void;
 }
 
@@ -957,7 +970,9 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                       field.key,
                       field.label,
                       value[field.key] ?? '',
-                      (improved) => onChange(field.key, improved)
+                      (improved) => onChange(field.key, improved),
+                      field.maxLength,
+                      (field as any).role
                     )
                   }
                   disabled={!value[field.key] || typeof value[field.key] !== 'string' || !value[field.key].trim()}
@@ -1002,7 +1017,9 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                       field.key,
                       field.label,
                       value[field.key] ?? '',
-                      (improved) => onChange(field.key, improved)
+                      (improved) => onChange(field.key, improved),
+                      field.maxLength,
+                      (field as any).role
                     )
                   }
                   disabled={!value[field.key] || typeof value[field.key] !== 'string' || !value[field.key].trim()}
@@ -1169,13 +1186,15 @@ function SectionEditor({ schema, value, onChange, onOpenAiModal }: SectionEditor
                                   onClick={() =>
                                     onOpenAiModal(
                                       `${field.key}.${itemIdx}.${subField.key}`,
-                                      `${itemTitle} > ${subField.label}`,
+                                      `${itemTitle} › ${subField.label}`,
                                       item[subField.key] ?? '',
                                       (improved) => {
                                         const updated = [...items];
                                         updated[itemIdx] = { ...updated[itemIdx], [subField.key]: improved };
                                         onChange(field.key, updated);
-                                      }
+                                      },
+                                      subField.maxLength,
+                                      (subField as any).role
                                     )
                                   }
                                   disabled={!item[subField.key] || typeof item[subField.key] !== 'string' || !item[subField.key].trim()}

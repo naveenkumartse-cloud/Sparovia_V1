@@ -539,6 +539,11 @@ function CustomerLeadsContent() {
     }
   };
 
+  const getCleanEnquiryMessage = (message?: string | null): string => {
+    if (!message) return '';
+    return message.replace(/^\[Area of Interest:[^\]]+\]\s*/i, '').trim();
+  };
+
   const getInitials = (name: string) => {
     if (!name) return 'L';
     const parts = name.trim().split(/\s+/);
@@ -1125,16 +1130,16 @@ function CustomerLeadsContent() {
                       <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                         {getSourceBadge(lead.source)}
                         {lead.areaOfInterest && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                          <Badge variant="warning" size="xs">
                             {lead.areaOfInterest}
-                          </span>
+                          </Badge>
                         )}
                       </div>
 
                       {/* Enquiry Message Preview */}
-                      {lead.message && (
+                      {getCleanEnquiryMessage(lead.message) && (
                         <div className="p-2.5 rounded-[6px] bg-[#F3F6FA] dark:bg-[#1E293B]/40 border border-[#E3E7ED]/70 dark:border-[#1E293B] text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
-                          {lead.message}
+                          {getCleanEnquiryMessage(lead.message)}
                         </div>
                       )}
                     </div>
@@ -1302,9 +1307,9 @@ function CustomerLeadsContent() {
                                   • {formatRelativeTime(lead.submittedAt)}
                                 </span>
                               </div>
-                              {lead.message && (
+                              {getCleanEnquiryMessage(lead.message) && (
                                 <p className="text-xs text-slate-400 font-normal truncate mt-0.5">
-                                  {lead.message}
+                                  {getCleanEnquiryMessage(lead.message)}
                                 </p>
                               )}
                             </div>
@@ -1339,9 +1344,9 @@ function CustomerLeadsContent() {
                         {/* Area of Interest */}
                         <td className="px-3 py-3">
                           {lead.areaOfInterest ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-xs font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                            <Badge variant="warning" size="xs">
                               {lead.areaOfInterest}
-                            </span>
+                            </Badge>
                           ) : (
                             <span className="text-xs text-slate-400">—</span>
                           )}
@@ -1666,7 +1671,7 @@ function CustomerLeadsContent() {
                 Customer Inquiry Requirements
               </span>
               <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed pt-0.5">
-                {selectedLead.message || 'No project description entered.'}
+                {getCleanEnquiryMessage(selectedLead.message) || 'No project description entered.'}
               </p>
             </div>
 

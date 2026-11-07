@@ -53,6 +53,85 @@ public static class WebsiteTemplateRegistry
         return template.Sections.FirstOrDefault(s => s.SectionKey.Equals(normalizedKey, StringComparison.OrdinalIgnoreCase));
     }
 
+    public class ResolvedFieldInfo
+    {
+        public required string Key { get; set; }
+        public required string Label { get; set; }
+        public required string Type { get; set; }
+        public int? MaxLength { get; set; }
+        public string? Tooltip { get; set; }
+        public string? Placeholder { get; set; }
+        public string Role { get; set; } = "text";
+    }
+
+    public static ResolvedFieldInfo? ResolveFieldInfo(string? templateId, string sectionKey, string fieldKey)
+    {
+        var template = GetTemplate(templateId);
+        var normalizedKey = NormalizeSectionKey(sectionKey);
+        var section = template.Sections.FirstOrDefault(s => s.SectionKey.Equals(normalizedKey, StringComparison.OrdinalIgnoreCase));
+        if (section == null) return null;
+
+        // Handle nested fields: e.g. "categories.0.description" or "items.2.title"
+        if (fieldKey.Contains('.'))
+        {
+            var parts = fieldKey.Split('.');
+            var parentKey = parts[0];
+            var subKey = parts.Length >= 3 ? parts[2] : parts[1];
+
+            var parentField = section.Fields.FirstOrDefault(f => f.Key.Equals(parentKey, StringComparison.OrdinalIgnoreCase));
+            if (parentField?.ItemFields != null)
+            {
+                var subField = parentField.ItemFields.FirstOrDefault(sf => sf.Key.Equals(subKey, StringComparison.OrdinalIgnoreCase));
+                if (subField != null)
+                {
+                    var role = DetermineFieldRole(normalizedKey, subField.Key, subField.Type);
+                    return new ResolvedFieldInfo
+                    {
+                        Key = fieldKey,
+                        Label = $"{parentField.Label} › {subField.Label}",
+                        Type = subField.Type,
+                        MaxLength = subField.MaxLength,
+                        Role = role
+                    };
+                }
+            }
+        }
+
+        var field = section.Fields.FirstOrDefault(f => f.Key.Equals(fieldKey, StringComparison.OrdinalIgnoreCase));
+        if (field == null) return null;
+
+        return new ResolvedFieldInfo
+        {
+            Key = field.Key,
+            Label = field.Label,
+            Type = field.Type,
+            MaxLength = field.MaxLength,
+            Tooltip = field.Tooltip,
+            Placeholder = field.Placeholder,
+            Role = DetermineFieldRole(normalizedKey, field.Key, field.Type)
+        };
+    }
+
+    public static string DetermineFieldRole(string sectionKey, string fieldKey, string fieldType)
+    {
+        var lowerKey = fieldKey.ToLowerInvariant();
+        var lowerSection = sectionKey.ToLowerInvariant();
+
+        if (lowerKey is "eyebrow" or "badge") return "tag";
+        if (lowerKey is "primarycta" or "secondarycta" or "ctalabel") return "cta";
+        if (lowerKey is "headline" or "title" or "heading") return "heading";
+        if (lowerSection is "services" && (lowerKey is "description" or "tagline" or "name"))
+            return lowerKey == "name" ? "service-name" : "service-description";
+        if (lowerSection is "about" && lowerKey == "description") return "story";
+        if (lowerKey is "copyrighttext") return "copyright";
+        if (lowerKey is "quote") return "quote";
+        if (lowerKey is "question") return "faq-question";
+        if (lowerKey is "answer") return "faq-answer";
+        if (fieldType == "textarea") return "description";
+
+        return "text";
+    }
+
     private static WebsiteTemplateDefinition CreateKvnInteriorsTemplate()
     {
         return new WebsiteTemplateDefinition

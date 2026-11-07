@@ -195,7 +195,10 @@ public class AIService : IAIService
             GroundingContext = groundingContext,
             Model = selectedModelKey,
             ProviderKey = providerKey,
-            ApiKey = decryptedApiKey
+            ApiKey = decryptedApiKey,
+            FieldRole = request.Context.FieldRole,
+            FieldMaxLength = request.Context.FieldMaxLength,
+            SurroundingContext = request.Context.SurroundingContext
         };
 
         // 8. Enforce configured timeout protection
@@ -276,7 +279,8 @@ public class AIService : IAIService
             var (isOutputValid, sanitizedOutput, outErrCode, outErrMsg) = AIRequestValidator.ValidateAndSanitizeAIOutput(
                 providerResult.OutputText,
                 request.OperationType,
-                request.InputText ?? string.Empty);
+                request.InputText ?? string.Empty,
+                request.Context.FieldMaxLength);
 
             if (!isOutputValid)
             {
@@ -490,17 +494,13 @@ public class AIService : IAIService
         finalText = sanitizedFinalText ?? finalText;
         var wasEdited = !string.IsNullOrWhiteSpace(editedText) && editedText.Trim() != record.OutputText;
 
-        // 4. Resource Application: Apply to Draft ONLY (never auto-publish)
-        int? updatedVersion = null;
+        // 4. Concurrency & Stale Draft Protection:
+        int? currentVersion = null;
         if (string.Equals(record.ResourceType, AIResourceTypes.WebsiteContent, StringComparison.OrdinalIgnoreCase))
         {
-            // Lookup WebsiteContent
-            Sparovia.Domain.Entities.WebsiteContent? websiteContent = null;
-            if (record.ResourceId != Guid.Empty)
-            {
-                websiteContent = await _dbContext.WebsiteContents
-                    .FirstOrDefaultAsync(c => c.Id == record.ResourceId && c.TenantId == tenantId, cancellationToken);
-            }
+            var websiteContent = record.ResourceId != Guid.Empty
+                ? await _dbContext.WebsiteContents.FirstOrDefaultAsync(c => c.Id == record.ResourceId && c.TenantId == tenantId, cancellationToken)
+                : null;
 
             if (websiteContent == null && !string.IsNullOrWhiteSpace(record.TargetSectionKey))
             {
@@ -509,51 +509,12 @@ public class AIService : IAIService
                     .FirstOrDefaultAsync(c => c.TenantId == tenantId && (c.SectionKey == record.TargetSectionKey || c.SectionKey == normKey), cancellationToken);
             }
 
-            if (websiteContent == null && !string.IsNullOrWhiteSpace(record.TargetSectionKey))
-            {
-                var normKey = WebsiteTemplateRegistry.NormalizeSectionKey(record.TargetSectionKey);
-                var website = await _dbContext.Websites
-                    .FirstOrDefaultAsync(w => w.TenantId == tenantId, cancellationToken);
-
-                if (website == null)
-                {
-                    var businessContext = await _dbContext.BusinessContexts
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(b => b.TenantId == tenantId, cancellationToken);
-
-                    website = new Website
-                    {
-                        TenantId = tenantId,
-                        Name = !string.IsNullOrWhiteSpace(businessContext?.BusinessName) ? businessContext.BusinessName : "Sparovia Website",
-                        Domain = "sparovia-site.local",
-                        ConnectionStatus = "Connected",
-                        TemplateId = WebsiteTemplateRegistry.DefaultTemplateId,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    _dbContext.Websites.Add(website);
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                }
-
-                websiteContent = new Domain.Entities.WebsiteContent
-                {
-                    TenantId = tenantId,
-                    WebsiteId = website.Id,
-                    SectionKey = normKey,
-                    DraftContentJson = "{}",
-                    PublishedContentJson = "{}",
-                    Status = "Draft",
-                    Version = 1,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-                _dbContext.WebsiteContents.Add(websiteContent);
-            }
-
             if (websiteContent != null)
             {
+                currentVersion = websiteContent.Version;
+
                 // Concurrency & Stale Draft Protection:
-                // If draft version has advanced past the version when AI generated this suggestion, reject unsafe overwrite!
+                // If draft version has advanced past the version when AI generated this suggestion, reject stale acceptance!
                 if (record.TargetResourceVersion.HasValue && websiteContent.Version > record.TargetResourceVersion.Value)
                 {
                     _logger.LogWarning(
@@ -569,17 +530,10 @@ public class AIService : IAIService
                         ErrorMessage = "The website section draft was modified after this AI suggestion was generated. To prevent overwriting newer changes, please refresh and review again."
                     };
                 }
-
-                // Update Draft Json field safely (Never touches PublishedContentJson)
-                var updatedDraftJson = UpdateDraftJsonField(websiteContent.DraftContentJson, record.TargetFieldKey, finalText);
-                websiteContent.DraftContentJson = updatedDraftJson;
-                websiteContent.UpdatedAt = DateTime.UtcNow;
-                websiteContent.UpdatedByUserId = userId;
-                updatedVersion = websiteContent.Version;
             }
         }
 
-        // 5. Update AIRequest status
+        // 5. Update AIRequest status (Audit & Review log only - does NOT mutate website draft in DB directly)
         record.ReviewStatus = wasEdited ? AIReviewStatus.EditedBeforeAcceptance : AIReviewStatus.Accepted;
         record.ReviewedAt = DateTime.UtcNow;
         record.ReviewedByUserId = userId;
@@ -599,8 +553,13 @@ public class AIService : IAIService
             Success = true,
             AiRequestId = record.Id,
             ReviewStatus = record.ReviewStatus,
-            Message = wasEdited ? "AI suggestion was edited and accepted into draft." : "AI suggestion was accepted into draft.",
-            AppliedVersion = updatedVersion
+            AcceptedText = finalText,
+            TargetSectionKey = record.TargetSectionKey,
+            TargetFieldKey = record.TargetFieldKey,
+            AppliedVersion = currentVersion,
+            Message = wasEdited
+                ? "AI suggestion was edited and accepted into the draft session."
+                : "AI suggestion was accepted into the draft session."
         };
     }
 
@@ -732,14 +691,23 @@ public class AIService : IAIService
         if (!string.IsNullOrWhiteSpace(ctx.Location))
             sb.AppendLine($"Location: {ctx.Location}");
 
+        if (ctx.ServiceAreas.Count > 0)
+            sb.AppendLine($"Service Areas: {string.Join(", ", ctx.ServiceAreas)}");
+
+        if (ctx.TargetCustomers.Count > 0)
+            sb.AppendLine($"Target Customers: {string.Join(", ", ctx.TargetCustomers)}");
+
         if (!string.IsNullOrWhiteSpace(ctx.BusinessDescription))
             sb.AppendLine($"Description: {ctx.BusinessDescription}");
 
         if (!string.IsNullOrWhiteSpace(ctx.Differentiators))
-            sb.AppendLine($"Differentiators: {ctx.Differentiators}");
+            sb.AppendLine($"Verified Strengths: {ctx.Differentiators}");
 
         if (ctx.Services.Count > 0)
             sb.AppendLine($"Services: {string.Join(", ", ctx.Services)}");
+
+        if (ctx.ServiceDescriptions.Count > 0)
+            sb.AppendLine($"Service Descriptions: {string.Join("; ", ctx.ServiceDescriptions)}");
 
         if (ctx.ApprovedFacts.Count > 0)
             sb.AppendLine($"Approved Facts & Claims: {string.Join("; ", ctx.ApprovedFacts)}");
@@ -748,7 +716,16 @@ public class AIService : IAIService
             sb.AppendLine($"Section: {ctx.SectionKey}");
 
         if (!string.IsNullOrWhiteSpace(ctx.FieldName))
-            sb.AppendLine($"Field: {ctx.FieldName}");
+            sb.AppendLine($"Field: {ctx.FieldName}" + (!string.IsNullOrWhiteSpace(ctx.FieldLabel) ? $" ({ctx.FieldLabel})" : ""));
+
+        if (!string.IsNullOrWhiteSpace(ctx.FieldRole))
+            sb.AppendLine($"Field Role: {ctx.FieldRole}");
+
+        if (ctx.FieldMaxLength.HasValue)
+            sb.AppendLine($"Field Max Length: {ctx.FieldMaxLength.Value} characters");
+
+        if (!string.IsNullOrWhiteSpace(ctx.SurroundingContext))
+            sb.AppendLine($"Surrounding Section Context: {ctx.SurroundingContext}");
 
         return sb.ToString().Trim();
     }

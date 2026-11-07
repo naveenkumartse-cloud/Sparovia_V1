@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -682,5 +683,385 @@ public class WebsiteImagesTests : IClassFixture<WebApplicationFactory<Program>>
         var heroUrl3 = contentBody3.GetProperty("sections").GetProperty("hero").GetProperty("heroImage").GetString();
         Assert.NotNull(heroUrl3);
         Assert.Contains(imageId!, heroUrl3);
+    }
+
+    [Fact]
+    public async Task ImageReplacement_SuccessfulLifecycle_KeepsOriginalLiveUntilReplacementPublished_ThenDemotesOriginal()
+    {
+        var email = $"repl_lifecycle_{Guid.NewGuid():N}@test.local";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Replacement Lifecycle Studio", email);
+
+        // 1. Upload and publish initial hero image (Image A)
+        var formA = CreateImageMultipartContent(CreateValidJpegBytes(), "hero_original.jpg", "image/jpeg", "WebsiteImage", "heroImage");
+        var uploadRespA = await client.PostAsync("/api/v1/website/images", formA);
+        Assert.Equal(HttpStatusCode.Created, uploadRespA.StatusCode);
+        var bodyA = await uploadRespA.Content.ReadFromJsonAsync<JsonElement>();
+        var imageAId = bodyA.GetProperty("data").GetProperty("id").GetString();
+
+        await client.PostAsJsonAsync($"/api/v1/website/images/{imageAId}/publish", new PublishImageRequest());
+
+        // 2. Upload and publish an unrelated slot (primaryImage, Image C) to verify slot isolation
+        var formC = CreateImageMultipartContent(CreateValidJpegBytes(), "about_photo.jpg", "image/jpeg", "WebsiteImage", "primaryImage");
+        var uploadRespC = await client.PostAsync("/api/v1/website/images", formC);
+        Assert.Equal(HttpStatusCode.Created, uploadRespC.StatusCode);
+        var bodyC = await uploadRespC.Content.ReadFromJsonAsync<JsonElement>();
+        var imageCId = bodyC.GetProperty("data").GetProperty("id").GetString();
+
+        await client.PostAsJsonAsync($"/api/v1/website/images/{imageCId}/publish", new PublishImageRequest());
+
+        // Verify Image A and Image C are live on public website
+        var pubContent1 = await client.GetAsync("/api/v1/website/published-content");
+        var pubBody1 = await pubContent1.Content.ReadFromJsonAsync<JsonElement>();
+        var initialHeroUrl = pubBody1.GetProperty("sections").GetProperty("hero").GetProperty("heroImage").GetString();
+        var initialAboutUrl = pubBody1.GetProperty("sections").GetProperty("about").GetProperty("primaryImage").GetString();
+        Assert.Contains(imageAId!, initialHeroUrl!);
+        Assert.Contains(imageCId!, initialAboutUrl!);
+
+        // 3. Upload replacement for Image A (Image B)
+        var formB = CreateImageMultipartContent(CreateValidPngBytes(), "hero_replacement.png", "image/png");
+        var replaceResp = await client.PostAsync($"/api/v1/website/images/{imageAId}/replace", formB);
+        Assert.Equal(HttpStatusCode.OK, replaceResp.StatusCode);
+        var bodyB = await replaceResp.Content.ReadFromJsonAsync<JsonElement>();
+        var imageBId = bodyB.GetProperty("data").GetProperty("id").GetString();
+
+        // 4. Verify Image B attributes: assigned to heroImage slot, status Approved, isActiveWebsiteUsage = false
+        Assert.Equal("heroImage", bodyB.GetProperty("data").GetProperty("slot").GetString());
+        Assert.Equal("Approved", bodyB.GetProperty("data").GetProperty("status").GetString());
+        Assert.False(bodyB.GetProperty("data").GetProperty("isActiveWebsiteUsage").GetBoolean());
+
+        // 5. Verify Image A is STILL live and active
+        var verifyAResp = await client.GetAsync($"/api/v1/website/images/{imageAId}");
+        var verifyABody = await verifyAResp.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Published", verifyABody.GetProperty("data").GetProperty("status").GetString());
+        Assert.True(verifyABody.GetProperty("data").GetProperty("isActiveWebsiteUsage").GetBoolean());
+
+        // 6. Verify public website STILL serves Image A for hero and Image C for about
+        var pubContent2 = await client.GetAsync("/api/v1/website/published-content");
+        var pubBody2 = await pubContent2.Content.ReadFromJsonAsync<JsonElement>();
+        var currentHeroUrl = pubBody2.GetProperty("sections").GetProperty("hero").GetProperty("heroImage").GetString();
+        var currentAboutUrl = pubBody2.GetProperty("sections").GetProperty("about").GetProperty("primaryImage").GetString();
+        Assert.Contains(imageAId!, currentHeroUrl!);
+        Assert.Contains(imageCId!, currentAboutUrl!);
+
+        // 7. Verify both images appear in media library listing
+        var listResp = await client.GetAsync("/api/v1/website/images");
+        Assert.Equal(HttpStatusCode.OK, listResp.StatusCode);
+        var listBody = await listResp.Content.ReadFromJsonAsync<JsonElement>();
+        var imagesList = listBody.GetProperty("data").EnumerateArray().ToList();
+        Assert.Contains(imagesList, img => img.GetProperty("id").GetString() == imageAId && img.GetProperty("isActiveWebsiteUsage").GetBoolean());
+        Assert.Contains(imagesList, img => img.GetProperty("id").GetString() == imageBId && !img.GetProperty("isActiveWebsiteUsage").GetBoolean() && img.GetProperty("slot").GetString() == "heroImage");
+
+        // 8. Now explicitly publish Image B
+        var pubRespB = await client.PostAsJsonAsync($"/api/v1/website/images/{imageBId}/publish", new PublishImageRequest());
+        Assert.Equal(HttpStatusCode.OK, pubRespB.StatusCode);
+
+        // 9. Verify public website now serves Image B for heroImage
+        var pubContent3 = await client.GetAsync("/api/v1/website/published-content");
+        var pubBody3 = await pubContent3.Content.ReadFromJsonAsync<JsonElement>();
+        var updatedHeroUrl = pubBody3.GetProperty("sections").GetProperty("hero").GetProperty("heroImage").GetString();
+        var updatedAboutUrl = pubBody3.GetProperty("sections").GetProperty("about").GetProperty("primaryImage").GetString();
+        Assert.Contains(imageBId!, updatedHeroUrl!);
+        Assert.Contains(imageCId!, updatedAboutUrl!); // Unrelated slot remains untouched!
+
+        // 10. Verify Image A was demoted: isActiveWebsiteUsage = false, status = Approved
+        var demotedAResp = await client.GetAsync($"/api/v1/website/images/{imageAId}");
+        var demotedABody = await demotedAResp.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.False(demotedABody.GetProperty("data").GetProperty("isActiveWebsiteUsage").GetBoolean());
+        Assert.Equal("Approved", demotedABody.GetProperty("data").GetProperty("status").GetString());
+
+        // 11. Verify Image B is active: isActiveWebsiteUsage = true, status = Published
+        var activeBResp = await client.GetAsync($"/api/v1/website/images/{imageBId}");
+        var activeBBody = await activeBResp.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(activeBBody.GetProperty("data").GetProperty("isActiveWebsiteUsage").GetBoolean());
+        Assert.Equal("Published", activeBBody.GetProperty("data").GetProperty("status").GetString());
+    }
+
+    private static string ComputeSha256(byte[] data)
+    {
+        using var sha = SHA256.Create();
+        var hash = sha.ComputeHash(data);
+        return Convert.ToHexString(hash);
+    }
+
+    [Fact]
+    public async Task Lifecycle_CompleteE2E_UploadEnhanceReviewApprovePublishVerifyDeliveryAndReplace_WithOriginalImmutability()
+    {
+        var email = $"lifecycle_e2e_{Guid.NewGuid():N}@test.local";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Immutability & Lifecycle Studio", email);
+        var publicClient = _factory.CreateClient();
+
+        // 1. Upload original photograph (JPEG)
+        var originalJpegBytes = CreateValidJpegBytes();
+        var originalSha256 = ComputeSha256(originalJpegBytes);
+
+        var form = CreateImageMultipartContent(originalJpegBytes, "original_kitchen_photo.jpg", "image/jpeg", "WebsiteImage", "heroImage");
+        var uploadResp = await client.PostAsync("/api/v1/website/images", form);
+        Assert.Equal(HttpStatusCode.Created, uploadResp.StatusCode);
+
+        var uploadBody = await uploadResp.Content.ReadFromJsonAsync<JsonElement>();
+        var imageId = uploadBody.GetProperty("data").GetProperty("id").GetString();
+        Assert.NotNull(imageId);
+
+        // 2. Verify initial state: Cleanly validated, Status is Approved, not yet Published
+        Assert.Equal("heroImage", uploadBody.GetProperty("data").GetProperty("slot").GetString());
+        Assert.Equal("Approved", uploadBody.GetProperty("data").GetProperty("status").GetString());
+        Assert.NotEqual("Published", uploadBody.GetProperty("data").GetProperty("status").GetString());
+
+        // 3. Verify public visitor CANNOT access unpublished image file
+        var pubFileUnpublished = await publicClient.GetAsync($"/api/v1/website/images/{imageId}/file");
+        Assert.Equal(HttpStatusCode.NotFound, pubFileUnpublished.StatusCode);
+
+        // 4. Verify public website payload does NOT render unpublished image
+        var initialWebsiteContent = await client.GetAsync("/api/v1/website/published-content");
+        var initialContentBody = await initialWebsiteContent.Content.ReadFromJsonAsync<JsonElement>();
+        var heroImageInContent = initialContentBody.GetProperty("sections").GetProperty("hero").TryGetProperty("heroImage", out var initialHeroProp)
+            ? initialHeroProp.GetString()
+            : null;
+        Assert.True(string.IsNullOrEmpty(heroImageInContent) || !heroImageInContent.Contains(imageId!));
+
+        // 5. Enhance using single primary action "EnhanceForWebsite" (default operation)
+        var enhanceResp1 = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/enhance", new EnhanceImageRequest { Operation = "EnhanceForWebsite" });
+        Assert.Equal(HttpStatusCode.Created, enhanceResp1.StatusCode);
+
+        var enhanceBody1 = await enhanceResp1.Content.ReadFromJsonAsync<JsonElement>();
+        var candidateVariant1Id = enhanceBody1.GetProperty("data").GetProperty("id").GetString();
+        Assert.NotNull(candidateVariant1Id);
+        Assert.Equal("Enhanced", enhanceBody1.GetProperty("data").GetProperty("status").GetString());
+
+        // 6. Verify public visitor CANNOT access candidate variant file
+        var pubVariantCandidate = await publicClient.GetAsync($"/api/v1/website/images/{imageId}/file?variantId={candidateVariant1Id}");
+        Assert.Equal(HttpStatusCode.NotFound, pubVariantCandidate.StatusCode);
+
+        // 7. Verify original file bytes downloaded by tenant remain bit-for-bit identical to uploaded bytes
+        var origDownloadResp1 = await client.GetAsync($"/api/v1/website/images/{imageId}/file");
+        Assert.Equal(HttpStatusCode.OK, origDownloadResp1.StatusCode);
+        var origBytes1 = await origDownloadResp1.Content.ReadAsByteArrayAsync();
+        Assert.Equal(originalSha256, ComputeSha256(origBytes1));
+
+        // 8. Test Candidate Discard / Reject: User rejects the candidate
+        var rejectResp = await client.PostAsync($"/api/v1/website/images/{imageId}/variants/{candidateVariant1Id}/reject", null);
+        Assert.Equal(HttpStatusCode.OK, rejectResp.StatusCode);
+
+        // Verify variant is now Rejected
+        var rejectedImgResp = await client.GetAsync($"/api/v1/website/images/{imageId}");
+        var rejectedImgBody = await rejectedImgResp.Content.ReadFromJsonAsync<JsonElement>();
+        var variants = rejectedImgBody.GetProperty("data").GetProperty("variants").EnumerateArray().ToList();
+        var rejectedVar = variants.FirstOrDefault(v => v.GetProperty("id").GetString() == candidateVariant1Id);
+        Assert.True(rejectedVar.ValueKind == JsonValueKind.Object);
+        Assert.Equal("Rejected", rejectedVar.GetProperty("status").GetString());
+
+        // 9. Original image bytes STILL bit-for-bit identical after rejection
+        var origDownloadResp2 = await client.GetAsync($"/api/v1/website/images/{imageId}/file");
+        var origBytes2 = await origDownloadResp2.Content.ReadAsByteArrayAsync();
+        Assert.Equal(originalSha256, ComputeSha256(origBytes2));
+
+        // 10. Re-enhance to produce an approved candidate
+        var enhanceResp2 = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/enhance", new EnhanceImageRequest { Operation = "EnhanceForWebsite" });
+        Assert.Equal(HttpStatusCode.Created, enhanceResp2.StatusCode);
+        var enhanceBody2 = await enhanceResp2.Content.ReadFromJsonAsync<JsonElement>();
+        var candidateVariant2Id = enhanceBody2.GetProperty("data").GetProperty("id").GetString();
+        Assert.NotNull(candidateVariant2Id);
+        Assert.NotEqual(candidateVariant1Id, candidateVariant2Id);
+
+        // 11. Approve candidate variant 2
+        var approveResp = await client.PostAsync($"/api/v1/website/images/{imageId}/variants/{candidateVariant2Id}/approve", null);
+        Assert.Equal(HttpStatusCode.OK, approveResp.StatusCode);
+
+        // 12. Verification: Approval DOES NOT auto-publish! Public site still must not render it
+        var prePublishWebsiteContent = await client.GetAsync("/api/v1/website/published-content");
+        var prePublishContentBody = await prePublishWebsiteContent.Content.ReadFromJsonAsync<JsonElement>();
+        var preHeroUrl = prePublishContentBody.GetProperty("sections").GetProperty("hero").TryGetProperty("heroImage", out var preHeroProp)
+            ? preHeroProp.GetString()
+            : null;
+        Assert.True(string.IsNullOrEmpty(preHeroUrl) || !preHeroUrl.Contains(candidateVariant2Id!));
+
+        // 13. Explicitly Publish approved variant 2
+        var pubReq = new PublishImageRequest { VariantId = Guid.Parse(candidateVariant2Id!) };
+        var publishResp = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/publish", pubReq);
+        Assert.Equal(HttpStatusCode.OK, publishResp.StatusCode);
+
+        // 14. Verification: Public website payload now serves variant 2
+        var postPublishWebsiteContent = await client.GetAsync("/api/v1/website/published-content");
+        var postPublishContentBody = await postPublishWebsiteContent.Content.ReadFromJsonAsync<JsonElement>();
+        var postHeroUrl = postPublishContentBody.GetProperty("sections").GetProperty("hero").GetProperty("heroImage").GetString();
+        Assert.NotNull(postHeroUrl);
+        Assert.Contains(candidateVariant2Id!, postHeroUrl);
+
+        // 15. Verification: Public visitor CAN now retrieve the published variant
+        var pubFilePublished = await publicClient.GetAsync($"/api/v1/website/images/{imageId}/file?variantId={candidateVariant2Id}");
+        Assert.Equal(HttpStatusCode.OK, pubFilePublished.StatusCode);
+        Assert.Equal("image/webp", pubFilePublished.Content.Headers.ContentType?.MediaType);
+
+        // 16. Verification: Original image file in tenant repository STILL has the exact original SHA-256 hash!
+        var origDownloadResp3 = await client.GetAsync($"/api/v1/website/images/{imageId}/file");
+        var origBytes3 = await origDownloadResp3.Content.ReadAsByteArrayAsync();
+        Assert.Equal(originalSha256, ComputeSha256(origBytes3));
+
+        // 17. Replace Image: Upload a replacement photograph (Image B)
+        var replacementPngBytes = CreateValidPngBytes();
+        var replForm = CreateImageMultipartContent(replacementPngBytes, "hero_replacement.png", "image/png");
+        var replaceResp = await client.PostAsync($"/api/v1/website/images/{imageId}/replace", replForm);
+        Assert.Equal(HttpStatusCode.OK, replaceResp.StatusCode);
+
+        var replaceBody = await replaceResp.Content.ReadFromJsonAsync<JsonElement>();
+        var imageBId = replaceBody.GetProperty("data").GetProperty("id").GetString();
+        Assert.NotNull(imageBId);
+
+        // Image B is assigned to heroImage, status is Approved, but NOT active yet
+        Assert.Equal("heroImage", replaceBody.GetProperty("data").GetProperty("slot").GetString());
+        Assert.False(replaceBody.GetProperty("data").GetProperty("isActiveWebsiteUsage").GetBoolean());
+
+        // 18. Verification: Original Image A is STILL live and serving on public site until replacement is published
+        var duringReplContent = await client.GetAsync("/api/v1/website/published-content");
+        var duringReplBody = await duringReplContent.Content.ReadFromJsonAsync<JsonElement>();
+        var liveHeroDuringRepl = duringReplBody.GetProperty("sections").GetProperty("hero").GetProperty("heroImage").GetString();
+        Assert.Contains(candidateVariant2Id!, liveHeroDuringRepl);
+
+        // 19. Explicitly Publish replacement Image B
+        var pubRespB = await client.PostAsJsonAsync($"/api/v1/website/images/{imageBId}/publish", new PublishImageRequest());
+        Assert.Equal(HttpStatusCode.OK, pubRespB.StatusCode);
+
+        // 20. Verification: Public website now seamlessly delivers Image B
+        var afterReplContent = await client.GetAsync("/api/v1/website/published-content");
+        var afterReplBody = await afterReplContent.Content.ReadFromJsonAsync<JsonElement>();
+        var liveHeroAfterRepl = afterReplBody.GetProperty("sections").GetProperty("hero").GetProperty("heroImage").GetString();
+        Assert.Contains(imageBId!, liveHeroAfterRepl);
+
+        // 21. Verification: Image A was demoted cleanly, and its original bytes remain 100% immutable
+        var origDownloadResp4 = await client.GetAsync($"/api/v1/website/images/{imageId}/file");
+        var origBytes4 = await origDownloadResp4.Content.ReadAsByteArrayAsync();
+        Assert.Equal(originalSha256, ComputeSha256(origBytes4));
+
+        // 22. Safe Removal: Remove Image B from website usage
+        var removeResp = await client.DeleteAsync($"/api/v1/website/images/{imageBId}");
+        Assert.Equal(HttpStatusCode.OK, removeResp.StatusCode);
+
+        // Public website has slot cleared
+        var afterRemoveContent = await client.GetAsync("/api/v1/website/published-content");
+        var afterRemoveBody = await afterRemoveContent.Content.ReadFromJsonAsync<JsonElement>();
+        var heroAfterRemove = afterRemoveBody.GetProperty("sections").GetProperty("hero").TryGetProperty("heroImage", out var p) ? p.GetString() : null;
+        Assert.True(string.IsNullOrEmpty(heroAfterRemove));
+
+        // Image B is still preserved in library with status "Unused"
+        var imgBCheck = await client.GetAsync($"/api/v1/website/images/{imageBId}");
+        var imgBBody = await imgBCheck.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Unused", imgBBody.GetProperty("data").GetProperty("status").GetString());
+        Assert.False(imgBBody.GetProperty("data").GetProperty("isActiveWebsiteUsage").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Lifecycle_SecurityAndTenantIsolation_AllEndpointsStrictlyEnforced()
+    {
+        // Setup Tenant A
+        var emailA = $"iso_a_{Guid.NewGuid():N}@test.local";
+        var clientA = await GetAuthenticatedClientAsync(emailA);
+        await SetupAndConfirmBusinessContextAsync(clientA, "Tenant A Architecture", emailA);
+
+        var formA = CreateImageMultipartContent(CreateValidJpegBytes(), "estate.jpg", "image/jpeg", "WebsiteImage", "heroImage");
+        var uploadA = await clientA.PostAsync("/api/v1/website/images", formA);
+        var bodyA = await uploadA.Content.ReadFromJsonAsync<JsonElement>();
+        var imageIdA = bodyA.GetProperty("data").GetProperty("id").GetString();
+
+        // Enhance image for Tenant A
+        var enhanceRespA = await clientA.PostAsJsonAsync($"/api/v1/website/images/{imageIdA}/enhance", new EnhanceImageRequest { Operation = "EnhanceForWebsite" });
+        var enhanceBodyA = await enhanceRespA.Content.ReadFromJsonAsync<JsonElement>();
+        var variantIdA = enhanceBodyA.GetProperty("data").GetProperty("id").GetString();
+
+        // Setup Tenant B
+        var emailB = $"iso_b_{Guid.NewGuid():N}@test.local";
+        var clientB = await GetAuthenticatedClientAsync(emailB);
+        await SetupAndConfirmBusinessContextAsync(clientB, "Tenant B Construction", emailB);
+
+        // Tenant B attempts unauthorized operations against Tenant A's image & variant:
+        // 1. GET Image Metadata
+        var r1 = await clientB.GetAsync($"/api/v1/website/images/{imageIdA}");
+        Assert.Equal(HttpStatusCode.NotFound, r1.StatusCode);
+
+        // 2. GET Image Original File Stream
+        var r2 = await clientB.GetAsync($"/api/v1/website/images/{imageIdA}/file");
+        Assert.Equal(HttpStatusCode.NotFound, r2.StatusCode);
+
+        // 3. GET Image Preview (authenticated)
+        var r3 = await clientB.GetAsync($"/api/v1/website/images/{imageIdA}/preview");
+        Assert.Equal(HttpStatusCode.NotFound, r3.StatusCode);
+
+        // 4. POST Enhance Tenant A's image
+        var r4 = await clientB.PostAsJsonAsync($"/api/v1/website/images/{imageIdA}/enhance", new EnhanceImageRequest { Operation = "EnhanceForWebsite" });
+        Assert.Equal(HttpStatusCode.NotFound, r4.StatusCode);
+
+        // 5. POST Approve Variant
+        var r5 = await clientB.PostAsync($"/api/v1/website/images/{imageIdA}/variants/{variantIdA}/approve", null);
+        Assert.Equal(HttpStatusCode.NotFound, r5.StatusCode);
+
+        // 6. POST Reject Variant
+        var r6 = await clientB.PostAsync($"/api/v1/website/images/{imageIdA}/variants/{variantIdA}/reject", null);
+        Assert.Equal(HttpStatusCode.NotFound, r6.StatusCode);
+
+        // 7. POST Publish Image
+        var r7 = await clientB.PostAsJsonAsync($"/api/v1/website/images/{imageIdA}/publish", new PublishImageRequest { VariantId = Guid.Parse(variantIdA!) });
+        Assert.Equal(HttpStatusCode.NotFound, r7.StatusCode);
+
+        // 8. POST Unpublish Image
+        var r8 = await clientB.PostAsync($"/api/v1/website/images/{imageIdA}/unpublish", null);
+        Assert.Equal(HttpStatusCode.NotFound, r8.StatusCode);
+
+        // 9. POST Replace Image
+        var r9 = await clientB.PostAsync($"/api/v1/website/images/{imageIdA}/replace", CreateImageMultipartContent(CreateValidPngBytes(), "hack.png", "image/png"));
+        Assert.Equal(HttpStatusCode.NotFound, r9.StatusCode);
+
+        // 10. DELETE Remove Image
+        var r10 = await clientB.DeleteAsync($"/api/v1/website/images/{imageIdA}");
+        Assert.Equal(HttpStatusCode.NotFound, r10.StatusCode);
+    }
+
+    [Fact]
+    public async Task PublicWebsiteDelivery_DraftOrUnapprovedImages_NeverExposedToPublicRoutes()
+    {
+        var email = $"public_guard_{Guid.NewGuid():N}@test.local";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Public Guard Design Co", email);
+        var publicClient = _factory.CreateClient();
+
+        // Upload image
+        var form = CreateImageMultipartContent(CreateValidJpegBytes(), "draft_dining.jpg", "image/jpeg", "WebsiteImage", "heroImage");
+        var uploadResp = await client.PostAsync("/api/v1/website/images", form);
+        var uploadBody = await uploadResp.Content.ReadFromJsonAsync<JsonElement>();
+        var imageId = uploadBody.GetProperty("data").GetProperty("id").GetString();
+
+        // 1. Unapproved/Draft original: public file returns 404
+        var pub1 = await publicClient.GetAsync($"/api/v1/website/images/{imageId}/file");
+        Assert.Equal(HttpStatusCode.NotFound, pub1.StatusCode);
+
+        // 2. Generate candidate variant
+        var enhanceResp = await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/enhance", new EnhanceImageRequest { Operation = "EnhanceForWebsite" });
+        var enhanceBody = await enhanceResp.Content.ReadFromJsonAsync<JsonElement>();
+        var variantId = enhanceBody.GetProperty("data").GetProperty("id").GetString();
+
+        // Candidate variant: public file returns 404
+        var pub2 = await publicClient.GetAsync($"/api/v1/website/images/{imageId}/file?variantId={variantId}");
+        Assert.Equal(HttpStatusCode.NotFound, pub2.StatusCode);
+
+        // 3. Approve candidate variant (without publishing)
+        await client.PostAsync($"/api/v1/website/images/{imageId}/variants/{variantId}/approve", null);
+
+        // Approved variant: public file STILL returns 404
+        var pub3 = await publicClient.GetAsync($"/api/v1/website/images/{imageId}/file?variantId={variantId}");
+        Assert.Equal(HttpStatusCode.NotFound, pub3.StatusCode);
+
+        // 4. Publish image
+        await client.PostAsJsonAsync($"/api/v1/website/images/{imageId}/publish", new PublishImageRequest { VariantId = Guid.Parse(variantId!) });
+
+        // Published variant: public file now returns 200 OK
+        var pub4 = await publicClient.GetAsync($"/api/v1/website/images/{imageId}/file?variantId={variantId}");
+        Assert.Equal(HttpStatusCode.OK, pub4.StatusCode);
+
+        // 5. Unpublish image
+        await client.PostAsync($"/api/v1/website/images/{imageId}/unpublish", null);
+
+        // Unpublished variant: public file immediately returns 404 again
+        var pub5 = await publicClient.GetAsync($"/api/v1/website/images/{imageId}/file?variantId={variantId}");
+        Assert.Equal(HttpStatusCode.NotFound, pub5.StatusCode);
     }
 }

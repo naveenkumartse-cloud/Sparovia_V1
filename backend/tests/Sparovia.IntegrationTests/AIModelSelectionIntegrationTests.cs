@@ -566,20 +566,32 @@ public class AIModelSelectionIntegrationTests : IClassFixture<WebApplicationFact
         Assert.Equal(AIReviewStatus.PendingReview, improveDto.ReviewStatus);
         Assert.False(string.IsNullOrWhiteSpace(improveDto.Suggestion));
 
-        // 4. Accept suggestion into draft
+        // 4. Accept suggestion (returns acceptedText for active CMS session)
         var acceptResp = await client.PostAsJsonAsync($"/api/v1/ai/requests/{improveDto.AiRequestId}/accept", new AIReviewRequestDto());
         Assert.Equal(HttpStatusCode.OK, acceptResp.StatusCode);
 
         var acceptDto = await ReadDataAsync<AIReviewResultDto>(acceptResp);
         Assert.True(acceptDto.Success);
         Assert.Equal(AIReviewStatus.Accepted, acceptDto.ReviewStatus);
+        Assert.Equal(improveDto.Suggestion, acceptDto.AcceptedText);
 
-        // 5. Verify draft received suggestion and publishing boundary is intact
+        // 5. Verify decoupled draft lifecycle: DB draft remains baseline until client explicitly saves draft
         var sectionResp = await client.GetAsync("/api/v1/website/content/hero");
         sectionResp.EnsureSuccessStatusCode();
         var sectionJson = await sectionResp.Content.ReadFromJsonAsync<JsonElement>();
         var draftHeadline = sectionJson.GetProperty("draftFields").GetProperty("headline").GetString();
-        Assert.Equal(improveDto.Suggestion, draftHeadline);
+        Assert.Equal("Modern bespoke living rooms crafted with precision.", draftHeadline);
+
+        // 6. Explicit Save Draft from CMS editor persists accepted text into database
+        var saveResp = await client.PutAsJsonAsync("/api/v1/website/content/hero/draft", new
+        {
+            Fields = new Dictionary<string, string> { { "headline", improveDto.Suggestion } }
+        });
+        saveResp.EnsureSuccessStatusCode();
+
+        var updatedSectionResp = await client.GetAsync("/api/v1/website/content/hero");
+        var updatedSectionJson = await updatedSectionResp.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(improveDto.Suggestion, updatedSectionJson.GetProperty("draftFields").GetProperty("headline").GetString());
     }
 
     [Fact]

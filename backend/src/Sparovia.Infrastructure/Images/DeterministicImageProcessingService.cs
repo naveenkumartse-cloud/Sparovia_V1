@@ -35,11 +35,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
         SKBitmap? bitmap = null;
         try
         {
-            using var data = SKData.CreateCopy(imageBytes);
-            if (data != null && data.Size > 0)
-            {
-                bitmap = SKBitmap.Decode(data);
-            }
+            bitmap = DecodeAndNormalizeOrientation(imageBytes, _logger);
         }
         catch (Exception ex)
         {
@@ -298,11 +294,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
         SKBitmap? sourceBitmap = null;
         try
         {
-            using var data = SKData.CreateCopy(imageBytes);
-            if (data != null && data.Size > 0)
-            {
-                sourceBitmap = SKBitmap.Decode(data);
-            }
+            sourceBitmap = DecodeAndNormalizeOrientation(imageBytes, _logger);
         }
         catch (Exception ex)
         {
@@ -551,27 +543,51 @@ public class DeterministicImageProcessingService : IImageProcessingService
                     effectiveProfile = "EnhanceForWebsite:Adaptive";
                     var metrics = AnalyzeBitmap(workingBitmap);
 
-                    // 1. Adaptive Tonal Balancing & Highlight Protection
-                    float contrast = 1.0f;
-                    float brightness = 0.0f;
-                    float saturation = 1.0f;
+                    // 1. Adaptive Tonal Balancing & Highlight Protection via Perceptual Tone Curve
+                    float shadowLift = 0.0f;
+                    float highlightComp = 0.0f;
+                    float contrastFactor = 1.0f;
 
                     if (metrics.HighlightRatio > 0.05 || metrics.MeanLum > 0.65)
                     {
-                        brightness = 0.0f;
+                        highlightComp = 0.12f;
                         appliedCorrections.Add("Highlights protected against blow-out");
                     }
-                    else if (metrics.ShadowRatio > 0.15 && metrics.MeanLum < 0.40)
+                    else if (metrics.ShadowRatio > 0.15 || metrics.MeanLum < 0.40)
                     {
-                        brightness = 0.018f;
+                        shadowLift = 0.18f;
                         appliedCorrections.Add("Shadow visibility and interior depth improved");
                     }
                     else
                     {
+                        shadowLift = 0.05f;
                         appliedCorrections.Add("Balanced exposure maintained across midtones");
                     }
 
-                    // 1b. Edge-Preserving Noise Suppression
+                    // Midtone contrast expansion (S-curve LUT)
+                    if (metrics.Contrast < 0.18)
+                    {
+                        contrastFactor = 1.08f;
+                        appliedCorrections.Add("Tonal contrast expanded to remove atmospheric haze");
+                    }
+                    else if (metrics.Contrast > 0.28)
+                    {
+                        contrastFactor = 1.01f;
+                        appliedCorrections.Add("Dynamic tonal range protected against shadow clipping");
+                    }
+                    else
+                    {
+                        contrastFactor = 1.04f;
+                        appliedCorrections.Add("Natural architectural contrast preserved");
+                    }
+
+                    // Apply perceptual tone curve (black point strictly anchored at 0, white point at 255)
+                    var toned = ApplyPerceptualToneCurve(workingBitmap, shadowLift, highlightComp, contrastFactor);
+                    if (ownsWorkingBitmap) workingBitmap.Dispose();
+                    workingBitmap = toned;
+                    ownsWorkingBitmap = true;
+
+                    // 2. Texture-Safe Edge-Preserving Noise Suppression
                     if (metrics.NoiseLevel > 0.012)
                     {
                         var denoised = ApplyEdgePreservingDenoise(workingBitmap, 0.65f, 22);
@@ -585,54 +601,29 @@ public class DeterministicImageProcessingService : IImageProcessingService
                         appliedCorrections.Add("Clean surface textures preserved without blurring");
                     }
 
-                    if (metrics.Contrast < 0.18)
-                    {
-                        contrast = 1.08f;
-                        appliedCorrections.Add("Tonal contrast expanded to remove atmospheric haze");
-                    }
-                    else if (metrics.Contrast > 0.28)
-                    {
-                        contrast = 1.01f;
-                        appliedCorrections.Add("Dynamic tonal range protected against shadow clipping");
-                    }
-                    else
-                    {
-                        contrast = 1.04f;
-                        appliedCorrections.Add("Natural architectural contrast preserved");
-                    }
+                    // 3. Strict Material and Architectural Authenticity
+                    // Zero RGB chromaticity distortion: tone curve is applied identically across RGB channels
+                    appliedCorrections.Add("Authentic architectural material colors and finishes preserved");
 
-                    // 2. Texture-Safe Edge Definition
+                    // 4. Adaptive Halo-Free Edge Sharpening (Dead-zone threshold & delta clamping)
                     float sharpAmount;
                     if (metrics.Sharpness < 0.015)
                     {
-                        sharpAmount = 0.28f;
+                        sharpAmount = 0.35f;
                         appliedCorrections.Add("Controlled structural edge definition applied without halos");
                     }
                     else
                     {
-                        sharpAmount = 0.12f;
+                        sharpAmount = 0.15f;
                         appliedCorrections.Add("Natural edge sharpness preserved with subtle polish");
                     }
 
-                    // 3. Strict Color & Material Authenticity (Zero RGB chromaticity tilt)
-                    appliedCorrections.Add("Authentic architectural material colors and finishes preserved");
-
-                    var colorAdjusted = ApplyColorAdjustments(
-                        workingBitmap,
-                        contrast: contrast,
-                        brightnessOffset: brightness,
-                        saturation: saturation,
-                        redScale: 1.0f,
-                        greenScale: 1.0f,
-                        blueScale: 1.0f);
-
-                    var sharpened = ApplySharpening(colorAdjusted, amount: sharpAmount);
-                    colorAdjusted.Dispose();
+                    var sharpened = ApplyAdaptiveSharpening(workingBitmap, amount: sharpAmount, threshold: 6, maxDelta: 12);
                     if (ownsWorkingBitmap) workingBitmap.Dispose();
                     workingBitmap = sharpened;
                     ownsWorkingBitmap = true;
 
-                    // 4. Responsive Web Dimension Calibration (Capped to max 2048px for web delivery)
+                    // 5. Responsive Web Dimension Calibration (Capped to max 2048px for web delivery)
                     const int maxWebDimension = 2048;
                     if (workingBitmap.Width > maxWebDimension || workingBitmap.Height > maxWebDimension)
                     {
@@ -1002,7 +993,7 @@ public class DeterministicImageProcessingService : IImageProcessingService
                 }
                 else if (string.Equals(baseOp, "EnhanceForWebsite", StringComparison.OrdinalIgnoreCase))
                 {
-                    quality = 84;
+                    quality = 82;
                 }
                 else if (string.Equals(baseOp, "WebOptimize", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1016,9 +1007,57 @@ public class DeterministicImageProcessingService : IImageProcessingService
                 }
 
                 using var image = SKImage.FromBitmap(workingBitmap);
-                using var data = image.Encode(encodeFormat, quality);
+                SKData data = image.Encode(encodeFormat, quality);
+                byte[] bytes;
+                try
+                {
+                    bytes = data.ToArray();
 
-                var bytes = data.ToArray();
+                    // Quality-aware size evaluation:
+                    // For EnhanceForWebsite without explicit caller quality override, check if the output
+                    // expands beyond original input on an image that was NOT resized (e.g. an already compressed JPEG).
+                    // Test quality 78 to see if we can maintain pristine photographic fidelity while avoiding bloat.
+                    if (string.Equals(baseOp, "EnhanceForWebsite", StringComparison.OrdinalIgnoreCase) &&
+                        options?.Quality == null &&
+                        bytes.Length > imageBytes.Length &&
+                        encodeFormat == SKEncodedImageFormat.Webp)
+                    {
+                        using var calibratedData = image.Encode(encodeFormat, 78);
+                        var calibratedBytes = calibratedData.ToArray();
+                        if (calibratedBytes.Length < bytes.Length)
+                        {
+                            bytes = calibratedBytes;
+                        }
+                    }
+                }
+                finally
+                {
+                    data.Dispose();
+                }
+
+                // Transparent file size honesty statement
+                if (string.Equals(baseOp, "EnhanceForWebsite", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(baseOp, "WebOptimize", StringComparison.OrdinalIgnoreCase))
+                {
+                    long origSize = imageBytes.Length;
+                    long newSize = bytes.Length;
+                    if (newSize < origSize)
+                    {
+                        var reductionPct = (int)Math.Round((1.0 - (double)newSize / origSize) * 100);
+                        if (reductionPct > 0)
+                        {
+                            appliedCorrections.Add($"Web delivery size: {FormatBytes(newSize)} ({reductionPct}% smaller than original {FormatBytes(origSize)})");
+                        }
+                        else
+                        {
+                            appliedCorrections.Add($"Web delivery size: {FormatBytes(newSize)} (matched to original {FormatBytes(origSize)})");
+                        }
+                    }
+                    else
+                    {
+                        appliedCorrections.Add($"Full photographic clarity preserved for website delivery ({FormatBytes(newSize)})");
+                    }
+                }
 
                 return new ProcessedImageResult
                 {
@@ -1054,6 +1093,143 @@ public class DeterministicImageProcessingService : IImageProcessingService
         };
         var destRect = new SKRect(0, 0, width, height);
         canvas.DrawBitmap(source, destRect, paint);
+        return dest;
+    }
+
+    public static string FormatBytes(long bytes)
+    {
+        string[] suffixes = { "B", "KB", "MB", "GB" };
+        int i = 0;
+        double d = bytes;
+        while (d >= 1024 && i < suffixes.Length - 1)
+        {
+            d /= 1024;
+            i++;
+        }
+        return $"{d:0.#} {suffixes[i]}";
+    }
+
+    public static SKBitmap ApplyPerceptualToneCurve(
+        SKBitmap source,
+        float shadowLift,
+        float highlightComp,
+        float contrastFactor)
+    {
+        // 256-entry lookup table for tone curve with black/white point anchoring
+        var lut = new byte[256];
+        for (int i = 0; i < 256; i++)
+        {
+            float x = i / 255.0f;
+
+            // 1. Shadow lift: bell curve peaking at x ~ 0.33, strictly 0 at x = 0 and x = 1
+            // Anchors black point at 0 to prevent washing out deep blacks
+            float lift = shadowLift * 4.0f * x * (1.0f - x) * (1.0f - x);
+
+            // 2. Highlight compression: bell curve peaking at x ~ 0.67, strictly 0 at x = 0 and x = 1
+            // Protects highlights against blow-out and clipping
+            float comp = highlightComp * 4.0f * x * x * (1.0f - x);
+
+            // 3. S-Curve midtone contrast: expands midtone definition without clipping extremes
+            float sCurve = (x < 0.5f) ? (2.0f * x * x) : (1.0f - 2.0f * (1.0f - x) * (1.0f - x));
+            float contrastDelta = (sCurve - x) * (contrastFactor - 1.0f);
+
+            float y = x + lift - comp + contrastDelta;
+            lut[i] = (byte)Math.Clamp((int)Math.Round(y * 255.0f), 0, 255);
+        }
+
+        var total = source.ByteCount;
+        var bytesPerPixel = source.BytesPerPixel;
+        if (bytesPerPixel < 3)
+        {
+            return source.Copy();
+        }
+
+        var srcBytes = new byte[total];
+        var destBytes = new byte[total];
+
+        System.Runtime.InteropServices.Marshal.Copy(source.GetPixels(), srcBytes, 0, total);
+
+        bool hasAlpha = bytesPerPixel == 4;
+
+        for (int i = 0; i < total; i += bytesPerPixel)
+        {
+            destBytes[i] = lut[srcBytes[i]];
+            destBytes[i + 1] = lut[srcBytes[i + 1]];
+            destBytes[i + 2] = lut[srcBytes[i + 2]];
+            if (hasAlpha)
+            {
+                destBytes[i + 3] = srcBytes[i + 3];
+            }
+        }
+
+        var dest = new SKBitmap(source.Width, source.Height, source.ColorType, source.AlphaType);
+        System.Runtime.InteropServices.Marshal.Copy(destBytes, 0, dest.GetPixels(), total);
+        return dest;
+    }
+
+    public static SKBitmap ApplyAdaptiveSharpening(
+        SKBitmap source,
+        float amount,
+        int threshold = 6,
+        int maxDelta = 12)
+    {
+        // Compute subtle blurred baseline (sigma = 0.8) for edge gradient reference
+        using var blurred = ApplyBlur(source, 0.8f);
+
+        var total = source.ByteCount;
+        var bytesPerPixel = source.BytesPerPixel;
+        if (bytesPerPixel < 3)
+        {
+            return source.Copy();
+        }
+
+        var srcBytes = new byte[total];
+        var blurBytes = new byte[total];
+        var destBytes = new byte[total];
+
+        System.Runtime.InteropServices.Marshal.Copy(source.GetPixels(), srcBytes, 0, total);
+        System.Runtime.InteropServices.Marshal.Copy(blurred.GetPixels(), blurBytes, 0, total);
+
+        bool hasAlpha = bytesPerPixel == 4;
+
+        for (int i = 0; i < total; i += bytesPerPixel)
+        {
+            int diff0 = srcBytes[i] - blurBytes[i];
+            int diff1 = srcBytes[i + 1] - blurBytes[i + 1];
+            int diff2 = srcBytes[i + 2] - blurBytes[i + 2];
+
+            int abs0 = Math.Abs(diff0);
+            int abs1 = Math.Abs(diff1);
+            int abs2 = Math.Abs(diff2);
+            int maxAbs = Math.Max(abs0, Math.Max(abs1, abs2));
+
+            // Dead-zone: if difference is below threshold, treat as uniform patch or noise; do not sharpen
+            if (maxAbs < threshold)
+            {
+                destBytes[i] = srcBytes[i];
+                destBytes[i + 1] = srcBytes[i + 1];
+                destBytes[i + 2] = srcBytes[i + 2];
+            }
+            else
+            {
+                // Structural edge: sharpen and clamp delta to prevent white/black ringing halos
+                int delta0 = (int)Math.Clamp(Math.Round(diff0 * amount), -maxDelta, maxDelta);
+                int delta1 = (int)Math.Clamp(Math.Round(diff1 * amount), -maxDelta, maxDelta);
+                int delta2 = (int)Math.Clamp(Math.Round(diff2 * amount), -maxDelta, maxDelta);
+
+                destBytes[i] = (byte)Math.Clamp(srcBytes[i] + delta0, 0, 255);
+                destBytes[i + 1] = (byte)Math.Clamp(srcBytes[i + 1] + delta1, 0, 255);
+                destBytes[i + 2] = (byte)Math.Clamp(srcBytes[i + 2] + delta2, 0, 255);
+            }
+
+            if (hasAlpha)
+            {
+                destBytes[i + 3] = srcBytes[i + 3];
+            }
+        }
+
+        var dest = new SKBitmap(source.Width, source.Height, source.ColorType, source.AlphaType);
+        System.Runtime.InteropServices.Marshal.Copy(destBytes, 0, dest.GetPixels(), total);
         return dest;
     }
 
@@ -1233,5 +1409,137 @@ public class DeterministicImageProcessingService : IImageProcessingService
         }
 
         return "jpeg";
+    }
+
+    public static SKBitmap? DecodeAndNormalizeOrientation(byte[] imageBytes, ILogger? logger = null)
+    {
+        if (imageBytes == null || imageBytes.Length == 0) return null;
+
+        try
+        {
+            using var data = SKData.CreateCopy(imageBytes);
+            if (data == null || data.Size == 0) return null;
+
+            SKEncodedOrigin origin = SKEncodedOrigin.TopLeft;
+            try
+            {
+                using var codec = SKCodec.Create(data);
+                if (codec != null)
+                {
+                    origin = codec.EncodedOrigin;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger?.LogWarning(ex, "Failed to read image codec origin metadata. Falling back to default orientation.");
+            }
+
+            var rawBitmap = SKBitmap.Decode(data);
+            if (rawBitmap == null) return null;
+
+            if (origin == SKEncodedOrigin.TopLeft || (int)origin == 0)
+            {
+                return rawBitmap;
+            }
+
+            return NormalizeOrientation(rawBitmap, origin);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogWarning(ex, "Failed to decode and normalize image orientation.");
+            return null;
+        }
+    }
+
+    public static SKBitmap NormalizeOrientation(SKBitmap rawBitmap, SKEncodedOrigin origin)
+    {
+        int w = rawBitmap.Width;
+        int h = rawBitmap.Height;
+
+        bool swapDimensions = origin is SKEncodedOrigin.LeftTop
+            or SKEncodedOrigin.RightTop
+            or SKEncodedOrigin.RightBottom
+            or SKEncodedOrigin.LeftBottom;
+
+        int targetWidth = swapDimensions ? h : w;
+        int targetHeight = swapDimensions ? w : h;
+
+        var info = new SKImageInfo(targetWidth, targetHeight, rawBitmap.ColorType, rawBitmap.AlphaType, rawBitmap.ColorSpace);
+        var orientedBitmap = new SKBitmap(info);
+
+        try
+        {
+            using var canvas = new SKCanvas(orientedBitmap);
+            canvas.Clear(SKColors.Transparent);
+
+            switch (origin)
+            {
+                case SKEncodedOrigin.TopLeft:
+                    // 1: Normal
+                    break;
+
+                case SKEncodedOrigin.TopRight:
+                    // 2: Flip Horizontal
+                    canvas.Translate(w, 0);
+                    canvas.Scale(-1, 1);
+                    break;
+
+                case SKEncodedOrigin.BottomRight:
+                    // 3: Rotate 180
+                    canvas.Translate(w, h);
+                    canvas.RotateDegrees(180);
+                    break;
+
+                case SKEncodedOrigin.BottomLeft:
+                    // 4: Flip Vertical
+                    canvas.Translate(0, h);
+                    canvas.Scale(1, -1);
+                    break;
+
+                case SKEncodedOrigin.LeftTop:
+                    // 5: Transpose
+                    canvas.Scale(-1, 1);
+                    canvas.RotateDegrees(90);
+                    break;
+
+                case SKEncodedOrigin.RightTop:
+                    // 6: Rotate 90 CW (Standard Portrait smartphone photo)
+                    canvas.Translate(h, 0);
+                    canvas.RotateDegrees(90);
+                    break;
+
+                case SKEncodedOrigin.RightBottom:
+                    // 7: Transverse
+                    canvas.Translate(h, w);
+                    canvas.Scale(-1, 1);
+                    canvas.RotateDegrees(270);
+                    break;
+
+                case SKEncodedOrigin.LeftBottom:
+                    // 8: Rotate 270 CW (90 CCW)
+                    canvas.Translate(0, w);
+                    canvas.RotateDegrees(270);
+                    break;
+
+                default:
+                    break;
+            }
+
+            using var paint = new SKPaint
+            {
+                FilterQuality = SKFilterQuality.High,
+                IsAntialias = true
+            };
+            canvas.DrawBitmap(rawBitmap, 0, 0, paint);
+            canvas.Flush();
+
+            rawBitmap.Dispose();
+            return orientedBitmap;
+        }
+        catch
+        {
+            orientedBitmap.Dispose();
+            throw;
+        }
     }
 }

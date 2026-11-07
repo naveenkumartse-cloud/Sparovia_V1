@@ -1,7 +1,6 @@
 'use client';
 
 import { useAuth } from '@/lib/auth/AuthContext';
-import { useTheme } from '@/lib/theme/ThemeContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
@@ -16,10 +15,7 @@ import {
   UserCircle,
   LogOut,
   Menu,
-  X,
-  Sun,
-  Moon,
-  Monitor
+  X
 } from 'lucide-react';
 
 const NAVIGATION = [
@@ -237,7 +233,6 @@ function SidebarView({
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -453,46 +448,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
-            {/* Quick theme toggle */}
-            <div className="flex items-center bg-slate-100 dark:bg-[#1E293B] p-0.5 sm:p-1 rounded-[8px] border border-slate-200 dark:border-[#334155]/60" title={`Current appearance: ${theme}`}>
-              <button
-                type="button"
-                onClick={() => setTheme('light')}
-                className={`p-1 sm:p-1.5 rounded-[6px] text-xs transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
-                  theme === 'light' 
-                    ? 'bg-white text-[#315FEA] shadow-xs font-semibold' 
-                    : 'text-slate-400 hover:text-slate-700 dark:text-[#64748B] dark:hover:text-white'
-                }`}
-                aria-label="Set light theme"
-              >
-                <Sun className="h-3.5 w-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setTheme('dark')}
-                className={`p-1 sm:p-1.5 rounded-[6px] text-xs transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
-                  theme === 'dark' 
-                    ? 'bg-[#0B1220] text-[#315FEA] shadow-xs font-semibold' 
-                    : 'text-slate-400 hover:text-slate-700 dark:text-[#64748B] dark:hover:text-white'
-                }`}
-                aria-label="Set dark theme"
-              >
-                <Moon className="h-3.5 w-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setTheme('system')}
-                className={`p-1 sm:p-1.5 rounded-[6px] text-xs transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] ${
-                  theme === 'system' 
-                    ? 'bg-white dark:bg-[#0B1220] text-[#315FEA] shadow-xs font-semibold' 
-                    : 'text-slate-400 hover:text-slate-700 dark:text-[#64748B] dark:hover:text-white'
-                }`}
-                aria-label="Set system theme"
-              >
-                <Monitor className="h-3.5 w-3.5" />
-              </button>
-            </div>
-
             <button
               onClick={handleLogout}
               aria-label="Sign Out"

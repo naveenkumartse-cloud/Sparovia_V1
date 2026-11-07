@@ -758,6 +758,7 @@ public class WebsiteImageService : IWebsiteImageService
             foreach (var other in otherImagesInSlot)
             {
                 other.Status = "Approved";
+                other.IsActiveWebsiteUsage = false;
                 other.UpdatedAt = DateTime.UtcNow;
             }
 

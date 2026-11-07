@@ -77,3 +77,33 @@ export const CardFooter = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
   }
 );
 CardFooter.displayName = 'CardFooter';
+
+export const CardTitle = forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <h3
+        ref={ref}
+        className={cn('text-base sm:text-lg font-bold text-[#172033] dark:text-white tracking-tight', className)}
+        {...props}
+      >
+        {children}
+      </h3>
+    );
+  }
+);
+CardTitle.displayName = 'CardTitle';
+
+export const CardDescription = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <p
+        ref={ref}
+        className={cn('text-xs sm:text-sm text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed', className)}
+        {...props}
+      >
+        {children}
+      </p>
+    );
+  }
+);
+CardDescription.displayName = 'CardDescription';

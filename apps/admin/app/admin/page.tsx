@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DashboardSkeleton } from '@/components/ui/Skeleton';
 import { Badge } from '@/components/ui/Badge';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { 
   Building2, 
   Laptop2, 
@@ -57,13 +59,12 @@ export default function AdminDashboard() {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Welcome Banner */}
-      <div className="bg-white dark:bg-[#0F172A] p-4 sm:p-6 lg:p-8 rounded-[8px] border border-slate-200 dark:border-[#1E293B] shadow-xs relative overflow-hidden">
+      <Card variant="default" className="p-4 sm:p-6 lg:p-8 relative overflow-hidden">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="min-w-0">
-            <div className="inline-flex items-center px-2.5 py-1 rounded-[4px] text-xs font-semibold bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20 mb-3">
-              <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
+            <Badge variant="cobalt" size="sm" icon={<ShieldCheck className="w-3.5 h-3.5" />} className="mb-3">
               Authenticated Workspace
-            </div>
+            </Badge>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#172033] dark:text-white tracking-tight">
               Welcome back, {user?.fullName || 'Business Owner'}
             </h1>
@@ -82,12 +83,12 @@ export default function AdminDashboard() {
             </Link>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Grid of Key Status Cards (3-column responsive grid) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Business Context Card */}
-        <div className="bg-white dark:bg-[#0F172A] p-6 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs flex flex-col justify-between">
+        <Card variant="default" className="p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 border border-[#315FEA]/20 flex items-center justify-center text-[#315FEA]">
@@ -118,10 +119,10 @@ export default function AdminDashboard() {
               Review facts <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Link>
           </div>
-        </div>
+        </Card>
 
         {/* Website Content Card */}
-        <div className="bg-white dark:bg-[#0F172A] p-6 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs flex flex-col justify-between">
+        <Card variant="default" className="p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 rounded-[6px] bg-[#7950B8]/10 border border-[#7950B8]/20 flex items-center justify-center text-[#7950B8]">
@@ -144,10 +145,10 @@ export default function AdminDashboard() {
               Manage content <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Link>
           </div>
-        </div>
+        </Card>
 
         {/* Leads Intake Card */}
-        <div className="bg-white dark:bg-[#0F172A] p-6 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs flex flex-col justify-between">
+        <Card variant="default" className="p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 border border-[#315FEA]/20 flex items-center justify-center text-[#315FEA]">
@@ -176,11 +177,11 @@ export default function AdminDashboard() {
               View lead list <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Link>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Quick Action Guidance Panel */}
-      <div className="bg-white dark:bg-[#0F172A] p-6 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs">
+      <Card variant="default" className="p-6">
         <h2 className="text-sm font-semibold text-[#172033] dark:text-white mb-4">Recommended Next Steps</h2>
         <div className="space-y-3">
           <div className="flex items-start justify-between p-3.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200/80 dark:border-[#1E293B] rounded-[6px]">
@@ -243,7 +244,7 @@ export default function AdminDashboard() {
             </Link>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

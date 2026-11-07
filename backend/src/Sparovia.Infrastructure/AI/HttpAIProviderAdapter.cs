@@ -305,10 +305,12 @@ public class HttpAIProviderAdapter : IAIProvider
             "   - Project counts, client counts, or specific partner names\n" +
             "   If a fact is not explicitly in the Business Context, do NOT create it.\n" +
             "2. CONTACT INFO: Never alter or fabricate phone numbers, email addresses, or physical addresses.\n" +
-            "3. OUTPUT FORMAT: Output ONLY the refined text for the target field. Do NOT include greetings, intro phrases (such as 'Here is the improved version:'), explanations, markdown code blocks, or conversational sign-offs.\n" +
-            "4. Do NOT wrap the entire response in quotation marks.";
+            "3. ANTI-SLOP & AUTHENTIC VOICE: Avoid generic, overused corporate buzzwords and marketing puffery. Do NOT use: 'world-class', 'unparalleled', 'bespoke excellence', 'cutting-edge solutions', 'transform your lifestyle', 'exceptional quality', 'game-changer', 'seamless experience', 'customer satisfaction is our top priority'. Prefer clear, concrete, professional, customer-focused language reflecting authentic business craft.\n" +
+            "4. OUTPUT FORMAT: Output ONLY the refined text for the target field. Do NOT include greetings, intro phrases (such as 'Here is the improved version:'), explanations, markdown code blocks, or conversational sign-offs.\n" +
+            "5. Do NOT wrap the entire response in quotation marks.";
 
         var operationGuidance = BuildOperationGuidance(request.OperationType, request.Instruction);
+        var fieldGuidance = BuildFieldGuidance(request.FieldRole, request.FieldMaxLength);
 
         var userPromptBuilder = new StringBuilder();
         if (!string.IsNullOrWhiteSpace(request.GroundingContext))
@@ -318,15 +320,28 @@ public class HttpAIProviderAdapter : IAIProvider
             userPromptBuilder.AppendLine();
         }
 
+        if (!string.IsNullOrWhiteSpace(request.SurroundingContext))
+        {
+            userPromptBuilder.AppendLine("=== SURROUNDING SECTION CONTEXT ===");
+            userPromptBuilder.AppendLine(request.SurroundingContext);
+            userPromptBuilder.AppendLine();
+        }
+
         userPromptBuilder.AppendLine("=== REQUESTED OPERATION ===");
         userPromptBuilder.AppendLine($"Operation: {request.OperationType}");
         userPromptBuilder.AppendLine($"Guidance: {operationGuidance}");
+        if (!string.IsNullOrWhiteSpace(fieldGuidance))
+        {
+            userPromptBuilder.AppendLine();
+            userPromptBuilder.AppendLine("=== FIELD CONSTRAINTS & FORMAT ===");
+            userPromptBuilder.AppendLine(fieldGuidance);
+        }
         userPromptBuilder.AppendLine();
 
         userPromptBuilder.AppendLine("=== CURRENT TEXT TO REFINE ===");
         userPromptBuilder.AppendLine(request.InputText ?? string.Empty);
         userPromptBuilder.AppendLine();
-        userPromptBuilder.AppendLine("Refine the current text following the operation guidance and approved business context:");
+        userPromptBuilder.AppendLine("Refine the current text following the operation guidance, field constraints, and approved business context:");
 
         var userPrompt = userPromptBuilder.ToString();
         var isFreeQuota = string.Equals(provider, AIProviders.OpenRouter, StringComparison.OrdinalIgnoreCase) ||
@@ -711,6 +726,42 @@ public class HttpAIProviderAdapter : IAIProvider
                 ? $"Apply this instruction: \"{customInstruction}\", while strictly preserving factual meaning."
                 : "Improve clarity, grammar, and customer appeal while strictly preserving factual meaning."
         };
+    }
+
+    private static string BuildFieldGuidance(string? fieldRole, int? maxLength)
+    {
+        var sb = new StringBuilder();
+        if (!string.IsNullOrWhiteSpace(fieldRole))
+        {
+            switch (fieldRole.ToLowerInvariant())
+            {
+                case "tag":
+                    sb.AppendLine("Target Format: Short Eyebrow Tag / Category Badge. Produce 2–4 concise words (uppercase or title case). Do NOT output full sentences or multi-line paragraphs.");
+                    break;
+                case "cta":
+                    sb.AppendLine("Target Format: Action Button Label. Produce a concise, active-verb call to action (2–4 words, e.g. 'Get a Quote', 'Schedule Consultation'). Do NOT output sentences or body copy.");
+                    break;
+                case "heading":
+                    sb.AppendLine("Target Format: Section Headline. Communicate the primary value proposition clearly and memorably. Do NOT output body paragraphs.");
+                    break;
+                case "service-description":
+                    sb.AppendLine("Target Format: Service Offering Description. Emphasize verified craftsmanship, materials, process, and client deliverables. Never invent false warranties or guarantees.");
+                    break;
+                case "story":
+                    sb.AppendLine("Target Format: About / Heritage Story. Write an authentic business narrative grounded in verified facts. Never invent years or founding history.");
+                    break;
+                case "copyright":
+                    sb.AppendLine("Target Format: Copyright Notice. Maintain standard legal copyright formatting.");
+                    break;
+            }
+        }
+
+        if (maxLength.HasValue && maxLength.Value > 0)
+        {
+            sb.AppendLine($"Character Budget: The output MUST strictly stay under {maxLength.Value} characters. Output exceeding this limit will be rejected.");
+        }
+
+        return sb.ToString().Trim();
     }
 
     private static (string ErrorCode, string ErrorMessage) ClassifyProviderError(

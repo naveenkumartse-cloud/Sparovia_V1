@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Sparovia.Application.AI;
 using Sparovia.Application.Images;
+using Sparovia.Application.WebsiteContent;
 using Sparovia.Domain.Constants;
 using Sparovia.Domain.Entities;
 using Sparovia.Infrastructure.Data;
@@ -829,6 +830,21 @@ public class AIController : ControllerBase
 
         var resourceId = websiteContent?.Id ?? website?.Id ?? tenantId;
 
+        // Authoritatively resolve field metadata from template schema
+        var fieldInfo = WebsiteTemplateRegistry.ResolveFieldInfo(website?.TemplateId, request.SectionKey, request.Field);
+
+        // Contextual Operation Compatibility Check: Block incompatible pairs (e.g. ImproveServiceDescription on tag/cta)
+        if (string.Equals(request.Operation, AIOperationTypes.ImproveServiceDescription, StringComparison.OrdinalIgnoreCase) &&
+            fieldInfo?.Role is "tag" or "cta")
+        {
+            return BadRequest(new
+            {
+                error = new { code = AIErrorCodes.ContentOperationNotSupported, message = $"Operation '{request.Operation}' is not supported for {fieldInfo.Role} fields like '{request.Field}'." },
+                code = AIErrorCodes.ContentOperationNotSupported,
+                message = $"Operation '{request.Operation}' is not supported for {fieldInfo.Role} fields like '{request.Field}'."
+            });
+        }
+
         // 6. Build trusted context
         var approvedFacts = new List<string>();
         if (businessContext.YearsInBusiness.HasValue) approvedFacts.Add($"Years in business: {businessContext.YearsInBusiness.Value}");
@@ -839,6 +855,34 @@ public class AIController : ControllerBase
         if (businessContext.AuthorizedStatuses?.Count > 0) approvedFacts.Add($"Authorized: {string.Join(", ", businessContext.AuthorizedStatuses)}");
         if (businessContext.OtherClaims?.Count > 0) approvedFacts.Add($"Claims: {string.Join(", ", businessContext.OtherClaims)}");
 
+        var serviceDescriptions = businessContext.Services
+            .Where(s => !string.IsNullOrWhiteSpace(s.ServiceDescription))
+            .Select(s => $"{s.ServiceName}: {s.ServiceDescription}")
+            .ToList();
+
+        string? surroundingContext = null;
+        if (!string.IsNullOrWhiteSpace(websiteContent?.DraftContentJson))
+        {
+            try
+            {
+                using var draftDoc = System.Text.Json.JsonDocument.Parse(websiteContent.DraftContentJson);
+                var root = draftDoc.RootElement;
+                var parts = new List<string>();
+                if (root.TryGetProperty("headline", out var hProp) && request.Field != "headline" && hProp.ValueKind == System.Text.Json.JsonValueKind.String)
+                    parts.Add($"Headline: {hProp.GetString()}");
+                else if (root.TryGetProperty("heading", out var hdProp) && request.Field != "heading" && hdProp.ValueKind == System.Text.Json.JsonValueKind.String)
+                    parts.Add($"Section Heading: {hdProp.GetString()}");
+                else if (root.TryGetProperty("title", out var tProp) && request.Field != "title" && tProp.ValueKind == System.Text.Json.JsonValueKind.String)
+                    parts.Add($"Section Title: {tProp.GetString()}");
+
+                if (parts.Count > 0)
+                {
+                    surroundingContext = string.Join("; ", parts);
+                }
+            }
+            catch { }
+        }
+
         var executionContext = new AIExecutionContext
         {
             BusinessName = businessContext.BusinessName,
@@ -848,9 +892,16 @@ public class AIController : ControllerBase
             Differentiators = businessContext.Differentiators,
             Location = $"{businessContext.City}, {businessContext.State}, {businessContext.Country}".Trim(',', ' '),
             Services = businessContext.Services.Select(s => s.ServiceName).ToList(),
+            ServiceDescriptions = serviceDescriptions,
+            TargetCustomers = businessContext.TargetCustomers ?? new List<string>(),
+            ServiceAreas = businessContext.ServiceAreas ?? new List<string>(),
             ApprovedFacts = approvedFacts,
             SectionKey = request.SectionKey,
             FieldName = request.Field,
+            FieldLabel = fieldInfo?.Label,
+            FieldRole = fieldInfo?.Role,
+            FieldMaxLength = fieldInfo?.MaxLength,
+            SurroundingContext = surroundingContext,
             CurrentDraftContent = websiteContent?.DraftContentJson,
             ExistingPublishedContent = websiteContent?.PublishedContentJson
         };
@@ -967,7 +1018,9 @@ public class AIController : ControllerBase
                 OriginalText = request.CurrentText,
                 SectionKey = request.SectionKey,
                 Field = request.Field,
-                TargetResourceVersion = currentVersion
+                TargetResourceVersion = currentVersion,
+                MaxLength = fieldInfo?.MaxLength,
+                FieldRole = fieldInfo?.Role
             },
             requestId = HttpContext.TraceIdentifier
         });

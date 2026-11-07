@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { useTheme } from '@/lib/theme/ThemeContext';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
@@ -90,7 +89,6 @@ interface SocialLinksIntegration {
 
 export default function AccountPage() {
   const { user, checkAuth } = useAuth();
-  const { theme, resolvedTheme, setTheme } = useTheme();
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -523,12 +521,6 @@ export default function AccountPage() {
     }
   };
 
-  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
-    setTheme(newTheme);
-    const label = newTheme === 'system' ? 'System Default' : newTheme.charAt(0).toUpperCase() + newTheme.slice(1);
-    toast.info(`Appearance updated to ${label} mode.`);
-  };
-
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
       {/* Header */}
@@ -836,117 +828,57 @@ export default function AccountPage() {
         </div>
       )}
 
-      {/* TAB 2: SETTINGS (APPEARANCE) */}
+      {/* TAB 2: SETTINGS (VISUAL SYSTEM & PLATFORM IDENTITY) */}
       {activeTab === 'settings' && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-sm">
+          <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-xs">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
-                <Sun className="w-5 h-5 mr-2 text-amber-500" />
-                Appearance
+                <ShieldCheck className="w-5 h-5 mr-2 text-[#315FEA]" />
+                Visual System &amp; Design Standards
               </h2>
               <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
-                Customize how the Sparovia Admin workspace looks on your device.
+                Authoritative visual system specifications enforced across the Sparovia Platform.
               </p>
             </div>
 
-            {/* Public Website Isolation Notice */}
+            {/* Design System Lock Notice */}
             <div className="mt-4 p-4 rounded-[8px] bg-blue-50 dark:bg-[#315FEA]/10 border border-blue-200/60 dark:border-[#315FEA]/20 flex items-start space-x-3">
               <Info className="w-5 h-5 text-[#315FEA] shrink-0 mt-0.5" />
               <div className="text-xs text-slate-700 dark:text-[#CBD5E1] leading-relaxed">
-                <span className="font-semibold text-slate-900 dark:text-white">Public Website Isolation:</span>{' '}
-                This appearance setting strictly applies to your private Sparovia Admin dashboard. It does <strong>NOT</strong> change your Public Website theme or published customer-facing design.
+                <span className="font-semibold text-slate-900 dark:text-white">Editorial Cobalt Visual Lock:</span>{' '}
+                Sparovia platform UI operates strictly on the approved Editorial Cobalt visual system with flat neutral surfaces (#FFFFFF, #F3F6FA), locked typography, and strict radius hierarchy. Per project governance (<code>RULES.md</code> and <code>DESIGN.md</code>), unapproved customer-facing theme switching is decommissioned.
               </div>
             </div>
 
-            {/* Theme Selector Cards */}
+            {/* Visual Tokens Matrix */}
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* Light Mode */}
-              <button
-                type="button"
-                onClick={() => handleThemeChange('light')}
-                className={`relative flex flex-col text-left p-5 rounded-[8px] border-2 transition-all ${
-                  theme === 'light'
-                    ? 'border-[#315FEA] bg-[#315FEA]/5 shadow-sm ring-2 ring-[#315FEA]/20'
-                    : 'border-slate-200 dark:border-[#334155] hover:border-slate-300 dark:hover:border-[#475569] bg-slate-50/50 dark:bg-[#0B1220]/40'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className="p-2 rounded-[6px] bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                    <Sun className="w-5 h-5" />
-                  </div>
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    theme === 'light' ? 'border-[#315FEA] bg-[#315FEA]' : 'border-slate-300 dark:border-[#475569]'
-                  }`}>
-                    {theme === 'light' && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-                  </div>
+              <div className="p-4 rounded-[8px] bg-slate-50 dark:bg-[#0B1220]/50 border border-slate-200 dark:border-[#1E293B] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">Brand Color</span>
+                  <div className="w-4 h-4 rounded-[4px] bg-[#315FEA]" title="#315FEA" />
                 </div>
+                <p className="text-sm font-bold text-[#315FEA]">Editorial Cobalt</p>
+                <p className="text-xs text-slate-500 dark:text-[#94A3B8]">#315FEA (Primary) &bull; #7950B8 (Accent)</p>
+              </div>
 
-                <div className="mt-4">
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">Light</p>
-                  <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1">
-                    Clean, crisp white and neutral slate surfaces with optimal daytime contrast.
-                  </p>
+              <div className="p-4 rounded-[8px] bg-slate-50 dark:bg-[#0B1220]/50 border border-slate-200 dark:border-[#1E293B] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">Radius Hierarchy</span>
+                  <Badge variant="cobalt" size="xs">Locked</Badge>
                 </div>
-              </button>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">4px / 6px / 8px / 10px</p>
+                <p className="text-xs text-slate-500 dark:text-[#94A3B8]">Indicator: 4px &bull; Control: 6px &bull; Panel: 8px &bull; Dialog: 10px</p>
+              </div>
 
-              {/* Dark Mode */}
-              <button
-                type="button"
-                onClick={() => handleThemeChange('dark')}
-                className={`relative flex flex-col text-left p-5 rounded-[8px] border-2 transition-all ${
-                  theme === 'dark'
-                    ? 'border-[#315FEA] bg-[#315FEA]/5 shadow-sm ring-2 ring-[#315FEA]/20'
-                    : 'border-slate-200 dark:border-[#334155] hover:border-slate-300 dark:hover:border-[#475569] bg-slate-50/50 dark:bg-[#0B1220]/40'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className="p-2 rounded-[6px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                    <Moon className="w-5 h-5" />
-                  </div>
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    theme === 'dark' ? 'border-[#315FEA] bg-[#315FEA]' : 'border-slate-300 dark:border-[#475569]'
-                  }`}>
-                    {theme === 'dark' && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-                  </div>
+              <div className="p-4 rounded-[8px] bg-slate-50 dark:bg-[#0B1220]/50 border border-slate-200 dark:border-[#1E293B] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">Accessibility</span>
+                  <Badge variant="success" size="xs">Target</Badge>
                 </div>
-
-                <div className="mt-4">
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">Dark</p>
-                  <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1">
-                    Signature Sparovia Dark Navy (#0B1220) and Charcoal surfaces for focused workflow.
-                  </p>
-                </div>
-              </button>
-
-              {/* System Default */}
-              <button
-                type="button"
-                onClick={() => handleThemeChange('system')}
-                className={`relative flex flex-col text-left p-5 rounded-[8px] border-2 transition-all ${
-                  theme === 'system'
-                    ? 'border-[#315FEA] bg-[#315FEA]/5 shadow-sm ring-2 ring-[#315FEA]/20'
-                    : 'border-slate-200 dark:border-[#334155] hover:border-slate-300 dark:hover:border-[#475569] bg-slate-50/50 dark:bg-[#0B1220]/40'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className="p-2 rounded-[6px] bg-slate-500/10 text-slate-400 border border-slate-500/20">
-                    <Monitor className="w-5 h-5" />
-                  </div>
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    theme === 'system' ? 'border-[#315FEA] bg-[#315FEA]' : 'border-slate-300 dark:border-[#475569]'
-                  }`}>
-                    {theme === 'system' && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">System Default</p>
-                  <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1">
-                    Automatically match your operating system theme preference (currently: {resolvedTheme}).
-                  </p>
-                </div>
-              </button>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">WCAG 2.2 AA</p>
+                <p className="text-xs text-slate-500 dark:text-[#94A3B8]">Keyboard navigable &bull; Contrast verified &bull; Reduced motion</p>
+              </div>
             </div>
           </div>
         </div>

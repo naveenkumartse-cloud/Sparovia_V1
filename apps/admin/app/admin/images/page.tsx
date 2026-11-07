@@ -148,6 +148,9 @@ export default function ImagesPage() {
   // Delete Confirmation Modal state
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
   const [removingImage, setRemovingImage] = useState<ImageDto | null>(null);
+
+  // Active view mode for slots with pending replacements ('replacement' vs 'live')
+  const [slotViewMode, setSlotViewMode] = useState<Record<string, 'replacement' | 'live'>>({});
   const [removing, setRemoving] = useState(false);
 
   // Bulk Selection state
@@ -172,7 +175,20 @@ export default function ImagesPage() {
       setLoading(true);
       setError(null);
       const res = await apiClient.get<{ data: ImageDto[] }>('/website/images');
-      setImages(res?.data || []);
+      const loaded = res?.data || [];
+      setImages(loaded);
+
+      // Auto-recover active Studio image after browser reload if ?studioImageId= is present in URL
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const studioId = params.get('studioImageId');
+        if (studioId) {
+          const match = loaded.find((img) => img.id === studioId);
+          if (match) {
+            setStudioImage(match);
+          }
+        }
+      }
     } catch (err: any) {
       setError(err?.message || 'Failed to load images. Please check network connectivity.');
     } finally {
@@ -204,15 +220,27 @@ export default function ImagesPage() {
   const handleOpenStudio = (img: ImageDto) => {
     setPendingStudioUpload(null);
     setStudioImage(img);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('studioImageId', img.id);
+      window.history.replaceState({}, '', url.toString());
+    }
   };
 
   const handleImageUpdated = (updatedImg: ImageDto) => {
     setImages((prev) => {
-      const exists = prev.some((img) => img.id === updatedImg.id);
-      if (exists) {
-        return prev.map((img) => (img.id === updatedImg.id ? updatedImg : img));
+      let updatedList = prev.map((img) => (img.id === updatedImg.id ? updatedImg : img));
+      if (!prev.some((img) => img.id === updatedImg.id)) {
+        updatedList = [updatedImg, ...prev];
       }
-      return [updatedImg, ...prev];
+      if (updatedImg.isActiveWebsiteUsage && updatedImg.slot) {
+        updatedList = updatedList.map((img) =>
+          img.slot === updatedImg.slot && img.id !== updatedImg.id
+            ? { ...img, isActiveWebsiteUsage: false, status: img.status === 'Published' ? 'Approved' : img.status }
+            : img
+        );
+      }
+      return updatedList;
     });
     if (studioImage && studioImage.id === updatedImg.id) {
       setStudioImage(updatedImg);
@@ -653,10 +681,30 @@ export default function ImagesPage() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8">
             {WEBSITE_SLOTS.map((slot) => {
-              const assignedImage = websiteImages.find(
+              // 1. Identify currently live published image for this slot
+              const liveImage = websiteImages.find(
                 (img) => img.slot === slot.key && img.isActiveWebsiteUsage
               );
+
+              // 2. Identify any newly uploaded pending replacement awaiting review/publication
+              const pendingReplacement = websiteImages
+                .filter(
+                  (img) =>
+                    img.slot === slot.key &&
+                    !img.isActiveWebsiteUsage &&
+                    img.id !== liveImage?.id &&
+                    img.status !== 'Unused' &&
+                    img.status !== 'Rejected'
+                )
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+
+              const hasReplacement = Boolean(liveImage && pendingReplacement);
+              const currentMode = slotViewMode[slot.key] || (hasReplacement ? 'replacement' : 'live');
+              const assignedImage = hasReplacement
+                ? (currentMode === 'replacement' ? pendingReplacement : liveImage)
+                : (liveImage || pendingReplacement);
               const isAssignedPublished = assignedImage?.status === 'Published';
+              const isViewingReplacement = hasReplacement && currentMode === 'replacement';
 
               return (
                 <div
@@ -675,19 +723,75 @@ export default function ImagesPage() {
                         </p>
                       </div>
 
-                      <Badge
-                        variant={assignedImage ? (isAssignedPublished ? 'success' : 'brand') : 'neutral'}
-                        size="xs"
-                        dot={assignedImage && isAssignedPublished}
-                      >
-                        {assignedImage ? (isAssignedPublished ? 'Published' : 'Assigned') : 'Not Set'}
-                      </Badge>
+                      {hasReplacement ? (
+                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                          <Badge variant="success" size="xs" dot>
+                            Live
+                          </Badge>
+                          <Badge variant="brand" size="xs">
+                            Replacement Ready
+                          </Badge>
+                        </div>
+                      ) : (
+                        <Badge
+                          variant={assignedImage ? (isAssignedPublished ? 'success' : 'brand') : 'neutral'}
+                          size="xs"
+                          dot={assignedImage && isAssignedPublished}
+                        >
+                          {assignedImage ? (isAssignedPublished ? 'Published' : 'Draft') : 'Not Set'}
+                        </Badge>
+                      )}
                     </div>
+
+                    {/* Pending Replacement View Switcher */}
+                    {hasReplacement && (
+                      <div className="flex items-center justify-between bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-[6px] px-3 py-1.5 text-xs">
+                        <div className="flex items-center gap-1.5 text-blue-900 dark:text-blue-300 font-medium truncate mr-2">
+                          <Sparkles className="w-3.5 h-3.5 text-[#315FEA] dark:text-blue-400 shrink-0" />
+                          <span className="truncate">
+                            {isViewingReplacement
+                              ? 'Replacement ready for review (Live image unchanged)'
+                              : 'Viewing currently published live image'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setSlotViewMode((prev) => ({ ...prev, [slot.key]: 'replacement' }))}
+                            className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
+                              currentMode === 'replacement'
+                                ? 'bg-[#315FEA] text-white shadow-xs'
+                                : 'text-[#475569] dark:text-slate-400 hover:text-[#172033]'
+                            }`}
+                          >
+                            New Replacement
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSlotViewMode((prev) => ({ ...prev, [slot.key]: 'live' }))}
+                            className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
+                              currentMode === 'live'
+                                ? 'bg-slate-700 text-white shadow-xs'
+                                : 'text-[#475569] dark:text-slate-400 hover:text-[#172033]'
+                            }`}
+                          >
+                            Current Live
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Image Preview Area - Large Workspace Viewport */}
                     <div className="relative rounded-[8px] overflow-hidden bg-slate-900/5 dark:bg-[#1E293B]/40 border border-slate-200 dark:border-slate-800 flex items-center justify-center min-h-[260px] aspect-[16/10] group mt-3">
                       {assignedImage ? (
                         <>
+                          {isViewingReplacement && (
+                            <div className="absolute top-2.5 right-2.5 z-10 pointer-events-none">
+                              <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA] text-white shadow-xs">
+                                Replacement Awaiting Publish
+                              </span>
+                            </div>
+                          )}
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={resolveImageUrl(assignedImage.previewUrl)}
@@ -753,7 +857,58 @@ export default function ImagesPage() {
 
                   {/* Slot Actions Footer */}
                   <div className="pt-4 mt-auto border-t border-slate-100 dark:border-[#1E293B] flex flex-wrap items-center justify-between gap-3">
-                    {assignedImage ? (
+                    {hasReplacement && isViewingReplacement ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleOpenStudio(pendingReplacement)}
+                            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+                            title="Open Image Studio to inspect & enhance replacement"
+                            className="font-semibold"
+                          >
+                            Enhance
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="primary"
+                            size="sm"
+                            onClick={() => handlePublishImage(pendingReplacement)}
+                            leftIcon={<Globe className="w-3.5 h-3.5" />}
+                            title="Publish replacement to live website"
+                            className="font-semibold"
+                          >
+                            Publish Replacement
+                          </Button>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => openUploadModal(slot.key, liveImage)}
+                            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                            title="Upload a different replacement file"
+                          >
+                            Re-upload
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => openRemoveModal(pendingReplacement)}
+                            aria-label={`Discard replacement image for slot ${slot.title}`}
+                            title="Discard replacement (keep live image)"
+                            className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </>
+                    ) : assignedImage ? (
                       <>
                         <div className="flex items-center gap-2">
                           <Button
@@ -1002,6 +1157,11 @@ export default function ImagesPage() {
                                 {image.category}
                               </Badge>
                             )}
+                            {image.slot?.startsWith('replaces:') && (
+                              <Badge variant="brand" size="xs" className="uppercase tracking-wider backdrop-blur-xs">
+                                Replacement
+                              </Badge>
+                            )}
                             <Badge
                               variant={isPublished ? 'success' : isApproved ? 'brand' : 'neutral'}
                               size="xs"
@@ -1079,9 +1239,9 @@ export default function ImagesPage() {
                                 onClick={() => handlePublishImage(image)}
                                 leftIcon={<Globe className="w-3.5 h-3.5" />}
                                 className="w-full justify-center text-xs font-semibold"
-                                title="Publish to public portfolio"
+                                title={image.slot?.startsWith('replaces:') ? 'Publish replacement to public portfolio' : 'Publish to public portfolio'}
                               >
-                                Publish
+                                {image.slot?.startsWith('replaces:') ? 'Publish Replacement' : 'Publish'}
                               </Button>
                             ) : (
                               <Button
@@ -1141,17 +1301,32 @@ export default function ImagesPage() {
           onClose={() => {
             setStudioImage(null);
             setPendingStudioUpload(null);
+            if (typeof window !== 'undefined') {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('studioImageId');
+              window.history.replaceState({}, '', url.toString());
+            }
           }}
           onImageUpdated={handleImageUpdated}
           resolveImageUrl={resolveImageUrl}
           onReplaceRequested={(img) => {
             setStudioImage(null);
             setPendingStudioUpload(null);
+            if (typeof window !== 'undefined') {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('studioImageId');
+              window.history.replaceState({}, '', url.toString());
+            }
             openUploadModal(img.slot || undefined, img);
           }}
           onDeleteRequested={(img) => {
             setStudioImage(null);
             setPendingStudioUpload(null);
+            if (typeof window !== 'undefined') {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('studioImageId');
+              window.history.replaceState({}, '', url.toString());
+            }
             openRemoveModal(img);
           }}
         />

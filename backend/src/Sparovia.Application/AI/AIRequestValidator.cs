@@ -158,7 +158,8 @@ public static class AIRequestValidator
     public static (bool IsValid, string? SanitizedOutput, string? ErrorCode, string? ErrorMessage) ValidateAndSanitizeAIOutput(
         string? outputText,
         string operationType,
-        string originalText)
+        string originalText,
+        int? maxAllowedLength = null)
     {
         if (string.IsNullOrWhiteSpace(outputText))
         {
@@ -274,6 +275,11 @@ public static class AIRequestValidator
         if (cleaned.Length > MaxInputTextLength)
         {
             return (false, null, AIErrorCodes.OutputInvalid, $"The AI response exceeded the maximum allowed length of {MaxInputTextLength} characters.");
+        }
+
+        if (maxAllowedLength.HasValue && cleaned.Length > maxAllowedLength.Value)
+        {
+            return (false, null, AIErrorCodes.OutputInvalid, $"The AI suggestion exceeded the allowed field limit of {maxAllowedLength.Value} characters ({cleaned.Length} characters generated). Please try a shorter refinement.");
         }
 
         // 8. Prohibited markup / script tag injection check

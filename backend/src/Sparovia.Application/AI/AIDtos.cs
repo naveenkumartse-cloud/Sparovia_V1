@@ -27,13 +27,20 @@ public class AIExecutionContext
     public string? BusinessDescription { get; set; }
     public string? Differentiators { get; set; }
     public List<string> Services { get; set; } = new();
+    public List<string> ServiceDescriptions { get; set; } = new();
+    public List<string> TargetCustomers { get; set; } = new();
+    public List<string> ServiceAreas { get; set; } = new();
     public string? Location { get; set; }
     public List<string> ApprovedFacts { get; set; } = new();
 
     public string? SectionKey { get; set; }
     public string? FieldName { get; set; }
+    public string? FieldLabel { get; set; }
+    public string? FieldRole { get; set; }
+    public int? FieldMaxLength { get; set; }
     public string? ExistingPublishedContent { get; set; }
     public string? CurrentDraftContent { get; set; }
+    public string? SurroundingContext { get; set; }
 }
 
 public class AIOperationOptions
@@ -104,6 +111,8 @@ public class AIContentResponseDto
     public string? SectionKey { get; set; }
     public string? Field { get; set; }
     public int? TargetResourceVersion { get; set; }
+    public int? MaxLength { get; set; }
+    public string? FieldRole { get; set; }
 }
 
 // Review and Acceptance DTOs (Build 29)
@@ -148,6 +157,9 @@ public class AIReviewResultDto
     public string Message { get; set; } = string.Empty;
     public string? ErrorCode { get; set; }
     public string? ErrorMessage { get; set; }
+    public string? AcceptedText { get; set; }
+    public string? TargetSectionKey { get; set; }
+    public string? TargetFieldKey { get; set; }
     public object? AppliedDraft { get; set; }
     public int? AppliedVersion { get; set; }
 }
@@ -178,6 +190,9 @@ public class AIProviderTextRequest
     public string? ProviderKey { get; set; }
     public string? ApiKey { get; set; }
     public int MaxTokens { get; set; } = 1000;
+    public string? FieldRole { get; set; }
+    public int? FieldMaxLength { get; set; }
+    public string? SurroundingContext { get; set; }
 }
 
 public class AIProviderResult

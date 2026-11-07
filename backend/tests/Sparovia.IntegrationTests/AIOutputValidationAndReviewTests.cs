@@ -334,27 +334,44 @@ public class AIOutputValidationAndReviewTests : IClassFixture<WebApplicationFact
         var aiRequestId = genJson.GetProperty("data").GetProperty("aiRequestId").GetGuid();
         var suggestion = genJson.GetProperty("data").GetProperty("suggestion").GetString();
 
-        // 2. Explicitly Accept AI suggestion
+        // 2. Explicitly Accept AI suggestion (returns acceptedText for CMS active session)
         var acceptResp = await client.PostAsJsonAsync($"/api/v1/ai/requests/{aiRequestId}/accept", new AIReviewRequestDto());
         Assert.Equal(HttpStatusCode.OK, acceptResp.StatusCode);
 
         var acceptJson = await acceptResp.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(AIReviewStatus.Accepted, acceptJson.GetProperty("data").GetProperty("reviewStatus").GetString());
+        Assert.Equal(suggestion, acceptJson.GetProperty("data").GetProperty("acceptedText").GetString());
 
-        // 3. Verify Draft is updated
+        // 3. Verify Draft in DATABASE is UNCHANGED after accept (Decoupled draft lifecycle)
         var sectionResp = await client.GetAsync("/api/v1/website/content/hero");
         sectionResp.EnsureSuccessStatusCode();
         var sectionJson = await sectionResp.Content.ReadFromJsonAsync<JsonElement>();
         var draftHeadline = sectionJson.GetProperty("draftFields").GetProperty("headline").GetString();
-        Assert.Equal(suggestion, draftHeadline);
+        Assert.Equal("Custom crafted living rooms.", draftHeadline);
 
         // 4. Verify PUBLISHING BOUNDARY: Published content is NOT modified automatically!
         var publishedJson = sectionJson.GetProperty("publishedFields");
-        // Hero published fields headline is still not the AI suggestion
         if (publishedJson.ValueKind != JsonValueKind.Null && publishedJson.TryGetProperty("headline", out var pubHeadline))
         {
             Assert.NotEqual(suggestion, pubHeadline.GetString());
         }
+
+        // 5. Explicit Save Draft from Content Editor persists the accepted text into DB
+        var saveDraftReq = new
+        {
+            Fields = new Dictionary<string, string>
+            {
+                { "headline", suggestion! }
+            }
+        };
+        var saveResp = await client.PutAsJsonAsync("/api/v1/website/content/hero/draft", saveDraftReq);
+        saveResp.EnsureSuccessStatusCode();
+
+        // 6. Verify Draft in database is now updated with suggestion
+        var updatedSectionResp = await client.GetAsync("/api/v1/website/content/hero");
+        updatedSectionResp.EnsureSuccessStatusCode();
+        var updatedSectionJson = await updatedSectionResp.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(suggestion, updatedSectionJson.GetProperty("draftFields").GetProperty("headline").GetString());
     }
 
     [Fact]
@@ -398,13 +415,63 @@ public class AIOutputValidationAndReviewTests : IClassFixture<WebApplicationFact
 
         var acceptJson = await acceptResp.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(AIReviewStatus.EditedBeforeAcceptance, acceptJson.GetProperty("data").GetProperty("reviewStatus").GetString());
+        Assert.Equal(editedText, acceptJson.GetProperty("data").GetProperty("acceptedText").GetString());
 
-        // Verify Draft received the edited text
+        // Verify Draft in DB is unchanged until explicit Save Draft
         var sectionResp = await client.GetAsync("/api/v1/website/content/hero");
         sectionResp.EnsureSuccessStatusCode();
         var sectionJson = await sectionResp.Content.ReadFromJsonAsync<JsonElement>();
-        var draftHeadline = sectionJson.GetProperty("draftFields").GetProperty("headline").GetString();
-        Assert.Equal(editedText, draftHeadline);
+        Assert.Equal("Custom crafted living rooms.", sectionJson.GetProperty("draftFields").GetProperty("headline").GetString());
+
+        // Explicit Save Draft applies the edited value
+        var saveDraftReq = new
+        {
+            Fields = new Dictionary<string, string>
+            {
+                { "headline", editedText }
+            }
+        };
+        var saveResp = await client.PutAsJsonAsync("/api/v1/website/content/hero/draft", saveDraftReq);
+        saveResp.EnsureSuccessStatusCode();
+
+        var updatedSectionResp = await client.GetAsync("/api/v1/website/content/hero");
+        updatedSectionResp.EnsureSuccessStatusCode();
+        var updatedSectionJson = await updatedSectionResp.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(editedText, updatedSectionJson.GetProperty("draftFields").GetProperty("headline").GetString());
+    }
+
+    [Fact]
+    public async Task ImproveContent_ContextualOperation_RejectsInvalidOperationForFieldRole()
+    {
+        var email = $"ai-contextual-{Guid.NewGuid():N}@sparovia-test.com";
+        var client = await GetAuthenticatedClientAsync(email);
+        await SetupAndConfirmBusinessContextAsync(client, "Contextual Studio", email);
+
+        // Attempt ImproveServiceDescription on eyebrow (tag)
+        var tagReq = new AIImproveContentRequest
+        {
+            SectionKey = "hero",
+            Field = "eyebrow",
+            Operation = AIOperationTypes.ImproveServiceDescription,
+            CurrentText = "Handmade Furniture"
+        };
+        var tagResp = await client.PostAsJsonAsync("/api/v1/ai/content/improve", tagReq);
+        Assert.Equal(HttpStatusCode.BadRequest, tagResp.StatusCode);
+        var tagJson = await tagResp.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(AIErrorCodes.ContentOperationNotSupported, tagJson.GetProperty("code").GetString());
+
+        // Attempt ImproveServiceDescription on primaryCta (cta)
+        var ctaReq = new AIImproveContentRequest
+        {
+            SectionKey = "hero",
+            Field = "primaryCta",
+            Operation = AIOperationTypes.ImproveServiceDescription,
+            CurrentText = "Order Now"
+        };
+        var ctaResp = await client.PostAsJsonAsync("/api/v1/ai/content/improve", ctaReq);
+        Assert.Equal(HttpStatusCode.BadRequest, ctaResp.StatusCode);
+        var ctaJson = await ctaResp.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(AIErrorCodes.ContentOperationNotSupported, ctaJson.GetProperty("code").GetString());
     }
 
     [Fact]

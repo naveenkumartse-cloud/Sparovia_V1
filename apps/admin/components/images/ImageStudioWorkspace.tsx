@@ -20,9 +20,12 @@ import {
   Loader2,
   Info,
   ShieldCheck,
+  Crop,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { toast } from '@/components/ui/Toast';
 
 export interface ImageVariantDto {
   id: string;
@@ -163,10 +166,44 @@ function formatBytes(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
-function calculateSavings(originalSize: number, candidateSize: number): string | null {
-  if (!originalSize || !candidateSize || candidateSize >= originalSize) return null;
-  const pct = Math.round(((originalSize - candidateSize) / originalSize) * 100);
-  return pct > 0 ? `${pct}% smaller` : null;
+interface SizeComparison {
+  status: 'smaller' | 'equivalent' | 'larger';
+  label: string;
+  badgeClass: string;
+}
+
+function compareFileSizes(originalSize: number, candidateSize: number): SizeComparison | null {
+  if (!originalSize || !candidateSize) return null;
+  const diffPct = Math.round(((candidateSize - originalSize) / originalSize) * 100);
+
+  if (candidateSize < originalSize) {
+    const pct = Math.abs(diffPct);
+    if (pct >= 5) {
+      return {
+        status: 'smaller',
+        label: `${pct}% smaller`,
+        badgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+      };
+    } else {
+      return {
+        status: 'equivalent',
+        label: 'Comparable size',
+        badgeClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+      };
+    }
+  } else if (Math.abs(diffPct) <= 5) {
+    return {
+      status: 'equivalent',
+      label: 'Comparable size',
+      badgeClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+    };
+  } else {
+    return {
+      status: 'larger',
+      label: 'Full clarity preserved',
+      badgeClass: 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300',
+    };
+  }
 }
 
 export function ImageStudioWorkspace({
@@ -218,6 +255,10 @@ export function ImageStudioWorkspace({
   const [splitPos, setSplitPos] = useState<number>(50); // percentage (0 - 100)
   const [zoomLevel, setZoomLevel] = useState<number>(1); // 1, 1.5, 2, 2.5
 
+  // Website slot framing & fit preview
+  const [framingEnabled, setFramingEnabled] = useState<boolean>(false);
+  const [framingPosition, setFramingPosition] = useState<'center' | 'top' | 'bottom'>('center');
+
   // Action states
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isApproving, setIsApproving] = useState<boolean>(false);
@@ -261,6 +302,22 @@ export function ImageStudioWorkspace({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose, isProcessing, isApproving, isRejecting, isPublishing]);
+
+  // Lock body scroll and compensate for scrollbar width to prevent modal shaking
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = 'hidden';
+    if (scrollBarWidth > 0) {
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+    };
+  }, []);
 
   // Sync active variant when currentImage updates
   useEffect(() => {
@@ -399,9 +456,12 @@ export function ImageStudioWorkspace({
           }
         }
         setSuccessMessage('Enhancement complete. Candidate ready for your review.');
+        toast.success('Enhancement complete. Candidate ready for your review.');
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to enhance image. The original photograph remains safe and untouched.');
+      const msg = err?.message || 'Failed to enhance image. The original photograph remains safe and untouched.';
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsProcessing(false);
     }
@@ -437,8 +497,11 @@ export function ImageStudioWorkspace({
         }
       }
       setSuccessMessage('Candidate approved for website. Publishing remains a separate, explicit action.');
+      toast.success('Candidate approved for website.');
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to approve candidate.');
+      const msg = err?.message || 'Failed to approve candidate.';
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsApproving(false);
     }
@@ -464,8 +527,11 @@ export function ImageStudioWorkspace({
         setActiveVariant(nextCandidate);
       }
       setSuccessMessage('Candidate discarded. Original photograph remains preserved.');
+      toast.info('Candidate discarded. Original photograph remains preserved.');
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to discard candidate.');
+      const msg = err?.message || 'Failed to discard candidate.';
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsRejecting(false);
     }
@@ -496,8 +562,11 @@ export function ImageStudioWorkspace({
         }
       }
       setSuccessMessage('Image published to live website successfully.');
+      toast.success('Image published to live website successfully.');
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to publish image.');
+      const msg = err?.message || 'Failed to publish image.';
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsPublishing(false);
     }
@@ -524,8 +593,11 @@ export function ImageStudioWorkspace({
         }
       }
       setSuccessMessage('Image safely removed from live website. Master records remain preserved in media library.');
+      toast.info('Image safely removed from live website.');
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to unpublish image.');
+      const msg = err?.message || 'Failed to unpublish image.';
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsUnpublishing(false);
     }
@@ -561,7 +633,21 @@ export function ImageStudioWorkspace({
   const displayCategory = effectiveImage?.category || pendingUpload?.category;
   const displaySlot = effectiveImage?.slot || pendingUpload?.slot;
 
-  const savingsText = displayedVariant ? calculateSavings(displaySize, displayedVariant.fileSize) : null;
+  const sizeComparison = displayedVariant ? compareFileSizes(displaySize, displayedVariant.fileSize) : null;
+
+  const effectiveSlotKey = displaySlot || '';
+  const slotPresets: Record<string, { label: string; ratio: number; displayRatio: string }> = {
+    heroImage: { label: 'Hero Billboard', ratio: 16 / 9, displayRatio: '16:9' },
+    primaryImage: { label: 'About Feature', ratio: 3 / 2, displayRatio: '3:2' },
+    secondaryImage: { label: 'About Accent', ratio: 4 / 3, displayRatio: '4:3' },
+    serviceImage: { label: 'Services Feature', ratio: 3 / 2, displayRatio: '3:2' },
+  };
+
+  const activeSlotPreset = slotPresets[effectiveSlotKey] || {
+    label: 'Feature Showcase',
+    ratio: 3 / 2,
+    displayRatio: '3:2',
+  };
 
   return (
     <div
@@ -579,29 +665,39 @@ export function ImageStudioWorkspace({
               <Sparkles className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 id="image-studio-title" className="text-base font-semibold text-[#172033] dark:text-white truncate">
                   {displayName}
                 </h2>
-                <span
-                  className={`text-[11px] font-medium px-2 py-0.5 rounded-[4px] border shrink-0 ${
-                    isImagePublished
-                      ? 'bg-emerald-50 text-[#15803D] border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800'
-                      : isVariantApproved
-                      ? 'bg-blue-50 text-[#1D4ED8] border-blue-200 dark:bg-blue-950/40 dark:border-blue-800'
-                      : isVariantPendingReview
-                      ? 'bg-amber-50 text-[#B45309] border-amber-200 dark:bg-amber-950/40 dark:border-amber-800'
-                      : 'bg-[#F3F6FA] text-[#475569] border-[#E3E7ED] dark:bg-[#1E293B] dark:text-[#94A3B8]'
-                  }`}
-                >
-                  {isImagePublished
-                    ? 'Published'
-                    : isVariantApproved
-                    ? 'Approved'
-                    : isVariantPendingReview
-                    ? 'Pending Review'
-                    : (effectiveImage?.status || 'Draft')}
-                </span>
+                {isImagePublished && (
+                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-[4px] border bg-emerald-50 text-[#15803D] border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 shrink-0 inline-flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Live on Website
+                  </span>
+                )}
+                {displayedVariant ? (
+                  <span
+                    className={`text-[11px] font-medium px-2 py-0.5 rounded-[4px] border shrink-0 ${
+                      displayedVariant.status === 'Published'
+                        ? 'bg-emerald-50 text-[#15803D] border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800'
+                        : displayedVariant.status === 'Approved'
+                        ? 'bg-blue-50 text-[#1D4ED8] border-blue-200 dark:bg-blue-950/40 dark:border-blue-800'
+                        : 'bg-amber-50 text-[#B45309] border-amber-200 dark:bg-amber-950/40 dark:border-amber-800'
+                    }`}
+                  >
+                    {displayedVariant.status === 'Published'
+                      ? 'Live Variant'
+                      : displayedVariant.status === 'Approved'
+                      ? 'Candidate Approved'
+                      : 'Candidate Pending Review'}
+                  </span>
+                ) : (
+                  !isImagePublished && (
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-[4px] border bg-[#F3F6FA] text-[#475569] border-[#E3E7ED] dark:bg-[#1E293B] dark:text-[#94A3B8] shrink-0">
+                      {effectiveImage?.status || 'Draft'}
+                    </span>
+                  )
+                )}
                 {displaySlot && (
                   <span className="text-[11px] text-[#475569] dark:text-slate-400 bg-[#F3F6FA] dark:bg-[#1E293B] px-2 py-0.5 rounded-[4px] border border-[#E3E7ED] dark:border-[#334155]">
                     Slot: {displaySlot}
@@ -696,6 +792,23 @@ export function ImageStudioWorkspace({
               </button>
             </div>
 
+            {/* Website Slot Framing Toggle */}
+            <button
+              type="button"
+              onClick={() => setFramingEnabled(!framingEnabled)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-[6px] border transition-colors ${
+                framingEnabled
+                  ? 'bg-[#315FEA] text-white border-[#315FEA] shadow-xs'
+                  : 'bg-[#F3F6FA] dark:bg-[#1E293B] text-[#475569] dark:text-slate-400 border-[#E3E7ED] dark:border-[#334155] hover:text-[#172033] dark:hover:text-white'
+              }`}
+              title="Preview how this photo fits inside its website slot container"
+              aria-pressed={framingEnabled}
+            >
+              <Crop className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Framing Preview</span>
+              <span className="sm:hidden">Framing</span>
+            </button>
+
             {/* Close Button */}
             <button
               type="button"
@@ -708,39 +821,6 @@ export function ImageStudioWorkspace({
             </button>
           </div>
         </header>
-
-        {/* Banners: Notifications / Errors */}
-        {errorMessage && (
-          <div className="px-5 py-2.5 bg-rose-50 dark:bg-rose-950/40 border-b border-rose-200 dark:border-rose-900/60 flex items-center justify-between text-xs text-[#B91C1C] dark:text-rose-300 shrink-0">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setErrorMessage(null)}
-              className="text-[#B91C1C] hover:opacity-80 p-0.5"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {successMessage && (
-          <div className="px-5 py-2.5 bg-emerald-50 dark:bg-emerald-950/40 border-b border-emerald-200 dark:border-emerald-900/60 flex items-center justify-between text-xs text-[#15803D] dark:text-emerald-300 shrink-0">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>{successMessage}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setSuccessMessage(null)}
-              className="text-[#15803D] hover:opacity-80 p-0.5"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
 
         {/* Main Body: Left Inspection Canvas & Right Control Rail */}
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden bg-[#F3F6FA] dark:bg-[#0B1220]">
@@ -878,7 +958,7 @@ export function ImageStudioWorkspace({
                         aria-valuemin={0}
                         aria-valuemax={100}
                         onKeyDown={handleSliderKeyDown}
-                        className="pointer-events-auto absolute w-8 h-8 rounded-full bg-white text-[#172033] shadow-md border-2 border-[#315FEA] flex items-center justify-center cursor-ew-resize hover:scale-105 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] before:absolute before:-inset-2 before:content-['']"
+                        className="pointer-events-auto touch-none absolute w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white text-[#172033] shadow-md border-2 border-[#315FEA] flex items-center justify-center cursor-ew-resize hover:scale-105 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] before:absolute before:-inset-3 before:content-['']"
                       >
                         <SplitSquareVertical className="w-4 h-4 text-[#315FEA]" />
                       </div>
@@ -886,14 +966,14 @@ export function ImageStudioWorkspace({
                   )}
 
                   {/* Persistent Canvas Labels */}
-                  <div className="absolute top-3 left-3 z-10 pointer-events-none">
-                    <span className="text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-[4px] bg-[#172033]/80 text-white backdrop-blur-xs border border-white/10 shadow-xs">
-                      BEFORE · Original
+                  <div className="absolute top-3 left-3 z-10 pointer-events-none max-w-[45%]">
+                    <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-[4px] bg-[#172033]/80 text-white backdrop-blur-xs border border-white/10 shadow-xs block truncate">
+                      <span className="hidden sm:inline">BEFORE · </span>Original
                     </span>
                   </div>
-                  <div className="absolute top-3 right-3 z-10 pointer-events-none">
-                    <span className="text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-[4px] bg-[#315FEA]/90 text-white backdrop-blur-xs border border-white/20 shadow-xs">
-                      {displayedVariant ? 'AFTER · Enhanced for Website' : 'AFTER · Pending Enhancement'}
+                  <div className="absolute top-3 right-3 z-10 pointer-events-none max-w-[45%] text-right">
+                    <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-[4px] bg-[#315FEA]/90 text-white backdrop-blur-xs border border-white/20 shadow-xs inline-block truncate max-w-full">
+                      <span className="hidden sm:inline">AFTER · </span>{displayedVariant ? 'Enhanced' : 'Pending'}
                     </span>
                   </div>
                 </div>
@@ -1122,19 +1202,133 @@ export function ImageStudioWorkspace({
                   </div>
                 </div>
               )}
+
+              {/* Website Slot Framing Overlay (Simulates actual live website crop boundaries) */}
+              {framingEnabled && (
+                <div className="absolute inset-0 z-25 pointer-events-none flex items-center justify-center p-3 sm:p-6 overflow-hidden">
+                  <div
+                    className={`relative border-2 border-[#315FEA] shadow-[0_0_0_9999px_rgba(15,23,42,0.65)] transition-all duration-200 pointer-events-auto ${
+                      activeSlotPreset.displayRatio === '16:9'
+                        ? 'aspect-[16/9] w-full max-w-[94%] max-h-[86%]'
+                        : activeSlotPreset.displayRatio === '4:3'
+                        ? 'aspect-[4/3] w-full max-w-[76%] max-h-[86%]'
+                        : activeSlotPreset.displayRatio === '1:1'
+                        ? 'aspect-square w-full max-w-[65%] max-h-[86%]'
+                        : 'aspect-[3/2] w-full max-w-[86%] max-h-[86%]'
+                    } ${
+                      framingPosition === 'top'
+                        ? '!mt-2 !mb-auto'
+                        : framingPosition === 'bottom'
+                        ? '!mb-2 !mt-auto'
+                        : 'my-auto'
+                    }`}
+                  >
+                    <div className="absolute -top-7 left-0 bg-[#315FEA] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-[4px] shadow-sm uppercase tracking-wider flex items-center gap-1.5 whitespace-nowrap">
+                      <Crop className="w-3 h-3" />
+                      <span>Website Slot Fit: {activeSlotPreset.label} ({activeSlotPreset.displayRatio})</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Floating Framing Focus Toolbar */}
+              {framingEnabled && (
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 bg-[#172033]/92 backdrop-blur-md border border-white/20 rounded-[8px] px-3.5 py-1.5 flex items-center gap-3 text-xs text-white shadow-xl max-w-[95%] overflow-x-auto select-none">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-[10px] font-bold text-blue-300 uppercase tracking-wider">Slot Framing:</span>
+                    <span className="font-semibold text-white text-[11px]">{activeSlotPreset.displayRatio}</span>
+                  </div>
+                  <div className="h-3.5 w-px bg-white/20 shrink-0" />
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-[10px] text-slate-300 mr-1">Focus Alignment:</span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFramingPosition('top');
+                      }}
+                      className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
+                        framingPosition === 'top' ? 'bg-[#315FEA] text-white shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      Top Focus
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFramingPosition('center');
+                      }}
+                      className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
+                        framingPosition === 'center' ? 'bg-[#315FEA] text-white shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      Center Focus
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFramingPosition('bottom');
+                      }}
+                      className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-colors ${
+                        framingPosition === 'bottom' ? 'bg-[#315FEA] text-white shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      Bottom Focus
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Comparison Slider Accessibility Tip */}
             {viewMode === 'split' && (
               <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] text-center mt-2">
                 Tip: Drag the vertical divider or select the handle and use Left/Right arrows to inspect enhancements.
+                {framingEnabled && ' Framing guide simulates how this photo fits inside its website container without modifying the original.'}
               </p>
             )}
           </div>
 
           {/* Right Control Rail: Simplified 3-Step Information Hierarchy */}
-          <aside className="w-full lg:w-96 bg-white dark:bg-[#0F172A] border-t lg:border-t-0 lg:border-l border-[#E3E7ED] dark:border-[#1E293B] flex flex-col shrink-0 overflow-y-auto">
+          <aside className="w-full lg:w-96 bg-white dark:bg-[#0F172A] border-t lg:border-t-0 lg:border-l border-[#E3E7ED] dark:border-[#1E293B] flex flex-col shrink-0 overflow-y-auto [scrollbar-gutter:stable]">
             <div className="p-5 flex flex-col gap-5">
+
+              {/* Status Feedback in Sidebar (Canvas layout remains rock-solid) */}
+              {errorMessage && (
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-[6px] flex items-start justify-between text-xs text-[#B91C1C] dark:text-rose-300">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{errorMessage}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setErrorMessage(null)}
+                    className="text-[#B91C1C] hover:opacity-80 p-0.5 ml-1 shrink-0"
+                    aria-label="Dismiss message"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {successMessage && (
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 rounded-[6px] flex items-start justify-between text-xs text-[#15803D] dark:text-emerald-300">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{successMessage}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSuccessMessage(null)}
+                    className="text-[#15803D] hover:opacity-80 p-0.5 ml-1 shrink-0"
+                    aria-label="Dismiss message"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
 
               {/* STEP 1: Primary Action — Enhance for Website */}
               <div className="p-4 bg-[#F8FAFC] dark:bg-[#1E293B]/70 rounded-[8px] border border-[#CBD5E1] dark:border-[#334155] space-y-3">
@@ -1178,12 +1372,24 @@ export function ImageStudioWorkspace({
                     <span>Enhancements Applied</span>
                   </h4>
                   {displayedVariant ? (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[4px] bg-emerald-50 text-[#15803D] border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800">
-                      Candidate Ready
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] border ${
+                        displayedVariant.status === 'Published'
+                          ? 'bg-emerald-50 text-[#15803D] border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800'
+                          : displayedVariant.status === 'Approved'
+                          ? 'bg-blue-50 text-[#1D4ED8] border-blue-200 dark:bg-blue-950/40 dark:border-blue-800'
+                          : 'bg-amber-50 text-[#B45309] border-amber-200 dark:bg-amber-950/40 dark:border-amber-800'
+                      }`}
+                    >
+                      {displayedVariant.status === 'Published'
+                        ? 'Candidate Live'
+                        : displayedVariant.status === 'Approved'
+                        ? 'Candidate Approved'
+                        : 'Review Required'}
                     </span>
                   ) : (
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[4px] bg-slate-100 text-[#475569] border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
-                      Pending
+                      Not Generated
                     </span>
                   )}
                 </div>
@@ -1229,23 +1435,23 @@ export function ImageStudioWorkspace({
                           <span className="font-semibold text-[#172033] dark:text-white">
                             {formatBytes(displayedVariant.fileSize)}
                           </span>
-                          {savingsText && (
-                            <span className="text-[10px] font-medium px-1 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                              {savingsText}
+                          {sizeComparison && (
+                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${sizeComparison.badgeClass}`}>
+                              {sizeComparison.label}
                             </span>
                           )}
                         </div>
                       </div>
                       <div>
-                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Output Format:</span>
-                        <span className="font-semibold text-[#172033] dark:text-white uppercase">
-                          {displayedVariant.mimeType ? displayedVariant.mimeType.replace('image/', '') : 'WEBP'}
+                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Website Readiness:</span>
+                        <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                          Ready for Website
                         </span>
                       </div>
                       <div>
-                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Candidate Status:</span>
+                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Web Delivery:</span>
                         <span className="font-semibold text-[#172033] dark:text-white">
-                          {displayedVariant.status}
+                          High-efficiency WebP
                         </span>
                       </div>
                     </div>
@@ -1273,14 +1479,24 @@ export function ImageStudioWorkspace({
                 </h4>
 
                 {/* State 1: Candidate Generated · Review Required (Keep vs Discard) */}
-                {isVariantPendingReview && (
+                {isVariantPendingReview ? (
                   <div className="flex flex-col gap-2 p-3 rounded-[6px] bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-900 dark:text-amber-300">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                      <span>Candidate Generated · Review Required</span>
+                    <div className="flex items-center justify-between text-xs font-semibold text-amber-900 dark:text-amber-300">
+                      <div className="flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                        <span>Candidate Ready for Review</span>
+                      </div>
+                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200">
+                        Pending
+                      </span>
                     </div>
                     <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
                       Compare the candidate against the original photograph. Choose to keep or discard the enhancement.
+                      {isImagePublished && (
+                        <span className="block mt-1 font-medium text-slate-700 dark:text-slate-300">
+                          (Your current website image remains live while you review this candidate.)
+                        </span>
+                      )}
                     </p>
                     <div className="grid grid-cols-2 gap-2 mt-1">
                       <Button
@@ -1309,10 +1525,8 @@ export function ImageStudioWorkspace({
                       </Button>
                     </div>
                   </div>
-                )}
-
-                {/* State 2: Candidate Approved · Explicit Publishing Separated */}
-                {displayedVariant?.status === 'Approved' && (
+                ) : displayedVariant?.status === 'Approved' ? (
+                  /* State 2: Candidate Approved · Explicit Publishing Separated */
                   <div className="flex flex-col gap-2 p-3 rounded-[6px] bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/60">
                     <div className="flex items-center justify-between">
                       <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-900 dark:text-blue-300">
@@ -1325,6 +1539,11 @@ export function ImageStudioWorkspace({
                     </div>
                     <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
                       Candidate is approved for website presentation. Approval does not automatically publish.
+                      {isImagePublished && (
+                        <span className="block mt-1 font-medium text-blue-900 dark:text-blue-200">
+                          Clicking below will update your live website to use this approved candidate.
+                        </span>
+                      )}
                     </p>
                     <Button
                       variant="primary"
@@ -1348,10 +1567,8 @@ export function ImageStudioWorkspace({
                       </button>
                     </div>
                   </div>
-                )}
-
-                {/* State 3: Variant is Actively Published on Live Website */}
-                {(displayedVariant?.status === 'Published' || (isImagePublished && !isVariantPendingReview)) && (
+                ) : (displayedVariant?.status === 'Published' || isImagePublished) ? (
+                  /* State 3: Actively Published on Live Website */
                   <div className="flex flex-col gap-2 p-3 rounded-[6px] bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60">
                     <div className="flex items-center justify-between">
                       <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-900 dark:text-emerald-300">
@@ -1376,22 +1593,26 @@ export function ImageStudioWorkspace({
                       Remove from Live Website
                     </Button>
                   </div>
-                )}
-
-                {/* State 4: Initial Un-enhanced Image Ready to Publish */}
-                {!displayedVariant && !isImagePublished && effectiveImage?.status === 'Approved' && (
+                ) : (!displayedVariant && effectiveImage?.status === 'Approved') ? (
+                  /* State 4: Initial Un-enhanced Image Ready to Publish */
                   <div className="mt-1">
                     <Button
                       variant="primary"
                       size="md"
-                      className="w-full justify-center"
+                      className="w-full justify-center font-semibold"
                       isLoading={isPublishing}
                       loadingText="Publishing to Live Website..."
                       onClick={handlePublishImage}
                       leftIcon={<Globe className="w-4 h-4" />}
                     >
-                      Publish to Live Website
+                      Publish Original to Live Website
                     </Button>
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-[6px] bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-center">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Generate an enhancement candidate above to review and publish to your website.
+                    </p>
                   </div>
                 )}
 

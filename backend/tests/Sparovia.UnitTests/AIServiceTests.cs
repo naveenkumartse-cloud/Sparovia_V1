@@ -571,4 +571,68 @@ public class AIServiceTests
         Assert.Equal("KVN Interior provides bespoke interior design and execution services.", sanitized);
         Assert.Null(errCode);
     }
+
+    [Fact]
+    public void ValidateAndSanitizeAIOutput_ExceedsFieldMaxLength_RejectsAsOutputInvalid()
+    {
+        var input = "This is a suggestion that has forty characters.";
+        var (isValid, sanitized, errCode, errDetails) = AIRequestValidator.ValidateAndSanitizeAIOutput(
+            input, AIOperationTypes.ImproveWording, "Original", maxAllowedLength: 30);
+
+        Assert.False(isValid);
+        Assert.Null(sanitized);
+        Assert.Equal(AIErrorCodes.OutputInvalid, errCode);
+        Assert.Contains("30", errDetails);
+    }
+
+    [Fact]
+    public void ValidateAndSanitizeAIOutput_WithinFieldMaxLength_AcceptsSuccessfully()
+    {
+        var input = "Short punchy badge";
+        var (isValid, sanitized, errCode, _) = AIRequestValidator.ValidateAndSanitizeAIOutput(
+            input, AIOperationTypes.ImproveWording, "Original", maxAllowedLength: 30);
+
+        Assert.True(isValid);
+        Assert.Equal("Short punchy badge", sanitized);
+        Assert.Null(errCode);
+    }
+
+    [Fact]
+    public void WebsiteTemplateRegistry_ResolveFieldInfo_ResolvesRolesAndLengths()
+    {
+        // 1. Tag / Badge
+        var badgeInfo = Sparovia.Application.WebsiteContent.WebsiteTemplateRegistry.ResolveFieldInfo(
+            "kvn-interiors-v1", "hero", "eyebrow");
+        Assert.NotNull(badgeInfo);
+        Assert.Equal("tag", badgeInfo.Role);
+        Assert.Equal(100, badgeInfo.MaxLength);
+
+        // 2. Heading
+        var headingInfo = Sparovia.Application.WebsiteContent.WebsiteTemplateRegistry.ResolveFieldInfo(
+            "kvn-interiors-v1", "hero", "headline");
+        Assert.NotNull(headingInfo);
+        Assert.Equal("heading", headingInfo.Role);
+        Assert.Equal(200, headingInfo.MaxLength);
+
+        // 3. CTA
+        var ctaInfo = Sparovia.Application.WebsiteContent.WebsiteTemplateRegistry.ResolveFieldInfo(
+            "kvn-interiors-v1", "hero", "primaryCta");
+        Assert.NotNull(ctaInfo);
+        Assert.Equal("cta", ctaInfo.Role);
+        Assert.Equal(50, ctaInfo.MaxLength);
+
+        // 4. Service Description
+        var serviceDescInfo = Sparovia.Application.WebsiteContent.WebsiteTemplateRegistry.ResolveFieldInfo(
+            "kvn-interiors-v1", "services", "categories.0.description");
+        Assert.NotNull(serviceDescInfo);
+        Assert.Equal("service-description", serviceDescInfo.Role);
+        Assert.Equal(500, serviceDescInfo.MaxLength);
+
+        // 5. Story / Narrative
+        var storyInfo = Sparovia.Application.WebsiteContent.WebsiteTemplateRegistry.ResolveFieldInfo(
+            "kvn-interiors-v1", "about", "description");
+        Assert.NotNull(storyInfo);
+        Assert.Equal("story", storyInfo.Role);
+        Assert.Equal(1000, storyInfo.MaxLength);
+    }
 }

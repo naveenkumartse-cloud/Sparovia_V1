@@ -30,7 +30,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { Card } from '@/components/ui/Card';
 import { FormField } from '@/components/ui/FormField';
+import { Textarea } from '@/components/ui/Textarea';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -290,7 +292,7 @@ export default function BusinessPresencePage() {
       </div>
 
       {/* 2. Understanding Business Presence in Pilot V1 — Comprehensive Guidance */}
-      <div className="p-6 sm:p-7 rounded-[8px] bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] shadow-sm">
+      <Card variant="default" className="p-6 sm:p-7">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-[6px] bg-blue-50 dark:bg-blue-900/30 text-[#315FEA] flex items-center justify-center flex-shrink-0 mt-0.5">
             <Info className="w-5 h-5" />
@@ -353,10 +355,10 @@ export default function BusinessPresencePage() {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* 3. Supported Presence Information (Sourced from Business Context) */}
-      <div className="bg-white dark:bg-[#0F172A] rounded-[8px] border border-slate-200 dark:border-[#1E293B] shadow-sm overflow-hidden">
+      <Card variant="default" className="overflow-hidden">
         <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-[#1E293B]">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="space-y-1">
@@ -606,10 +608,10 @@ export default function BusinessPresencePage() {
             </div>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* 4. Presence Information & Schedule Form */}
-      <form onSubmit={handleSave} className="bg-white dark:bg-[#0F172A] rounded-[8px] border border-slate-200 dark:border-[#1E293B] shadow-sm p-6 sm:p-8 space-y-6">
+      <form onSubmit={handleSave} className="bg-white dark:bg-[#0F172A] rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-soft-sm p-6 sm:p-8 space-y-6">
         <div className="border-b border-slate-100 dark:border-[#1E293B] pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <div className="flex items-center gap-2">
@@ -635,13 +637,13 @@ export default function BusinessPresencePage() {
               tooltip={`What to enter:\nYour weekly business opening and closing schedule (e.g. Mon–Fri: 9:00 AM – 5:00 PM, Sat: 10:00 AM – 2:00 PM, Sun: Closed).\n\nWhy it matters:\nPrevents client drop-off and sets clear expectations for inquiries, calls, and consultations.\n\nHow Sparovia uses it:\nDisplayed on your website contact section and openingHours schema.\n\nExternal sync: External presence integrations are not connected in Pilot V1. Managed within Sparovia.`}
               helperText="Managed in Sparovia for your website contact sections and customer guidance."
             >
-              <textarea
+              <Textarea
                 id="operatingHours"
                 rows={4}
                 value={operatingHours}
                 onChange={(e) => setOperatingHours(e.target.value)}
                 placeholder="e.g.&#10;Monday – Friday: 9:00 AM – 5:00 PM&#10;Saturday: 10:00 AM – 2:00 PM&#10;Sunday: Closed"
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#315FEA] focus:border-transparent transition-all resize-y"
+                className="resize-y"
               />
             </FormField>
           </div>
@@ -653,13 +655,13 @@ export default function BusinessPresencePage() {
               tooltip={`What to enter:\nAn optional temporary advisory, holiday notice, seasonal schedule adjustment, or booking update.\n\nWhy it matters:\nKeeps visitors informed of immediate operational changes without modifying permanent business context.\n\nHow Sparovia uses it:\nDisplayed as an active notice banner on your website when configured.\n\nExternal sync: External presence integrations are not connected in Pilot V1. Managed within Sparovia.`}
               helperText="Optional advisory. Managed in Sparovia. Leave blank if there are no active announcements."
             >
-              <textarea
+              <Textarea
                 id="publicNotice"
                 rows={3}
                 value={publicNotice}
                 onChange={(e) => setPublicNotice(e.target.value)}
                 placeholder="e.g. Closed on national holidays. Currently accepting new client consultations for Q4."
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#315FEA] focus:border-transparent transition-all resize-y"
+                className="resize-y"
               />
             </FormField>
           </div>
@@ -702,7 +704,7 @@ export default function BusinessPresencePage() {
       </form>
 
       {/* 5. Approved Extended Context for Presence & Discovery */}
-      <div className="bg-white dark:bg-[#0F172A] rounded-[8px] border border-slate-200 dark:border-[#1E293B] shadow-sm overflow-hidden">
+      <Card variant="default" className="overflow-hidden">
         <div className="p-6 sm:p-7 border-b border-slate-100 dark:border-[#1E293B] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -926,7 +928,7 @@ export default function BusinessPresencePage() {
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* 6. External Presence Section (Capability Boundary & Directory Guidance) */}
       <div className="space-y-5">
