@@ -490,7 +490,7 @@ export default function ContentPage() {
         
         {/* Left Column: Navigation List of Supported Sections */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-4 shadow-sm">
+          <div className="glass-panel rounded-[8px] p-4 shadow-xs border border-slate-200/80 dark:border-[#1E293B]">
             <div className="flex items-center justify-between pb-3 mb-2 border-b border-slate-100 dark:border-[#1E293B]">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
                 Website Sections ({sections.length})
@@ -573,12 +573,12 @@ export default function ContentPage() {
         {/* Right Column: Section Content Editor Form */}
         <div className="lg:col-span-8">
           {activeSection ? (
-            <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] shadow-sm overflow-hidden">
+            <div className="glass-panel rounded-[8px] shadow-xs border border-slate-200/80 dark:border-[#1E293B] overflow-hidden">
               
               {/* Section Header */}
               <div className="p-6 border-b border-slate-100 dark:border-[#1E293B] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2.5 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20">
+                  <div className="p-2.5 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20 glow-cobalt">
                     <SectionIcon className="w-5 h-5" />
                   </div>
                   <div>
@@ -676,12 +676,12 @@ export default function ContentPage() {
                 </div>
               )}
 
-              {/* Actions Footer */}
-              <div className="p-4 sm:p-6 bg-slate-50/80 dark:bg-[#0B1220]/60 border-t border-slate-200 dark:border-[#1E293B] flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* Actions Footer (Glass Toolbar) */}
+              <div className="p-4 sm:p-5 glass-toolbar border-t border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 sticky bottom-0 z-20 backdrop-blur-md">
                 <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-[#94A3B8] self-start sm:self-auto">
                   {isDirty ? (
                     <span className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-medium">
-                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                       Unsaved local edits
                     </span>
                   ) : activeSection.hasUnpublishedChanges ? (
@@ -711,7 +711,7 @@ export default function ContentPage() {
 
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="glass"
                     size="sm"
                     disabled={!isDirty || isSavingDraft || isPublishing}
                     onClick={handleSaveDraft}

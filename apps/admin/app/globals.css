@@ -149,53 +149,123 @@ html.dark body {
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#0B1220];
   }
 
-  /* Restrained Glass Utilities for Image Studio, AI, & Contextual Bars */
+  /* Production Glassmorphism Implementation (Master Directive Section 7) */
   .glass-panel {
-    background-color: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(203, 213, 225, 0.6);
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(18px) saturate(145%);
+    -webkit-backdrop-filter: blur(18px) saturate(145%);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    box-shadow:
+      0 8px 32px rgba(31, 41, 55, 0.07),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
   }
 
   .dark .glass-panel {
-    background-color: rgba(15, 23, 42, 0.82);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(51, 65, 85, 0.6);
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(18px) saturate(145%);
+    -webkit-backdrop-filter: blur(18px) saturate(145%);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
   }
 
   .glass-toolbar {
-    background-color: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(227, 231, 237, 0.8);
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    box-shadow:
+      0 10px 30px rgba(15, 23, 42, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.90);
   }
 
   .dark .glass-toolbar {
-    background-color: rgba(15, 23, 42, 0.88);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(30, 41, 59, 0.8);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow:
+      0 10px 30px rgba(0, 0, 0, 0.40),
+      inset 0 1px 0 rgba(255, 255, 255, 0.10);
   }
 
   .glass-creative {
-    background-color: rgba(245, 240, 251, 0.82);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(121, 80, 184, 0.2);
-    box-shadow: 0 4px 20px -2px rgba(121, 80, 184, 0.1);
+    background: linear-gradient(
+      135deg,
+      rgba(121, 80, 184, 0.14),
+      rgba(255, 255, 255, 0.84)
+    );
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(121, 80, 184, 0.20);
+    box-shadow:
+      0 12px 36px rgba(79, 49, 130, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
   }
 
   .dark .glass-creative {
-    background-color: rgba(26, 16, 42, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(121, 80, 184, 0.3);
-    box-shadow: 0 4px 20px -2px rgba(121, 80, 184, 0.18);
+    background: linear-gradient(
+      135deg,
+      rgba(121, 80, 184, 0.22),
+      rgba(15, 23, 42, 0.85)
+    );
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(121, 80, 184, 0.35);
+    box-shadow:
+      0 12px 36px rgba(0, 0, 0, 0.40),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  /* 3D Depth & Interactive Layered Cards (Master Directive Section 8) */
+  .premium-card {
+    position: relative;
+    transform-style: preserve-3d;
+    transition:
+      transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 260ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 200ms ease;
+    box-shadow:
+      0 2px 6px rgba(15, 23, 42, 0.04),
+      0 12px 28px rgba(15, 23, 42, 0.06);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .premium-card:hover {
+      transform: perspective(1000px) translateY(-5px) rotateX(1deg);
+      box-shadow:
+        0 8px 18px rgba(15, 23, 42, 0.06),
+        0 22px 42px rgba(49, 95, 234, 0.12);
+    }
+  }
+
+  /* Double-Bezel Nested Hardware Architecture */
+  .double-bezel {
+    background: rgba(15, 23, 42, 0.03);
+    padding: 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+  }
+
+  .dark .double-bezel {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* Ambient Halos */
+  .glow-cobalt {
+    box-shadow: 0 0 24px -2px rgba(49, 95, 234, 0.25);
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 24px -2px rgba(121, 80, 184, 0.28);
+  }
+
+  .glow-orange {
+    box-shadow: 0 0 20px -2px rgba(249, 115, 22, 0.25);
   }
 
   /* Controlled Card Interactions */
@@ -205,13 +275,14 @@ html.dark body {
 
   @media (hover: hover) and (pointer: fine) {
     .card-hover-lift:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.07), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .card-hover-lift:hover {
+    .card-hover-lift:hover,
+    .premium-card:hover {
       transform: none !important;
     }
   }

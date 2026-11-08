@@ -163,6 +163,32 @@ export default function BusinessContextManagementPage() {
         description="Maintain your verified business identity, core services, location areas, and approved factual credentials. All AI suggestions strictly ground in these facts."
       />
 
+      {/* Notion-Inspired Grounded AI Truth Guarantee Banner */}
+      <div className="double-bezel p-5 rounded-[8px] bg-gradient-to-r from-blue-50/80 via-white to-purple-50/60 dark:from-[#0F172A] dark:via-[#111827] dark:to-[#171329] border border-blue-200/70 dark:border-[#334155] shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] dark:bg-[#315FEA]/20 flex items-center justify-center shrink-0 border border-[#315FEA]/20 glow-cobalt">
+              <ShieldAlert className="w-5 h-5 text-[#315FEA]" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>Grounded AI Truth Guarantee</span>
+                <Badge variant="cobalt" size="xs">Protected</Badge>
+              </h2>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
+                Sparovia AI generation algorithms are hardwired to strictly reference the verified facts in this repository. AI will never fabricate projects, invent awards, or publish without your review.
+              </p>
+            </div>
+          </div>
+          <div className="shrink-0 flex items-center gap-2">
+            <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2.5 py-1 rounded-[4px] flex items-center gap-1 shadow-xs">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Strict Grounding Enforced</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Confirmation Action Notice if Unconfirmed */}
       {!data.isConfirmed && (
         <div className="p-4 sm:p-5 rounded-[8px] bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 flex items-start gap-3.5 shadow-soft-xs">
@@ -179,11 +205,11 @@ export default function BusinessContextManagementPage() {
       )}
 
       {/* Section 1: Business Basics */}
-      <Card variant="default">
+      <Card variant="premium">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center glow-cobalt">
                 <Building2 className="w-4 h-4" />
               </div>
               <CardTitle>Business Basics</CardTitle>
@@ -316,11 +342,11 @@ export default function BusinessContextManagementPage() {
       </Card>
 
       {/* Section 3: Services & Offerings */}
-      <Card variant="default">
+      <Card variant="premium">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center glow-cobalt">
                 <Layers className="w-4 h-4" />
               </div>
               <CardTitle>Services &amp; Offerings</CardTitle>
@@ -358,11 +384,11 @@ export default function BusinessContextManagementPage() {
       </Card>
 
       {/* Section 4: Location & Service Areas */}
-      <Card variant="default">
+      <Card variant="premium">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center glow-cobalt">
                 <MapPin className="w-4 h-4" />
               </div>
               <CardTitle>Location &amp; Service Coverage</CardTitle>
@@ -408,11 +434,11 @@ export default function BusinessContextManagementPage() {
       </Card>
 
       {/* Section 5: Approved Facts & Credentials */}
-      <Card variant="default">
+      <Card variant="premium">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center glow-cobalt">
                 <Award className="w-4 h-4" />
               </div>
               <div>

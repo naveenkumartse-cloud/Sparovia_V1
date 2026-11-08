@@ -26,7 +26,11 @@ import {
   Layers,
   CheckCircle2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  MessageCircle,
+  Facebook,
+  Instagram,
+  Share2
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -376,8 +380,127 @@ export default function BusinessPresencePage() {
         </div>
       </Card>
 
+      {/* 2.5 Digital Customer Communication & Channels (Direct Access from Business Presence) */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Share2 className="w-4 h-4 text-[#315FEA]" />
+              <span>Customer Contact Channels &amp; Social Presence</span>
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">
+              Live communication channels configured for your public website visitors.
+            </p>
+          </div>
+          <Link
+            href="/admin/account?tab=integrations"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#315FEA] hover:underline"
+          >
+            <span>Manage All Channels &amp; Templates</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* WhatsApp Channel Card */}
+          <div className="glass-panel p-5 rounded-[8px] border border-emerald-200/80 dark:border-emerald-900/50 shadow-xs flex flex-col justify-between space-y-4 premium-card">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-[6px] bg-[#25D366] text-white flex items-center justify-center shadow-xs">
+                    <MessageCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      WhatsApp Business Channel
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-[#94A3B8]">
+                      Direct 1-tap chat on public website
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="whatsapp" size="xs">
+                  Active Channel
+                </Badge>
+              </div>
+
+              <div className="p-3 rounded-[6px] bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 text-xs text-slate-700 dark:text-slate-200 space-y-1">
+                <div className="flex items-center justify-between font-medium">
+                  <span className="text-slate-500 dark:text-slate-400">Connected Phone:</span>
+                  <span className="font-mono text-emerald-800 dark:text-emerald-300 font-bold">
+                    {nap?.businessPhone ? `+91 ${nap.businessPhone}` : 'Configured in Account'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Includes 3–4 client-authored prefilled choice templates for rapid customer enquiries.
+                </p>
+              </div>
+            </div>
+
+            <Link href="/admin/account?tab=integrations" className="w-full">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full justify-center text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              >
+                Configure WhatsApp &amp; Templates
+              </Button>
+            </Link>
+          </div>
+
+          {/* Social Profiles Card */}
+          <div className="glass-panel p-5 rounded-[8px] border border-blue-200/80 dark:border-blue-900/50 shadow-xs flex flex-col justify-between space-y-4 premium-card">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-[6px] bg-[#315FEA] text-white flex items-center justify-center shadow-xs glow-cobalt">
+                    <Share2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      Social Profile Links
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-[#94A3B8]">
+                      Outbound Facebook &amp; Instagram
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="cobalt" size="xs">
+                  Public Links
+                </Badge>
+              </div>
+
+              <div className="p-3 rounded-[6px] bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 text-xs text-slate-700 dark:text-slate-200 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Facebook className="w-3.5 h-3.5 text-blue-600" />
+                  <span className="text-[11px] font-medium truncate">Official Facebook Page</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Instagram className="w-3.5 h-3.5 text-pink-600" />
+                  <span className="text-[11px] font-medium truncate">Official Instagram Profile</span>
+                </div>
+              </div>
+            </div>
+
+            <Link href="/admin/account?tab=integrations" className="w-full">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full justify-center text-[#315FEA] border-[#315FEA]/30 hover:bg-blue-50 dark:hover:bg-blue-950/40"
+                rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              >
+                Configure Social Profiles
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* 3. Supported Presence Information (Sourced from Business Context) */}
-      <Card variant="default" className="overflow-hidden">
+      <Card variant="premium" className="overflow-hidden">
         <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-[#1E293B]">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="space-y-1">

@@ -598,9 +598,9 @@ export default function ImagesPage() {
 
       {/* Sticky Bulk Action Toolbar */}
       {selectedImageIds.size > 0 && (
-        <div className="sticky top-20 z-30 p-3.5 sm:p-4 bg-[#172033] dark:bg-[#0F172A] text-white rounded-[8px] shadow-overlay flex flex-wrap items-center justify-between gap-4 border border-[#334155]">
+        <div className="sticky top-20 z-30 p-3.5 sm:p-4 glass-toolbar bg-[#0B1220]/90 text-white rounded-[8px] shadow-overlay flex flex-wrap items-center justify-between gap-4 border border-white/10 backdrop-blur-md glow-cobalt">
           <div className="flex items-center gap-3">
-            <span className="w-6 h-6 rounded-[4px] bg-[#315FEA] text-white flex items-center justify-center text-xs font-bold shadow-xs">
+            <span className="w-6 h-6 rounded-[4px] bg-[#315FEA] text-white flex items-center justify-center text-xs font-bold shadow-xs glow-cobalt">
               {selectedImageIds.size}
             </span>
             <span className="text-sm font-semibold">
@@ -706,7 +706,7 @@ export default function ImagesPage() {
               return (
                 <div
                   key={slot.key}
-                  className="col-span-1 md:col-span-1 lg:col-span-6 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-7 shadow-xs flex flex-col justify-between hover:border-[#315FEA] transition-colors min-h-[520px]"
+                  className="col-span-1 md:col-span-1 lg:col-span-6 bg-white/95 dark:bg-[#0F172A]/95 border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-7 shadow-xs flex flex-col justify-between hover:border-[#315FEA] transition-all min-h-[520px] premium-card"
                 >
                   <div className="space-y-3">
                     {/* Slot Header */}

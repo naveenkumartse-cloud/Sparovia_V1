@@ -235,7 +235,7 @@ export function SocialControl() {
             role="dialog"
             aria-modal="false"
             aria-label="Contact and Social channels"
-            className="mb-3 w-[calc(100vw-2rem)] sm:w-80 max-w-sm rounded-[8px] bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-md p-4 shadow-2xl border border-slate-200/90 dark:border-slate-800 text-left overflow-hidden"
+            className="mb-3 w-[calc(100vw-2rem)] sm:w-80 max-w-sm rounded-[10px] bg-white/85 dark:bg-[#070B12]/85 backdrop-blur-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-white/80 dark:border-white/15 text-left overflow-hidden ring-1 ring-black/5"
           >
             {/* VIEW 1: All Enabled Channels */}
             {panelView === 'channels' && (
@@ -454,12 +454,12 @@ export function SocialControl() {
         title="Contact and Social channels"
         className={`group relative w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 focus-ring ${
           isOpen
-            ? 'bg-[#172033] text-white hover:bg-black dark:bg-[#1E293B] dark:hover:bg-slate-800'
+            ? 'bg-[#1D4ED8] text-white shadow-xl shadow-[#1D4ED8]/40 ring-4 ring-[#1D4ED8]/25'
             : 'bg-[#315FEA] hover:bg-[#254EDB] text-white shadow-xl shadow-[#315FEA]/35 ring-4 ring-[#315FEA]/15'
         }`}
       >
         {isOpen ? (
-          <X className="w-6 h-6 text-white" />
+          <X className="w-5 h-5 text-white transition-transform duration-200 rotate-90" />
         ) : (
           <>
             <MessageSquareMore className="w-6 h-6 text-white" />

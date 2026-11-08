@@ -553,10 +553,10 @@ export default function AccountPage() {
       {/* TAB 1: PROFILE */}
       {activeTab === 'profile' && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-sm">
+          <div className="glass-panel rounded-[8px] p-6 sm:p-8 shadow-xs border border-slate-200/80 dark:border-[#1E293B]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-[#1E293B]">
               <div className="flex items-center space-x-4">
-                <div className="w-14 h-14 rounded-[6px] bg-[#315FEA] flex items-center justify-center text-white font-extrabold text-xl shadow-xs">
+                <div className="w-14 h-14 rounded-[6px] bg-[#315FEA] flex items-center justify-center text-white font-extrabold text-xl shadow-xs glow-cobalt">
                   {user?.fullName ? user.fullName[0].toUpperCase() : 'U'}
                 </div>
                 <div>
@@ -578,7 +578,7 @@ export default function AccountPage() {
                 {!isEditing ? (
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="glass"
                     size="sm"
                     onClick={handleStartEdit}
                     leftIcon={<Edit3 className="w-3.5 h-3.5 text-[#315FEA]" />}
@@ -793,7 +793,7 @@ export default function AccountPage() {
       {/* TAB 2: SETTINGS (VISUAL SYSTEM & PLATFORM IDENTITY) */}
       {activeTab === 'settings' && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-xs">
+          <div className="glass-panel rounded-[8px] p-6 sm:p-8 shadow-xs border border-slate-200/80 dark:border-[#1E293B]">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                 <ShieldCheck className="w-5 h-5 mr-2 text-[#315FEA]" />
@@ -805,7 +805,7 @@ export default function AccountPage() {
             </div>
 
             {/* Design System Lock Notice */}
-            <div className="mt-4 p-4 rounded-[8px] bg-blue-50 dark:bg-[#315FEA]/10 border border-blue-200/60 dark:border-[#315FEA]/20 flex items-start space-x-3">
+            <div className="mt-4 p-4 rounded-[8px] bg-blue-50/80 dark:bg-[#315FEA]/10 border border-blue-200/60 dark:border-[#315FEA]/20 flex items-start space-x-3">
               <Info className="w-5 h-5 text-[#315FEA] shrink-0 mt-0.5" />
               <div className="text-xs text-slate-700 dark:text-[#CBD5E1] leading-relaxed">
                 <span className="font-semibold text-slate-900 dark:text-white">Editorial Cobalt Visual Lock:</span>{' '}
@@ -815,16 +815,16 @@ export default function AccountPage() {
 
             {/* Visual Tokens Matrix */}
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 rounded-[8px] bg-slate-50 dark:bg-[#0B1220]/50 border border-slate-200 dark:border-[#1E293B] space-y-2">
+              <div className="p-4 rounded-[8px] bg-slate-50/80 dark:bg-[#0B1220]/70 border border-slate-200 dark:border-[#1E293B] space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">Brand Color</span>
-                  <div className="w-4 h-4 rounded-[4px] bg-[#315FEA]" title="#315FEA" />
+                  <div className="w-4 h-4 rounded-[4px] bg-[#315FEA] glow-cobalt" title="#315FEA" />
                 </div>
                 <p className="text-sm font-bold text-[#315FEA]">Editorial Cobalt</p>
                 <p className="text-xs text-slate-500 dark:text-[#94A3B8]">#315FEA (Primary) &bull; #7950B8 (Accent)</p>
               </div>
 
-              <div className="p-4 rounded-[8px] bg-slate-50 dark:bg-[#0B1220]/50 border border-slate-200 dark:border-[#1E293B] space-y-2">
+              <div className="p-4 rounded-[8px] bg-slate-50/80 dark:bg-[#0B1220]/70 border border-slate-200 dark:border-[#1E293B] space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">Radius Hierarchy</span>
                   <Badge variant="cobalt" size="xs">Locked</Badge>
@@ -833,7 +833,7 @@ export default function AccountPage() {
                 <p className="text-xs text-slate-500 dark:text-[#94A3B8]">Indicator: 4px &bull; Control: 6px &bull; Panel: 8px &bull; Dialog: 10px</p>
               </div>
 
-              <div className="p-4 rounded-[8px] bg-slate-50 dark:bg-[#0B1220]/50 border border-slate-200 dark:border-[#1E293B] space-y-2">
+              <div className="p-4 rounded-[8px] bg-slate-50/80 dark:bg-[#0B1220]/70 border border-slate-200 dark:border-[#1E293B] space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">Accessibility</span>
                   <Badge variant="success" size="xs">Target</Badge>
@@ -850,10 +850,10 @@ export default function AccountPage() {
       {activeTab === 'integrations' && (
         <div className="space-y-8 animate-in fade-in duration-150">
           {/* Panel 1: WhatsApp Configuration & Templates */}
-          <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-xs">
+          <div className="glass-panel rounded-[8px] p-6 sm:p-8 shadow-xs border border-slate-200/80 dark:border-[#1E293B]">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[#E3E7ED] dark:border-[#1E293B]">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-[6px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-800">
+                <div className="w-10 h-10 rounded-[6px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200 dark:border-emerald-800 shadow-xs">
                   <MessageCircle className="w-5 h-5" />
                 </div>
                 <div>
@@ -874,7 +874,7 @@ export default function AccountPage() {
                   href={`https://wa.me/${waPhone.replace(/\D/g, '')}${waMessage ? `?text=${encodeURIComponent(waMessage)}` : ''}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50/90 dark:bg-emerald-950/50 border border-emerald-300/80 dark:border-emerald-800 hover:bg-emerald-100 transition-all shadow-xs shrink-0"
                 >
                   <span>Test Default Link</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -891,7 +891,7 @@ export default function AccountPage() {
               )}
 
               {/* Toggle Enable/Disable */}
-              <div className="p-4 rounded-[6px] bg-[#F3F6FA] dark:bg-[#0B1220] border border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between gap-4">
+              <div className="p-4 rounded-[6px] bg-[#F3F6FA]/80 dark:bg-[#0B1220]/80 border border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-[#172033] dark:text-white">
                     Display WhatsApp Contact on Website
@@ -932,7 +932,7 @@ export default function AccountPage() {
                     }}
                     placeholder="9876543210"
                     maxLength={10}
-                    className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] pl-10 pr-4 py-2.5 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] font-mono transition-all"
+                    className="w-full bg-white/90 dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] pl-10 pr-4 py-2.5 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] font-mono transition-all shadow-xs"
                   />
                 </div>
               </div>
@@ -950,7 +950,7 @@ export default function AccountPage() {
                   value={waMessage}
                   onChange={(e) => setWaMessage(e.target.value)}
                   placeholder="Hello! I am exploring interior design and execution services for my property. Could we connect with a design consultant to discuss possibilities?"
-                  className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-4 py-2 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] transition-all resize-none"
+                  className="w-full bg-white/90 dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-4 py-2 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] transition-all resize-none shadow-xs"
                 />
               </div>
 
@@ -972,7 +972,7 @@ export default function AccountPage() {
                     <button
                       type="button"
                       onClick={handleAddTemplate}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold text-[#315FEA] bg-[#315FEA]/10 border border-[#315FEA]/20 hover:bg-[#315FEA]/20 transition-colors shrink-0 self-start sm:self-auto"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold text-[#315FEA] bg-[#315FEA]/10 border border-[#315FEA]/20 hover:bg-[#315FEA]/20 transition-colors shrink-0 self-start sm:self-auto shadow-xs"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Template</span>
@@ -992,10 +992,10 @@ export default function AccountPage() {
                     return (
                       <div
                         key={template.id || idx}
-                        className={`p-4 sm:p-5 rounded-[8px] border transition-all ${
+                        className={`p-4 sm:p-5 rounded-[8px] border transition-all premium-card ${
                           template.isActive
-                            ? 'bg-white dark:bg-[#0B1220] border-[#CBD5E1] dark:border-[#334155] shadow-xs'
-                            : 'bg-[#F3F6FA] dark:bg-[#0F172A] border-[#E3E7ED] dark:border-[#1E293B] opacity-75'
+                            ? 'bg-white/95 dark:bg-[#0B1220]/95 border-[#CBD5E1] dark:border-[#334155] shadow-xs'
+                            : 'bg-[#F3F6FA]/70 dark:bg-[#0F172A]/70 border-[#E3E7ED] dark:border-[#1E293B] opacity-75'
                         }`}
                       >
                         {/* Card Header */}
@@ -1198,15 +1198,15 @@ export default function AccountPage() {
                           </div>
                         </div>
 
-                        {/* Realistic WhatsApp Chat Bubble Preview */}
-                        <div className="p-3 rounded-[6px] bg-[#ECE5DD] dark:bg-[#111B21] border border-[#D1D7DB] dark:border-[#222E35]">
-                          <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-black/5 dark:border-white/5">
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-4 h-4 rounded-full bg-[#25D366] text-white flex items-center justify-center">
-                                <MessageCircle className="w-2.5 h-2.5" />
+                        {/* Realistic WhatsApp Chat Bubble Preview (Canva-Grade Visual Experience) */}
+                        <div className="p-3.5 rounded-[8px] bg-[#ECE5DD] dark:bg-[#111B21] border border-[#D1D7DB] dark:border-[#222E35] relative overflow-hidden shadow-inner">
+                          <div className="flex items-center justify-between pb-2 mb-2 border-b border-black/5 dark:border-white/5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-5 h-5 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-xs">
+                                <MessageCircle className="w-3 h-3" />
                               </div>
-                              <span className="text-[10px] font-bold text-[#111B21] dark:text-slate-200">
-                                WhatsApp Chat Preview {phoneWithCode ? `(+${phoneWithCode})` : ''}
+                              <span className="text-[11px] font-bold text-[#111B21] dark:text-slate-200">
+                                WhatsApp Live Simulation {phoneWithCode ? `(+${phoneWithCode})` : ''}
                               </span>
                             </div>
                             {testUrl && (
@@ -1214,22 +1214,22 @@ export default function AccountPage() {
                                 href={testUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-[10px] text-emerald-800 dark:text-emerald-400 hover:underline font-semibold"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-[10px] text-white bg-[#25D366] hover:bg-[#20BA5A] font-bold transition-all shadow-xs"
                               >
-                                <span>Test wa.me Link</span>
+                                <span>Launch wa.me</span>
                                 <ExternalLink className="w-2.5 h-2.5" />
                               </a>
                             )}
                           </div>
 
                           {/* Message Bubble */}
-                          <div className="max-w-[92%] ml-auto bg-[#D9FDD3] dark:bg-[#005C4B] rounded-[7.5px] rounded-tr-none px-3 py-2 shadow-xs text-[#111B21] dark:text-white text-xs leading-relaxed">
-                            <p className="whitespace-pre-wrap break-words text-[11px]">
+                          <div className="max-w-[92%] ml-auto bg-[#D9FDD3] dark:bg-[#005C4B] rounded-[7.5px] rounded-tr-none px-3.5 py-2.5 shadow-xs text-[#111B21] dark:text-white text-xs leading-relaxed border border-emerald-300/40 dark:border-emerald-700/50">
+                            <p className="whitespace-pre-wrap break-words text-[11px] font-medium">
                               {composedMsg || '(Empty message)'}
                             </p>
                             <div className="flex items-center justify-end gap-1 mt-1 text-[9px] text-[#667781] dark:text-emerald-200/80">
                               <span>10:30 AM</span>
-                              <CheckCheck className="w-3 h-3 text-[#53bdeb]" />
+                              <CheckCheck className="w-3.5 h-3.5 text-[#34B7F1]" />
                             </div>
                           </div>
                         </div>
@@ -1239,13 +1239,13 @@ export default function AccountPage() {
                 </div>
 
                 {/* Visitor Choices Preview Card */}
-                <div className="p-4 rounded-[6px] bg-[#F5F0FB] dark:bg-[#1E1B2E] border border-[#E3E7ED] dark:border-[#332A4A]">
+                <div className="p-4 rounded-[8px] bg-gradient-to-r from-purple-50/80 to-blue-50/60 dark:from-[#1E1B2E] dark:to-[#0B1220] border border-purple-200/60 dark:border-[#332A4A] shadow-xs">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-bold text-[#7950B8] dark:text-[#A78BFA] flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>Live Public Choices Preview</span>
                     </p>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
                       Unified Floating Selector
                     </span>
                   </div>
@@ -1256,9 +1256,9 @@ export default function AccountPage() {
                     {waTemplates.filter(t => t.isActive).map((t) => (
                       <div
                         key={t.id}
-                        className="px-3 py-1.5 rounded-[6px] bg-white dark:bg-[#0B1220] border border-emerald-200 dark:border-emerald-800 text-xs font-semibold text-emerald-800 dark:text-emerald-300 shadow-xs flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-[6px] bg-white dark:bg-[#0B1220] border border-emerald-300/70 dark:border-emerald-800 text-xs font-semibold text-emerald-800 dark:text-emerald-300 shadow-xs flex items-center gap-1.5"
                       >
-                        <MessageCircle className="w-3 h-3 text-emerald-600" />
+                        <MessageCircle className="w-3 h-3 text-[#25D366]" />
                         <span>{t.title}</span>
                         {t.category && (
                           <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-normal">
@@ -1292,10 +1292,10 @@ export default function AccountPage() {
           </div>
 
           {/* Panel 2: Social Profile Links (Facebook & Instagram) */}
-          <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-xs">
+          <div className="glass-panel rounded-[8px] p-6 sm:p-8 shadow-xs border border-slate-200/80 dark:border-[#1E293B]">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[#E3E7ED] dark:border-[#1E293B]">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center border border-[#315FEA]/20">
+                <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center border border-[#315FEA]/20 shadow-xs glow-cobalt">
                   <Share2 className="w-5 h-5" />
                 </div>
                 <div>
@@ -1318,10 +1318,10 @@ export default function AccountPage() {
               )}
 
               {/* Facebook Section */}
-              <div className="p-4 rounded-[6px] bg-[#F3F6FA] dark:bg-[#0B1220] border border-[#E3E7ED] dark:border-[#334155] space-y-4">
+              <div className="p-4 sm:p-5 rounded-[8px] bg-gradient-to-r from-blue-50/70 to-[#F3F6FA]/50 dark:from-blue-950/20 dark:to-[#0B1220] border border-blue-200/70 dark:border-[#334155] space-y-4 premium-card">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-[6px] bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200 dark:bg-blue-950/40 dark:border-blue-800">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-[6px] bg-blue-600 text-white flex items-center justify-center shadow-xs">
                       <Facebook className="w-4 h-4" />
                     </div>
                     <div>
@@ -1357,16 +1357,16 @@ export default function AccountPage() {
                         if (socialError) setSocialError(null);
                       }}
                       placeholder="https://facebook.com/yourbrand"
-                      className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+                      className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] shadow-xs"
                     />
                   </div>
                   {facebookUrl && (
-                    <div className="mt-1.5 flex justify-end">
+                    <div className="mt-2 flex justify-end">
                       <a
                         href={facebookUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-[#315FEA] hover:underline"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-semibold text-[#315FEA] bg-[#315FEA]/10 hover:bg-[#315FEA]/20 transition-colors"
                       >
                         <span>Test Facebook Link</span>
                         <ExternalLink className="w-3 h-3" />
@@ -1377,10 +1377,10 @@ export default function AccountPage() {
               </div>
 
               {/* Instagram Section */}
-              <div className="p-4 rounded-[6px] bg-[#F3F6FA] dark:bg-[#0B1220] border border-[#E3E7ED] dark:border-[#334155] space-y-4">
+              <div className="p-4 sm:p-5 rounded-[8px] bg-gradient-to-r from-pink-50/70 via-purple-50/50 to-[#F3F6FA]/50 dark:from-pink-950/20 dark:via-purple-950/20 dark:to-[#0B1220] border border-pink-200/70 dark:border-[#334155] space-y-4 premium-card">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-[6px] bg-pink-50 text-pink-600 flex items-center justify-center border border-pink-200 dark:bg-pink-950/40 dark:border-pink-800">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-[6px] bg-gradient-to-tr from-amber-500 via-pink-600 to-purple-600 text-white flex items-center justify-center shadow-xs">
                       <Instagram className="w-4 h-4" />
                     </div>
                     <div>
@@ -1416,16 +1416,16 @@ export default function AccountPage() {
                         if (socialError) setSocialError(null);
                       }}
                       placeholder="https://instagram.com/yourbrand"
-                      className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+                      className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3.5 py-2 text-sm text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] shadow-xs"
                     />
                   </div>
                   {instagramUrl && (
-                    <div className="mt-1.5 flex justify-end">
+                    <div className="mt-2 flex justify-end">
                       <a
                         href={instagramUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-[#315FEA] hover:underline"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-semibold text-[#315FEA] bg-[#315FEA]/10 hover:bg-[#315FEA]/20 transition-colors"
                       >
                         <span>Test Instagram Link</span>
                         <ExternalLink className="w-3 h-3" />
@@ -1455,7 +1455,7 @@ export default function AccountPage() {
       {/* TAB 3: SECURITY */}
       {activeTab === 'security' && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="glass-panel rounded-[8px] p-6 sm:p-8 shadow-xs border border-slate-200/80 dark:border-[#1E293B] space-y-6">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                 <KeyRound className="w-5 h-5 mr-2 text-[#315FEA]" />

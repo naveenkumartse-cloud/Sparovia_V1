@@ -744,18 +744,18 @@ function CustomerLeadsContent() {
         }
       />
 
-      {/* 2. Interactive Status Metric Filter Pills (Wrapping without horizontal scrollbar) */}
-      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 py-0.5">
+      {/* 2. Interactive Status Metric Filter Pills (Horizontal Scroll on Mobile to Prevent Awkward Orphan Wrapping) */}
+      <div className="flex items-center gap-1.5 sm:gap-2 py-1 overflow-x-auto no-scrollbar scroll-smooth flex-nowrap pb-1">
         <button
           type="button"
           onClick={() => {
             setStatusFilter('All');
             setLeadsPage(1);
           }}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none active:scale-[0.99] motion-reduce:transition-none ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none active:scale-[0.99] shrink-0 motion-reduce:transition-none ${
             statusFilter === 'All'
-              ? 'bg-[#315FEA] text-white shadow-xs'
-              : 'bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] text-slate-700 dark:text-slate-300 hover:border-[#315FEA]'
+              ? 'bg-[#315FEA] text-white shadow-xs glow-cobalt'
+              : 'glass-panel text-slate-700 dark:text-slate-300 hover:border-[#315FEA]'
           }`}
         >
           <span>All Enquiries</span>
@@ -776,10 +776,10 @@ function CustomerLeadsContent() {
             setStatusFilter('New');
             setLeadsPage(1);
           }}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none active:scale-[0.99] motion-reduce:transition-none ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none active:scale-[0.99] shrink-0 motion-reduce:transition-none ${
             statusFilter === 'New'
               ? 'bg-[#15803D] text-white shadow-xs'
-              : 'bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] text-slate-700 dark:text-slate-300 hover:border-[#15803D]'
+              : 'glass-panel text-slate-700 dark:text-slate-300 hover:border-[#15803D]'
           }`}
         >
           <span className="w-1.5 h-1.5 rounded-full bg-[#15803D] dark:bg-emerald-400" />
@@ -801,10 +801,10 @@ function CustomerLeadsContent() {
             setStatusFilter('Contacted');
             setLeadsPage(1);
           }}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none active:scale-[0.99] motion-reduce:transition-none ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none active:scale-[0.99] shrink-0 motion-reduce:transition-none ${
             statusFilter === 'Contacted'
-              ? 'bg-[#315FEA] text-white shadow-xs'
-              : 'bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] text-slate-700 dark:text-slate-300 hover:border-[#315FEA]'
+              ? 'bg-[#315FEA] text-white shadow-xs glow-cobalt'
+              : 'glass-panel text-slate-700 dark:text-slate-300 hover:border-[#315FEA]'
           }`}
         >
           <span className="w-1.5 h-1.5 rounded-full bg-[#315FEA]" />
@@ -826,10 +826,10 @@ function CustomerLeadsContent() {
             setStatusFilter('Qualified');
             setLeadsPage(1);
           }}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none active:scale-[0.99] motion-reduce:transition-none ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none active:scale-[0.99] shrink-0 motion-reduce:transition-none ${
             statusFilter === 'Qualified'
-              ? 'bg-[#7950B8] text-white shadow-xs'
-              : 'bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] text-slate-700 dark:text-slate-300 hover:border-[#7950B8]'
+              ? 'bg-[#7950B8] text-white shadow-xs glow-purple'
+              : 'glass-panel text-slate-700 dark:text-slate-300 hover:border-[#7950B8]'
           }`}
         >
           <span className="w-1.5 h-1.5 rounded-full bg-[#7950B8]" />
@@ -851,10 +851,10 @@ function CustomerLeadsContent() {
             setStatusFilter('Closed');
             setLeadsPage(1);
           }}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none active:scale-[0.99] motion-reduce:transition-none ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-semibold whitespace-nowrap transition-all select-none active:scale-[0.99] shrink-0 motion-reduce:transition-none ${
             statusFilter === 'Closed'
               ? 'bg-slate-700 text-white shadow-xs'
-              : 'bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] text-slate-700 dark:text-slate-300 hover:border-slate-400'
+              : 'glass-panel text-slate-700 dark:text-slate-300 hover:border-slate-400'
           }`}
         >
           <span>Closed</span>
@@ -870,11 +870,11 @@ function CustomerLeadsContent() {
         </button>
       </div>
 
-      {/* 3. Filter, Search, and Sort Toolbar */}
-      <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-3 sm:p-3.5 shadow-soft-sm space-y-2.5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-center">
-          {/* Search Input */}
-          <div className="sm:col-span-2 lg:col-span-6">
+      {/* 3. Filter, Search, and Sort Toolbar (Compact 2-Row Layout on Mobile) */}
+      <div className="glass-panel rounded-[8px] p-3 sm:p-3.5 shadow-soft-sm space-y-2.5 border border-slate-200/80 dark:border-[#1E293B]">
+        <div className="grid grid-cols-2 lg:grid-cols-12 gap-2 sm:gap-2.5 items-center">
+          {/* Search Input: Full width on mobile */}
+          <div className="col-span-2 lg:col-span-6">
             <SearchInput
               value={leadsSearch}
               onChange={(e) => {
@@ -890,35 +890,35 @@ function CustomerLeadsContent() {
             />
           </div>
 
-          {/* Source Filter */}
-          <div className="lg:col-span-3 flex items-center gap-1.5">
-            <span className="text-xs text-slate-500 font-medium shrink-0">Source:</span>
+          {/* Source Filter: Compact column 1 on mobile */}
+          <div className="col-span-1 lg:col-span-3 flex items-center gap-1.5">
+            <span className="text-xs text-slate-500 font-medium shrink-0 hidden sm:inline">Source:</span>
             <select
               value={sourceFilter}
               onChange={(e) => {
                 setSourceFilter(e.target.value);
                 setLeadsPage(1);
               }}
-              className="w-full py-2 px-2.5 text-xs rounded-[6px] bg-[#F3F6FA] dark:bg-[#1E293B]/50 border border-[#E3E7ED] dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#315FEA] focus:border-[#315FEA]"
+              className="w-full py-2 px-2.5 text-xs rounded-[6px] bg-white/90 dark:bg-[#1E293B]/70 border border-[#CBD5E1] dark:border-[#334155] text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#315FEA] focus:border-[#315FEA] shadow-xs"
             >
               {SOURCE_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
-                  {opt}
+                  {opt === 'All' ? 'All Sources' : opt}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Sort Order */}
-          <div className="lg:col-span-3 flex items-center gap-1.5">
-            <span className="text-xs text-slate-500 font-medium shrink-0">Sort:</span>
+          {/* Sort Order: Compact column 2 on mobile */}
+          <div className="col-span-1 lg:col-span-3 flex items-center gap-1.5">
+            <span className="text-xs text-slate-500 font-medium shrink-0 hidden sm:inline">Sort:</span>
             <select
               value={sortOrder}
               onChange={(e) => {
                 setSortOrder(e.target.value);
                 setLeadsPage(1);
               }}
-              className="w-full py-2 px-2.5 text-xs rounded-[6px] bg-[#F3F6FA] dark:bg-[#1E293B]/50 border border-[#E3E7ED] dark:border-[#1E293B] text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#315FEA] focus:border-[#315FEA]"
+              className="w-full py-2 px-2.5 text-xs rounded-[6px] bg-white/90 dark:bg-[#1E293B]/70 border border-[#CBD5E1] dark:border-[#334155] text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#315FEA] focus:border-[#315FEA] shadow-xs"
             >
               <option value="newest">Newest first</option>
               <option value="oldest">Oldest first</option>

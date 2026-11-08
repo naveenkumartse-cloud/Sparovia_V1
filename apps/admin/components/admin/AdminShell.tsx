@@ -348,7 +348,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const isConfirmed = user?.isOnboardingConfirmed ?? false;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1220] text-[#172033] dark:text-[#E2E8F0] transition-colors duration-150">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1220] text-[#172033] dark:text-[#E2E8F0] transition-colors duration-150 relative">
+      {/* Fixed Ambient Light Meshes for Genuine Glass Refraction */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+        {/* Editorial Cobalt ambient glow (top left) */}
+        <div className="absolute -top-[15%] left-[8%] w-[650px] h-[650px] rounded-full bg-gradient-to-br from-[#315FEA]/12 via-[#315FEA]/5 to-transparent blur-[130px] dark:from-[#315FEA]/16 transform-gpu" />
+        {/* Restrained Purple ambient glow (mid right) */}
+        <div className="absolute top-[35%] -right-[12%] w-[700px] h-[700px] rounded-full bg-gradient-to-bl from-[#7950B8]/12 via-[#7950B8]/5 to-transparent blur-[140px] dark:from-[#7950B8]/18 transform-gpu" />
+        {/* Restrained Warmth accent (bottom left) */}
+        <div className="absolute -bottom-[15%] left-[20%] w-[550px] h-[550px] rounded-full bg-gradient-to-tr from-[#315FEA]/8 to-transparent blur-[120px] dark:from-[#315FEA]/10 transform-gpu" />
+      </div>
+
       {/* Mobile & Tablet Drawer Modal (< lg) */}
       {mobileMenuOpen && (
         <div 
@@ -403,9 +413,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content Area */}
-      <div className={`flex flex-1 flex-col transition-[padding-left] duration-200 ease-in-out ${desktopCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
+      <div className={`flex flex-1 flex-col relative z-10 transition-[padding-left] duration-200 ease-in-out ${desktopCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
         {/* Sticky Unified Top Header */}
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[#E3E7ED] dark:border-[#1E293B] bg-white/85 dark:bg-[#0F172A]/85 backdrop-blur-md px-3.5 sm:px-6 lg:px-8 shadow-soft-xs">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-white/60 dark:border-white/10 glass-toolbar px-3.5 sm:px-6 lg:px-8 shadow-soft-xs">
           <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
             {/* Mobile/Tablet Hamburger Toggle (< lg) with 44px min touch target */}
             <button
@@ -465,11 +475,77 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-20 lg:pb-8">
           <div className="mx-auto max-w-7xl p-3.5 sm:p-6 lg:p-8 space-y-6">
             {children}
           </div>
         </main>
+
+        {/* Mobile Persistent Bottom Quick Navigation Bar (< lg) */}
+        <nav
+          aria-label="Mobile Quick Navigation"
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-30 h-16 glass-toolbar border-t border-slate-200/80 dark:border-white/10 px-2 flex items-center justify-around shadow-2xl backdrop-blur-xl"
+        >
+          <Link
+            href="/admin"
+            className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
+              pathname === '/admin'
+                ? 'text-[#315FEA] dark:text-blue-400 font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            <LayoutDashboard className={`w-5 h-5 mb-0.5 ${pathname === '/admin' ? 'text-[#315FEA] dark:text-blue-400' : ''}`} />
+            <span>Overview</span>
+          </Link>
+
+          <Link
+            href="/admin/leads"
+            className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
+              pathname?.startsWith('/admin/leads')
+                ? 'text-[#315FEA] dark:text-blue-400 font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            <Users className={`w-5 h-5 mb-0.5 ${pathname?.startsWith('/admin/leads') ? 'text-[#315FEA] dark:text-blue-400' : ''}`} />
+            <span>Leads</span>
+          </Link>
+
+          <Link
+            href="/admin/images"
+            className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
+              pathname?.startsWith('/admin/images')
+                ? 'text-[#7950B8] dark:text-purple-400 font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            <ImageIcon className={`w-5 h-5 mb-0.5 ${pathname?.startsWith('/admin/images') ? 'text-[#7950B8] dark:text-purple-400' : ''}`} />
+            <span>Studio</span>
+          </Link>
+
+          <Link
+            href="/admin/business-presence"
+            className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
+              pathname?.startsWith('/admin/business-presence')
+                ? 'text-[#315FEA] dark:text-blue-400 font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            <Globe className={`w-5 h-5 mb-0.5 ${pathname?.startsWith('/admin/business-presence') ? 'text-[#315FEA] dark:text-blue-400' : ''}`} />
+            <span>Presence</span>
+          </Link>
+
+          <Link
+            href="/admin/account"
+            className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
+              pathname?.startsWith('/admin/account')
+                ? 'text-[#315FEA] dark:text-blue-400 font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            <UserCircle className={`w-5 h-5 mb-0.5 ${pathname?.startsWith('/admin/account') ? 'text-[#315FEA] dark:text-blue-400' : ''}`} />
+            <span>Account</span>
+          </Link>
+        </nav>
       </div>
     </div>
   );

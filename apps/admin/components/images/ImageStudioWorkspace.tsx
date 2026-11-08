@@ -690,15 +690,15 @@ export function ImageStudioWorkspace({
       role="dialog"
       aria-modal="true"
       aria-labelledby="image-studio-title"
-      className="fixed inset-0 z-50 bg-[#172033]/70 backdrop-blur-xs flex flex-col items-center justify-center p-3 sm:p-5 overflow-hidden"
+      className="fixed inset-0 z-50 bg-[#0B1220]/80 backdrop-blur-md flex flex-col items-center justify-center p-2 sm:p-5 overflow-hidden"
     >
       {/* Workspace Card */}
-      <div className="bg-white dark:bg-[#0F172A] w-full max-w-7xl h-[95vh] max-h-[95vh] rounded-[10px] shadow-2xl flex flex-col border border-[#CBD5E1] dark:border-[#1E293B] overflow-hidden">
-        {/* Workspace Top Bar */}
-        <header className="px-5 py-3.5 border-b border-[#E3E7ED] dark:border-[#1E293B] bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div className="bg-[#0B1220] w-full max-w-7xl h-[95vh] max-h-[95vh] rounded-[10px] shadow-2xl flex flex-col border border-white/10 overflow-hidden relative">
+        {/* Workspace Top Bar (Framer-Style Glass Toolbar) */}
+        <header className="px-5 py-3.5 border-b border-white/10 glass-toolbar flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-[6px] bg-[#7950B8]/15 text-[#7950B8] border border-[#7950B8]/25 flex items-center justify-center font-bold shrink-0">
-              <Sparkles className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-[6px] bg-[#7950B8]/20 text-[#7950B8] border border-[#7950B8]/30 flex items-center justify-center font-bold shrink-0 glow-purple">
+              <Sparkles className="w-5 h-5 text-[#9333EA] dark:text-[#C4B5FD]" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
@@ -853,11 +853,16 @@ export function ImageStudioWorkspace({
           <div className="flex-1 min-h-[300px] flex flex-col p-3 sm:p-5 overflow-auto relative">
             <div
               ref={containerRef}
-              className="flex-1 w-full min-h-[320px] bg-slate-900 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] relative overflow-hidden flex items-center justify-center select-none"
+              className="flex-1 w-full min-h-[320px] bg-[#070B12] rounded-[8px] border border-white/10 relative overflow-hidden flex items-center justify-center select-none shadow-inner"
               onMouseDown={viewMode === 'split' ? handleMouseDown : undefined}
               onTouchStart={viewMode === 'split' ? handleTouchStart : undefined}
               onTouchMove={viewMode === 'split' ? handleTouchMove : undefined}
             >
+              {/* Ambient Creative Purple Glow Orb behind image */}
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center" aria-hidden="true">
+                <div className="w-[500px] h-[500px] rounded-full bg-[#7950B8]/15 blur-[120px] transform-gpu" />
+              </div>
+
               {/* Processing Overlay */}
               {isProcessing && (
                 <div className="absolute inset-0 z-30 bg-[#172033]/75 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-white text-center">
@@ -968,13 +973,13 @@ export function ImageStudioWorkspace({
                     />
                   ) : null}
 
-                  {/* Divider Line & Draggable Handle */}
+                  {/* Divider Line & Glowing Draggable Handle */}
                   {!originalLoadError && (
                     <div
                       className="absolute top-0 bottom-0 z-20 pointer-events-none flex items-center justify-center"
                       style={{ left: `${splitPos}%` }}
                     >
-                      <div className="w-0.5 h-full bg-white shadow-[0_0_8px_rgba(0,0,0,0.5)]" />
+                      <div className="w-0.5 h-full bg-white shadow-[0_0_12px_rgba(121,80,184,0.8),0_0_4px_#ffffff]" />
                       <div
                         role="slider"
                         tabIndex={0}
@@ -983,9 +988,9 @@ export function ImageStudioWorkspace({
                         aria-valuemin={0}
                         aria-valuemax={100}
                         onKeyDown={handleSliderKeyDown}
-                        className="pointer-events-auto touch-none absolute w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white text-[#172033] shadow-md border-2 border-[#315FEA] flex items-center justify-center cursor-ew-resize hover:scale-105 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] before:absolute before:-inset-3 before:content-['']"
+                        className="pointer-events-auto touch-none absolute w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white text-[#7950B8] shadow-lg border-2 border-[#7950B8] flex items-center justify-center cursor-ew-resize hover:scale-110 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7950B8] glow-purple before:absolute before:-inset-3 before:content-['']"
                       >
-                        <SplitSquareVertical className="w-4 h-4 text-[#315FEA]" />
+                        <SplitSquareVertical className="w-4 h-4 text-[#7950B8]" />
                       </div>
                     </div>
                   )}
@@ -1317,7 +1322,7 @@ export function ImageStudioWorkspace({
           </div>
 
           {/* Right Control Rail: Simplified 3-Step Information Hierarchy */}
-          <aside className="w-full lg:w-96 bg-white dark:bg-[#0F172A] border-t lg:border-t-0 lg:border-l border-[#E3E7ED] dark:border-[#1E293B] flex flex-col shrink-0 overflow-y-auto [scrollbar-gutter:stable]">
+          <aside className="w-full lg:w-96 glass-panel border-t lg:border-t-0 lg:border-l border-white/60 dark:border-white/10 flex flex-col shrink-0 overflow-y-auto [scrollbar-gutter:stable]">
             <div className="p-5 flex flex-col gap-5">
 
               {/* Status Feedback in Sidebar (Canvas layout remains rock-solid) */}

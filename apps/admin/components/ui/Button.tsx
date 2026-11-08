@@ -9,6 +9,7 @@ export type ButtonVariant =
   | 'cobalt'
   | 'creative'
   | 'purple'
+  | 'glass'
   | 'enhance'
   | 'studio'
   | 'secondary'
@@ -52,13 +53,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles: Record<ButtonVariant, string> = {
       primary:
-        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent',
+        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent',
       cobalt:
-        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent',
+        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent',
       creative:
-        'bg-[#7950B8] hover:bg-[#6820AB] active:bg-[#53198A] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#7950B8] border border-transparent',
+        'bg-gradient-to-r from-[#7950B8] to-[#9333EA] hover:from-[#6B3FA8] hover:to-[#7E22CE] active:from-[#581C87] active:to-[#6B21A8] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-[0_4px_16px_rgba(121,80,184,0.35)] focus:ring-[#7950B8] border border-purple-400/30',
       purple:
-        'bg-[#7950B8] hover:bg-[#6820AB] active:bg-[#53198A] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#7950B8] border border-transparent',
+        'bg-[#7950B8] hover:bg-[#6820AB] active:bg-[#53198A] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#7950B8] border border-transparent',
+      glass:
+        'glass-panel hover:bg-white/95 dark:hover:bg-[#1E293B]/95 active:scale-[0.98] text-[#172033] dark:text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-white/60 dark:border-white/10',
       enhance:
         'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-soft-xs focus:ring-[#1D4ED8] border border-transparent',
       studio:
