@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Sparkles,
   Maximize2,
@@ -249,7 +250,12 @@ export function ImageStudioWorkspace({
   onReplaceRequested,
   onDeleteRequested,
 }: ImageStudioWorkspaceProps) {
+  const [mounted, setMounted] = useState<boolean>(false);
   const [currentImage, setCurrentImage] = useState<ImageDto | null>(image || null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Helper to find the newest non-rejected variant (preferring newest EnhanceForWebsite or approved variant)
   const getLatestCandidate = useCallback((variants?: ImageVariantDto[] | null): ImageVariantDto | null => {
@@ -685,24 +691,37 @@ export function ImageStudioWorkspace({
     displayRatio: '3:2',
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="image-studio-title"
-      className="fixed inset-0 z-50 bg-[#0B1220]/80 backdrop-blur-md flex flex-col items-center justify-center p-2 sm:p-5 overflow-hidden"
+      className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-xs flex flex-col items-center justify-center p-0 sm:p-4 md:p-6 overflow-hidden animate-in fade-in duration-150"
     >
-      {/* Workspace Card */}
-      <div className="bg-[#0B1220] w-full max-w-7xl h-[95vh] max-h-[95vh] rounded-[10px] shadow-2xl flex flex-col border border-white/10 overflow-hidden relative">
-        {/* Workspace Top Bar (Framer-Style Glass Toolbar) */}
-        <header className="px-5 py-3.5 border-b border-white/10 image-studio-glass flex flex-wrap items-center justify-between gap-3 shrink-0">
+      {/* Backdrop click dismiss */}
+      <div
+        className="fixed inset-0 -z-10"
+        onClick={() => {
+          if (!isProcessing && !isApproving && !isRejecting && !isPublishing) {
+            onClose();
+          }
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Workspace Card — Light neutral surface matching Dashboard */}
+      <div className="bg-white dark:bg-[#0F172A] w-full max-w-7xl h-full sm:h-[94vh] sm:max-h-[94vh] sm:rounded-[10px] shadow-[0_20px_60px_rgba(15,23,42,0.18)] flex flex-col border border-slate-200/90 dark:border-white/10 overflow-hidden relative">
+        {/* Workspace Top Bar (Clean light header consistent with Dashboard) */}
+        <header className="px-4 py-3 sm:px-6 sm:py-4 bg-white dark:bg-[#0F172A] border-b border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-[6px] bg-[#7950B8]/20 text-[#7950B8] border border-[#7950B8]/30 flex items-center justify-center font-bold shrink-0 glow-purple">
-              <Sparkles className="w-5 h-5 text-[#9333EA] dark:text-[#C4B5FD]" />
+            <div className="w-9 h-9 rounded-[6px] bg-[#7950B8]/10 text-[#7950B8] border border-[#7950B8]/20 flex items-center justify-center font-bold shrink-0">
+              <Sparkles className="w-5 h-5 text-[#7950B8]" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h2 id="image-studio-title" className="text-base font-semibold text-[#172033] dark:text-white truncate max-w-xs sm:max-w-md">
+                <h2 id="image-studio-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate max-w-xs sm:max-w-md">
                   {cleanTitle}
                 </h2>
 
@@ -725,7 +744,7 @@ export function ImageStudioWorkspace({
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-[#475569] dark:text-[#94A3B8] flex items-center gap-2 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
                 <span>{displayWidth} × {displayHeight} px</span>
                 <span>•</span>
                 <span>{formatBytes(displaySize)}</span>
@@ -748,14 +767,14 @@ export function ImageStudioWorkspace({
           {/* View Mode Controls & Window Actions */}
           <div className="flex items-center gap-2">
             {/* View Mode Toggle */}
-            <div className="hidden sm:flex items-center p-0.5 bg-[#F3F6FA] dark:bg-[#1E293B] rounded-[6px] border border-[#E3E7ED] dark:border-[#334155]">
+            <div className="hidden sm:flex items-center p-0.5 bg-slate-100 dark:bg-slate-800 rounded-[6px] border border-slate-200 dark:border-slate-700">
               <button
                 type="button"
                 onClick={() => setViewMode('split')}
                 className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-[4px] transition-colors ${
                   viewMode === 'split'
                     ? 'bg-white dark:bg-[#0F172A] text-[#315FEA] shadow-xs'
-                    : 'text-[#475569] hover:text-[#172033] dark:text-slate-400 dark:hover:text-white'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 }`}
                 title="Interactive Split Slider"
               >
@@ -768,7 +787,7 @@ export function ImageStudioWorkspace({
                 className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-[4px] transition-colors ${
                   viewMode === 'side-by-side'
                     ? 'bg-white dark:bg-[#0F172A] text-[#315FEA] shadow-xs'
-                    : 'text-[#475569] hover:text-[#172033] dark:text-slate-400 dark:hover:text-white'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 }`}
                 title="Side by Side Inspection"
               >
@@ -781,7 +800,7 @@ export function ImageStudioWorkspace({
                 className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-[4px] transition-colors ${
                   viewMode === 'stacked'
                     ? 'bg-white dark:bg-[#0F172A] text-[#315FEA] shadow-xs'
-                    : 'text-[#475569] hover:text-[#172033] dark:text-slate-400 dark:hover:text-white'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 }`}
                 title="Stacked Vertical Inspection"
               >
@@ -791,25 +810,25 @@ export function ImageStudioWorkspace({
             </div>
 
             {/* Zoom Controls */}
-            <div className="flex items-center bg-[#F3F6FA] dark:bg-[#1E293B] rounded-[6px] border border-[#E3E7ED] dark:border-[#334155] p-0.5">
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-[6px] border border-slate-200 dark:border-slate-700 p-0.5">
               <button
                 type="button"
                 onClick={() => setZoomLevel((prev) => Math.max(1, prev - 0.5))}
                 disabled={zoomLevel <= 1}
-                className="p-1 text-[#475569] hover:text-[#172033] dark:text-slate-400 dark:hover:text-white disabled:opacity-30 rounded-[4px]"
+                className="p-1 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white disabled:opacity-30 rounded-[4px]"
                 aria-label="Zoom out"
                 title="Zoom out"
               >
                 <ZoomOut className="w-3.5 h-3.5" />
               </button>
-              <span className="text-[11px] font-mono px-1.5 text-[#475569] dark:text-slate-300">
+              <span className="text-[11px] font-mono px-1.5 text-slate-700 dark:text-slate-300">
                 {Math.round(zoomLevel * 100)}%
               </span>
               <button
                 type="button"
                 onClick={() => setZoomLevel((prev) => Math.min(2.5, prev + 0.5))}
                 disabled={zoomLevel >= 2.5}
-                className="p-1 text-[#475569] hover:text-[#172033] dark:text-slate-400 dark:hover:text-white disabled:opacity-30 rounded-[4px]"
+                className="p-1 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white disabled:opacity-30 rounded-[4px]"
                 aria-label="Zoom in"
                 title="Zoom in"
               >
@@ -824,7 +843,7 @@ export function ImageStudioWorkspace({
               className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-[6px] border transition-colors ${
                 framingEnabled
                   ? 'bg-[#315FEA] text-white border-[#315FEA] shadow-xs'
-                  : 'bg-[#F3F6FA] dark:bg-[#1E293B] text-[#475569] dark:text-slate-400 border-[#E3E7ED] dark:border-[#334155] hover:text-[#172033] dark:hover:text-white'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white'
               }`}
               title="Preview how this photo fits inside its website slot container"
               aria-pressed={framingEnabled}
@@ -838,7 +857,7 @@ export function ImageStudioWorkspace({
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-[6px] text-[#475569] hover:text-[#172033] dark:text-slate-400 dark:hover:text-white hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]"
+              className="w-8 h-8 flex items-center justify-center rounded-[6px] text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA]"
               aria-label="Close workspace"
               title="Close workspace"
             >
@@ -848,48 +867,89 @@ export function ImageStudioWorkspace({
         </header>
 
         {/* Main Body: Left Inspection Canvas & Right Control Rail */}
-        <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden bg-[#F3F6FA] dark:bg-[#0B1220]">
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden bg-slate-50 dark:bg-[#0B1220]">
           {/* Comparison Inspection Area */}
           <div className="flex-1 min-h-[300px] flex flex-col p-3 sm:p-5 overflow-auto relative">
             <div
               ref={containerRef}
-              className="flex-1 w-full min-h-[320px] bg-[#070B12] rounded-[8px] border border-white/10 relative overflow-hidden flex items-center justify-center select-none shadow-inner"
-              onMouseDown={viewMode === 'split' ? handleMouseDown : undefined}
-              onTouchStart={viewMode === 'split' ? handleTouchStart : undefined}
-              onTouchMove={viewMode === 'split' ? handleTouchMove : undefined}
+              className="flex-1 w-full min-h-[320px] bg-slate-100 dark:bg-slate-900/60 rounded-[8px] border border-slate-200/80 dark:border-slate-800 relative overflow-hidden flex items-center justify-center select-none shadow-sm"
+              onMouseDown={viewMode === 'split' && displayedVariant ? handleMouseDown : undefined}
+              onTouchStart={viewMode === 'split' && displayedVariant ? handleTouchStart : undefined}
+              onTouchMove={viewMode === 'split' && displayedVariant ? handleTouchMove : undefined}
             >
-              {/* Ambient Creative Purple Glow Orb behind image */}
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center" aria-hidden="true">
-                <div className="w-[500px] h-[500px] rounded-full bg-[#7950B8]/15 blur-[120px] transform-gpu" />
-              </div>
-
-              {/* Processing Overlay (Screenshot 3 aligned: keep photo visible behind backdrop, reassuring copy, purple creative glow) */}
+              {/* Processing Overlay — Light backdrop keeping photo visible, reassuring copy, purple spinner */}
               {isProcessing && (
-                <div className="absolute inset-0 z-30 bg-[#0B1220]/75 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-white text-center animate-fadeIn">
-                  <div className="w-12 h-12 rounded-[6px] bg-[#7950B8]/20 border border-[#7950B8]/40 text-[#C4B5FD] flex items-center justify-center mb-3 glow-purple">
-                    <Loader2 className="w-6 h-6 animate-spin text-white" />
+                <div className="absolute inset-0 z-30 bg-white/80 dark:bg-slate-900/85 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-150">
+                  <div className="w-12 h-12 rounded-[6px] bg-[#7950B8]/10 border border-[#7950B8]/30 text-[#7950B8] flex items-center justify-center mb-3">
+                    <Loader2 className="w-6 h-6 animate-spin text-[#7950B8]" />
                   </div>
-                  <p className="text-base font-semibold tracking-wide text-white">Enhancing for Website</p>
-                  <p className="text-xs text-slate-300 mt-1.5 max-w-sm leading-relaxed">
+                  <p className="text-base font-semibold tracking-wide text-slate-900 dark:text-white">Enhancing for Website</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 max-w-sm leading-relaxed">
                     Preserving raw original photograph while calculating adaptive highlight protection, edge-preserving denoising, and web delivery optimization...
                   </p>
                 </div>
               )}
 
-              {/* View Mode: Split Slider */}
-              {viewMode === 'split' && (
+              {/* View Mode: Original Preview (Before Enhancement) */}
+              {(!displayedVariant || !enhancedUrl) ? (
+                <div
+                  className="w-full h-full relative flex items-center justify-center p-3 sm:p-6 overflow-hidden"
+                  style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }}
+                >
+                  {originalLoadError ? (
+                    <div className="flex flex-col items-center justify-center p-6 text-center text-slate-700 dark:text-slate-300">
+                      <div className="w-12 h-12 rounded-[6px] bg-rose-50 border border-rose-200 text-rose-500 flex items-center justify-center mb-3">
+                        <AlertCircle className="w-6 h-6" />
+                      </div>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">Original Photograph Unavailable</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm">
+                        The original source image could not be loaded from storage.
+                      </p>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="mt-3"
+                        onClick={() => {
+                          setOriginalLoadError(false);
+                          setRetryKey((k) => k + 1);
+                        }}
+                        leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                      >
+                        Retry Loading
+                      </Button>
+                    </div>
+                  ) : originalUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      key={`orig-${retryKey}`}
+                      src={originalUrl}
+                      alt="Original Photograph"
+                      className="max-h-full max-w-full object-contain pointer-events-none select-none rounded-[4px] shadow-sm"
+                      onError={() => setOriginalLoadError(true)}
+                    />
+                  ) : null}
+
+                  {/* Persistent Canvas Label */}
+                  <div className="absolute top-3 left-3 z-10 pointer-events-none">
+                    <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-[4px] bg-slate-900/80 text-white backdrop-blur-xs border border-white/10 shadow-xs block">
+                      Original Photograph
+                    </span>
+                  </div>
+                </div>
+              ) : viewMode === 'split' ? (
+                /* View Mode: Split Slider (When Enhanced Candidate Exists) */
                 <div
                   className="w-full h-full relative flex items-center justify-center overflow-hidden"
                   style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }}
                 >
                   {/* Under layer: Enhanced Candidate */}
-                  {displayedVariant && enhancedUrl && enhancedLoadError ? (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950 text-slate-300 select-none z-10">
-                      <div className="w-12 h-12 rounded-[6px] bg-slate-900 border border-amber-900/60 text-amber-400 flex items-center justify-center mb-3">
+                  {enhancedLoadError ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 select-none z-10">
+                      <div className="w-12 h-12 rounded-[6px] bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mb-3">
                         <AlertCircle className="w-6 h-6" />
                       </div>
-                      <p className="text-sm font-semibold text-white">Enhanced Candidate Preview Unavailable</p>
-                      <p className="text-xs text-slate-400 mt-1 max-w-sm leading-relaxed">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">Enhanced Candidate Preview Unavailable</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm leading-relaxed">
                         Unable to load the processed candidate preview from storage. You can retry loading or re-run the enhancement.
                       </p>
                       <div className="flex items-center gap-2 mt-3">
@@ -915,7 +975,7 @@ export function ImageStudioWorkspace({
                         </Button>
                       </div>
                     </div>
-                  ) : displayedVariant && enhancedUrl ? (
+                  ) : (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       key={`enhanced-${retryKey}`}
@@ -924,28 +984,16 @@ export function ImageStudioWorkspace({
                       className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
                       onError={() => setEnhancedLoadError(true)}
                     />
-                  ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950 text-slate-400 select-none">
-                      <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-3">
-                        <Sparkles className="w-6 h-6" />
-                      </div>
-                      <p className="text-sm font-semibold text-slate-200">
-                        Enhancement Pending
-                      </p>
-                      <p className="text-xs text-slate-400 mt-1 max-w-sm leading-relaxed">
-                        Click &quot;Enhance for Website&quot; in the control rail to generate an optimized candidate for preview.
-                      </p>
-                    </div>
                   )}
 
                   {/* Over layer: Original Image (Clipped via clipPath) */}
                   {originalLoadError ? (
-                    <div className="absolute inset-0 z-25 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center text-slate-300">
-                      <div className="w-12 h-12 rounded-[6px] bg-slate-900 border border-rose-900/60 text-rose-400 flex items-center justify-center mb-3">
+                    <div className="absolute inset-0 z-25 bg-slate-50/95 dark:bg-slate-900/95 flex flex-col items-center justify-center p-6 text-center text-slate-700 dark:text-slate-300">
+                      <div className="w-12 h-12 rounded-[6px] bg-rose-50 border border-rose-200 text-rose-500 flex items-center justify-center mb-3">
                         <AlertCircle className="w-6 h-6" />
                       </div>
-                      <p className="text-sm font-semibold text-white">Original Photograph Unavailable</p>
-                      <p className="text-xs text-slate-400 mt-1 max-w-sm leading-relaxed">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">Original Photograph Unavailable</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm leading-relaxed">
                         The original source image could not be loaded from storage.
                       </p>
                       <Button
@@ -975,13 +1023,13 @@ export function ImageStudioWorkspace({
                     />
                   ) : null}
 
-                  {/* Divider Line & Glowing Draggable Handle */}
+                  {/* Divider Line & Handle */}
                   {!originalLoadError && (
                     <div
                       className="absolute top-0 bottom-0 z-20 pointer-events-none flex items-center justify-center"
                       style={{ left: `${splitPos}%` }}
                     >
-                      <div className="w-0.5 h-full bg-white shadow-[0_0_12px_rgba(121,80,184,0.8),0_0_4px_#ffffff]" />
+                      <div className="w-0.5 h-full bg-white shadow-[0_0_8px_rgba(121,80,184,0.6),0_0_2px_#ffffff]" />
                       <div
                         role="slider"
                         tabIndex={0}
@@ -990,7 +1038,7 @@ export function ImageStudioWorkspace({
                         aria-valuemin={0}
                         aria-valuemax={100}
                         onKeyDown={handleSliderKeyDown}
-                        className="pointer-events-auto touch-none absolute w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white text-[#7950B8] shadow-lg border-2 border-[#7950B8] flex items-center justify-center cursor-ew-resize hover:scale-110 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7950B8] glow-purple before:absolute before:-inset-3 before:content-['']"
+                        className="pointer-events-auto touch-none absolute w-8 h-8 rounded-full bg-white text-[#7950B8] shadow-md border-2 border-[#7950B8] flex items-center justify-center cursor-ew-resize hover:scale-105 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7950B8]"
                       >
                         <SplitSquareVertical className="w-4 h-4 text-[#7950B8]" />
                       </div>
@@ -999,17 +1047,17 @@ export function ImageStudioWorkspace({
 
                   {/* Persistent Canvas Labels */}
                   <div className="absolute top-3 left-3 z-10 pointer-events-none max-w-[45%]">
-                    <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-[4px] bg-[#172033]/80 text-white backdrop-blur-xs border border-white/10 shadow-xs block truncate">
+                    <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-[4px] bg-slate-900/80 text-white backdrop-blur-xs border border-white/10 shadow-xs block truncate">
                       <span className="hidden sm:inline">BEFORE · </span>Original
                     </span>
                   </div>
                   <div className="absolute top-3 right-3 z-10 pointer-events-none max-w-[45%] text-right">
                     <span className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-[4px] bg-[#315FEA]/90 text-white backdrop-blur-xs border border-white/20 shadow-xs inline-block truncate max-w-full">
-                      <span className="hidden sm:inline">AFTER · </span>{displayedVariant ? 'Enhanced' : 'Pending'}
+                      <span className="hidden sm:inline">AFTER · </span>Enhanced
                     </span>
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* View Mode: Side by Side */}
               {viewMode === 'side-by-side' && (
@@ -1017,19 +1065,19 @@ export function ImageStudioWorkspace({
                   className="w-full h-full grid grid-cols-1 md:grid-cols-2 gap-3 p-3"
                   style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }}
                 >
-                  <div className="relative rounded-[6px] bg-slate-950 overflow-hidden flex items-center justify-center border border-slate-800">
+                  <div className="relative rounded-[6px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-800">
                     <div className="absolute top-3 left-3 z-10">
-                      <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#172033]/85 text-white border border-white/10">
+                      <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-slate-900/80 text-white border border-white/10">
                         BEFORE · Original
                       </span>
                     </div>
                     {originalLoadError ? (
-                      <div className="flex flex-col items-center justify-center p-6 text-center text-slate-300">
-                        <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-rose-900/60 text-rose-400 flex items-center justify-center mb-2.5">
+                      <div className="flex flex-col items-center justify-center p-6 text-center text-slate-700 dark:text-slate-300">
+                        <div className="w-10 h-10 rounded-[6px] bg-rose-50 border border-rose-200 text-rose-500 flex items-center justify-center mb-2.5">
                           <AlertCircle className="w-5 h-5" />
                         </div>
-                        <p className="text-xs font-semibold text-white">Original Unavailable</p>
-                        <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white">Original Unavailable</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 max-w-xs leading-relaxed">
                           Could not load original photograph from storage.
                         </p>
                         <Button
@@ -1057,14 +1105,14 @@ export function ImageStudioWorkspace({
                     )}
                   </div>
 
-                  <div className="relative rounded-[6px] bg-slate-950 overflow-hidden flex items-center justify-center border border-[#315FEA]/30">
+                  <div className="relative rounded-[6px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center border border-[#315FEA]/30">
                     {displayedVariant && enhancedUrl && enhancedLoadError ? (
-                      <div className="flex flex-col items-center justify-center p-6 text-center text-slate-300">
-                        <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-amber-900/60 text-amber-400 flex items-center justify-center mb-2.5">
+                      <div className="flex flex-col items-center justify-center p-6 text-center text-slate-700 dark:text-slate-300">
+                        <div className="w-10 h-10 rounded-[6px] bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mb-2.5">
                           <AlertCircle className="w-5 h-5" />
                         </div>
-                        <p className="text-xs font-semibold text-white">Enhanced Preview Unavailable</p>
-                        <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white">Enhanced Preview Unavailable</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 max-w-xs leading-relaxed">
                           Failed to load processed candidate preview from storage.
                         </p>
                         <div className="flex items-center gap-2 mt-2.5">
@@ -1106,19 +1154,7 @@ export function ImageStudioWorkspace({
                           onError={() => setEnhancedLoadError(true)}
                         />
                       </>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center p-6 text-center max-w-xs text-slate-400">
-                        <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-2.5">
-                          <Sparkles className="w-5 h-5" />
-                        </div>
-                        <span className="text-xs font-semibold text-slate-300">
-                          Enhancement Pending
-                        </span>
-                        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                          Click &quot;Enhance for Website&quot; in the sidebar to process and preview this candidate.
-                        </p>
-                      </div>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               )}
@@ -1129,19 +1165,19 @@ export function ImageStudioWorkspace({
                   className="w-full h-full flex flex-col gap-3 p-3 overflow-auto"
                   style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }}
                 >
-                  <div className="relative min-h-[220px] flex-1 rounded-[6px] bg-slate-950 overflow-hidden flex items-center justify-center border border-slate-800">
+                  <div className="relative min-h-[220px] flex-1 rounded-[6px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-800">
                     <div className="absolute top-3 left-3 z-10">
-                      <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#172033]/85 text-white border border-white/10">
+                      <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-slate-900/80 text-white border border-white/10">
                         BEFORE · Original
                       </span>
                     </div>
                     {originalLoadError ? (
-                      <div className="flex flex-col items-center justify-center p-6 text-center text-slate-300">
-                        <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-rose-900/60 text-rose-400 flex items-center justify-center mb-2.5">
+                      <div className="flex flex-col items-center justify-center p-6 text-center text-slate-700 dark:text-slate-300">
+                        <div className="w-10 h-10 rounded-[6px] bg-rose-50 border border-rose-200 text-rose-500 flex items-center justify-center mb-2.5">
                           <AlertCircle className="w-5 h-5" />
                         </div>
-                        <p className="text-xs font-semibold text-white">Original Unavailable</p>
-                        <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white">Original Unavailable</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 max-w-xs leading-relaxed">
                           Could not load original photograph from storage.
                         </p>
                         <Button
@@ -1169,14 +1205,14 @@ export function ImageStudioWorkspace({
                     )}
                   </div>
 
-                  <div className="relative min-h-[220px] flex-1 rounded-[6px] bg-slate-950 overflow-hidden flex items-center justify-center border border-[#315FEA]/30">
+                  <div className="relative min-h-[220px] flex-1 rounded-[6px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center border border-[#315FEA]/30">
                     {displayedVariant && enhancedUrl && enhancedLoadError ? (
-                      <div className="flex flex-col items-center justify-center p-6 text-center text-slate-300">
-                        <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-amber-900/60 text-amber-400 flex items-center justify-center mb-2.5">
+                      <div className="flex flex-col items-center justify-center p-6 text-center text-slate-700 dark:text-slate-300">
+                        <div className="w-10 h-10 rounded-[6px] bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mb-2.5">
                           <AlertCircle className="w-6 h-6" />
                         </div>
-                        <p className="text-xs font-semibold text-white">Enhanced Preview Unavailable</p>
-                        <p className="text-[11px] text-slate-400 mt-1 max-w-xs leading-relaxed">
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white">Enhanced Preview Unavailable</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 max-w-xs leading-relaxed">
                           Failed to load processed candidate preview from storage.
                         </p>
                         <div className="flex items-center gap-2 mt-2.5">
@@ -1218,19 +1254,7 @@ export function ImageStudioWorkspace({
                           onError={() => setEnhancedLoadError(true)}
                         />
                       </>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center p-6 text-center max-w-xs text-slate-400">
-                        <div className="w-10 h-10 rounded-[6px] bg-slate-900 border border-slate-800 text-[#315FEA] flex items-center justify-center mb-2.5">
-                          <Sparkles className="w-5 h-5" />
-                        </div>
-                        <span className="text-xs font-semibold text-slate-300">
-                          Enhancement Pending
-                        </span>
-                        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                          Click &quot;Enhance for Website&quot; in the sidebar to process and preview this candidate.
-                        </p>
-                      </div>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               )}
@@ -1323,8 +1347,8 @@ export function ImageStudioWorkspace({
             )}
           </div>
 
-          {/* Right Control Rail: Simplified 3-Step Information Hierarchy */}
-          <aside className="w-full lg:w-96 glass-panel border-t lg:border-t-0 lg:border-l border-white/60 dark:border-white/10 flex flex-col shrink-0 overflow-y-auto [scrollbar-gutter:stable]">
+          {/* Right Control Rail: Clean white/neutral panel */}
+          <aside className="w-full lg:w-96 bg-white dark:bg-[#0F172A] border-t lg:border-t-0 lg:border-l border-slate-200/90 dark:border-slate-800 flex flex-col shrink-0 overflow-y-auto [scrollbar-gutter:stable]">
             <div className="p-5 flex flex-col gap-5">
 
               {/* Status Feedback in Sidebar (Canvas layout remains rock-solid) */}
@@ -1602,15 +1626,15 @@ export function ImageStudioWorkspace({
               ) : (
                 /* STATE A: Original Image Only (Default) */
                 <div className="space-y-4">
-                  <div className="p-4 bg-[#F8FAFC] dark:bg-[#1E293B]/70 rounded-[8px] border border-[#7950B8]/20 dark:border-[#7950B8]/30 space-y-3">
+                  <div className="p-4 bg-slate-50 dark:bg-slate-900/60 rounded-[8px] border border-slate-200/80 dark:border-slate-800 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-[#172033] dark:text-white flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-[#7950B8]" />
                         <span>Enhance for Website</span>
                       </h3>
                     </div>
 
-                    <p className="text-xs text-[#475569] dark:text-[#94A3B8] leading-relaxed">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                       Improve lighting, clarity and presentation while keeping your original photo safe.
                     </p>
 
@@ -1618,7 +1642,7 @@ export function ImageStudioWorkspace({
                       type="button"
                       disabled={isProcessing}
                       onClick={handleRunEnhancement}
-                      className="w-full justify-center font-semibold text-xs py-2.5 px-4 rounded-[6px] inline-flex items-center gap-2 bg-gradient-to-r from-[#7950B8] to-[#6038A0] text-white shadow-md shadow-[#7950B8]/25 hover:from-[#6b42a8] hover:to-[#532e90] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
+                      className="image-studio-enhance-button w-full justify-center font-semibold text-xs py-2.5 px-4 rounded-[6px] inline-flex items-center gap-2 select-none active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
                     >
                       {isProcessing ? (
                         <>
@@ -1633,7 +1657,7 @@ export function ImageStudioWorkspace({
                       )}
                     </button>
 
-                    <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8] text-center flex items-center justify-center gap-1.5 pt-1">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center flex items-center justify-center gap-1.5 pt-1">
                       <ShieldCheck className="w-3.5 h-3.5 text-[#15803D] shrink-0" />
                       <span>Original photograph is immutable and never overwritten.</span>
                     </p>
@@ -1691,6 +1715,7 @@ export function ImageStudioWorkspace({
           </aside>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
