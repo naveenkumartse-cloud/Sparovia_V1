@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 export type ButtonVariant =
   | 'primary'
   | 'cobalt'
+  | 'creative'
+  | 'purple'
   | 'enhance'
   | 'studio'
   | 'secondary'
@@ -50,27 +52,31 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles: Record<ButtonVariant, string> = {
       primary:
-        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent',
+        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent',
       cobalt:
-        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent',
+        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent',
+      creative:
+        'bg-[#7950B8] hover:bg-[#6820AB] active:bg-[#53198A] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#7950B8] border border-transparent',
+      purple:
+        'bg-[#7950B8] hover:bg-[#6820AB] active:bg-[#53198A] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#7950B8] border border-transparent',
       enhance:
-        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-xs focus:ring-[#1D4ED8] border border-transparent',
+        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-soft-xs focus:ring-[#1D4ED8] border border-transparent',
       studio:
-        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent transition-colors duration-200 motion-reduce:transition-none',
+        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent transition-colors duration-200 motion-reduce:transition-none',
       secondary:
-        'bg-[#F3F6FA] hover:bg-[#E3E7ED] dark:bg-[#1E293B] dark:hover:bg-[#334155] text-[#172033] dark:text-slate-100 border border-[#E3E7ED] dark:border-[#334155] focus:ring-[#1D4ED8]',
+        'bg-[#F3F6FA] hover:bg-[#E3E7ED] dark:bg-[#1E293B] dark:hover:bg-[#334155] text-[#172033] dark:text-slate-100 border border-[#CBD5E1] dark:border-[#334155] focus:ring-[#1D4ED8] shadow-soft-xs',
       outline:
-        'bg-white dark:bg-[#0F172A] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] text-[#172033] dark:text-slate-200 border border-[#CBD5E1] dark:border-[#334155] focus:ring-[#1D4ED8] shadow-xs',
+        'bg-white dark:bg-[#0F172A] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] text-[#172033] dark:text-slate-200 border border-[#CBD5E1] dark:border-[#334155] focus:ring-[#1D4ED8] shadow-soft-xs',
       ghost:
         'bg-transparent hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] text-[#475569] hover:text-[#172033] dark:text-slate-400 dark:hover:text-white focus:ring-[#1D4ED8]',
       danger:
-        'bg-[#B91C1C] hover:bg-[#991B1B] active:bg-[#7F1D1D] text-white shadow-xs focus:ring-[#B91C1C] border border-transparent',
+        'bg-[#B91C1C] hover:bg-[#991B1B] active:bg-[#7F1D1D] text-white shadow-soft-xs focus:ring-[#B91C1C] border border-transparent',
       destructive:
-        'bg-[#B91C1C] hover:bg-[#991B1B] active:bg-[#7F1D1D] text-white shadow-xs focus:ring-[#B91C1C] border border-transparent',
+        'bg-[#B91C1C] hover:bg-[#991B1B] active:bg-[#7F1D1D] text-white shadow-soft-xs focus:ring-[#B91C1C] border border-transparent',
       'destructive-outline':
         'bg-white dark:bg-[#0F172A] hover:bg-rose-50 dark:hover:bg-rose-950/30 text-[#B91C1C] dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 focus:ring-[#B91C1C]',
       success:
-        'bg-[#15803D] hover:bg-[#166534] active:bg-[#14532D] text-white shadow-xs focus:ring-[#15803D] border border-transparent',
+        'bg-[#15803D] hover:bg-[#166534] active:bg-[#14532D] text-white shadow-soft-xs focus:ring-[#15803D] border border-transparent',
       link:
         'bg-transparent hover:bg-transparent text-[#315FEA] hover:text-[#254EDB] dark:text-[#315FEA] dark:hover:text-[#254EDB] underline-offset-4 hover:underline p-0 h-auto font-medium focus:ring-0',
     };
@@ -105,16 +111,16 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <span className="inline-flex items-center justify-center gap-2">
+          <>
             <Loader2 className="w-4 h-4 animate-spin shrink-0" aria-hidden="true" />
-            <span>{loadingText || children || 'Please wait...'}</span>
-          </span>
+            {loadingText ? <span>{loadingText}</span> : children}
+          </>
         ) : (
-          <span className="inline-flex items-center justify-center gap-1.5">
-            {leftIcon && <span className="shrink-0 inline-flex items-center">{leftIcon}</span>}
-            {children && <span className="inline-flex items-center">{children}</span>}
-            {rightIcon && <span className="shrink-0 inline-flex items-center">{rightIcon}</span>}
-          </span>
+          <>
+            {leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>}
+            {children}
+            {rightIcon && <span className="inline-flex shrink-0">{rightIcon}</span>}
+          </>
         )}
       </button>
     );

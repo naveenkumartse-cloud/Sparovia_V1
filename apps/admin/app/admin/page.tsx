@@ -6,8 +6,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DashboardSkeleton } from '@/components/ui/Skeleton';
 import { Badge } from '@/components/ui/Badge';
-import { Card } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { 
   Building2, 
   Laptop2, 
@@ -16,8 +17,11 @@ import {
   CheckCircle2, 
   Clock, 
   FileEdit,
-  ShieldCheck,
-  Image as ImageIcon
+  ShieldCheck, 
+  Image as ImageIcon,
+  Sparkles,
+  ExternalLink,
+  ChevronRight
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -57,193 +61,228 @@ export default function AdminDashboard() {
   const isConfirmed = contextSummary?.isConfirmed ?? false;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* Welcome Banner */}
-      <Card variant="default" className="p-4 sm:p-6 lg:p-8 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div className="min-w-0">
-            <Badge variant="cobalt" size="sm" icon={<ShieldCheck className="w-3.5 h-3.5" />} className="mb-3">
-              Authenticated Workspace
-            </Badge>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#172033] dark:text-white tracking-tight">
-              Welcome back, {user?.fullName || 'Business Owner'}
-            </h1>
-            <p className="text-sm text-[#475569] dark:text-[#94A3B8] mt-1 break-all">
-              Tenant context: <span className="font-mono text-slate-700 dark:text-[#CBD5E1] break-all">{user?.tenantId}</span>
-            </p>
-          </div>
+    <div className="space-y-8">
+      {/* Screen PageHeader with Workspace Context */}
+      <PageHeader
+        category="Operational Command Center"
+        title={`Welcome back, ${user?.fullName || 'Business Owner'}`}
+        badge={
+          <Badge variant="cobalt" size="sm" icon={<ShieldCheck className="w-3.5 h-3.5" />}>
+            Authenticated Workspace
+          </Badge>
+        }
+        description={
+          <span>
+            Connected workspace ID:{' '}
+            <span className="font-mono text-[#172033] dark:text-[#CBD5E1] font-semibold break-all">
+              {user?.tenantId || 'Sparovia Platform'}
+            </span>
+          </span>
+        }
+        actions={
+          <Link
+            href={isConfirmed ? "/admin/business-context" : "/admin/onboarding/business-basics"}
+            className="inline-flex items-center justify-center w-full sm:w-auto h-10 min-h-[40px] px-5 rounded-[6px] text-sm font-semibold text-white bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] transition-all shadow-soft-xs"
+          >
+            <span>{isConfirmed ? 'Review Business Facts' : 'Complete Onboarding'}</span>
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        }
+      />
 
-          <div className="shrink-0 w-full sm:w-auto">
-            <Link
-              href={isConfirmed ? "/admin/business-context" : "/admin/onboarding/business-basics"}
-              className="inline-flex items-center justify-center w-full sm:w-auto h-10 min-h-[40px] px-5 rounded-[6px] text-sm font-semibold text-white bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] transition-all shadow-xs"
-            >
-              {isConfirmed ? 'Manage Business Context' : 'Complete Onboarding'}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </Card>
-
-      {/* Grid of Key Status Cards (3-column responsive grid) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Business Context Card */}
-        <Card variant="default" className="p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 border border-[#315FEA]/20 flex items-center justify-center text-[#315FEA]">
-                <Building2 className="w-5 h-5" />
+      {/* Primary Operational Pillars (4-card responsive grid: 1 col on mobile, 2 on tablet, 4 on desktop) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Card 1: Business Context */}
+        <Link href="/admin/business-context" className="block focus:outline-none">
+          <Card variant="interactive" className="h-full flex flex-col justify-between p-5">
+            <div>
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 border border-[#315FEA]/20 flex items-center justify-center text-[#315FEA]">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                {isConfirmed ? (
+                  <Badge variant="success" size="xs" icon={<CheckCircle2 className="w-3 h-3 shrink-0" />}>
+                    Approved
+                  </Badge>
+                ) : (
+                  <Badge variant="warning" size="xs" icon={<Clock className="w-3 h-3 shrink-0" />}>
+                    Pending
+                  </Badge>
+                )}
               </div>
-              {isConfirmed ? (
-                <Badge variant="success" size="xs" icon={<CheckCircle2 className="w-3.5 h-3.5 shrink-0" />}>
-                  Approved
-                </Badge>
-              ) : (
-                <Badge variant="warning" size="xs" icon={<Clock className="w-3.5 h-3.5 shrink-0" />}>
-                  Pending
-                </Badge>
-              )}
+              <h2 className="text-base font-bold text-[#172033] dark:text-white">Business Context</h2>
+              <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1.5 leading-relaxed">
+                {isConfirmed 
+                  ? 'Approved identity, services, and differentiators grounded in trusted facts.' 
+                  : 'Establish approved business facts and credentials to guide platform workflows.'}
+              </p>
             </div>
-            <h2 className="text-base font-bold text-[#172033] dark:text-white">Business Context</h2>
-            <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
-              {isConfirmed 
-                ? 'Your approved facts, services, and differentiators are locked and trusted.' 
-                : 'Complete the onboarding steps to establish your trusted business facts.'}
-            </p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-[#E3E7ED] dark:border-[#1E293B]">
-            <Link 
-              href="/admin/business-context" 
-              className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
-            >
-              Review facts <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </Card>
+            <div className="mt-5 pt-3.5 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-between text-xs font-semibold text-[#315FEA]">
+              <span>Manage context</span>
+              <ChevronRight className="w-4 h-4" />
+            </div>
+          </Card>
+        </Link>
 
-        {/* Website Content Card */}
-        <Card variant="default" className="p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-[6px] bg-[#7950B8]/10 border border-[#7950B8]/20 flex items-center justify-center text-[#7950B8]">
-                <Laptop2 className="w-5 h-5" />
+        {/* Card 2: Connected Website Content */}
+        <Link href="/admin/content" className="block focus:outline-none">
+          <Card variant="interactive" className="h-full flex flex-col justify-between p-5">
+            <div>
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="w-10 h-10 rounded-[6px] bg-[#7950B8]/10 border border-[#7950B8]/20 flex items-center justify-center text-[#7950B8]">
+                  <Laptop2 className="w-5 h-5" />
+                </div>
+                <Badge variant="purple" size="xs">
+                  Active
+                </Badge>
               </div>
-              <Badge variant="brand" size="xs">
-                Connected
-              </Badge>
+              <h2 className="text-base font-bold text-[#172033] dark:text-white">Website Content</h2>
+              <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1.5 leading-relaxed">
+                Maintain supported website copy with AI assistance and explicit publishing control.
+              </p>
             </div>
-            <h2 className="text-base font-bold text-[#172033] dark:text-white">Connected Website</h2>
-            <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
-              Manage supported website sections and copy with AI assistance inside controlled boundaries.
-            </p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-[#E3E7ED] dark:border-[#1E293B]">
-            <Link 
-              href="/admin/content" 
-              className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
-            >
-              Manage content <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </Card>
+            <div className="mt-5 pt-3.5 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-between text-xs font-semibold text-[#315FEA]">
+              <span>Manage content</span>
+              <ChevronRight className="w-4 h-4" />
+            </div>
+          </Card>
+        </Link>
 
-        {/* Leads Intake Card */}
-        <Card variant="default" className="p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 border border-[#315FEA]/20 flex items-center justify-center text-[#315FEA]">
-                <Users className="w-5 h-5" />
+        {/* Card 3: Images & Image Studio */}
+        <Link href="/admin/images" className="block focus:outline-none">
+          <Card variant="interactive" className="h-full flex flex-col justify-between p-5">
+            <div>
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="w-10 h-10 rounded-[6px] bg-[#7950B8]/10 border border-[#7950B8]/20 flex items-center justify-center text-[#7950B8]">
+                  <ImageIcon className="w-5 h-5" />
+                </div>
+                <Badge variant="purple" size="xs">
+                  Creative Studio
+                </Badge>
               </div>
-              {newLeadsCount !== null && newLeadsCount > 0 ? (
-                <Badge variant="success" size="xs">
-                  {newLeadsCount} New {newLeadsCount === 1 ? 'Lead' : 'Leads'}
-                </Badge>
-              ) : (
-                <Badge variant="neutral" size="xs">
-                  Intake Active
-                </Badge>
-              )}
+              <h2 className="text-base font-bold text-[#172033] dark:text-white">Images &amp; Portfolio</h2>
+              <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1.5 leading-relaxed">
+                Showcase work photos and hero images with single-action enhancement and human review.
+              </p>
             </div>
-            <h2 className="text-base font-bold text-[#172033] dark:text-white">Customer Leads</h2>
-            <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
-              Direct inquiries submitted through your connected website contact form.
-            </p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-[#E3E7ED] dark:border-[#1E293B]">
-            <Link 
-              href="/admin/leads" 
-              className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
-            >
-              View lead list <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </Card>
+            <div className="mt-5 pt-3.5 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-between text-xs font-semibold text-[#315FEA]">
+              <span>Open gallery</span>
+              <ChevronRight className="w-4 h-4" />
+            </div>
+          </Card>
+        </Link>
+
+        {/* Card 4: Customer Leads */}
+        <Link href="/admin/leads" className="block focus:outline-none">
+          <Card variant="interactive" className="h-full flex flex-col justify-between p-5">
+            <div>
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 border border-[#315FEA]/20 flex items-center justify-center text-[#315FEA]">
+                  <Users className="w-5 h-5" />
+                </div>
+                {newLeadsCount !== null && newLeadsCount > 0 ? (
+                  <Badge variant="success" size="xs">
+                    {newLeadsCount} New {newLeadsCount === 1 ? 'Lead' : 'Leads'}
+                  </Badge>
+                ) : (
+                  <Badge variant="neutral" size="xs">
+                    Intake Ready
+                  </Badge>
+                )}
+              </div>
+              <h2 className="text-base font-bold text-[#172033] dark:text-white">Customer Leads</h2>
+              <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1.5 leading-relaxed">
+                Direct customer inquiries received from website forms and connected channels.
+              </p>
+            </div>
+            <div className="mt-5 pt-3.5 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-between text-xs font-semibold text-[#315FEA]">
+              <span>Review leads</span>
+              <ChevronRight className="w-4 h-4" />
+            </div>
+          </Card>
+        </Link>
       </div>
 
-      {/* Quick Action Guidance Panel */}
-      <Card variant="default" className="p-6">
-        <h2 className="text-sm font-semibold text-[#172033] dark:text-white mb-4">Recommended Next Steps</h2>
-        <div className="space-y-3">
-          <div className="flex items-start justify-between p-3.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200/80 dark:border-[#1E293B] rounded-[6px]">
-            <div className="flex items-start space-x-3">
-              <div className="p-1.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] shrink-0 mt-0.5">
+      {/* Recommended Next Actions / Operational Guidance */}
+      <Card variant="default">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Recommended Operational Next Steps</CardTitle>
+              <CardDescription>
+                Actionable milestones to ensure your business presence remains authoritative and active.
+              </CardDescription>
+            </div>
+            <Badge variant="cobalt" size="xs">Priority</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-start justify-between p-4 bg-[#F3F6FA]/70 dark:bg-[#0B1220] border border-[#E3E7ED] dark:border-[#1E293B] rounded-[6px] gap-4">
+            <div className="flex items-start space-x-3.5 min-w-0">
+              <div className="p-2 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] shrink-0 mt-0.5">
                 <FileEdit className="w-4 h-4" />
               </div>
-              <div>
-                <p className="text-xs font-medium text-slate-900 dark:text-white">Step 1: Confirm Business Context</p>
-                <p className="text-[11px] text-slate-500 dark:text-[#94A3B8] mt-0.5">
-                  Verify business categories, address, services, and approved factual credentials.
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-semibold text-[#172033] dark:text-white">
+                  Step 1: Confirm Business Context
+                </p>
+                <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-0.5 leading-relaxed">
+                  Verify business categories, physical address, services, and approved factual credentials.
                 </p>
               </div>
             </div>
             <Link 
               href="/admin/business-context" 
-              className="text-xs text-[#315FEA] hover:text-[#254EDB] font-medium shrink-0 ml-4"
+              className="text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] shrink-0 self-center px-3 py-1.5 rounded-[4px] hover:bg-[#315FEA]/10 transition-colors"
             >
               Open
             </Link>
           </div>
 
-          <div className="flex items-start justify-between p-3.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200/80 dark:border-[#1E293B] rounded-[6px]">
-            <div className="flex items-start space-x-3">
-              <div className="p-1.5 rounded-[4px] bg-[#7950B8]/10 text-[#7950B8] shrink-0 mt-0.5">
+          <div className="flex items-start justify-between p-4 bg-[#F3F6FA]/70 dark:bg-[#0B1220] border border-[#E3E7ED] dark:border-[#1E293B] rounded-[6px] gap-4">
+            <div className="flex items-start space-x-3.5 min-w-0">
+              <div className="p-2 rounded-[4px] bg-[#7950B8]/10 text-[#7950B8] shrink-0 mt-0.5">
                 <Laptop2 className="w-4 h-4" />
               </div>
-              <div>
-                <p className="text-xs font-medium text-slate-900 dark:text-white">Step 2: Connect &amp; Review Website Content</p>
-                <p className="text-[11px] text-slate-500 dark:text-[#94A3B8] mt-0.5">
-                  Ensure supported sections match your active services and differentiators.
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-semibold text-[#172033] dark:text-white">
+                  Step 2: Connect &amp; Review Website Content
+                </p>
+                <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-0.5 leading-relaxed">
+                  Ensure supported sections match your active services and business differentiators.
                 </p>
               </div>
             </div>
             <Link 
               href="/admin/content" 
-              className="text-xs text-[#315FEA] hover:text-[#254EDB] font-medium shrink-0 ml-4"
+              className="text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] shrink-0 self-center px-3 py-1.5 rounded-[4px] hover:bg-[#315FEA]/10 transition-colors"
             >
               Open
             </Link>
           </div>
 
-          <div className="flex items-start justify-between p-3.5 bg-slate-50 dark:bg-[#0B1220] border border-slate-200/80 dark:border-[#1E293B] rounded-[6px]">
-            <div className="flex items-start space-x-3">
-              <div className="p-1.5 rounded-[4px] bg-[#15803D]/10 text-[#15803D] shrink-0 mt-0.5">
+          <div className="flex items-start justify-between p-4 bg-[#F3F6FA]/70 dark:bg-[#0B1220] border border-[#E3E7ED] dark:border-[#1E293B] rounded-[6px] gap-4">
+            <div className="flex items-start space-x-3.5 min-w-0">
+              <div className="p-2 rounded-[4px] bg-[#15803D]/10 text-[#15803D] shrink-0 mt-0.5">
                 <ImageIcon className="w-4 h-4" />
               </div>
-              <div>
-                <p className="text-xs font-medium text-slate-900 dark:text-white">Step 3: Manage Website &amp; Portfolio Images</p>
-                <p className="text-[11px] text-slate-500 dark:text-[#94A3B8] mt-0.5">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-semibold text-[#172033] dark:text-white">
+                  Step 3: Manage Website &amp; Portfolio Images
+                </p>
+                <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-0.5 leading-relaxed">
                   Upload genuine hero and showcase work photos with image enhancement and web optimization.
                 </p>
               </div>
             </div>
             <Link 
               href="/admin/images" 
-              className="text-xs text-[#315FEA] hover:text-[#254EDB] font-medium shrink-0 ml-4"
+              className="text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] shrink-0 self-center px-3 py-1.5 rounded-[4px] hover:bg-[#315FEA]/10 transition-colors"
             >
               Open
             </Link>
           </div>
-        </div>
+        </CardContent>
       </Card>
     </div>
   );

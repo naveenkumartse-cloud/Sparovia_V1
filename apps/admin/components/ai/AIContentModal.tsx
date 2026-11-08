@@ -498,17 +498,10 @@ export function AIContentModal({
           if (aiSuggestion) {
             return (
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
-                {/* Quiet provider indicator in footer */}
-                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
-                  <span>AI Connected:</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">
-                    {aiConnection.providerDisplayName || aiConnection.providerKey}
-                  </span>
-                  {aiConnection.selectedModelDisplayName && (
-                    <span className="text-[11px] text-slate-400">
-                      ({aiConnection.selectedModelDisplayName})
-                    </span>
-                  )}
+                {/* Client-safe trusted indicator in footer */}
+                <div className="flex items-center gap-1.5 text-xs text-[#7950B8] font-semibold">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Business Context Grounded AI</span>
                 </div>
 
                 <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5">
@@ -539,7 +532,7 @@ export function AIContentModal({
 
                   <Button
                     type="button"
-                    variant="primary"
+                    variant="creative"
                     size="sm"
                     onClick={handleAcceptAiSuggestion}
                     isLoading={isAcceptingAi}
@@ -551,7 +544,7 @@ export function AIContentModal({
                       isRejectingAi
                     }
                     leftIcon={<Check className="w-3.5 h-3.5 text-white" />}
-                    className="w-full sm:w-auto justify-center whitespace-nowrap bg-[#315FEA] hover:bg-[#254EDB] text-white"
+                    className="w-full sm:w-auto justify-center whitespace-nowrap shadow-soft-xs"
                   >
                     Apply to Draft
                   </Button>

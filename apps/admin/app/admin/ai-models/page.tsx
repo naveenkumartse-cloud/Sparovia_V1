@@ -24,6 +24,8 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { toast } from '@/components/ui/Toast';
@@ -347,18 +349,15 @@ export default function AiConnectionsPage() {
 
   return (
     <div className="max-w-4xl mx-auto pb-20 space-y-6 animate-in fade-in duration-150">
-      {/* 1. Page Header */}
-      <div>
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            AI Connections
-          </h1>
+      {/* 1. Standardized Canonical Page Header */}
+      <PageHeader
+        category="Platform Intelligence"
+        title="AI Connections"
+        description="Manage your AI provider credentials and model selection. Your single AI configuration powers both website content refinement and image quality enhancement."
+        badge={
           <InfoTooltip content="Connect an approved external AI provider (OpenAI, Google Gemini, Anthropic Claude) using your account API credential. A single active AI connection powers both Content AI assistance and Image Enhancement workflows when a compatible model is selected." />
-        </div>
-        <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1 leading-relaxed">
-          Manage your AI provider credentials and model selection. Your single AI configuration powers both website content refinement and image quality enhancement.
-        </p>
-      </div>
+        }
+      />
 
       {/* Main Content Area */}
       {loading ? (
@@ -1101,14 +1100,20 @@ export default function AiConnectionsPage() {
         </div>
       </Modal>
 
-      {/* DISCONNECT CONFIRMATION MODAL */}
-      <Modal
+      {/* STANDARDIZED DISCONNECT CONFIRMATION DIALOG */}
+      <ConfirmationDialog
         isOpen={isDisconnectModalOpen}
         onClose={() => setIsDisconnectModalOpen(false)}
+        onConfirm={handleDisconnect}
         title="Disconnect AI Provider?"
-        description="Confirm disconnecting your external AI account"
+        description={`Confirm disconnecting your ${connection?.providerDisplayName || 'AI'} provider account.`}
+        confirmLabel="Disconnect Provider"
+        cancelLabel="Cancel"
+        variant="destructive"
+        isLoading={disconnecting}
+        loadingText="Disconnecting..."
       >
-        <div className="space-y-4">
+        <div className="space-y-3">
           <p className="text-xs text-slate-600 dark:text-[#CBD5E1] leading-relaxed">
             Are you sure you want to disconnect <strong>{connection?.providerDisplayName || 'your provider'}</strong>?
           </p>
@@ -1118,28 +1123,8 @@ export default function AiConnectionsPage() {
             <p>• Content AI and Image AI assistance will be unavailable until a provider is reconnected.</p>
             <p>• Your published website content and images will NOT be affected.</p>
           </div>
-
-          <div className="flex items-center justify-end gap-2.5 pt-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsDisconnectModalOpen(false)}
-              disabled={disconnecting}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleDisconnect}
-              disabled={disconnecting}
-              className="bg-rose-600 hover:bg-rose-700 text-white border-transparent gap-1.5"
-            >
-              {disconnecting ? 'Disconnecting...' : 'Disconnect Provider'}
-            </Button>
-          </div>
         </div>
-      </Modal>
+      </ConfirmationDialog>
     </div>
   );
 }

@@ -12,3 +12,8 @@ export * from './ErrorState';
 export * from './InfoTooltip';
 export * from './PhoneInput';
 export * from './Skeleton';
+export * from './Tabs';
+export * from './PageHeader';
+export * from './ConfirmationDialog';
+export * from './SearchInput';
+export * from './StatusIndicator';

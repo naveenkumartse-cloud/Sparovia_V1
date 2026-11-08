@@ -4,7 +4,7 @@ import React, { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'supporting' | 'interactive' | 'accent';
+  variant?: 'default' | 'supporting' | 'interactive' | 'accent' | 'creative' | 'glass';
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
@@ -13,15 +13,19 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'rounded-[8px] border transition-colors',
+          'rounded-[8px] border transition-all duration-200 motion-reduce:transition-none',
           variant === 'default' &&
-            'bg-white dark:bg-[#0F172A] border-[#CBD5E1] dark:border-[#1E293B] shadow-xs',
+            'bg-white dark:bg-[#0F172A] border-[#CBD5E1] dark:border-[#1E293B] shadow-soft-xs',
           variant === 'supporting' &&
             'bg-[#F3F6FA] dark:bg-[#0B1220] border-[#E3E7ED] dark:border-[#1E293B]',
           variant === 'interactive' &&
-            'bg-white dark:bg-[#0F172A] border-[#CBD5E1] dark:border-[#1E293B] shadow-xs hover:border-[#315FEA] dark:hover:border-[#315FEA] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]',
+            'bg-white dark:bg-[#0F172A] border-[#CBD5E1] dark:border-[#1E293B] shadow-soft-xs hover:border-[#315FEA] dark:hover:border-[#315FEA] card-hover-lift cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]',
           variant === 'accent' &&
-            'bg-[#F5F0FB] dark:bg-[#1A102A] border-[#7950B8]/20 dark:border-[#7950B8]/30',
+            'bg-[#F5F0FB] dark:bg-[#1A102A] border-[#7950B8]/20 dark:border-[#7950B8]/30 shadow-soft-xs',
+          variant === 'creative' &&
+            'bg-[#F5F0FB]/70 dark:bg-[#1A102A]/70 border-[#7950B8]/25 dark:border-[#7950B8]/35 backdrop-blur-sm shadow-soft-xs',
+          variant === 'glass' &&
+            'glass-panel rounded-[8px]',
           className
         )}
         {...props}

@@ -26,6 +26,10 @@ import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Badge } from '@/components/ui/Badge';
 import { toast } from '@/components/ui/Toast';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
+import { SearchInput } from '@/components/ui/SearchInput';
 import {
   ImageStudioWorkspace,
   ImageDto,
@@ -515,53 +519,54 @@ export default function ImagesPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Images & Media
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
-            Manage your verified company and project imagery. Original client uploads are always preserved.
-          </p>
-        </div>
-
-        {activeTab === 'explore' && (
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              onClick={() => {
-                setCategoryActionError(null);
-                setEditingCategoryId(null);
-                setNewCatInput('');
-                setManageCategoriesModalOpen(true);
-              }}
-              leftIcon={<SlidersHorizontal className="w-4 h-4" />}
-            >
-              Manage Categories
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="md"
-              onClick={() => openUploadModal()}
-              leftIcon={<Upload className="w-4 h-4" />}
-            >
-              Add Project Image
-            </Button>
-          </div>
-        )}
-      </div>
+    <div className="space-y-6">
+      {/* Standardized Page Header */}
+      <PageHeader
+        category="Media & Creative Assets"
+        title="Images & Media"
+        badge={
+          <Badge variant="purple" size="sm" icon={<Sparkles className="w-3.5 h-3.5" />}>
+            Image Studio Active
+          </Badge>
+        }
+        description="Manage your verified company and project imagery. Original client uploads are permanently preserved with single-action website enhancement."
+        actions={
+          activeTab === 'explore' ? (
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={() => {
+                  setCategoryActionError(null);
+                  setEditingCategoryId(null);
+                  setNewCatInput('');
+                  setManageCategoriesModalOpen(true);
+                }}
+                leftIcon={<SlidersHorizontal className="w-4 h-4" />}
+              >
+                Manage Categories
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                onClick={() => openUploadModal()}
+                leftIcon={<Upload className="w-4 h-4" />}
+              >
+                Add Project Image
+              </Button>
+            </div>
+          ) : undefined
+        }
+      />
 
       {/* Guidance Banner */}
       <div className="bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-[8px] p-4 flex items-start gap-3">
         <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
         <div className="text-xs sm:text-sm text-blue-900 dark:text-blue-200 leading-relaxed">
           <p className="font-semibold text-blue-950 dark:text-blue-100">
-            Fidelity & Immutability Guarantee
+            Fidelity &amp; Immutability Guarantee
           </p>
           <p className="mt-0.5 text-blue-800/90 dark:text-blue-300">
             Supported formats: <strong>JPG, PNG, WebP</strong> (Max 10 MB per image). Original uploads remain
@@ -571,34 +576,25 @@ export default function ImagesPage() {
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-[#1E293B] gap-6 overflow-x-auto no-scrollbar">
-        <button
-          type="button"
-          onClick={() => handleTabChange('website')}
-          className={`pb-3 text-sm font-semibold transition-colors border-b-2 -mb-px flex items-center gap-2 shrink-0 whitespace-nowrap ${
-            activeTab === 'website'
-              ? 'border-[#315FEA] text-[#315FEA]'
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <Layers className="w-4 h-4" />
-          Website Images ({websiteImages.length})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleTabChange('explore')}
-          className={`pb-3 text-sm font-semibold transition-colors border-b-2 -mb-px flex items-center gap-2 shrink-0 whitespace-nowrap ${
-            activeTab === 'explore'
-              ? 'border-[#315FEA] text-[#315FEA]'
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <Sparkles className="w-4 h-4" />
-          Explore Our Work ({exploreImages.length})
-        </button>
-      </div>
+      {/* Standardized Navigation Tabs */}
+      <Tabs value={activeTab} onValueChange={(val) => handleTabChange(val as 'website' | 'explore')} variant="line">
+        <TabsList ariaLabel="Media Categories">
+          <TabsTrigger 
+            value="website" 
+            icon={<Layers className="w-4 h-4" />} 
+            badge={<Badge variant="neutral" size="xs">{websiteImages.length}</Badge>}
+          >
+            Website Slot Images
+          </TabsTrigger>
+          <TabsTrigger 
+            value="explore" 
+            icon={<Sparkles className="w-4 h-4" />} 
+            badge={<Badge variant="purple" size="xs">{exploreImages.length}</Badge>}
+          >
+            Explore Our Work
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {/* Sticky Bulk Action Toolbar */}
       {selectedImageIds.size > 0 && (
@@ -1107,14 +1103,12 @@ export default function ImagesPage() {
 
                 {/* Search & Selection Controls */}
                 <div className="flex items-center gap-2.5 shrink-0">
-                  <div className="relative w-full sm:w-60">
-                    <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#475569] dark:text-slate-400 pointer-events-none" />
-                    <input
-                      type="text"
+                  <div className="w-full sm:w-64">
+                    <SearchInput
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
+                      onClear={() => setSearchQuery('')}
                       placeholder="Search projects..."
-                      className="w-full pl-8 pr-3 py-1.5 text-xs rounded-[6px] border border-[#CBD5E1] dark:border-[#334155] bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#315FEA] h-9"
                     />
                   </div>
 
@@ -1651,132 +1645,72 @@ export default function ImagesPage() {
       </Modal>
 
       {/* MODAL 4: Single Delete Confirmation Modal */}
-      <Modal
+      <ConfirmationDialog
         isOpen={removeModalOpen}
         onClose={() => !removing && setRemoveModalOpen(false)}
+        onConfirm={handleConfirmRemoval}
         title="Delete Image"
-        description="Are you sure you want to delete this image?"
-        maxWidth="md"
-        footer={
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              disabled={removing}
-              onClick={() => setRemoveModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              size="md"
-              disabled={removing}
-              isLoading={removing}
-              loadingText="Deleting..."
-              onClick={handleConfirmRemoval}
-            >
-              Delete Image
-            </Button>
-          </>
+        variant="destructive"
+        confirmLabel="Delete Image"
+        cancelLabel="Cancel"
+        isLoading={removing}
+        description={
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Are you sure you want to delete this image from your media library?
+            </p>
+            {removingImage?.status === 'Published' && (
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-[8px] text-xs text-amber-800 dark:text-amber-300">
+                <strong>Warning:</strong> This image is currently published on your live website. Deleting it will remove it from public display.
+              </div>
+            )}
+          </div>
         }
-      >
-        <div className="space-y-3">
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Are you sure you want to delete this image from your media library?
-          </p>
-          {removingImage?.status === 'Published' && (
-            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-[8px] text-xs text-amber-800 dark:text-amber-300">
-              <strong>Warning:</strong> This image is currently published on your live website. Deleting it will remove it from public display.
-            </div>
-          )}
-        </div>
-      </Modal>
+      />
 
       {/* MODAL 5: Bulk Delete Confirmation Modal */}
-      <Modal
+      <ConfirmationDialog
         isOpen={bulkDeleteModalOpen}
         onClose={() => !bulkProcessing && setBulkDeleteModalOpen(false)}
+        onConfirm={handleBulkDelete}
         title="Delete Selected Images"
-        description="Are you sure you want to delete these images?"
-        maxWidth="md"
-        footer={
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              disabled={bulkProcessing}
-              onClick={() => setBulkDeleteModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              size="md"
-              disabled={bulkProcessing}
-              isLoading={bulkProcessing}
-              loadingText="Deleting..."
-              onClick={handleBulkDelete}
-            >
-              Delete {selectedImageIds.size} Images
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-3">
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Are you sure you want to delete <strong>{selectedImageIds.size}</strong> selected image{selectedImageIds.size === 1 ? '' : 's'}?
-          </p>
-          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-[8px] text-xs text-amber-800 dark:text-amber-300">
-            <strong>Warning:</strong> Any published images among your selection will be removed from your live website.
+        variant="destructive"
+        confirmLabel={`Delete ${selectedImageIds.size} Images`}
+        cancelLabel="Cancel"
+        isLoading={bulkProcessing}
+        description={
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Are you sure you want to delete <strong>{selectedImageIds.size}</strong> selected image{selectedImageIds.size === 1 ? '' : 's'}?
+            </p>
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-[8px] text-xs text-amber-800 dark:text-amber-300">
+              <strong>Warning:</strong> Any published images among your selection will be removed from your live website.
+            </div>
           </div>
-        </div>
-      </Modal>
+        }
+      />
 
       {/* MODAL 6: Bulk Publish Confirmation Modal */}
-      <Modal
+      <ConfirmationDialog
         isOpen={bulkPublishModalOpen}
         onClose={() => !bulkProcessing && setBulkPublishModalOpen(false)}
+        onConfirm={handleBulkPublish}
         title="Publish Selected Images"
-        description="Deploy selected images to your public website."
-        maxWidth="md"
-        footer={
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              disabled={bulkProcessing}
-              onClick={() => setBulkPublishModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="success"
-              size="md"
-              disabled={bulkProcessing}
-              isLoading={bulkProcessing}
-              loadingText="Publishing..."
-              onClick={handleBulkPublish}
-            >
-              Publish {selectedImageIds.size} Images
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-3">
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Are you sure you want to publish <strong>{selectedImageIds.size}</strong> selected image{selectedImageIds.size === 1 ? '' : 's'} to your website?
-          </p>
-          <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 rounded-[8px] text-xs text-blue-800 dark:text-blue-300">
-            Optimized, high-performance web representations (WebP) will be displayed to your live website visitors. Original photographs are immutable and never overwritten.
+        variant="success"
+        confirmLabel={`Publish ${selectedImageIds.size} Images`}
+        cancelLabel="Cancel"
+        isLoading={bulkProcessing}
+        description={
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Are you sure you want to publish <strong>{selectedImageIds.size}</strong> selected image{selectedImageIds.size === 1 ? '' : 's'} to your website?
+            </p>
+            <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 rounded-[8px] text-xs text-blue-800 dark:text-blue-300">
+              Optimized, high-performance web representations (WebP) will be displayed to your live website visitors. Original photographs are immutable and never overwritten.
+            </div>
           </div>
-        </div>
-      </Modal>
+        }
+      />
 
       {/* MODAL 7: Category Management Modal */}
       <Modal

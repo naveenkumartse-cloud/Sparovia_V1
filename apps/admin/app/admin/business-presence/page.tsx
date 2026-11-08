@@ -30,9 +30,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Card } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { FormField } from '@/components/ui/FormField';
 import { Textarea } from '@/components/ui/Textarea';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -272,24 +273,42 @@ export default function BusinessPresencePage() {
   ].filter(Boolean).join(', ') || 'No physical address configured (Digital / Service Area)';
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-12">
-      {/* 1. Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Business Presence
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
-            Manage the business information used by Sparovia for your website and supported presence experiences.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
+    <div className="space-y-8 pb-12">
+      {/* 1. Standardized Page Header */}
+      <PageHeader
+        category="Digital Presence Profile"
+        title="Business Presence"
+        badge={
           <Badge variant="neutral" size="sm">
             <CalendarCheck className="w-3.5 h-3.5 text-[#315FEA] mr-1" />
             <span>Reviewed: {formatReviewedDate(data.lastReviewedAt)}</span>
           </Badge>
-        </div>
-      </div>
+        }
+        description="Manage the verified business information used by Sparovia for your website, structured schema, public operating hours, and announcements."
+        actions={
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleCopyNap}
+              leftIcon={hasCopiedNap ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-slate-500" />}
+            >
+              {hasCopiedNap ? 'Copied NAP' : 'Copy Verified NAP'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleMarkReviewed}
+              isLoading={isReviewing}
+              leftIcon={<CheckCircle2 className="w-4 h-4 text-[#15803D]" />}
+            >
+              Mark Reviewed
+            </Button>
+          </div>
+        }
+      />
 
       {/* 2. Understanding Business Presence in Pilot V1 — Comprehensive Guidance */}
       <Card variant="default" className="p-6 sm:p-7">

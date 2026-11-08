@@ -39,6 +39,8 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { Modal } from '@/components/ui/Modal';
 import { toast } from '@/components/ui/Toast';
 import { Badge } from '@/components/ui/Badge';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { apiClient } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
@@ -457,49 +459,31 @@ export default function ContentPage() {
   const SectionIcon = getSectionIcon(activeSection?.schema?.iconName);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Page Title & Connection Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Website Content
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
-            Structured content management for your connected Sparovia website. Controlled sections with draft and live publish isolation.
-          </p>
-        </div>
-
-        {/* Connected Website Status Card */}
-        <div className="flex items-center gap-3 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] px-4 py-2.5 shadow-xs self-start sm:self-auto shrink-0 max-w-full">
-          <Badge variant="success" size="xs" dot={true} dotPulse={true}>
+    <div className="space-y-6">
+      {/* Standardized Page Header */}
+      <PageHeader
+        category="Connected Website CMS"
+        title="Website Content"
+        badge={
+          <Badge variant="success" size="sm" dot={true} dotPulse={true}>
             Live Connected
           </Badge>
-          <div className="text-left min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-slate-900 dark:text-white truncate">
-                {website?.name || 'Website identity unavailable'}
-              </span>
-              <InfoTooltip content="Authoritative website connected to this tenant. Changes published here are immediately rendered on this live website." />
-            </div>
-            {website?.domain ? (
-              <a
-                href={website.domain.startsWith('http') ? website.domain : `http://${website.domain}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[11px] text-slate-500 hover:text-[#315FEA] dark:text-[#94A3B8] dark:hover:text-[#315FEA] font-mono truncate max-w-[150px] sm:max-w-[280px] flex items-center gap-1 transition-colors"
-                title="Open live website in new tab"
-              >
-                <span className="truncate">{website.domain}</span>
-                <ExternalLink className="w-3 h-3 shrink-0" />
-              </a>
-            ) : (
-              <p className="text-[11px] text-slate-400 font-mono">
-                Website URL unavailable
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
+        }
+        description="Structured content management for your connected Sparovia website. Controlled sections with draft isolation and explicit live publication."
+        actions={
+          website?.domain ? (
+            <a
+              href={website.domain.startsWith('http') ? website.domain : `http://${website.domain}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[6px] text-xs font-semibold text-[#315FEA] bg-[#315FEA]/10 border border-[#315FEA]/20 hover:bg-[#315FEA]/20 transition-colors shadow-soft-xs"
+            >
+              <span>Preview Live Website</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          ) : null
+        }
+      />
 
       {/* Main Layout: Left Sidebar Section Tabs + Right Content Editor */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -764,77 +748,56 @@ export default function ContentPage() {
       </div>
 
       {/* Explicit Publish Confirmation Dialog */}
-      <Modal
+      <ConfirmationDialog
         isOpen={isConfirmModalOpen}
         onClose={() => !isPublishing && setIsConfirmModalOpen(false)}
+        onConfirm={confirmAndPublish}
         title="Publish Website Content?"
-        description="Your approved changes will become visible on the public website."
-        preventOutsideClose={isPublishing}
-        footer={
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              disabled={isPublishing}
-              onClick={() => setIsConfirmModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="md"
-              disabled={isPublishing}
-              onClick={confirmAndPublish}
-              isLoading={isPublishing}
-              loadingText="Publishing..."
-              leftIcon={<Send className="w-4 h-4" />}
-            >
-              Publish Now
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <div className="p-4 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155] space-y-2.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500 dark:text-[#94A3B8]">Target Section</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">
-                {activeSection?.schema?.displayName || activeSection?.title}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500 dark:text-[#94A3B8]">Target Website</span>
-              <span className="font-mono text-slate-800 dark:text-slate-200">
-                {overview?.website.domain || 'Connected Website'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500 dark:text-[#94A3B8]">Current Version</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">
-                v{activeSection?.version}
-              </span>
-            </div>
-          </div>
-
-          {isDirty && (
-            <div className="p-3.5 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-700/30 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold">Unsaved edits detected</p>
-                <p className="mt-0.5 text-amber-700/90 dark:text-amber-300/80">
-                  Your current modifications will be saved to your draft and published simultaneously.
-                </p>
+        variant="primary"
+        confirmLabel="Publish Now"
+        cancelLabel="Cancel"
+        isLoading={isPublishing}
+        description={
+          <div className="space-y-4">
+            <div className="p-4 rounded-[8px] bg-slate-50 dark:bg-[#1E293B]/60 border border-slate-200 dark:border-[#334155] space-y-2.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500 dark:text-[#94A3B8]">Target Section</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {activeSection?.schema?.displayName || activeSection?.title}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500 dark:text-[#94A3B8]">Target Website</span>
+                <span className="font-mono text-slate-800 dark:text-slate-200">
+                  {overview?.website.domain || 'Connected Website'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500 dark:text-[#94A3B8]">Current Version</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  v{activeSection?.version}
+                </span>
               </div>
             </div>
-          )}
 
-          <p className="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed">
-            Once published, the public website will immediately render these updates without requiring any redeployment or cache invalidation.
-          </p>
-        </div>
-      </Modal>
+            {isDirty && (
+              <div className="p-3.5 rounded-[8px] bg-amber-50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-700/30 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold">Unsaved edits detected</p>
+                  <p className="mt-0.5 text-amber-700/90 dark:text-amber-300/80">
+                    Your current modifications will be saved to your draft and published simultaneously.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <p className="text-xs text-slate-500 dark:text-[#94A3B8] leading-relaxed">
+              Once published, the public website will immediately render these updates without requiring any redeployment or cache invalidation.
+            </p>
+          </div>
+        }
+      />
 
       {/* Discard Unsaved Changes Section Switch Modal */}
       <Modal

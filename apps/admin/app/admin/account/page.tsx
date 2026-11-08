@@ -8,6 +8,8 @@ import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { apiClient } from '@/lib/api/client';
 import { cleanPhoneInput, handlePhoneKeyDown, handlePhonePaste, isValidIndianPhone } from '@/lib/validation/authValidation';
 import { 
@@ -523,70 +525,30 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-          Account &amp; Settings
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
-          Manage your client profile, admin appearance preferences, integrations, and workspace security.
-        </p>
-      </div>
+      {/* 1. Standardized Canonical PageHeader */}
+      <PageHeader
+        category="Administration"
+        title="Account & Settings"
+        description="Manage your client profile, admin visual standards, business communication channels, and workspace security."
+      />
 
-      {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-[#1E293B] space-x-2 sm:space-x-4 overflow-x-auto no-scrollbar">
-        <button
-          type="button"
-          onClick={() => handleTabChange('profile')}
-          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors shrink-0 whitespace-nowrap ${
-            activeTab === 'profile'
-              ? 'border-[#315FEA] text-[#315FEA]'
-              : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <User className="w-4 h-4" />
-          <span>Profile</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleTabChange('settings')}
-          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors shrink-0 whitespace-nowrap ${
-            activeTab === 'settings'
-              ? 'border-[#315FEA] text-[#315FEA]'
-              : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <SettingsIcon className="w-4 h-4" />
-          <span>Appearance</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleTabChange('integrations')}
-          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors shrink-0 whitespace-nowrap ${
-            activeTab === 'integrations'
-              ? 'border-[#315FEA] text-[#315FEA]'
-              : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <MessageCircle className="w-4 h-4" />
-          <span>Integrations</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleTabChange('security')}
-          className={`flex items-center space-x-2 py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors shrink-0 whitespace-nowrap ${
-            activeTab === 'security'
-              ? 'border-[#315FEA] text-[#315FEA]'
-              : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <ShieldCheck className="w-4 h-4" />
-          <span>Security</span>
-        </button>
-      </div>
+      {/* 2. Accessible Shared Navigation Tabs */}
+      <Tabs value={activeTab} onValueChange={(val) => handleTabChange(val as any)} variant="line">
+        <TabsList ariaLabel="Account & Settings Sections">
+          <TabsTrigger value="profile" icon={<User className="w-4 h-4" />}>
+            Profile
+          </TabsTrigger>
+          <TabsTrigger value="settings" icon={<ShieldCheck className="w-4 h-4" />}>
+            Visual Standards
+          </TabsTrigger>
+          <TabsTrigger value="integrations" icon={<MessageCircle className="w-4 h-4" />}>
+            Business Communication
+          </TabsTrigger>
+          <TabsTrigger value="security" icon={<Lock className="w-4 h-4" />}>
+            Security
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {/* TAB 1: PROFILE */}
       {activeTab === 'profile' && (

@@ -695,9 +695,9 @@ export function ImageStudioWorkspace({
       {/* Workspace Card */}
       <div className="bg-white dark:bg-[#0F172A] w-full max-w-7xl h-[95vh] max-h-[95vh] rounded-[10px] shadow-2xl flex flex-col border border-[#CBD5E1] dark:border-[#1E293B] overflow-hidden">
         {/* Workspace Top Bar */}
-        <header className="px-5 py-3.5 border-b border-[#E3E7ED] dark:border-[#1E293B] bg-white dark:bg-[#0F172A] flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <header className="px-5 py-3.5 border-b border-[#E3E7ED] dark:border-[#1E293B] bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center font-bold shrink-0">
+            <div className="w-9 h-9 rounded-[6px] bg-[#7950B8]/15 text-[#7950B8] border border-[#7950B8]/25 flex items-center justify-center font-bold shrink-0">
               <Sparkles className="w-5 h-5" />
             </div>
             <div className="min-w-0">

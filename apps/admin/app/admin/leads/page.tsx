@@ -35,6 +35,9 @@ import { PhoneInput } from '@/components/ui/PhoneInput';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Modal } from '@/components/ui/Modal';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { SearchInput } from '@/components/ui/SearchInput';
 import { toast } from '@/components/ui/Toast';
 import { apiClient } from '@/lib/api/client';
 import { cleanPhoneInput, isValidIndianPhone } from '@/lib/validation/authValidation';
@@ -664,86 +667,82 @@ function CustomerLeadsContent() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-5">
-      {/* 1. Header & Primary Workspace Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#172033] dark:text-white tracking-tight">
-              Customer Leads
-            </h1>
-            <Badge variant="brand" size="sm">
-              {leadsTotalCount} Total
-            </Badge>
-          </div>
-          <p className="text-xs sm:text-sm text-[#475569] dark:text-[#94A3B8] mt-1">
-            Review, qualify, and action customer enquiries captured through your website and verified channels.
-          </p>
-        </div>
+      {/* 1. Standardized Canonical PageHeader */}
+      <PageHeader
+        category="Customer Inquiries"
+        title="Customer Leads"
+        description="Review, qualify, and action customer enquiries captured through your website and verified channels."
+        badge={
+          <Badge variant="brand" size="sm">
+            {leadsTotalCount} Total
+          </Badge>
+        }
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {/* View Mode Toggle: Cards (Primary) vs Table */}
+            <div className="flex items-center bg-[#F3F6FA] dark:bg-[#1E293B] p-0.5 rounded-[6px] border border-[#E3E7ED] dark:border-[#334155]">
+              <button
+                type="button"
+                onClick={() => setViewMode('cards')}
+                className={`p-1.5 rounded-[4px] text-xs font-medium transition-colors ${
+                  viewMode === 'cards'
+                    ? 'bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+                title="Card view (primary)"
+                aria-label="Card view (primary)"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`p-1.5 rounded-[4px] text-xs font-medium transition-colors ${
+                  viewMode === 'table'
+                    ? 'bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+                title="Table view"
+                aria-label="Table view"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* View Mode Toggle: Cards (Primary) vs Table */}
-          <div className="flex items-center bg-[#F3F6FA] dark:bg-[#1E293B] p-0.5 rounded-[6px] border border-[#E3E7ED] dark:border-[#334155]">
-            <button
-              type="button"
-              onClick={() => setViewMode('cards')}
-              className={`p-1.5 rounded-[4px] text-xs font-medium transition-colors ${
-                viewMode === 'cards'
-                  ? 'bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
-              title="Card view (primary)"
-              aria-label="Card view (primary)"
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCsv}
+              disabled={leads.length === 0}
+              leftIcon={<Download className="w-3.5 h-3.5 text-slate-500" />}
+              className="rounded-[6px]"
             >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-[4px] text-xs font-medium transition-colors ${
-                viewMode === 'table'
-                  ? 'bg-white dark:bg-[#0F172A] text-[#172033] dark:text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
-              title="Table view"
-              aria-label="Table view"
+              Export
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchLeads}
+              disabled={leadsLoading}
+              leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${leadsLoading ? 'animate-spin' : ''}`} />}
+              className="rounded-[6px]"
             >
-              <List className="w-4 h-4" />
-            </button>
+              Refresh
+            </Button>
+
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setIsAddModalOpen(true)}
+              leftIcon={<Plus className="w-4 h-4" />}
+              className="rounded-[6px]"
+            >
+              Add Lead
+            </Button>
           </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportCsv}
-            disabled={leads.length === 0}
-            leftIcon={<Download className="w-3.5 h-3.5 text-slate-500" />}
-            className="rounded-[6px]"
-          >
-            Export
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchLeads}
-            disabled={leadsLoading}
-            leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${leadsLoading ? 'animate-spin' : ''}`} />}
-            className="rounded-[6px]"
-          >
-            Refresh
-          </Button>
-
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsAddModalOpen(true)}
-            leftIcon={<Plus className="w-4 h-4" />}
-            className="rounded-[6px]"
-          >
-            Add Lead
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* 2. Interactive Status Metric Filter Pills (Wrapping without horizontal scrollbar) */}
       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 py-0.5">
@@ -875,31 +874,20 @@ function CustomerLeadsContent() {
       <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-3 sm:p-3.5 shadow-soft-sm space-y-2.5">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-center">
           {/* Search Input */}
-          <div className="relative sm:col-span-2 lg:col-span-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search by name, phone, or email..."
+          <div className="sm:col-span-2 lg:col-span-6">
+            <SearchInput
               value={leadsSearch}
               onChange={(e) => {
                 setLeadsSearch(e.target.value);
                 setLeadsPage(1);
               }}
-              className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm rounded-[6px] bg-[#F3F6FA] dark:bg-[#1E293B]/50 border border-[#E3E7ED] dark:border-[#1E293B] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#315FEA] focus:border-[#315FEA] transition-colors"
+              onClear={() => {
+                setLeadsSearch('');
+                setLeadsPage(1);
+              }}
+              placeholder="Search by name, phone, or email..."
+              aria-label="Search customer leads"
             />
-            {leadsSearch && (
-              <button
-                type="button"
-                onClick={() => {
-                  setLeadsSearch('');
-                  setLeadsPage(1);
-                }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                aria-label="Clear search"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
           </div>
 
           {/* Source Filter */}
@@ -2173,19 +2161,23 @@ function CustomerLeadsContent() {
         </form>
       </Modal>
 
-      {/* 8. Delete Confirmation Modal */}
-      <Modal
+      {/* 8. Standardized Delete Confirmation Dialog */}
+      <ConfirmationDialog
         isOpen={!!leadToDelete}
         onClose={() => {
           setLeadToDelete(null);
           setDeleteError(null);
         }}
-        preventOutsideClose={isDeleting}
+        onConfirm={handleDeleteLead}
         title="Delete Customer Lead"
         description="Are you sure you want to delete this enquiry? This action cannot be undone."
-        maxWidth="sm"
+        confirmLabel="Delete Lead"
+        cancelLabel="Cancel"
+        variant="destructive"
+        isLoading={isDeleting}
+        loadingText="Deleting..."
       >
-        <div className="space-y-4">
+        <div className="space-y-3">
           {deleteError && (
             <div className="p-3 rounded-[6px] bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -2202,33 +2194,8 @@ function CustomerLeadsContent() {
               )}
             </div>
           )}
-
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-[#1E293B]">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setLeadToDelete(null)}
-              disabled={isDeleting}
-              className="rounded-[6px]"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              onClick={handleDeleteLead}
-              disabled={isDeleting}
-              isLoading={isDeleting}
-              loadingText="Deleting..."
-              className="rounded-[6px]"
-            >
-              Delete Lead
-            </Button>
-          </div>
         </div>
-      </Modal>
+      </ConfirmationDialog>
     </div>
   );
 }

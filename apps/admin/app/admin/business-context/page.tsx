@@ -10,8 +10,9 @@ import { BusinessContextSkeleton } from '@/components/ui/Skeleton';
 import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { ErrorState } from '@/components/ui/ErrorState';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { 
   Building2, 
   Layers, 
@@ -23,7 +24,11 @@ import {
   Edit3, 
   ArrowRight,
   ShieldAlert,
-  Sparkles
+  Sparkles,
+  Phone,
+  Mail,
+  Globe,
+  Check
 } from 'lucide-react';
 import { AIContentModal } from '@/components/ai/AIContentModal';
 
@@ -98,7 +103,7 @@ export default function BusinessContextManagementPage() {
 
   const handleConfirm = async () => {
     if (!hasConfirmedCheckbox) {
-      const msg = 'Please explicitly confirm that your business context is accurate and approved.';
+      const msg = 'Please explicitly check the confirmation box to confirm that your business context is accurate and approved.';
       setError(msg);
       toast.warning(msg);
       return;
@@ -110,7 +115,7 @@ export default function BusinessContextManagementPage() {
     try {
       await apiClient.post('/onboarding/confirm', {});
       toast.success('Business context confirmed successfully.');
-      await checkAuth(); // Refresh auth so isOnboardingConfirmed is true
+      await checkAuth();
       await fetchData();
       setHasConfirmedCheckbox(false);
     } catch (err: any) {
@@ -139,452 +144,362 @@ export default function BusinessContextManagementPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-24 space-y-8 animate-in fade-in duration-150">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Business Context
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1 max-w-2xl leading-relaxed">
-            Maintain your trusted business identity and approved facts. Edits to factual information require re-confirmation.
-          </p>
-        </div>
-        <div className="shrink-0 self-start sm:self-center w-fit">
-          {data.isConfirmed ? (
-            <Badge
-              variant="success"
-              size="md"
-              icon={<CheckCircle2 className="w-3.5 h-3.5" />}
-            >
-              Confirmed &amp; Approved
+    <div className="space-y-8 animate-in fade-in duration-150">
+      {/* PageHeader with status badge */}
+      <PageHeader
+        category="Trusted Facts &amp; Identity"
+        title="Business Context"
+        badge={
+          data.isConfirmed ? (
+            <Badge variant="success" size="sm" icon={<CheckCircle2 className="w-3.5 h-3.5" />}>
+              Approved &amp; Confirmed
             </Badge>
           ) : (
-            <Badge
-              variant="warning"
-              size="md"
-              icon={<AlertCircle className="w-3.5 h-3.5" />}
-            >
+            <Badge variant="warning" size="sm" icon={<AlertCircle className="w-3.5 h-3.5" />}>
               Pending Re-confirmation
             </Badge>
-          )}
-        </div>
-      </div>
+          )
+        }
+        description="Maintain your verified business identity, core services, location areas, and approved factual credentials. All AI suggestions strictly ground in these facts."
+      />
 
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-[8px] p-4 text-red-600 dark:text-red-400 text-sm">
-          {error}
-        </div>
-      )}
-
-      {/* Confirmation Banner if Unconfirmed */}
+      {/* Confirmation Action Notice if Unconfirmed */}
       {!data.isConfirmed && (
-        <section className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-[8px] p-5 sm:p-6 shadow-sm">
-          <div className="flex items-start space-x-3">
-            <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-sm font-bold text-amber-800 dark:text-amber-300">
-                Action Required: Business Context Re-confirmation
-              </h3>
-              <p className="text-xs text-amber-700 dark:text-amber-400 mt-1 leading-relaxed">
-                Changes have been made to your business information. To keep your AI content aligned with verified facts, please review your details below and confirm.
-              </p>
-            </div>
+        <div className="p-4 sm:p-5 rounded-[8px] bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 flex items-start gap-3.5 shadow-soft-xs">
+          <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h2 className="text-sm font-bold text-amber-900 dark:text-amber-300">
+              Action Required: Business Context Re-confirmation
+            </h2>
+            <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+              Edits or updates have been made to your business information. To ensure website content and AI generation remain factually aligned, review your details below and complete re-confirmation.
+            </p>
           </div>
-        </section>
+        </div>
       )}
 
-      {/* 1. Business Basics */}
-      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-[#1E293B] flex justify-between items-center bg-slate-50/50 dark:bg-[#0F172A]/50">
-          <div className="flex items-center space-x-2">
-            <Building2 className="w-5 h-5 text-[#315FEA]" />
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Business Basics</h2>
-          </div>
-          <Link 
-            href="/admin/onboarding/business-basics?from=admin" 
-            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
-          >
-            <Edit3 className="w-3.5 h-3.5 mr-1" />
-            Edit Basics
-          </Link>
-        </div>
-
-        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <dl className="space-y-4">
-            <div>
-              <div className="flex items-center gap-1.5">
-                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
-                  Business Name
-                </dt>
-                <InfoTooltip content="The legal or public brand name of your business." />
+      {/* Section 1: Business Basics */}
+      <Card variant="default">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center">
+                <Building2 className="w-4 h-4" />
               </div>
-              <dd className="mt-1 text-sm sm:text-base font-medium text-slate-800 dark:text-white">
-                {data.businessName || <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>}
-              </dd>
+              <CardTitle>Business Basics</CardTitle>
             </div>
-
-            <div>
-              <div className="flex items-center gap-1.5">
-                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
-                  Primary Category (Industry)
-                </dt>
-                <InfoTooltip content="Specific industry domain (what your business does)." />
-              </div>
-              <dd className="mt-1 text-sm sm:text-base font-medium text-slate-800 dark:text-white">
-                {data.primaryCategory || <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>}
-              </dd>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-1.5">
-                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
-                  Business Operating Type
-                </dt>
-                <InfoTooltip content="Operating delivery model (how your business operates)." />
-              </div>
-              <dd className="mt-1 text-sm sm:text-base font-medium text-slate-800 dark:text-white">
-                {data.businessType || <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>}
-              </dd>
-            </div>
-          </dl>
-
-          <dl className="space-y-4">
-            <div>
-              <div className="flex items-center gap-1.5">
-                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
-                  Business Phone
-                </dt>
-                <InfoTooltip content="Public contact phone number displayed for customer inquiries." />
-              </div>
-              <dd className="mt-1 text-sm sm:text-base font-medium text-slate-800 dark:text-white">
-                {data.businessPhone || <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>}
-              </dd>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-1.5">
-                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
-                  Business Email
-                </dt>
-                <InfoTooltip content="Primary business email for receiving customer leads." />
-              </div>
-              <dd className="mt-1 text-sm sm:text-base font-medium text-slate-800 dark:text-white break-all">
-                {data.businessEmail || <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>}
-              </dd>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-1.5">
-                <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
-                  Website URL
-                </dt>
-                <InfoTooltip content="Current live domain or web address." />
-              </div>
-              <dd className="mt-1 text-sm sm:text-base font-medium text-slate-800 dark:text-white break-all">
-                {data.website ? (
-                  <a href={data.website} target="_blank" rel="noopener noreferrer" className="text-[#315FEA] hover:underline break-all">
-                    {data.website}
-                  </a>
-                ) : (
-                  <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>
-                )}
-              </dd>
-            </div>
-          </dl>
-        </div>
-      </section>
-
-      {/* 2. Services */}
-      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-[#1E293B] flex justify-between items-center bg-slate-50/50 dark:bg-[#0F172A]/50">
-          <div className="flex items-center space-x-2">
-            <Layers className="w-5 h-5 text-[#7950B8]" />
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Services</h2>
-          </div>
-          <Link 
-            href="/admin/onboarding/services?from=admin" 
-            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
-          >
-            <Edit3 className="w-3.5 h-3.5 mr-1" />
-            Edit Services
-          </Link>
-        </div>
-
-        <div className="p-6">
-          {!data.services || data.services.length === 0 ? (
-            <EmptyState
-              icon={<Layers className="w-6 h-6 text-[#7950B8]" />}
-              title="No services added yet"
-              description="Add your primary products and services so Sparovia can accurately represent your business offerings."
-              action={
-                <Link
-                  href="/admin/onboarding/services?from=admin"
-                  className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB]"
-                >
-                  <Edit3 className="w-3.5 h-3.5 mr-1" />
-                  Add Services
-                </Link>
-              }
-            />
-          ) : (
-            <ul className="space-y-3">
-              {data.services.map(s => (
-                <li key={s.id} className="bg-slate-50 dark:bg-[#0B1220] border border-slate-200 dark:border-[#334155] rounded-[6px] p-4">
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-1">{s.serviceName}</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-[#94A3B8] whitespace-pre-line leading-relaxed">
-                    {s.serviceDescription || <span className="italic text-slate-400 dark:text-[#64748B]">No description provided</span>}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
-
-      {/* 3. Location & Customers */}
-      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-[#1E293B] flex justify-between items-center bg-slate-50/50 dark:bg-[#0F172A]/50">
-          <div className="flex items-center space-x-2">
-            <MapPin className="w-5 h-5 text-[#315FEA]" />
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Location &amp; Customers</h2>
-          </div>
-          <Link 
-            href="/admin/onboarding/location-customers?from=admin" 
-            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
-          >
-            <Edit3 className="w-3.5 h-3.5 mr-1" />
-            Edit Location
-          </Link>
-        </div>
-
-        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-2">
-              Physical Address
-            </h3>
-            <div className="text-sm font-medium text-slate-800 dark:text-white leading-relaxed">
-              {data.addressLine1 || data.city ? (
-                <>
-                  {data.addressLine1 && <div>{data.addressLine1}</div>}
-                  {data.addressLine2 && <div>{data.addressLine2}</div>}
-                  <div>
-                    {[data.city, data.state, data.postalCode].filter(Boolean).join(', ')}
-                  </div>
-                  {data.country && <div>{data.country}</div>}
-                </>
-              ) : (
-                <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>
-              )}
-            </div>
-          </div>
-          
-          <div className="md:col-span-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-2">
-              Service Areas
-            </h3>
-            {data.serviceAreas && data.serviceAreas.length > 0 ? (
-              <ul className="list-disc list-inside text-sm font-medium text-slate-800 dark:text-white space-y-1">
-                {data.serviceAreas.map(area => <li key={area}>{area}</li>)}
-              </ul>
-            ) : (
-              <p className="text-slate-400 dark:text-[#64748B] italic text-sm">Not provided</p>
-            )}
-          </div>
-
-          <div className="md:col-span-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-2">
-              Target Customers
-            </h3>
-            {data.targetCustomers && data.targetCustomers.length > 0 ? (
-              <ul className="list-disc list-inside text-sm font-medium text-slate-800 dark:text-white space-y-1">
-                {data.targetCustomers.map(customer => <li key={customer}>{customer}</li>)}
-              </ul>
-            ) : (
-              <p className="text-slate-400 dark:text-[#64748B] italic text-sm">Not provided</p>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* 4. Business Description */}
-      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-[#1E293B] flex justify-between items-center bg-slate-50/50 dark:bg-[#0F172A]/50">
-          <div className="flex items-center space-x-2">
-            <FileText className="w-5 h-5 text-[#315FEA]" />
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Business Description</h2>
-          </div>
-          <Link 
-            href="/admin/onboarding/business-description?from=admin" 
-            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
-          >
-            <Edit3 className="w-3.5 h-3.5 mr-1" />
-            Edit Description
-          </Link>
-        </div>
-
-        <div className="p-6 space-y-6">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
-                Company Overview
-              </h3>
-              {data.businessDescription && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setAiModal({
-                      fieldKey: 'businessDescription',
-                      fieldLabel: 'Business Description',
-                      currentText: data.businessDescription || '',
-                    })
-                  }
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-xs font-semibold text-[#7950B8] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#7950B8] dark:text-purple-400 shrink-0" />
-                  <span>Improve with AI</span>
-                </button>
-              )}
-            </div>
-            <p className="text-sm font-medium text-slate-800 dark:text-white whitespace-pre-line leading-relaxed">
-              {data.businessDescription || <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>}
-            </p>
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8]">
-                Key Differentiators &amp; Value Proposition
-              </h3>
-              {data.differentiators && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setAiModal({
-                      fieldKey: 'differentiators',
-                      fieldLabel: 'Key Differentiators',
-                      currentText: data.differentiators || '',
-                    })
-                  }
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-xs font-semibold text-[#7950B8] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#7950B8] dark:text-purple-400 shrink-0" />
-                  <span>Improve with AI</span>
-                </button>
-              )}
-            </div>
-            <p className="text-sm font-medium text-slate-800 dark:text-white whitespace-pre-line leading-relaxed">
-              {data.differentiators || <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Approved Facts & Claims */}
-      <section className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-[#1E293B] flex justify-between items-center bg-slate-50/50 dark:bg-[#0F172A]/50">
-          <div className="flex items-center space-x-2">
-            <Award className="w-5 h-5 text-[#7950B8]" />
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Approved Facts &amp; Claims</h2>
-          </div>
-          <Link 
-            href="/admin/onboarding/approved-facts?from=admin" 
-            className="inline-flex items-center text-xs sm:text-sm font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
-          >
-            <Edit3 className="w-3.5 h-3.5 mr-1" />
-            Edit Facts
-          </Link>
-        </div>
-
-        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-1">
-              Years in Business
-            </h3>
-            <p className="text-sm font-medium text-slate-800 dark:text-white">
-              {data.yearsInBusiness !== null && data.yearsInBusiness !== undefined ? `${data.yearsInBusiness} years` : <span className="text-slate-400 dark:text-[#64748B] italic">Not provided</span>}
-            </p>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-1">
-              Certifications
-            </h3>
-            {data.certifications && data.certifications.length > 0 ? (
-              <ul className="list-disc list-inside text-sm font-medium text-slate-800 dark:text-white space-y-1">{data.certifications.map(c => <li key={c}>{c}</li>)}</ul>
-            ) : <p className="text-slate-400 dark:text-[#64748B] italic text-sm">Not provided</p>}
-          </div>
-
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-1">
-              Awards &amp; Recognitions
-            </h3>
-            {data.awards && data.awards.length > 0 ? (
-              <ul className="list-disc list-inside text-sm font-medium text-slate-800 dark:text-white space-y-1">{data.awards.map(c => <li key={c}>{c}</li>)}</ul>
-            ) : <p className="text-slate-400 dark:text-[#64748B] italic text-sm">Not provided</p>}
-          </div>
-
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-1">
-              Accreditations
-            </h3>
-            {data.accreditations && data.accreditations.length > 0 ? (
-              <ul className="list-disc list-inside text-sm font-medium text-slate-800 dark:text-white space-y-1">{data.accreditations.map(c => <li key={c}>{c}</li>)}</ul>
-            ) : <p className="text-slate-400 dark:text-[#64748B] italic text-sm">Not provided</p>}
-          </div>
-
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-1">
-              Guarantees &amp; Warranties
-            </h3>
-            {data.warranties && data.warranties.length > 0 ? (
-              <ul className="list-disc list-inside text-sm font-medium text-slate-800 dark:text-white space-y-1">{data.warranties.map(c => <li key={c}>{c}</li>)}</ul>
-            ) : <p className="text-slate-400 dark:text-[#64748B] italic text-sm">Not provided</p>}
-          </div>
-
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-1">
-              Authorized / Dealer Status
-            </h3>
-            {data.authorizedStatuses && data.authorizedStatuses.length > 0 ? (
-              <ul className="list-disc list-inside text-sm font-medium text-slate-800 dark:text-white space-y-1">{data.authorizedStatuses.map(c => <li key={c}>{c}</li>)}</ul>
-            ) : <p className="text-slate-400 dark:text-[#64748B] italic text-sm">Not provided</p>}
-          </div>
-
-          <div className="sm:col-span-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-[#94A3B8] mb-1">
-              Other Approved Claims
-            </h3>
-            {data.otherClaims && data.otherClaims.length > 0 ? (
-              <ul className="list-disc list-inside text-sm font-medium text-slate-800 dark:text-white space-y-1">{data.otherClaims.map(c => <li key={c}>{c}</li>)}</ul>
-            ) : <p className="text-slate-400 dark:text-[#64748B] italic text-sm">Not provided</p>}
-          </div>
-        </div>
-      </section>
-
-      {/* Confirmation Actions / Confirmed Banner */}
-      {data.isConfirmed ? (
-        <section className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-[8px] p-6 sm:p-8 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
-                <CheckCircle2 className="w-5 h-5 mr-2 text-emerald-600 dark:text-emerald-400" />
-                Your Business Context is verified &amp; approved.
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-[#94A3B8] mt-1">
-                Sparovia uses this verified information to power trusted website copy and AI generation without arbitrary claims.
-              </p>
-            </div>
-            <Link
-              href="/admin"
-              className="inline-flex items-center justify-center py-2.5 px-6 rounded-[6px] text-xs sm:text-sm font-semibold text-white bg-[#315FEA] hover:bg-[#254EDB] transition-colors shrink-0 shadow-xs"
+            <Link 
+              href="/admin/onboarding/business-basics?from=admin" 
+              className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
             >
-              Go to Dashboard
-              <ArrowRight className="w-4 h-4 ml-1.5" />
+              <Edit3 className="w-3.5 h-3.5 mr-1" />
+              Edit Basics
             </Link>
           </div>
-        </section>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-5">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+              Business Name
+            </span>
+            <p className="text-sm font-semibold text-[#172033] dark:text-white">
+              {data.businessName || <span className="text-slate-400 italic">Not provided</span>}
+            </p>
+          </div>
+
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+              Business Category
+            </span>
+            <p className="text-sm font-semibold text-[#172033] dark:text-white">
+              {data.primaryCategory || <span className="text-slate-400 italic">Not provided</span>}
+            </p>
+          </div>
+
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+              Business Phone
+            </span>
+            <p className="text-sm font-semibold text-[#172033] dark:text-white flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-[#315FEA]" />
+              {data.businessPhone ? `+91 ${data.businessPhone}` : <span className="text-slate-400 italic">Not provided</span>}
+            </p>
+          </div>
+
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+              Business Email
+            </span>
+            <p className="text-sm font-semibold text-[#172033] dark:text-white flex items-center gap-1.5">
+              <Mail className="w-3.5 h-3.5 text-[#315FEA]" />
+              {data.businessEmail || <span className="text-slate-400 italic">Not provided</span>}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 2: Description & Differentiators (Creative Card with AI Assistance) */}
+      <Card variant="creative">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-[6px] bg-[#7950B8]/15 text-[#7950B8] flex items-center justify-center">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <CardTitle>Business Narrative &amp; Differentiators</CardTitle>
+                <CardDescription>
+                  Customer-facing overview and key competitive strengths.
+                </CardDescription>
+              </div>
+            </div>
+            <Link 
+              href="/admin/onboarding/business-description?from=admin" 
+              className="inline-flex items-center text-xs font-semibold text-[#7950B8] hover:text-[#6820AB] transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5 mr-1" />
+              Edit Narrative
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-5 pt-5">
+          <div className="p-4 rounded-[6px] bg-white/80 dark:bg-[#0F172A]/80 border border-[#7950B8]/20 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#7950B8]">
+                Executive Overview
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setAiModal({
+                    fieldKey: 'businessDescription',
+                    fieldLabel: 'Business Overview',
+                    currentText: data.businessDescription || '',
+                  })
+                }
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#7950B8] hover:text-[#53198A] transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Improve with AI</span>
+              </button>
+            </div>
+            <p className="text-sm text-[#334155] dark:text-[#CBD5E1] leading-relaxed">
+              {data.businessDescription || <span className="text-slate-400 italic">No business description provided yet.</span>}
+            </p>
+          </div>
+
+          <div className="p-4 rounded-[6px] bg-white/80 dark:bg-[#0F172A]/80 border border-[#7950B8]/20 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#7950B8]">
+                Key Differentiators &amp; Value Proposition
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setAiModal({
+                    fieldKey: 'differentiators',
+                    fieldLabel: 'Key Differentiators',
+                    currentText: data.differentiators || '',
+                  })
+                }
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#7950B8] hover:text-[#53198A] transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Improve with AI</span>
+              </button>
+            </div>
+            <p className="text-sm text-[#334155] dark:text-[#CBD5E1] leading-relaxed">
+              {data.differentiators || <span className="text-slate-400 italic">No differentiators provided yet.</span>}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 3: Services & Offerings */}
+      <Card variant="default">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center">
+                <Layers className="w-4 h-4" />
+              </div>
+              <CardTitle>Services &amp; Offerings</CardTitle>
+            </div>
+            <Link 
+              href="/admin/onboarding/services?from=admin" 
+              className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5 mr-1" />
+              Edit Services
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-5">
+          {data.services && data.services.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {data.services.map((svc) => (
+                <div 
+                  key={svc.id} 
+                  className="p-3.5 rounded-[6px] bg-[#F3F6FA]/70 dark:bg-[#0B1220] border border-[#E3E7ED] dark:border-[#1E293B] space-y-1"
+                >
+                  <p className="text-sm font-bold text-[#172033] dark:text-white">{svc.serviceName}</p>
+                  {svc.serviceDescription && (
+                    <p className="text-xs text-[#475569] dark:text-[#94A3B8] leading-relaxed">
+                      {svc.serviceDescription}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-[#64748B] italic">No services listed.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Section 4: Location & Service Areas */}
+      <Card variant="default">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <CardTitle>Location &amp; Service Coverage</CardTitle>
+            </div>
+            <Link 
+              href="/admin/onboarding/location-customers?from=admin" 
+              className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5 mr-1" />
+              Edit Location
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-5">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+              Registered Physical Address
+            </span>
+            <p className="text-sm font-medium text-[#172033] dark:text-white leading-relaxed">
+              {[data.addressLine1, data.addressLine2, data.city, data.state, data.postalCode, data.country]
+                .filter(Boolean)
+                .join(', ') || <span className="text-slate-400 italic">Not provided</span>}
+            </p>
+          </div>
+
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+              Service Areas Covered
+            </span>
+            {data.serviceAreas && data.serviceAreas.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {data.serviceAreas.map((area) => (
+                  <Badge key={area} variant="neutral" size="xs">
+                    {area}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[#64748B] italic">Not provided</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 5: Approved Facts & Credentials */}
+      <Card variant="default">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] flex items-center justify-center">
+                <Award className="w-4 h-4" />
+              </div>
+              <div>
+                <CardTitle>Approved Facts &amp; Credentials</CardTitle>
+                <CardDescription>
+                  Protected business assertions. AI is strictly prohibited from inventing factual credentials.
+                </CardDescription>
+              </div>
+            </div>
+            <Link 
+              href="/admin/onboarding/approved-facts?from=admin" 
+              className="inline-flex items-center text-xs font-semibold text-[#315FEA] hover:text-[#254EDB] transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5 mr-1" />
+              Edit Facts
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-5">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+              Years in Business
+            </span>
+            <p className="text-sm font-bold text-[#172033] dark:text-white">
+              {data.yearsInBusiness !== null && data.yearsInBusiness !== undefined 
+                ? `${data.yearsInBusiness} years of operation` 
+                : <span className="text-slate-400 italic font-normal">Not provided</span>}
+            </p>
+          </div>
+
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+              Certifications &amp; Accreditations
+            </span>
+            {data.certifications && data.certifications.length > 0 ? (
+              <ul className="list-disc list-inside text-sm text-[#172033] dark:text-white space-y-1">
+                {data.certifications.map(c => <li key={c}>{c}</li>)}
+              </ul>
+            ) : <p className="text-slate-400 italic text-xs">Not provided</p>}
+          </div>
+
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+              Awards &amp; Recognitions
+            </span>
+            {data.awards && data.awards.length > 0 ? (
+              <ul className="list-disc list-inside text-sm text-[#172033] dark:text-white space-y-1">
+                {data.awards.map(a => <li key={a}>{a}</li>)}
+              </ul>
+            ) : <p className="text-slate-400 italic text-xs">Not provided</p>}
+          </div>
+
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+              Guarantees &amp; Warranties
+            </span>
+            {data.warranties && data.warranties.length > 0 ? (
+              <ul className="list-disc list-inside text-sm text-[#172033] dark:text-white space-y-1">
+                {data.warranties.map(w => <li key={w}>{w}</li>)}
+              </ul>
+            ) : <p className="text-slate-400 italic text-xs">Not provided</p>}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Confirmation Actions Footer */}
+      {data.isConfirmed ? (
+        <div className="p-6 rounded-[8px] bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-300 flex items-center">
+              <CheckCircle2 className="w-4 h-4 mr-2 text-emerald-600 dark:text-emerald-400" />
+              Business Context is verified and active.
+            </h3>
+            <p className="text-xs text-emerald-700 dark:text-emerald-400">
+              Your website content, AI assistance, and lead generation operate safely on these approved facts.
+            </p>
+          </div>
+          <Link
+            href="/admin"
+            className="inline-flex items-center justify-center py-2 px-4 rounded-[6px] text-xs font-semibold text-emerald-800 dark:text-emerald-200 bg-white dark:bg-[#0F172A] border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100 transition-colors shrink-0"
+          >
+            Dashboard
+            <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+          </Link>
+        </div>
       ) : (
-        <section className="bg-white dark:bg-[#0F172A] border border-[#315FEA]/30 dark:border-[#315FEA]/40 rounded-[8px] p-6 sm:p-8 shadow-sm">
+        <Card variant="default" className="border-[#315FEA]/40 p-5 sm:p-6 shadow-soft-sm">
           <div className="flex items-start">
             <div className="flex items-center h-6">
               <input
@@ -596,20 +511,20 @@ export default function BusinessContextManagementPage() {
                   setHasConfirmedCheckbox(e.target.checked);
                   if (e.target.checked) setError('');
                 }}
-                className="w-5 h-5 bg-slate-50 dark:bg-[#0B1220] border-slate-300 dark:border-[#334155] rounded-[4px] text-[#315FEA] focus:ring-[#315FEA]"
+                className="w-5 h-5 bg-white border-[#CBD5E1] rounded-[4px] text-[#315FEA] focus:ring-[#315FEA] cursor-pointer"
               />
             </div>
             <div className="ml-3">
-              <label htmlFor="confirmContext" className="text-sm font-bold text-slate-900 dark:text-white select-none cursor-pointer">
+              <label htmlFor="confirmContext" className="text-sm font-bold text-[#172033] dark:text-white select-none cursor-pointer">
                 I confirm that the Business Context information above is accurate and approved for use by Sparovia.
               </label>
-              <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 select-none leading-relaxed">
+              <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-1 select-none leading-relaxed">
                 Confirming updates the trusted foundation for your website and AI workflows. Website changes are never published automatically without your review.
               </p>
             </div>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-slate-100 dark:border-[#1E293B] flex justify-end">
+          <div className="mt-5 pt-4 border-t border-[#E3E7ED] dark:border-[#1E293B] flex justify-end">
             <Button
               type="button"
               variant="primary"
@@ -622,7 +537,7 @@ export default function BusinessContextManagementPage() {
               Confirm Business Context
             </Button>
           </div>
-        </section>
+        </Card>
       )}
 
       {aiModal && (

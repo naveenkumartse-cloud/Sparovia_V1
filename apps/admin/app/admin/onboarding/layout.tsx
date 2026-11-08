@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Check } from 'lucide-react';
+import { Check, ChevronRight } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
 
 const ONBOARDING_STEPS = [
   { id: 'business-basics', name: 'Business Basics', path: '/admin/onboarding/business-basics' },
@@ -18,12 +19,13 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
   const searchParams = useSearchParams();
   const fromAdmin = searchParams.get('from') === 'admin';
 
-  const currentStepIndex = ONBOARDING_STEPS.findIndex(step => pathname.includes(step.id));
+  const currentStepIndex = Math.max(0, ONBOARDING_STEPS.findIndex(step => pathname.includes(step.id)));
+  const currentStep = ONBOARDING_STEPS[currentStepIndex];
 
   return (
-    <div className="max-w-4xl mx-auto pb-16 px-4 sm:px-6">
+    <div className="max-w-4xl mx-auto pb-16 px-3.5 sm:px-6">
       {/* Top Banner / Progress Indicator */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <span className="text-xs uppercase tracking-wider font-semibold text-[#315FEA]">
@@ -43,9 +45,29 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
           )}
         </div>
 
-        {/* Step Progression Bar */}
-        <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-3 sm:p-4 shadow-sm overflow-x-auto no-scrollbar">
-          <nav aria-label="Progress" className="min-w-[600px] sm:min-w-0">
+        {/* Mobile Compact Progress Card (< sm) */}
+        <div className="sm:hidden bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-3.5 shadow-soft-xs flex items-center justify-between">
+          <div className="flex items-center space-x-2.5">
+            <span className="w-7 h-7 rounded-full bg-[#315FEA] text-white flex items-center justify-center text-xs font-bold shrink-0">
+              {currentStepIndex + 1}
+            </span>
+            <div>
+              <p className="text-xs font-bold text-[#172033] dark:text-white">
+                Step {currentStepIndex + 1} of {ONBOARDING_STEPS.length}: {currentStep.name}
+              </p>
+              <p className="text-[10px] text-[#475569] dark:text-[#94A3B8]">
+                {currentStepIndex === ONBOARDING_STEPS.length - 1 ? 'Final review & approval' : `Next: ${ONBOARDING_STEPS[currentStepIndex + 1]?.name}`}
+              </p>
+            </div>
+          </div>
+          <Badge variant="cobalt" size="xs">
+            {Math.round(((currentStepIndex + 1) / ONBOARDING_STEPS.length) * 100)}%
+          </Badge>
+        </div>
+
+        {/* Desktop Full Step Progression Bar (sm+) */}
+        <div className="hidden sm:block bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-4 shadow-soft-xs">
+          <nav aria-label="Progress">
             <ol className="flex items-center justify-between space-x-2 sm:space-x-4">
               {ONBOARDING_STEPS.map((step, index) => {
                 const isCompleted = currentStepIndex > index;
@@ -59,7 +81,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
                           isCompleted
                             ? 'bg-[#15803D]/10 text-[#15803D] dark:text-[#4ADE80] border border-[#15803D]/30'
                             : isCurrent
-                            ? 'bg-[#315FEA] text-white shadow-xs'
+                            ? 'bg-[#315FEA] text-white shadow-soft-xs'
                             : 'bg-slate-100 dark:bg-[#1E293B] text-slate-400 dark:text-[#64748B] border border-slate-200 dark:border-[#334155]'
                         }`}
                       >
@@ -86,7 +108,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
       </div>
 
       {/* Step Content */}
-      <div className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-4 sm:p-6 lg:p-8 shadow-sm">
+      <div className="space-y-6">
         {children}
       </div>
     </div>

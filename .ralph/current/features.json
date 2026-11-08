@@ -1,0 +1,81 @@
+[
+  {
+    "id": "F001",
+    "description": "Batch 0: Complete Application Experience Research, Route & Screen Inventory, UX Inconsistencies & Usability Analysis",
+    "requirement_refs": ["docs/RULES.md", "docs/DESIGN.md", "docs/SPAROVIA_MASTER_PRODUCT_BLUEPRINT.md"],
+    "steps": [
+      "Inventory every route, screen, modal, dropdown, and workflow in apps/admin",
+      "Inspect existing shared components and cross-application inconsistencies",
+      "Analyze client usability and mobile UX constraints",
+      "Produce comprehensive research report and screen inventory matrix"
+    ],
+    "verify_command": "npm run build --workspace=apps/admin",
+    "passes": true
+  },
+  {
+    "id": "F002",
+    "description": "Batch 1: Design Foundation, Semantic Tokens, Glass/Purple Accents, Shared Components & Mobile-First Shell",
+    "requirement_refs": ["docs/DESIGN.md#3", "docs/VISUAL_SYSTEM_SPECIFICATION.md", "docs/COMPONENT_REUSE_MATRIX.md"],
+    "steps": [
+      "Update tailwind.config.ts and globals.css with semantic glass, purple accent, depth and elevation tokens",
+      "Enhance shared components: add PageHeader, Tabs, ConfirmationDialog, SearchInput, StatusIndicators to components/ui",
+      "Refine Button, Card, Badge, Modal, FormField, and Drawer components",
+      "Modernize AdminShell: mobile drawer, breadcrumbs, workspace context, touch targets, and smooth transitions"
+    ],
+    "verify_command": "npm run build --workspace=apps/admin",
+    "passes": true
+  },
+  {
+    "id": "F003",
+    "description": "Batch 2: Core Business Workflows Modernization (Command Center, Business Context, Business Presence, Content Management, Onboarding)",
+    "requirement_refs": ["docs/PRD.md", "docs/DESIGN.md#5", "docs/RULES.md#2"],
+    "steps": [
+      "Modernize Command Center (admin/page.tsx) with operational welcome, genuine business status, and clear task cards",
+      "Streamline Business Context (admin/business-context/page.tsx) with progressive field grouping, confirmation banners, and saved feedback",
+      "Refine Business Presence (admin/business-presence/page.tsx) with clear NAP review, hours, and public preview",
+      "Enhance Content Management (admin/content/page.tsx) with section navigation, draft vs published indicators, and explicit publishing",
+      "Harmonize Onboarding workflow pages with unified progressive disclosure"
+    ],
+    "verify_command": "npm run build --workspace=apps/admin",
+    "passes": true
+  },
+  {
+    "id": "F004",
+    "description": "Batch 3: AI & Media Experiences (AI Content Assistance, Image Studio Visual Alignment, Website Images & Explore Our Work)",
+    "requirement_refs": ["docs/DESIGN.md#7", "docs/BUILD_IMAGE_STUDIO_REBUILD.md", "docs/RULES.md#6", "docs/RULES.md#7"],
+    "steps": [
+      "Modernize AIContentModal with restrained purple/glass accents, before/after copy diff, and draft acceptance",
+      "Preserve Image Studio backend contracts while adding glass toolbars, polished canvas framing, and stable sidebars",
+      "Modernize Images page (admin/images/page.tsx) with clear Website Slots vs Explore Our Work galleries, category filters, and bulk actions"
+    ],
+    "verify_command": "npm run build --workspace=apps/admin",
+    "passes": true
+  },
+  {
+    "id": "F005",
+    "description": "Batch 4: Daily Operations & Communication (Leads, WhatsApp Business Communication, Social Links, AI Connections, Account)",
+    "requirement_refs": ["docs/DESIGN.md#6", "docs/RULES.md#8"],
+    "steps": [
+      "Elevate Customer Leads (admin/leads/page.tsx) with card-first presentation, quick inquiry scanning, phone/WhatsApp triggers, and detail drawers",
+      "Redesign WhatsApp & Social connections as simple Business Communication experience with 3-4 purpose-driven templates, preview, direct launch, and profile URLs",
+      "Modernize AI Connections (admin/ai-models/page.tsx) with secure credential handling, status indicators, and clear guidance",
+      "Polish Account & Settings with clean tabs, workspace info, and security controls"
+    ],
+    "verify_command": "npm run build --workspace=apps/admin",
+    "passes": true
+  },
+  {
+    "id": "F006",
+    "description": "Batch 5: Cross-Application Consistency, Accessibility, Motion Safety, and Full Verification Audit",
+    "requirement_refs": ["docs/DESIGN.md#8", "docs/DESIGN.md#9", ".agents/skills/sparovia-ui-ux-standard/SKILL.md"],
+    "steps": [
+      "Verify viewports across 320px, 360px, 375px, 390px, 430px, 768px, 1024px, 1280px, 1440px",
+      "Verify modal and popup stability with zero layout shift and proper focus trapping",
+      "Ensure WCAG 2.2 AA target contrast, keyboard navigation, and prefers-reduced-motion safety",
+      "Run full production build, lint checks, and browser verification audit",
+      "Produce comprehensive final report and evidence documentation"
+    ],
+    "verify_command": "npm run build --workspace=apps/admin",
+    "passes": true
+  }
+]
