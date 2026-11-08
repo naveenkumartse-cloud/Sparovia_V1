@@ -137,9 +137,7 @@ export default function ImagesPage() {
   const [uploadSlot, setUploadSlot] = useState<string | null>(null);
   const [replacingImage, setReplacingImage] = useState<ImageDto | null>(null);
 
-  // Preview Modal state
-  const [previewModalOpen, setPreviewModalOpen] = useState(false);
-  const [previewImage, setPreviewImage] = useState<ImageDto | null>(null);
+  // Publishing state
   const [publishing, setPublishing] = useState(false);
 
   // Edit Metadata Modal state
@@ -250,9 +248,6 @@ export default function ImagesPage() {
     if (studioImage && studioImage.id === updatedImg.id) {
       setStudioImage(updatedImg);
     }
-    if (previewImage && previewImage.id === updatedImg.id) {
-      setPreviewImage(updatedImg);
-    }
   };
 
   const openUploadModal = (slot?: string, replace?: ImageDto) => {
@@ -261,9 +256,9 @@ export default function ImagesPage() {
     setUploadModalOpen(true);
   };
 
+  // Unified: Image preview routes directly into the Image Studio workspace
   const openPreviewModal = (image: ImageDto) => {
-    setPreviewImage(image);
-    setPreviewModalOpen(true);
+    handleOpenStudio(image);
   };
 
   const openEditModal = (image: ImageDto) => {
@@ -285,9 +280,6 @@ export default function ImagesPage() {
     try {
       await apiClient.post(`/website/images/${image.id}/publish`, { variantId });
       await fetchImages();
-      if (previewModalOpen && previewImage?.id === image.id) {
-        setPreviewImage({ ...previewImage, status: 'Published' });
-      }
       toast.success('Image published to website successfully.');
     } catch (err: any) {
       toast.error(err?.message || 'Publishing failed. Your previous live image remains unchanged.');
@@ -301,9 +293,6 @@ export default function ImagesPage() {
     try {
       await apiClient.post(`/website/images/${image.id}/unpublish`, {});
       await fetchImages();
-      if (previewModalOpen && previewImage?.id === image.id) {
-        setPreviewImage({ ...previewImage, status: 'Approved', isActiveWebsiteUsage: false });
-      }
       toast.success('Image removed from live website.');
     } catch (err: any) {
       toast.error(err?.message || 'Failed to unpublish image from live website.');
@@ -315,9 +304,6 @@ export default function ImagesPage() {
     try {
       await apiClient.post(`/website/images/${image.id}/approve`, {});
       await fetchImages();
-      if (previewModalOpen && previewImage?.id === image.id) {
-        setPreviewImage({ ...previewImage, status: 'Approved' });
-      }
       toast.success('Image approved.');
     } catch (err: any) {
       toast.error(err?.message || 'Failed to approve image.');
@@ -1438,132 +1424,7 @@ export default function ImagesPage() {
         }}
       />
 
-      {/* MODAL 2: Image Preview Modal */}
-      <Modal
-        isOpen={previewModalOpen}
-        onClose={() => setPreviewModalOpen(false)}
-        title={cleanImageTitle(previewImage?.projectWorkName, previewImage?.slot, previewImage?.category)}
-        description={previewImage?.caption || (previewImage?.status === 'Published' ? 'Currently live on your public website' : 'Photograph preview and details')}
-        maxWidth="3xl"
-        footer={
-          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between w-full gap-2.5">
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="primary"
-                size="md"
-                onClick={() => {
-                  if (previewImage) {
-                    setPreviewModalOpen(false);
-                    handleOpenStudio(previewImage);
-                  }
-                }}
-                leftIcon={<Sparkles className="w-4 h-4" />}
-                className="font-semibold"
-              >
-                Open in Image Studio
-              </Button>
-              {previewImage && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="md"
-                  onClick={() => {
-                    setPreviewModalOpen(false);
-                    openUploadModal(previewImage.slot, previewImage);
-                  }}
-                  leftIcon={<RefreshCw className="w-4 h-4" />}
-                >
-                  Replace
-                </Button>
-              )}
-            </div>
 
-            <div className="flex items-center gap-2">
-              {previewImage && previewImage.status !== 'Published' ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="md"
-                  disabled={publishing}
-                  isLoading={publishing}
-                  loadingText="Publishing..."
-                  onClick={() => handlePublishImage(previewImage)}
-                  leftIcon={<Globe className="w-4 h-4" />}
-                >
-                  Publish to Website
-                </Button>
-              ) : previewImage ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="md"
-                  onClick={() => handleUnpublishImage(previewImage)}
-                  className="text-xs text-[#64748B] hover:text-[#B91C1C] dark:hover:text-rose-400"
-                >
-                  Remove from Live Website
-                </Button>
-              ) : null}
-              <Button
-                type="button"
-                variant="ghost"
-                size="md"
-                onClick={() => setPreviewModalOpen(false)}
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        }
-      >
-        {previewImage && (
-          <div className="space-y-4">
-            <div className="rounded-[8px] overflow-hidden bg-slate-900/95 dark:bg-slate-950 border border-[#CBD5E1] dark:border-slate-800 flex items-center justify-center p-3 sm:p-5 min-h-[300px] max-h-[62vh]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={resolveImageUrl(previewImage.previewUrl)}
-                alt={cleanImageTitle(previewImage?.projectWorkName, previewImage?.slot, previewImage?.category)}
-                className="max-h-[56vh] max-w-full w-auto object-contain mx-auto rounded-[4px] shadow-sm"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-slate-50 dark:bg-[#1E293B]/50 rounded-[8px] border border-slate-200/60 dark:border-slate-800 text-xs">
-              <div>
-                <span className="text-slate-400 block text-[11px]">Dimensions</span>
-                <span className="font-semibold text-slate-900 dark:text-white">
-                  {previewImage.width} × {previewImage.height} px
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-400 block text-[11px]">Aspect Ratio</span>
-                <span className="font-semibold text-slate-900 dark:text-white">
-                  {getAspectRatioLabel(previewImage.width, previewImage.height)}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-400 block text-[11px]">File Size</span>
-                <span className="font-semibold text-slate-900 dark:text-white">
-                  {formatFileSize(previewImage.fileSize)}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-400 block text-[11px]">Status</span>
-                <span className="font-semibold">
-                  {previewImage.status === 'Published' ? (
-                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /> Live on Website
-                    </span>
-                  ) : previewImage.status === 'Approved' ? (
-                    <span className="text-[#315FEA] dark:text-blue-400">Ready to Publish</span>
-                  ) : (
-                    <span className="text-slate-600 dark:text-slate-300">Draft Original</span>
-                  )}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
 
       {/* MODAL 3: Edit Metadata Modal */}
       <Modal

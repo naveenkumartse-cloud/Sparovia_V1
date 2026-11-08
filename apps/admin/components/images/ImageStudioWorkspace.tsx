@@ -695,7 +695,7 @@ export function ImageStudioWorkspace({
       {/* Workspace Card */}
       <div className="bg-[#0B1220] w-full max-w-7xl h-[95vh] max-h-[95vh] rounded-[10px] shadow-2xl flex flex-col border border-white/10 overflow-hidden relative">
         {/* Workspace Top Bar (Framer-Style Glass Toolbar) */}
-        <header className="px-5 py-3.5 border-b border-white/10 glass-toolbar flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <header className="px-5 py-3.5 border-b border-white/10 image-studio-glass flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-9 h-9 rounded-[6px] bg-[#7950B8]/20 text-[#7950B8] border border-[#7950B8]/30 flex items-center justify-center font-bold shrink-0 glow-purple">
               <Sparkles className="w-5 h-5 text-[#9333EA] dark:text-[#C4B5FD]" />
@@ -863,12 +863,14 @@ export function ImageStudioWorkspace({
                 <div className="w-[500px] h-[500px] rounded-full bg-[#7950B8]/15 blur-[120px] transform-gpu" />
               </div>
 
-              {/* Processing Overlay */}
+              {/* Processing Overlay (Screenshot 3 aligned: keep photo visible behind backdrop, reassuring copy, purple creative glow) */}
               {isProcessing && (
-                <div className="absolute inset-0 z-30 bg-[#172033]/75 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-white text-center">
-                  <Loader2 className="w-10 h-10 animate-spin text-[#315FEA] mb-3" />
-                  <p className="text-sm font-semibold tracking-wide">Enhancing for Website</p>
-                  <p className="text-xs text-slate-300 mt-1 max-w-sm">
+                <div className="absolute inset-0 z-30 bg-[#0B1220]/75 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-white text-center animate-fadeIn">
+                  <div className="w-12 h-12 rounded-[6px] bg-[#7950B8]/20 border border-[#7950B8]/40 text-[#C4B5FD] flex items-center justify-center mb-3 glow-purple">
+                    <Loader2 className="w-6 h-6 animate-spin text-white" />
+                  </div>
+                  <p className="text-base font-semibold tracking-wide text-white">Enhancing for Website</p>
+                  <p className="text-xs text-slate-300 mt-1.5 max-w-sm leading-relaxed">
                     Preserving raw original photograph while calculating adaptive highlight protection, edge-preserving denoising, and web delivery optimization...
                   </p>
                 </div>
@@ -1600,10 +1602,10 @@ export function ImageStudioWorkspace({
               ) : (
                 /* STATE A: Original Image Only (Default) */
                 <div className="space-y-4">
-                  <div className="p-4 bg-[#F8FAFC] dark:bg-[#1E293B]/70 rounded-[8px] border border-[#CBD5E1] dark:border-[#334155] space-y-3">
+                  <div className="p-4 bg-[#F8FAFC] dark:bg-[#1E293B]/70 rounded-[8px] border border-[#7950B8]/20 dark:border-[#7950B8]/30 space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold text-[#172033] dark:text-white flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-[#315FEA]" />
+                        <Sparkles className="w-4 h-4 text-[#7950B8]" />
                         <span>Enhance for Website</span>
                       </h3>
                     </div>
@@ -1612,17 +1614,24 @@ export function ImageStudioWorkspace({
                       Improve lighting, clarity and presentation while keeping your original photo safe.
                     </p>
 
-                    <Button
-                      variant="primary"
-                      size="md"
-                      className="w-full justify-center font-semibold"
-                      isLoading={isProcessing}
-                      loadingText="Enhancing photo..."
+                    <button
+                      type="button"
+                      disabled={isProcessing}
                       onClick={handleRunEnhancement}
-                      leftIcon={<Sparkles className="w-4 h-4" />}
+                      className="w-full justify-center font-semibold text-xs py-2.5 px-4 rounded-[6px] inline-flex items-center gap-2 bg-gradient-to-r from-[#7950B8] to-[#6038A0] text-white shadow-md shadow-[#7950B8]/25 hover:from-[#6b42a8] hover:to-[#532e90] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
                     >
-                      Enhance photo
-                    </Button>
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Enhancing photo...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          <span>Enhance for Website</span>
+                        </>
+                      )}
+                    </button>
 
                     <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8] text-center flex items-center justify-center gap-1.5 pt-1">
                       <ShieldCheck className="w-3.5 h-3.5 text-[#15803D] shrink-0" />

@@ -39,7 +39,8 @@ import {
   Facebook,
   Instagram,
   Share2,
-  CheckCheck
+  CheckCheck,
+  ChevronLeft
 } from 'lucide-react';
 
 export interface WhatsAppTemplateItem {
@@ -142,6 +143,10 @@ export default function AccountPage() {
       intent: 'Price Estimate',
     },
   ]);
+
+  // WhatsApp Template Master-Detail State (Screenshot 5 Aligned)
+  const [selectedTemplateIndex, setSelectedTemplateIndex] = useState(0);
+  const [mobileEditingTemplate, setMobileEditingTemplate] = useState(false);
 
   // Social Links Integration State
   const [socialLoading, setSocialLoading] = useState(false);
@@ -349,7 +354,10 @@ export default function AccountPage() {
       category: 'General Enquiry',
       intent: 'New Enquiry',
     };
+    const nextIdx = waTemplates.length;
     setWaTemplates([...waTemplates, newTemplate]);
+    setSelectedTemplateIndex(nextIdx);
+    setMobileEditingTemplate(true);
   };
 
   const handleUpdateTemplate = (index: number, field: keyof WhatsAppTemplateItem, value: any) => {
@@ -365,6 +373,9 @@ export default function AccountPage() {
     }
     const updated = waTemplates.filter((_, i) => i !== index).map((t, i) => ({ ...t, displayOrder: i + 1 }));
     setWaTemplates(updated);
+    if (selectedTemplateIndex >= updated.length) {
+      setSelectedTemplateIndex(Math.max(0, updated.length - 1));
+    }
   };
 
   const handleMoveTemplate = (index: number, direction: 'up' | 'down') => {
@@ -980,263 +991,332 @@ export default function AccountPage() {
                   )}
                 </div>
 
-                {/* Templates List */}
-                <div className="space-y-4">
-                  {waTemplates.map((template, idx) => {
-                    const cleanDigits = waPhone.replace(/\D/g, '');
-                    const phoneWithCode = cleanDigits.length === 10 ? `91${cleanDigits}` : cleanDigits;
-                    const composedMsg = composeWhatsAppMessage(template.messageText, template.category);
-                    const encodedMsg = encodeURIComponent(composedMsg);
-                    const testUrl = phoneWithCode ? `https://wa.me/${phoneWithCode}?text=${encodedMsg}` : '';
+                {/* Master-Detail Layout (Screenshot 5 Aligned: Eliminates excessive vertical scrolling) */}
+                {(() => {
+                  const effectiveIndex = Math.min(selectedTemplateIndex, Math.max(0, waTemplates.length - 1));
+                  const activeTemplate = waTemplates[effectiveIndex];
+                  const cleanDigits = waPhone.replace(/\D/g, '');
+                  const phoneWithCode = cleanDigits.length === 10 ? `91${cleanDigits}` : cleanDigits;
+                  const composedMsg = activeTemplate ? composeWhatsAppMessage(activeTemplate.messageText, activeTemplate.category) : '';
+                  const encodedMsg = encodeURIComponent(composedMsg);
+                  const testUrl = phoneWithCode ? `https://wa.me/${phoneWithCode}?text=${encodedMsg}` : '';
 
-                    return (
-                      <div
-                        key={template.id || idx}
-                        className={`p-4 sm:p-5 rounded-[8px] border transition-all premium-card ${
-                          template.isActive
-                            ? 'bg-white/95 dark:bg-[#0B1220]/95 border-[#CBD5E1] dark:border-[#334155] shadow-xs'
-                            : 'bg-[#F3F6FA]/70 dark:bg-[#0F172A]/70 border-[#E3E7ED] dark:border-[#1E293B] opacity-75'
-                        }`}
-                      >
-                        {/* Card Header */}
-                        <div className="flex items-center justify-between gap-3 mb-3 pb-2.5 border-b border-[#E3E7ED] dark:border-[#1E293B]">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="w-6 h-6 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] text-xs font-bold flex items-center justify-center">
-                              {idx + 1}
-                            </span>
-                            <span className="text-xs font-bold text-[#172033] dark:text-white">
-                              {template.title || `Template #${idx + 1}`}
-                            </span>
-                            {template.category && (
-                              <Badge variant="brand" size="xs">
-                                {template.category}
-                              </Badge>
-                            )}
-                            <Badge variant={template.isActive ? "whatsapp" : "neutral"} size="xs">
-                              {template.isActive ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            {/* Move Up */}
-                            <button
-                              type="button"
-                              onClick={() => handleMoveTemplate(idx, 'up')}
-                              disabled={idx === 0}
-                              className="p-1 rounded-[4px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed"
-                              title="Move up"
-                            >
-                              <ArrowUp className="w-4 h-4" />
-                            </button>
-                            {/* Move Down */}
-                            <button
-                              type="button"
-                              onClick={() => handleMoveTemplate(idx, 'down')}
-                              disabled={idx === waTemplates.length - 1}
-                              className="p-1 rounded-[4px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed"
-                              title="Move down"
-                            >
-                              <ArrowDown className="w-4 h-4" />
-                            </button>
-                            {/* Active Toggle */}
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateTemplate(idx, 'isActive', !template.isActive)}
-                              className={`px-2 py-1 rounded-[4px] text-[11px] font-medium border transition-colors ${
-                                template.isActive
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-800'
-                                  : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:border-slate-700'
-                              }`}
-                            >
-                              {template.isActive ? 'Deactivate' : 'Activate'}
-                            </button>
-                            {/* Delete Button */}
-                            {waTemplates.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteTemplate(idx)}
-                                className="p-1 text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
-                                title="Delete template"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            )}
-                          </div>
+                  return (
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                      {/* Left Column: Template Library List */}
+                      <div className={`lg:col-span-5 space-y-2.5 ${mobileEditingTemplate ? 'hidden lg:block' : 'block'}`}>
+                        <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 px-1 pb-1">
+                          <span>Configured Choices ({waTemplates.length}/4)</span>
+                          <span className="text-[11px] font-normal text-slate-400">Click to select & edit</span>
                         </div>
 
-                        {/* Title and Category Inputs */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                          {/* Visitor-Facing Choice Title */}
-                          <div>
-                            <div className="flex justify-between items-center mb-1">
-                              <label className="text-[11px] font-semibold text-[#475569] dark:text-[#94A3B8]">
-                                Visitor Choice Title *
-                              </label>
-                              <span className="text-[10px] text-slate-400">
-                                {template.title.length}/100
-                              </span>
-                            </div>
-                            <input
-                              type="text"
-                              value={template.title}
-                              maxLength={100}
-                              onChange={(e) => handleUpdateTemplate(idx, 'title', e.target.value)}
-                              placeholder="e.g. Plan a New Project"
-                              className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
-                            />
-                            <p className="text-[10px] text-slate-400 mt-1">
-                              Action label displayed on the public website selector.
-                            </p>
-                          </div>
+                        <div className="space-y-2">
+                          {waTemplates.map((template, idx) => {
+                            const isSelected = effectiveIndex === idx;
+                            return (
+                              <div
+                                key={template.id || idx}
+                                onClick={() => {
+                                  setSelectedTemplateIndex(idx);
+                                  setMobileEditingTemplate(true);
+                                }}
+                                className={`p-3 rounded-[8px] border transition-all cursor-pointer select-none group relative ${
+                                  isSelected
+                                    ? 'bg-white dark:bg-[#0F172A] border-[#315FEA] shadow-soft-sm ring-1 ring-[#315FEA]/20'
+                                    : 'bg-[#F8FAFC] dark:bg-[#1E293B]/60 border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-slate-700'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span
+                                      className={`w-5 h-5 rounded-[4px] text-[11px] font-bold flex items-center justify-center shrink-0 ${
+                                        isSelected
+                                          ? 'bg-[#315FEA] text-white'
+                                          : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                      }`}
+                                    >
+                                      {idx + 1}
+                                    </span>
+                                    <span className="text-xs font-semibold text-slate-900 dark:text-white truncate">
+                                      {template.title || `Choice #${idx + 1}`}
+                                    </span>
+                                  </div>
 
-                          {/* Customer Intent / Service Category */}
-                          <div>
-                            <div className="flex justify-between items-center mb-1">
-                              <label className="text-[11px] font-semibold text-[#475569] dark:text-[#94A3B8]">
-                                Service Category / Intent (Optional)
-                              </label>
-                              {tenantCategories.length > 0 && (
-                                <span className="text-[10px] text-slate-400">
-                                  {tenantCategories.length} categories available
-                                </span>
-                              )}
-                            </div>
-                            {tenantCategories.length > 0 ? (
-                              <div>
-                                <select
-                                  value={template.category || ''}
-                                  onChange={(e) => handleUpdateTemplateCategory(idx, e.target.value)}
-                                  className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
-                                >
-                                  <option value="">None / General Inquiry</option>
-                                  {template.category && !tenantCategories.some((c) => c.name.toLowerCase() === template.category?.toLowerCase()) && (
-                                    <option value={template.category}>
-                                      {template.category} (Custom / Legacy)
-                                    </option>
-                                  )}
-                                  {tenantCategories.map((cat) => (
-                                    <option key={cat.id} value={cat.name}>
-                                      {cat.name}
-                                    </option>
-                                  ))}
-                                </select>
-                                <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
-                                  <span>Dynamic categories from your offerings.</span>
-                                  <Link
-                                    href="/admin/images"
-                                    className="text-[#315FEA] hover:underline font-medium inline-flex items-center gap-0.5"
-                                  >
-                                    <span>Manage in Images</span>
-                                    <ExternalLink className="w-2.5 h-2.5" />
-                                  </Link>
+                                  <div className="flex items-center gap-1.5 shrink-0">
+                                    {template.isActive ? (
+                                      <span className="w-2 h-2 rounded-full bg-[#25D366] inline-block" title="Active on website" />
+                                    ) : (
+                                      <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600 inline-block" title="Inactive" />
+                                    )}
+                                    <span
+                                      className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                                        template.isActive
+                                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                          : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                                      }`}
+                                    >
+                                      {template.isActive ? 'Active' : 'Off'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-1.5 pl-7">
+                                  {template.messageText || '(Empty message)'}
+                                </p>
+
+                                {/* Category & Reorder controls */}
+                                <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between pl-7 text-[10px] text-slate-400">
+                                  <span className="truncate max-w-[140px]">{template.category || 'General Inquiry'}</span>
+                                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                      type="button"
+                                      disabled={idx === 0}
+                                      onClick={() => handleMoveTemplate(idx, 'up')}
+                                      className="p-1 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-20 transition-colors"
+                                      title="Move up"
+                                    >
+                                      <ArrowUp className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={idx === waTemplates.length - 1}
+                                      onClick={() => handleMoveTemplate(idx, 'down')}
+                                      className="p-1 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-20 transition-colors"
+                                      title="Move down"
+                                    >
+                                      <ArrowDown className="w-3 h-3" />
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
-                            ) : (
-                              <div>
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="text-[10px] text-amber-600 dark:text-amber-400">
-                                    No categories configured yet
-                                  </span>
-                                  <Link
-                                    href="/admin/images"
-                                    className="text-[10px] text-[#315FEA] hover:underline font-medium inline-flex items-center gap-0.5"
+                            );
+                          })}
+                        </div>
+
+                        {waTemplates.length < 4 && (
+                          <button
+                            type="button"
+                            onClick={handleAddTemplate}
+                            className="w-full py-2.5 px-3 rounded-[8px] border border-dashed border-slate-300 dark:border-slate-700 hover:border-[#315FEA] text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#315FEA] flex items-center justify-center gap-1.5 transition-colors bg-white/50 dark:bg-slate-900/30"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Add Another Choice ({waTemplates.length}/4)</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Right Column: Focused Editor for Selected Template */}
+                      <div className={`lg:col-span-7 ${!mobileEditingTemplate ? 'hidden lg:block' : 'block'}`}>
+                        {activeTemplate ? (
+                          <div className="p-4 sm:p-5 rounded-[8px] bg-white dark:bg-[#0F172A] border border-slate-200/90 dark:border-white/10 shadow-soft-sm space-y-4">
+                            {/* Editor Header */}
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setMobileEditingTemplate(false)}
+                                  className="lg:hidden p-1.5 rounded-[4px] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 mr-1"
+                                  aria-label="Back to choices list"
+                                >
+                                  <ChevronLeft className="w-4 h-4" />
+                                </button>
+                                <span className="w-6 h-6 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] text-xs font-bold flex items-center justify-center">
+                                  {effectiveIndex + 1}
+                                </span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-white">
+                                  Editing Choice #{effectiveIndex + 1}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateTemplate(effectiveIndex, 'isActive', !activeTemplate.isActive)}
+                                  className={`px-2.5 py-1 rounded-[6px] text-xs font-semibold border transition-all ${
+                                    activeTemplate.isActive
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-800'
+                                      : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                                  }`}
+                                >
+                                  {activeTemplate.isActive ? 'Active on Website' : 'Activate Choice'}
+                                </button>
+
+                                {waTemplates.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteTemplate(effectiveIndex)}
+                                    className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 rounded-[4px] transition-colors"
+                                    title="Delete this choice"
                                   >
-                                    <span>Configure in Images</span>
-                                    <ExternalLink className="w-2.5 h-2.5" />
-                                  </Link>
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Title and Category */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <div className="flex justify-between items-center mb-1">
+                                  <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                                    Visitor Choice Title *
+                                  </label>
+                                  <span className="text-[10px] text-slate-400">
+                                    {activeTemplate.title.length}/100
+                                  </span>
                                 </div>
                                 <input
                                   type="text"
-                                  value={template.category || ''}
+                                  value={activeTemplate.title}
                                   maxLength={100}
-                                  onChange={(e) => handleUpdateTemplate(idx, 'category', e.target.value)}
-                                  placeholder="e.g. Modular Systems, Full Home Interior"
-                                  className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+                                  onChange={(e) => handleUpdateTemplate(effectiveIndex, 'title', e.target.value)}
+                                  placeholder="e.g. Plan a New Project"
+                                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[6px] px-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
                                 />
+                                <p className="text-[10px] text-slate-400 mt-1">
+                                  Action label displayed on public floating widget.
+                                </p>
                               </div>
-                            )}
-                          </div>
-                        </div>
 
-                        {/* Prefilled WhatsApp Message */}
-                        <div className="mb-3">
-                          <div className="flex justify-between items-center mb-1">
-                            <label className="text-[11px] font-semibold text-[#475569] dark:text-[#94A3B8]">
-                              Prefilled WhatsApp Message *
-                            </label>
-                            <span className="text-[10px] text-slate-400">
-                              {template.messageText.length}/1000
-                            </span>
-                          </div>
-                          <textarea
-                            rows={2}
-                            value={template.messageText}
-                            maxLength={1000}
-                            onChange={(e) => handleUpdateTemplate(idx, 'messageText', e.target.value)}
-                            placeholder="Client-authored prefilled text opening in WhatsApp..."
-                            className="w-full bg-white dark:bg-[#0B1220] border border-[#CBD5E1] dark:border-[#334155] rounded-[6px] px-3 py-1.5 text-xs text-[#172033] dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] resize-none"
-                          />
-                        </div>
-
-                        {/* Quick Preset Starter Chips */}
-                        <div className="mb-3 p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-[#0F172A] border border-slate-200/70 dark:border-slate-800">
-                          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[#475569] dark:text-[#94A3B8] mb-1.5">
-                            <Sparkles className="w-3 h-3 text-[#7950B8]" />
-                            <span>Quick Insert Starters:</span>
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {TEMPLATE_PRESETS.map((preset) => (
-                              <button
-                                key={preset.title}
-                                type="button"
-                                onClick={() => handleApplyPreset(idx, preset)}
-                                className="px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 hover:border-[#315FEA] text-[#172033] dark:text-slate-200 hover:text-[#315FEA] transition-colors"
-                              >
-                                {preset.title}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Realistic WhatsApp Chat Bubble Preview (Canva-Grade Visual Experience) */}
-                        <div className="p-3.5 rounded-[8px] bg-[#ECE5DD] dark:bg-[#111B21] border border-[#D1D7DB] dark:border-[#222E35] relative overflow-hidden shadow-inner">
-                          <div className="flex items-center justify-between pb-2 mb-2 border-b border-black/5 dark:border-white/5">
-                            <div className="flex items-center gap-2">
-                              <div className="w-5 h-5 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-xs">
-                                <MessageCircle className="w-3 h-3" />
+                              <div>
+                                <div className="flex justify-between items-center mb-1">
+                                  <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                                    Service Category / Intent
+                                  </label>
+                                  {tenantCategories.length > 0 && (
+                                    <span className="text-[10px] text-slate-400">
+                                      {tenantCategories.length} categories
+                                    </span>
+                                  )}
+                                </div>
+                                {tenantCategories.length > 0 ? (
+                                  <div>
+                                    <select
+                                      value={activeTemplate.category || ''}
+                                      onChange={(e) => handleUpdateTemplateCategory(effectiveIndex, e.target.value)}
+                                      className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[6px] px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+                                    >
+                                      <option value="">General Inquiry</option>
+                                      {activeTemplate.category &&
+                                        !tenantCategories.some((c) => c.name.toLowerCase() === activeTemplate.category?.toLowerCase()) && (
+                                          <option value={activeTemplate.category}>
+                                            {activeTemplate.category} (Custom)
+                                          </option>
+                                        )}
+                                      {tenantCategories.map((cat) => (
+                                        <option key={cat.id} value={cat.name}>
+                                          {cat.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
+                                      <span>Dynamic from your offerings.</span>
+                                      <Link
+                                        href="/admin/images"
+                                        className="text-[#315FEA] hover:underline font-medium inline-flex items-center gap-0.5"
+                                      >
+                                        <span>Manage</span>
+                                        <ExternalLink className="w-2.5 h-2.5" />
+                                      </Link>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <input
+                                    type="text"
+                                    value={activeTemplate.category || ''}
+                                    maxLength={100}
+                                    onChange={(e) => handleUpdateTemplate(effectiveIndex, 'category', e.target.value)}
+                                    placeholder="e.g. Full Home Interior"
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[6px] px-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA]"
+                                  />
+                                )}
                               </div>
-                              <span className="text-[11px] font-bold text-[#111B21] dark:text-slate-200">
-                                WhatsApp Live Simulation {phoneWithCode ? `(+${phoneWithCode})` : ''}
-                              </span>
                             </div>
-                            {testUrl && (
-                              <a
-                                href={testUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-[10px] text-white bg-[#25D366] hover:bg-[#20BA5A] font-bold transition-all shadow-xs"
-                              >
-                                <span>Launch wa.me</span>
-                                <ExternalLink className="w-2.5 h-2.5" />
-                              </a>
-                            )}
-                          </div>
 
-                          {/* Message Bubble */}
-                          <div className="max-w-[92%] ml-auto bg-[#D9FDD3] dark:bg-[#005C4B] rounded-[7.5px] rounded-tr-none px-3.5 py-2.5 shadow-xs text-[#111B21] dark:text-white text-xs leading-relaxed border border-emerald-300/40 dark:border-emerald-700/50">
-                            <p className="whitespace-pre-wrap break-words text-[11px] font-medium">
-                              {composedMsg || '(Empty message)'}
-                            </p>
-                            <div className="flex items-center justify-end gap-1 mt-1 text-[9px] text-[#667781] dark:text-emerald-200/80">
-                              <span>10:30 AM</span>
-                              <CheckCheck className="w-3.5 h-3.5 text-[#34B7F1]" />
+                            {/* Prefilled WhatsApp Message Textarea */}
+                            <div>
+                              <div className="flex justify-between items-center mb-1">
+                                <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                                  Prefilled WhatsApp Message *
+                                </label>
+                                <span className="text-[10px] text-slate-400">
+                                  {activeTemplate.messageText.length}/1000
+                                </span>
+                              </div>
+                              <textarea
+                                rows={3}
+                                value={activeTemplate.messageText}
+                                maxLength={1000}
+                                onChange={(e) => handleUpdateTemplate(effectiveIndex, 'messageText', e.target.value)}
+                                placeholder="Message prefilled in client's WhatsApp..."
+                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[6px] px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#315FEA] resize-none leading-relaxed"
+                              />
+                            </div>
+
+                            {/* Quick Presets */}
+                            <div className="p-2.5 rounded-[6px] bg-[#F8FAFC] dark:bg-slate-900/50 border border-slate-200/70 dark:border-slate-800">
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                                <Sparkles className="w-3 h-3 text-[#7950B8]" />
+                                <span>Quick Insert Starters:</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1.5">
+                                {TEMPLATE_PRESETS.map((preset) => (
+                                  <button
+                                    key={preset.title}
+                                    type="button"
+                                    onClick={() => handleApplyPreset(effectiveIndex, preset)}
+                                    className="px-2 py-0.5 rounded-[4px] text-[10px] font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#315FEA] text-slate-700 dark:text-slate-300 hover:text-[#315FEA] transition-colors"
+                                  >
+                                    {preset.title}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Live WhatsApp Bubble Preview */}
+                            <div className="p-3.5 rounded-[8px] bg-[#ECE5DD] dark:bg-[#111B21] border border-[#D1D7DB] dark:border-[#222E35] relative overflow-hidden shadow-inner">
+                              <div className="flex items-center justify-between pb-2 mb-2 border-b border-black/5 dark:border-white/5">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-5 h-5 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-xs">
+                                    <MessageCircle className="w-3 h-3" />
+                                  </div>
+                                  <span className="text-[11px] font-bold text-[#111B21] dark:text-slate-200">
+                                    WhatsApp Live Simulation {phoneWithCode ? `(+${phoneWithCode})` : ''}
+                                  </span>
+                                </div>
+                                {testUrl && (
+                                  <a
+                                    href={testUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-[10px] text-white bg-[#25D366] hover:bg-[#20BA5A] font-bold transition-all shadow-xs"
+                                  >
+                                    <span>Launch wa.me</span>
+                                    <ExternalLink className="w-2.5 h-2.5" />
+                                  </a>
+                                )}
+                              </div>
+
+                              <div className="max-w-[92%] ml-auto bg-[#D9FDD3] dark:bg-[#005C4B] rounded-[7.5px] rounded-tr-none px-3.5 py-2.5 shadow-xs text-[#111B21] dark:text-white text-xs leading-relaxed border border-emerald-300/40 dark:border-emerald-700/50">
+                                <p className="whitespace-pre-wrap break-words text-[11px] font-medium">
+                                  {composedMsg || '(Empty message)'}
+                                </p>
+                                <div className="flex items-center justify-end gap-1 mt-1 text-[9px] text-[#667781] dark:text-emerald-200/80">
+                                  <span>10:30 AM</span>
+                                  <CheckCheck className="w-3.5 h-3.5 text-[#34B7F1]" />
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="p-8 text-center text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-[8px] border border-dashed border-slate-200 dark:border-slate-800">
+                            <p className="text-xs">Select a choice from the list to edit its details.</p>
+                          </div>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Visitor Choices Preview Card */}
                 <div className="p-4 rounded-[8px] bg-gradient-to-r from-purple-50/80 to-blue-50/60 dark:from-[#1E1B2E] dark:to-[#0B1220] border border-purple-200/60 dark:border-[#332A4A] shadow-xs">

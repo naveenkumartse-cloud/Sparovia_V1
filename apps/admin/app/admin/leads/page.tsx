@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo, Suspense } from 'react';
+import { motion } from 'framer-motion';
 import {
   Users,
   Search,
@@ -1041,165 +1042,174 @@ function CustomerLeadsContent() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {leads.map((lead) => (
-                  <Card
+                  <motion.div
                     key={lead.id}
-                    variant="interactive"
-                    onClick={() => setSelectedLead(lead)}
-                    className="p-4 sm:p-5 flex flex-col justify-between h-full space-y-3.5 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 transition-all duration-150"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ y: -4, scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 24 }}
+                    className="h-full"
                   >
-                    <div className="space-y-3">
-                      {/* Top Row: Customer Initials Avatar, Name, Relative Timestamp & Status Badge */}
-                      <div className="flex items-start justify-between gap-2.5">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-9 h-9 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] font-bold text-xs flex items-center justify-center shrink-0 border border-[#315FEA]/20">
-                            {getInitials(lead.name)}
-                          </div>
-                          <div className="min-w-0">
-                            <h3 className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base truncate leading-snug">
-                              {lead.name}
-                            </h3>
-                            <div className="flex items-center gap-1 text-[11px] text-[#475569] dark:text-[#94A3B8] mt-0.5">
-                              <Clock className="w-3 h-3 shrink-0" />
-                              <span title={formatDate(lead.submittedAt)}>
-                                {formatRelativeTime(lead.submittedAt)}
-                              </span>
+                    <Card
+                      variant="interactive"
+                      onClick={() => setSelectedLead(lead)}
+                      className="p-4 sm:p-5 flex flex-col justify-between h-full space-y-3.5 transition-shadow"
+                    >
+                      <div className="space-y-3">
+                        {/* Top Row: Customer Initials Avatar, Name, Relative Timestamp & Status Badge */}
+                        <div className="flex items-start justify-between gap-2.5">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-9 h-9 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] font-bold text-xs flex items-center justify-center shrink-0 border border-[#315FEA]/20">
+                              {getInitials(lead.name)}
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base truncate leading-snug">
+                                {lead.name}
+                              </h3>
+                              <div className="flex items-center gap-1 text-[11px] text-[#475569] dark:text-[#94A3B8] mt-0.5">
+                                <Clock className="w-3 h-3 shrink-0" />
+                                <span title={formatDate(lead.submittedAt)}>
+                                  {formatRelativeTime(lead.submittedAt)}
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <div className="shrink-0">{getStatusBadge(lead.status)}</div>
                         </div>
-                        <div className="shrink-0">{getStatusBadge(lead.status)}</div>
+
+                        {/* Contact Info: Phone with Copy Button & Optional Email */}
+                        <div
+                          className="space-y-1 text-xs text-slate-700 dark:text-slate-300 pt-0.5"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 font-medium min-w-0">
+                              <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <a
+                                href={`tel:${lead.phone}`}
+                                className="hover:text-[#315FEA] hover:underline truncate"
+                                title={`Call ${lead.phone}`}
+                              >
+                                {lead.phone}
+                              </a>
+                              <button
+                                type="button"
+                                onClick={(e) => handleCopyPhone(lead.id, lead.phone, e)}
+                                className="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors shrink-0"
+                                title="Copy phone"
+                                aria-label={`Copy phone for ${lead.name}`}
+                              >
+                                {copiedPhoneId === lead.id ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                ) : (
+                                  <Copy className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+
+                          {lead.email && (
+                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                              <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <a
+                                href={`mailto:${lead.email}`}
+                                className="truncate hover:text-[#315FEA] hover:underline text-[11px]"
+                                title={`Email ${lead.email}`}
+                              >
+                                {lead.email}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Badges: Source Channel & Area of Interest */}
+                        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                          {getSourceBadge(lead.source)}
+                          {lead.areaOfInterest && (
+                            <Badge variant="warning" size="xs">
+                              {lead.areaOfInterest}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Enquiry Message Preview */}
+                        {getCleanEnquiryMessage(lead.message) && (
+                          <div className="p-2.5 rounded-[6px] bg-[#F3F6FA] dark:bg-[#1E293B]/40 border border-[#E3E7ED]/70 dark:border-[#1E293B] text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                            {getCleanEnquiryMessage(lead.message)}
+                          </div>
+                        )}
                       </div>
 
-                      {/* Contact Info: Phone with Copy Button & Optional Email */}
+                      {/* Card Action Footer: Quick communication on left, admin actions on right */}
                       <div
-                        className="space-y-1 text-xs text-slate-700 dark:text-slate-300 pt-0.5"
+                        className="pt-3 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-between gap-2"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 font-medium min-w-0">
-                            <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        {/* Left: Communication links */}
+                        <div className="flex items-center gap-1.5">
+                          {lead.phone && (
                             <a
                               href={`tel:${lead.phone}`}
-                              className="hover:text-[#315FEA] hover:underline truncate"
-                              title={`Call ${lead.phone}`}
+                              className="h-8 px-2.5 inline-flex items-center gap-1.5 rounded-[6px] text-xs font-semibold bg-[#15803D]/10 hover:bg-[#15803D]/20 text-[#15803D] dark:text-emerald-400 transition-colors"
+                              title={`Call ${lead.name}`}
+                              aria-label={`Call ${lead.name}`}
                             >
-                              {lead.phone}
+                              <Phone className="w-3.5 h-3.5" />
+                              <span>Call</span>
                             </a>
-                            <button
-                              type="button"
-                              onClick={(e) => handleCopyPhone(lead.id, lead.phone, e)}
-                              className="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors shrink-0"
-                              title="Copy phone"
-                              aria-label={`Copy phone for ${lead.name}`}
-                            >
-                              {copiedPhoneId === lead.id ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                              ) : (
-                                <Copy className="w-3.5 h-3.5" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-
-                        {lead.email && (
-                          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                            <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          )}
+                          {lead.phone && (
                             <a
-                              href={`mailto:${lead.email}`}
-                              className="truncate hover:text-[#315FEA] hover:underline text-[11px]"
-                              title={`Email ${lead.email}`}
+                              href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="h-8 px-2.5 inline-flex items-center gap-1.5 rounded-[6px] text-xs font-semibold bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] dark:text-[#25D366] transition-colors"
+                              title={`WhatsApp ${lead.name}`}
+                              aria-label={`WhatsApp ${lead.name}`}
                             >
-                              {lead.email}
+                              <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
+                              <span>WhatsApp</span>
                             </a>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Badges: Source Channel & Area of Interest */}
-                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                        {getSourceBadge(lead.source)}
-                        {lead.areaOfInterest && (
-                          <Badge variant="warning" size="xs">
-                            {lead.areaOfInterest}
-                          </Badge>
-                        )}
-                      </div>
-
-                      {/* Enquiry Message Preview */}
-                      {getCleanEnquiryMessage(lead.message) && (
-                        <div className="p-2.5 rounded-[6px] bg-[#F3F6FA] dark:bg-[#1E293B]/40 border border-[#E3E7ED]/70 dark:border-[#1E293B] text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
-                          {getCleanEnquiryMessage(lead.message)}
+                          )}
                         </div>
-                      )}
-                    </div>
 
-                    {/* Card Action Footer: Quick communication on left, admin actions on right */}
-                    <div
-                      className="pt-3 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-between gap-2"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {/* Left: Communication links */}
-                      <div className="flex items-center gap-1.5">
-                        {lead.phone && (
-                          <a
-                            href={`tel:${lead.phone}`}
-                            className="h-8 px-2.5 inline-flex items-center gap-1.5 rounded-[6px] text-xs font-semibold bg-[#15803D]/10 hover:bg-[#15803D]/20 text-[#15803D] dark:text-emerald-400 transition-colors"
-                            title={`Call ${lead.name}`}
-                            aria-label={`Call ${lead.name}`}
+                        {/* Right: Management actions */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedLead(lead)}
+                            className="h-8 px-2.5 inline-flex items-center rounded-[6px] text-xs font-medium text-[#315FEA] hover:bg-[#315FEA]/10 transition-colors"
+                            title="View lead details"
+                            aria-label={`View details for ${lead.name}`}
                           >
-                            <Phone className="w-3.5 h-3.5" />
-                            <span>Call</span>
-                          </a>
-                        )}
-                        {lead.phone && (
-                          <a
-                            href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="h-8 px-2.5 inline-flex items-center gap-1.5 rounded-[6px] text-xs font-semibold bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] dark:text-[#25D366] transition-colors"
-                            title={`WhatsApp ${lead.name}`}
-                            aria-label={`WhatsApp ${lead.name}`}
+                            Details
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedLead(lead);
+                              openEditModal(lead);
+                            }}
+                            className="h-8 w-8 inline-flex items-center justify-center rounded-[6px] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            title="Edit lead"
+                            aria-label={`Edit ${lead.name}`}
                           >
-                            <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
-                            <span>WhatsApp</span>
-                          </a>
-                        )}
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setLeadToDelete(lead)}
+                            className="h-8 w-8 inline-flex items-center justify-center rounded-[6px] text-slate-400 hover:text-[#B91C1C] hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                            title="Delete lead"
+                            aria-label={`Delete ${lead.name}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-
-                      {/* Right: Management actions */}
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedLead(lead)}
-                          className="h-8 px-2.5 inline-flex items-center rounded-[6px] text-xs font-medium text-[#315FEA] hover:bg-[#315FEA]/10 transition-colors"
-                          title="View lead details"
-                          aria-label={`View details for ${lead.name}`}
-                        >
-                          Details
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedLead(lead);
-                            openEditModal(lead);
-                          }}
-                          className="h-8 w-8 inline-flex items-center justify-center rounded-[6px] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                          title="Edit lead"
-                          aria-label={`Edit ${lead.name}`}
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setLeadToDelete(lead)}
-                          className="h-8 w-8 inline-flex items-center justify-center rounded-[6px] text-slate-400 hover:text-[#B91C1C] hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                          title="Delete lead"
-                          aria-label={`Delete ${lead.name}`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </motion.div>
                 ))}
               </div>
 
@@ -1473,15 +1483,41 @@ function CustomerLeadsContent() {
         </>
       )}
 
-      {/* 5. Lead Detail Inspection Modal (Structured cleanly without nested card boxes) */}
+      {/* 5. Lead Detail Inspection Modal (Structured cleanly with Dashboard visual hierarchy) */}
       <Modal
         isOpen={!!selectedLead && !isEditModalOpen && !leadToDelete}
         onClose={() => {
           setSelectedLead(null);
           setStatusUpdateError(null);
         }}
-        title="Lead Inspection & Follow-up"
-        description="Review customer inquiry details and update status in the conversion pipeline."
+        title={
+          selectedLead ? (
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-[6px] bg-gradient-to-br from-[#315FEA]/20 to-[#315FEA]/5 text-[#315FEA] flex items-center justify-center shrink-0 font-bold text-sm shadow-xs border border-[#315FEA]/20">
+                {selectedLead.name.slice(0, 1).toUpperCase()}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-base text-slate-900 dark:text-white">
+                    {selectedLead.name}
+                  </span>
+                  {getStatusBadge(selectedLead.status)}
+                </div>
+              </div>
+            </div>
+          ) : (
+            'Lead Inspection & Follow-up'
+          )
+        }
+        description={
+          selectedLead ? (
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              Submitted {formatDate(selectedLead.submittedAt)} via {selectedLead.source || 'Website'} · Manage conversion pipeline & follow-up
+            </span>
+          ) : (
+            'Review customer inquiry details and update status in the conversion pipeline.'
+          )
+        }
         maxWidth="xl"
         footer={
           selectedLead && (
@@ -1580,8 +1616,8 @@ function CustomerLeadsContent() {
               </div>
             </div>
 
-            {/* Customer & Contact Summary Grid (Unified layout without 6 nested boxes) */}
-            <div className="p-4 rounded-[8px] bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] shadow-soft-sm">
+            {/* Customer & Contact Summary Grid */}
+            <div className="p-4 rounded-[8px] bg-white dark:bg-[#0F172A] border border-slate-200/90 dark:border-white/10 shadow-soft-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 text-xs">
                 {/* Customer Name */}
                 <div>
@@ -1599,13 +1635,13 @@ function CustomerLeadsContent() {
                     Phone Number
                   </span>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white font-mono">
                       {selectedLead.phone}
                     </p>
                     <button
                       type="button"
                       onClick={(e) => handleCopyPhone(selectedLead.id, selectedLead.phone, e)}
-                      className="text-xs text-[#315FEA] font-semibold hover:underline inline-flex items-center gap-1"
+                      className="text-xs text-[#315FEA] hover:text-[#254EDB] font-semibold hover:underline inline-flex items-center gap-1 transition-colors"
                       aria-label={`Copy phone for ${selectedLead.name}`}
                     >
                       <Copy className="w-3 h-3" />
@@ -1629,13 +1665,13 @@ function CustomerLeadsContent() {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                     Area of Interest
                   </span>
-                  <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 mt-0.5">
+                  <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 mt-0.5 font-medium">
                     {selectedLead.areaOfInterest || 'Not specified'}
                   </p>
                 </div>
 
                 {/* Intake Source & Status */}
-                <div className="sm:col-span-2 pt-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div className="sm:col-span-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
                       Intake Source
@@ -1652,13 +1688,13 @@ function CustomerLeadsContent() {
               </div>
             </div>
 
-            {/* Customer Inquiry Requirements */}
-            <div className="p-3.5 rounded-[8px] bg-[#F3F6FA] dark:bg-[#1E293B]/40 border border-[#E3E7ED] dark:border-[#1E293B] space-y-1.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5 text-slate-400" />
+            {/* Customer Inquiry Requirements (Highlighted Accent Card) */}
+            <div className="p-3.5 rounded-[8px] bg-[#315FEA]/5 dark:bg-[#315FEA]/10 border border-[#315FEA]/20 dark:border-[#315FEA]/30 space-y-1.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#315FEA] dark:text-[#5B82F6] flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5 text-[#315FEA]" />
                 Customer Inquiry Requirements
               </span>
-              <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed pt-0.5">
+              <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed pt-0.5 font-medium">
                 {getCleanEnquiryMessage(selectedLead.message) || 'No project description entered.'}
               </p>
             </div>
