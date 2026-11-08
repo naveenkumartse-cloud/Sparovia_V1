@@ -31,6 +31,7 @@ import {
   ImageDto,
   ImageVariantDto,
   PendingUploadData,
+  cleanImageTitle,
 } from '@/components/images/ImageStudioWorkspace';
 import {
   ImageUploadModal,
@@ -909,68 +910,109 @@ export default function ImagesPage() {
                         </div>
                       </>
                     ) : assignedImage ? (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant={isAssignedPublished ? 'secondary' : 'primary'}
-                            size="sm"
-                            onClick={() => handleOpenStudio(assignedImage)}
-                            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
-                            title="Open Image Studio for enhancement"
-                            className="font-semibold"
-                          >
-                            Enhance
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => openUploadModal(slot.key, assignedImage)}
-                            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-                            title="Replace image file"
-                          >
-                            Replace
-                          </Button>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          {!isAssignedPublished ? (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handlePublishImage(assignedImage)}
-                              className="font-medium text-[#172033] dark:text-white"
-                              title="Publish image to live website"
-                            >
-                              Publish
-                            </Button>
-                          ) : (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleUnpublishImage(assignedImage)}
-                              className="text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
-                              title="Remove from public website"
-                            >
-                              Unpublish
-                            </Button>
-                          )}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => openRemoveModal(assignedImage)}
-                            aria-label={`Delete image for slot ${slot.title}`}
-                            title="Delete image from media library"
-                            className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </>
+                      <div className="space-y-2 w-full">
+                        {isAssignedPublished ? (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => handleOpenStudio(assignedImage)}
+                                leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#315FEA] dark:text-blue-400" />}
+                                title="Open Image Studio for enhancement"
+                                className="flex-1 justify-center font-semibold"
+                              >
+                                Enhance in Studio
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openUploadModal(slot.key, assignedImage)}
+                                leftIcon={<RefreshCw className="w-3.5 h-3.5 text-[#475569] dark:text-slate-400" />}
+                                title="Replace image file"
+                              >
+                                Replace
+                              </Button>
+                            </div>
+                            <div className="flex items-center justify-between pt-0.5">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleUnpublishImage(assignedImage)}
+                                className="text-xs text-[#64748B] hover:text-[#B91C1C] dark:hover:text-rose-400 p-0 h-auto"
+                                title="Remove from public website"
+                              >
+                                Remove from live website
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => openRemoveModal(assignedImage)}
+                                aria-label={`Delete image for slot ${slot.title}`}
+                                title="Delete image from media library"
+                                className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => handleOpenStudio(assignedImage)}
+                                leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#315FEA] dark:text-blue-400" />}
+                                title="Open Image Studio for enhancement"
+                                className="flex-1 justify-center font-semibold"
+                              >
+                                Enhance
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="primary"
+                                size="sm"
+                                onClick={() => handlePublishImage(assignedImage)}
+                                leftIcon={<Globe className="w-3.5 h-3.5" />}
+                                className="flex-1 justify-center font-semibold"
+                                title="Publish image to live website"
+                              >
+                                Publish
+                              </Button>
+                            </div>
+                            <div className="flex items-center justify-between pt-0.5">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openUploadModal(slot.key, assignedImage)}
+                                leftIcon={<RefreshCw className="w-3.5 h-3.5 text-[#475569] dark:text-slate-400" />}
+                                title="Replace image file"
+                                className="text-xs"
+                              >
+                                Replace
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => openRemoveModal(assignedImage)}
+                                aria-label={`Delete image for slot ${slot.title}`}
+                                title="Delete image from media library"
+                                className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     ) : (
                       <Button
                         type="button"
@@ -1107,11 +1149,12 @@ export default function ImagesPage() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-5 sm:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-6xl">
                   {displayedExploreImages.map((image) => {
                     const isSelected = selectedImageIds.has(image.id);
                     const isPublished = image.status === 'Published';
                     const isApproved = image.status === 'Approved';
+                    const displayTitle = cleanImageTitle(image.projectWorkName, image.slot, image.category);
 
                     return (
                       <div
@@ -1145,67 +1188,70 @@ export default function ImagesPage() {
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={resolveImageUrl(image.previewUrl)}
-                            alt={image.projectWorkName || 'Project work photo'}
+                            alt={displayTitle}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-102 cursor-pointer"
                             onClick={() => openPreviewModal(image)}
                           />
 
-                          {/* Top-Right Badges */}
+                          {/* Top-Right Single Status Badge */}
                           <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10 pointer-events-none">
-                            {image.category && (
-                              <Badge variant="neutral" size="xs" className="bg-[#172033]/85 text-white border-transparent backdrop-blur-xs tracking-wide">
-                                {image.category}
-                              </Badge>
-                            )}
-                            {image.slot?.startsWith('replaces:') && (
-                              <Badge variant="brand" size="xs" className="uppercase tracking-wider backdrop-blur-xs">
+                            {image.slot?.startsWith('replaces:') ? (
+                              <Badge variant="brand" size="xs" className="uppercase tracking-wider backdrop-blur-xs font-semibold shadow-xs">
                                 Replacement
                               </Badge>
+                            ) : isPublished ? (
+                              <Badge variant="success" size="xs" dot className="backdrop-blur-xs shadow-xs font-semibold">
+                                Live on Website
+                              </Badge>
+                            ) : isApproved ? (
+                              <Badge variant="brand" size="xs" className="backdrop-blur-xs font-semibold shadow-xs">
+                                Ready to Publish
+                              </Badge>
+                            ) : (
+                              <Badge variant="neutral" size="xs" className="backdrop-blur-xs shadow-xs">
+                                Draft Original
+                              </Badge>
                             )}
-                            <Badge
-                              variant={isPublished ? 'success' : isApproved ? 'brand' : 'neutral'}
-                              size="xs"
-                              dot={isPublished}
-                              className="uppercase tracking-wider backdrop-blur-xs"
-                            >
-                              {image.status}
-                            </Badge>
                           </div>
                         </div>
 
                         {/* Card Details */}
-                        <div className="p-4 space-y-2.5 flex-1 flex flex-col justify-between">
-                          <div>
+                        <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
+                          <div className="space-y-1.5">
                             <div className="flex items-start justify-between gap-2">
                               <h4
                                 className="text-sm font-semibold text-[#172033] dark:text-white line-clamp-1"
-                                title={image.projectWorkName || 'Untitled Project'}
+                                title={image.projectWorkName || displayTitle}
                               >
-                                {image.projectWorkName || 'Untitled Project'}
+                                {displayTitle}
                               </h4>
                               <button
                                 type="button"
                                 onClick={() => openEditModal(image)}
                                 className="text-[#475569] hover:text-[#315FEA] dark:text-slate-400 dark:hover:text-blue-400 p-1 rounded-[4px] transition-colors shrink-0"
                                 title="Edit Project Details"
-                                aria-label={`Edit metadata for ${image.projectWorkName || 'project'}`}
+                                aria-label={`Edit metadata for ${displayTitle}`}
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
                               </button>
                             </div>
 
-                            <div className="min-h-[2.25rem] mt-1">
-                              {image.caption ? (
-                                <p
-                                  className="text-xs text-[#475569] dark:text-[#94A3B8] line-clamp-2 leading-relaxed"
-                                  title={image.caption}
-                                >
-                                  {image.caption}
-                                </p>
-                              ) : (
-                                <p className="text-xs text-slate-400 dark:text-slate-500 italic">No description provided.</p>
-                              )}
-                            </div>
+                            {image.category && (
+                              <div className="flex items-center gap-1.5">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                  {image.category}
+                                </span>
+                              </div>
+                            )}
+
+                            {image.caption ? (
+                              <p
+                                className="text-xs text-[#475569] dark:text-[#94A3B8] line-clamp-2 leading-relaxed pt-0.5"
+                                title={image.caption}
+                              >
+                                {image.caption}
+                              </p>
+                            ) : null}
                           </div>
 
                           <div className="text-[11px] font-mono text-[#475569] dark:text-[#94A3B8] pt-2 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-between">
@@ -1218,70 +1264,112 @@ export default function ImagesPage() {
 
                         {/* Card Actions Footer */}
                         <div className="p-3.5 pt-3 border-t border-[#E3E7ED] dark:border-[#1E293B] bg-[#F8FAFC] dark:bg-[#0B132B]/40 space-y-2 mt-auto">
-                          {/* Row 1: Workflow Actions (Enhance & Publish / Unpublish) */}
-                          <div className="grid grid-cols-2 gap-2">
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => handleOpenStudio(image)}
-                              leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#315FEA] dark:text-blue-400" />}
-                              className="w-full justify-center text-xs font-semibold"
-                              title="Open Image Studio for enhancement"
-                            >
-                              Enhance
-                            </Button>
-                            {!isPublished ? (
+                          {isPublished ? (
+                            <>
+                              {/* Row 1: Primary action to enhance */}
                               <Button
                                 type="button"
-                                variant="primary"
+                                variant="secondary"
                                 size="sm"
-                                onClick={() => handlePublishImage(image)}
-                                leftIcon={<Globe className="w-3.5 h-3.5" />}
-                                className="w-full justify-center text-xs font-semibold"
-                                title={image.slot?.startsWith('replaces:') ? 'Publish replacement to public portfolio' : 'Publish to public portfolio'}
+                                onClick={() => handleOpenStudio(image)}
+                                leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#315FEA] dark:text-blue-400" />}
+                                className="w-full justify-center text-xs font-semibold shadow-xs"
+                                title="Open Image Studio for enhancement"
                               >
-                                {image.slot?.startsWith('replaces:') ? 'Publish Replacement' : 'Publish'}
+                                Enhance in Studio
                               </Button>
-                            ) : (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleUnpublishImage(image)}
-                                className="w-full justify-center text-xs font-medium text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
-                                title="Remove from public website"
-                              >
-                                Unpublish
-                              </Button>
-                            )}
-                          </div>
 
-                          {/* Row 2: Asset Maintenance Actions (Replace & Delete) */}
-                          <div className="flex items-center gap-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openUploadModal(undefined, image)}
-                              leftIcon={<RefreshCw className="w-3.5 h-3.5 text-[#475569] dark:text-slate-400" />}
-                              className="flex-1 justify-center text-xs text-[#475569] hover:text-[#172033] dark:text-slate-300 dark:hover:text-white"
-                              title="Replace image file"
-                            >
-                              Replace
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => openRemoveModal(image)}
-                              aria-label="Delete project image"
-                              title="Delete image from media library"
-                              className="text-[#475569] hover:text-[#B91C1C] hover:bg-rose-50 dark:text-slate-400 dark:hover:text-rose-400 dark:hover:bg-rose-950/30 shrink-0"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </div>
+                              {/* Row 2: Secondary maintenance actions */}
+                              <div className="flex items-center justify-between gap-2 pt-0.5">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openUploadModal(undefined, image)}
+                                  leftIcon={<RefreshCw className="w-3.5 h-3.5 text-[#475569] dark:text-slate-400" />}
+                                  className="flex-1 justify-center text-xs text-[#475569] hover:text-[#172033] dark:text-slate-300 dark:hover:text-white"
+                                  title="Replace image file"
+                                >
+                                  Replace
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleUnpublishImage(image)}
+                                  className="text-xs text-[#64748B] hover:text-[#B91C1C] dark:hover:text-rose-400 px-2 py-1 h-auto"
+                                  title="Remove from public website"
+                                >
+                                  Remove from live
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  onClick={() => openRemoveModal(image)}
+                                  aria-label="Delete project image"
+                                  title="Delete image from media library"
+                                  className="text-[#475569] hover:text-[#B91C1C] hover:bg-rose-50 dark:text-slate-400 dark:hover:text-rose-400 dark:hover:bg-rose-950/30 shrink-0"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              {/* Row 1: Enhance & Publish */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => handleOpenStudio(image)}
+                                  leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#315FEA] dark:text-blue-400" />}
+                                  className="w-full justify-center text-xs font-semibold"
+                                  title="Open Image Studio for enhancement"
+                                >
+                                  Enhance
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="primary"
+                                  size="sm"
+                                  onClick={() => handlePublishImage(image)}
+                                  leftIcon={<Globe className="w-3.5 h-3.5" />}
+                                  className="w-full justify-center text-xs font-semibold"
+                                  title={image.slot?.startsWith('replaces:') ? 'Publish replacement to public portfolio' : 'Publish to public portfolio'}
+                                >
+                                  {image.slot?.startsWith('replaces:') ? 'Publish' : 'Publish'}
+                                </Button>
+                              </div>
+
+                              {/* Row 2: Secondary actions */}
+                              <div className="flex items-center gap-2 pt-0.5">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openUploadModal(undefined, image)}
+                                  leftIcon={<RefreshCw className="w-3.5 h-3.5 text-[#475569] dark:text-slate-400" />}
+                                  className="flex-1 justify-center text-xs text-[#475569] hover:text-[#172033] dark:text-slate-300 dark:hover:text-white"
+                                  title="Replace image file"
+                                >
+                                  Replace
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  onClick={() => openRemoveModal(image)}
+                                  aria-label="Delete project image"
+                                  title="Delete image from media library"
+                                  className="text-[#475569] hover:text-[#B91C1C] hover:bg-rose-50 dark:text-slate-400 dark:hover:text-rose-400 dark:hover:bg-rose-950/30 shrink-0"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     );
@@ -1360,15 +1448,15 @@ export default function ImagesPage() {
       <Modal
         isOpen={previewModalOpen}
         onClose={() => setPreviewModalOpen(false)}
-        title={previewImage?.projectWorkName || previewImage?.slot || 'Image Preview'}
-        description={previewImage?.caption || 'Image preview and active website details'}
+        title={cleanImageTitle(previewImage?.projectWorkName, previewImage?.slot, previewImage?.category)}
+        description={previewImage?.caption || (previewImage?.status === 'Published' ? 'Currently live on your public website' : 'Photograph preview and details')}
         maxWidth="3xl"
         footer={
-          <div className="flex flex-wrap items-center justify-between w-full gap-2">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between w-full gap-2.5">
             <div className="flex items-center gap-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="primary"
                 size="md"
                 onClick={() => {
                   if (previewImage) {
@@ -1376,14 +1464,15 @@ export default function ImagesPage() {
                     handleOpenStudio(previewImage);
                   }
                 }}
-                leftIcon={<Sparkles className="w-4 h-4 text-blue-600" />}
+                leftIcon={<Sparkles className="w-4 h-4" />}
+                className="font-semibold"
               >
-                Studio
+                Open in Image Studio
               </Button>
               {previewImage && (
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="outline"
                   size="md"
                   onClick={() => {
                     setPreviewModalOpen(false);
@@ -1397,35 +1486,26 @@ export default function ImagesPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              {previewImage && previewImage.status === 'Uploaded' && (
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="md"
-                  onClick={() => handleApproveImage(previewImage)}
-                >
-                  Approve Image
-                </Button>
-              )}
               {previewImage && previewImage.status !== 'Published' ? (
                 <Button
                   type="button"
-                  variant="primary"
+                  variant="outline"
                   size="md"
                   disabled={publishing}
                   isLoading={publishing}
                   loadingText="Publishing..."
                   onClick={() => handlePublishImage(previewImage)}
+                  leftIcon={<Globe className="w-4 h-4" />}
                 >
                   Publish to Website
                 </Button>
               ) : previewImage ? (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="md"
                   onClick={() => handleUnpublishImage(previewImage)}
-                  className="text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
+                  className="text-xs text-[#64748B] hover:text-[#B91C1C] dark:hover:text-rose-400"
                 >
                   Remove from Live Website
                 </Button>
@@ -1444,38 +1524,46 @@ export default function ImagesPage() {
       >
         {previewImage && (
           <div className="space-y-4">
-            <div className="rounded-[8px] overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center max-h-[60vh]">
+            <div className="rounded-[8px] overflow-hidden bg-slate-900/95 dark:bg-slate-950 border border-[#CBD5E1] dark:border-slate-800 flex items-center justify-center p-3 sm:p-5 min-h-[300px] max-h-[62vh]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={resolveImageUrl(previewImage.previewUrl)}
-                alt={previewImage.projectWorkName || 'Preview'}
-                className="max-h-[60vh] w-auto object-contain mx-auto"
+                alt={cleanImageTitle(previewImage?.projectWorkName, previewImage?.slot, previewImage?.category)}
+                className="max-h-[56vh] max-w-full w-auto object-contain mx-auto rounded-[4px] shadow-sm"
               />
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-slate-50 dark:bg-[#1E293B]/50 rounded-[8px] text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-slate-50 dark:bg-[#1E293B]/50 rounded-[8px] border border-slate-200/60 dark:border-slate-800 text-xs">
               <div>
-                <span className="text-slate-400 block">Dimensions</span>
+                <span className="text-slate-400 block text-[11px]">Dimensions</span>
                 <span className="font-semibold text-slate-900 dark:text-white">
                   {previewImage.width} × {previewImage.height} px
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 block">Aspect Ratio</span>
+                <span className="text-slate-400 block text-[11px]">Aspect Ratio</span>
                 <span className="font-semibold text-slate-900 dark:text-white">
                   {getAspectRatioLabel(previewImage.width, previewImage.height)}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 block">File Size</span>
+                <span className="text-slate-400 block text-[11px]">File Size</span>
                 <span className="font-semibold text-slate-900 dark:text-white">
                   {formatFileSize(previewImage.fileSize)}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 block">Status</span>
-                <span className="font-semibold text-slate-900 dark:text-white">
-                  {previewImage.status}
+                <span className="text-slate-400 block text-[11px]">Status</span>
+                <span className="font-semibold">
+                  {previewImage.status === 'Published' ? (
+                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /> Live on Website
+                    </span>
+                  ) : previewImage.status === 'Approved' ? (
+                    <span className="text-[#315FEA] dark:text-blue-400">Ready to Publish</span>
+                  ) : (
+                    <span className="text-slate-600 dark:text-slate-300">Draft Original</span>
+                  )}
                 </span>
               </div>
             </div>

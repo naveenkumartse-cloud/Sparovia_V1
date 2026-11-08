@@ -166,10 +166,40 @@ function formatBytes(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
+export function cleanImageTitle(
+  name?: string | null,
+  slot?: string | null,
+  category?: string | null
+): string {
+  if (name && name.trim() && name.trim().toLowerCase() !== 'untitled project') {
+    const trimmed = name.trim();
+    if (trimmed.toLowerCase().startsWith('whatsapp image')) {
+      const match = trimmed.match(/(\d{4}-\d{2}-\d{2})/);
+      return match ? `WhatsApp Photo (${match[1]})` : 'WhatsApp Photo';
+    }
+    const withoutExt = trimmed.replace(/\.(jpeg|jpg|png|webp|gif)$/i, '');
+    return withoutExt || trimmed;
+  }
+  if (slot) {
+    const slotNames: Record<string, string> = {
+      heroImage: 'Hero Background Image',
+      primaryImage: 'About Feature Image',
+      secondaryImage: 'About Accent Image',
+      serviceImage: 'Services Overview Image',
+    };
+    if (slotNames[slot]) return slotNames[slot];
+  }
+  if (category) {
+    return `${category} Photo`;
+  }
+  return 'Project Photograph';
+}
+
 interface SizeComparison {
   status: 'smaller' | 'equivalent' | 'larger';
   label: string;
   badgeClass: string;
+  explanation: string;
 }
 
 function compareFileSizes(originalSize: number, candidateSize: number): SizeComparison | null {
@@ -182,26 +212,30 @@ function compareFileSizes(originalSize: number, candidateSize: number): SizeComp
       return {
         status: 'smaller',
         label: `${pct}% smaller`,
-        badgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+        badgeClass: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
+        explanation: `Optimized for fast web loading. File size reduced by ${pct}%.`,
       };
     } else {
       return {
         status: 'equivalent',
         label: 'Comparable size',
-        badgeClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+        badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+        explanation: 'Image quality improved with comparable file size.',
       };
     }
   } else if (Math.abs(diffPct) <= 5) {
     return {
       status: 'equivalent',
       label: 'Comparable size',
-      badgeClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+      badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+      explanation: 'Image quality improved with comparable file size.',
     };
   } else {
     return {
       status: 'larger',
-      label: 'Full clarity preserved',
-      badgeClass: 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300',
+      label: `+${diffPct}% size`,
+      badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+      explanation: `Image quality and clarity improved. File size increased by ${diffPct}%.`,
     };
   }
 }
@@ -618,11 +652,13 @@ export function ImageStudioWorkspace({
     displayedVariant && (displayedVariant.status === 'Enhanced' || displayedVariant.status === 'ReadyForReview');
   const isVariantApproved = displayedVariant && displayedVariant.status === 'Approved';
   const isVariantPublished = displayedVariant && displayedVariant.status === 'Published';
-  const isImagePublished = effectiveImage?.status === 'Published';
+  const isImagePublished = Boolean(effectiveImage?.status === 'Published' && effectiveImage.isActiveWebsiteUsage);
 
-  const displayName = effectiveImage
-    ? (effectiveImage.projectWorkName || effectiveImage.originalFileName || effectiveImage.slot || 'Image Workspace')
-    : (pendingUpload?.projectWorkName || pendingUpload?.file.name || pendingUpload?.slot || 'New Image');
+  const cleanTitle = cleanImageTitle(
+    effectiveImage?.projectWorkName || effectiveImage?.originalFileName,
+    effectiveImage?.slot || pendingUpload?.slot,
+    effectiveImage?.category || pendingUpload?.category
+  );
 
   const displayWidth = effectiveImage?.width || pendingUpload?.dimensions.width || 0;
   const displayHeight = effectiveImage?.height || pendingUpload?.dimensions.height || 0;
@@ -665,55 +701,44 @@ export function ImageStudioWorkspace({
               <Sparkles className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 id="image-studio-title" className="text-base font-semibold text-[#172033] dark:text-white truncate">
-                  {displayName}
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h2 id="image-studio-title" className="text-base font-semibold text-[#172033] dark:text-white truncate max-w-xs sm:max-w-md">
+                  {cleanTitle}
                 </h2>
-                {isImagePublished && (
-                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-[4px] border bg-emerald-50 text-[#15803D] border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 shrink-0 inline-flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    Live on Website
-                  </span>
-                )}
-                {displayedVariant ? (
-                  <span
-                    className={`text-[11px] font-medium px-2 py-0.5 rounded-[4px] border shrink-0 ${
-                      displayedVariant.status === 'Published'
-                        ? 'bg-emerald-50 text-[#15803D] border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800'
-                        : displayedVariant.status === 'Approved'
-                        ? 'bg-blue-50 text-[#1D4ED8] border-blue-200 dark:bg-blue-950/40 dark:border-blue-800'
-                        : 'bg-amber-50 text-[#B45309] border-amber-200 dark:bg-amber-950/40 dark:border-amber-800'
-                    }`}
-                  >
-                    {displayedVariant.status === 'Published'
-                      ? 'Live Variant'
-                      : displayedVariant.status === 'Approved'
-                      ? 'Candidate Approved'
-                      : 'Candidate Pending Review'}
-                  </span>
+
+                {/* ONE single status badge for the entire studio */}
+                {isImagePublished ? (
+                  <Badge variant="success" size="xs" dot>
+                    Active on Website
+                  </Badge>
+                ) : isVariantPendingReview ? (
+                  <Badge variant="warning" size="xs">
+                    Candidate Ready for Review
+                  </Badge>
+                ) : isVariantApproved || effectiveImage?.status === 'Approved' ? (
+                  <Badge variant="brand" size="xs">
+                    Ready to Publish
+                  </Badge>
                 ) : (
-                  !isImagePublished && (
-                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-[4px] border bg-[#F3F6FA] text-[#475569] border-[#E3E7ED] dark:bg-[#1E293B] dark:text-[#94A3B8] shrink-0">
-                      {effectiveImage?.status || 'Draft'}
-                    </span>
-                  )
-                )}
-                {displaySlot && (
-                  <span className="text-[11px] text-[#475569] dark:text-slate-400 bg-[#F3F6FA] dark:bg-[#1E293B] px-2 py-0.5 rounded-[4px] border border-[#E3E7ED] dark:border-[#334155]">
-                    Slot: {displaySlot}
-                  </span>
+                  <Badge variant="neutral" size="xs">
+                    Draft Original
+                  </Badge>
                 )}
               </div>
               <p className="text-xs text-[#475569] dark:text-[#94A3B8] flex items-center gap-2 mt-0.5">
                 <span>{displayWidth} × {displayHeight} px</span>
                 <span>•</span>
                 <span>{formatBytes(displaySize)}</span>
-                <span>•</span>
-                <span>{displayMime}</span>
                 {displayCategory && (
                   <>
                     <span>•</span>
                     <span>Category: {displayCategory}</span>
+                  </>
+                )}
+                {displaySlot && (
+                  <>
+                    <span>•</span>
+                    <span>Slot: {activeSlotPreset.label}</span>
                   </>
                 )}
               </p>
@@ -1330,108 +1355,46 @@ export function ImageStudioWorkspace({
                 </div>
               )}
 
-              {/* STEP 1: Primary Action — Enhance for Website */}
-              <div className="p-4 bg-[#F8FAFC] dark:bg-[#1E293B]/70 rounded-[8px] border border-[#CBD5E1] dark:border-[#334155] space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-[4px] bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">1</span>
-                    <span>Enhance for Website</span>
-                  </h3>
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-[4px] bg-blue-50 text-[#1D4ED8] border border-blue-200 dark:bg-blue-950/40 dark:border-blue-800">
-                    One-Click Pipeline
-                  </span>
-                </div>
+              {/* CONTEXTUAL CLIENT JOURNEY (State A, B, C, or D) */}
 
-                <p className="text-xs text-[#475569] dark:text-[#94A3B8] leading-relaxed">
-                  Calculates balanced highlight &amp; shadow curves, preserves architectural edges, and produces an optimized WebP candidate for fast website presentation.
-                </p>
+              {/* STATE B: Enhanced Candidate Ready for Review */}
+              {isVariantPendingReview && displayedVariant ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 rounded-[8px] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-amber-950 dark:text-amber-200 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                        <span>Your enhanced photo is ready</span>
+                      </h3>
+                      <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 font-semibold">
+                        Review
+                      </span>
+                    </div>
 
-                <Button
-                  variant="primary"
-                  size="md"
-                  className="w-full justify-center font-semibold"
-                  isLoading={isProcessing}
-                  loadingText="Enhancing image..."
-                  onClick={handleRunEnhancement}
-                  leftIcon={<Sparkles className="w-4 h-4" />}
-                >
-                  {displayedVariant ? 'Re-enhance for Website' : 'Enhance for Website'}
-                </Button>
+                    <p className="text-xs text-[#475569] dark:text-[#94A3B8] leading-relaxed">
+                      Compare the enhanced candidate against your original photo using the slider.
+                    </p>
 
-                <p className="text-[10px] text-[#64748B] dark:text-[#94A3B8] text-center flex items-center justify-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#15803D] shrink-0" />
-                  <span>Original photograph is immutable and never overwritten.</span>
-                </p>
-              </div>
+                    <ul className="space-y-1.5 text-xs text-[#172033] dark:text-slate-200 pt-1">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0" />
+                        <span>Lighting and visibility improved</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0" />
+                        <span>Details and edges refined</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0" />
+                        <span>Original appearance preserved</span>
+                      </li>
+                    </ul>
 
-              {/* STEP 2: Candidate Details & Enhancements Applied */}
-              <div className="p-4 bg-[#F3F6FA] dark:bg-[#1E293B] rounded-[8px] border border-[#E3E7ED] dark:border-[#334155]">
-                <div className="flex items-center justify-between mb-2.5">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-[4px] bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">2</span>
-                    <span>Enhancements Applied</span>
-                  </h4>
-                  {displayedVariant ? (
-                    <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] border ${
-                        displayedVariant.status === 'Published'
-                          ? 'bg-emerald-50 text-[#15803D] border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800'
-                          : displayedVariant.status === 'Approved'
-                          ? 'bg-blue-50 text-[#1D4ED8] border-blue-200 dark:bg-blue-950/40 dark:border-blue-800'
-                          : 'bg-amber-50 text-[#B45309] border-amber-200 dark:bg-amber-950/40 dark:border-amber-800'
-                      }`}
-                    >
-                      {displayedVariant.status === 'Published'
-                        ? 'Candidate Live'
-                        : displayedVariant.status === 'Approved'
-                        ? 'Candidate Approved'
-                        : 'Review Required'}
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[4px] bg-slate-100 text-[#475569] border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
-                      Not Generated
-                    </span>
-                  )}
-                </div>
-
-                {displayedVariant ? (
-                  <>
-                    {displayedVariant.appliedCorrections && displayedVariant.appliedCorrections.length > 0 ? (
-                      <ul className="flex flex-col gap-1.5 mb-3">
-                        {displayedVariant.appliedCorrections.map((corr, idx) => (
-                          <li key={idx} className="text-xs text-[#172033] dark:text-slate-200 flex items-start gap-1.5">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
-                            <span>{corr}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <ul className="flex flex-col gap-1.5 mb-3">
-                        <li className="text-xs text-[#172033] dark:text-slate-200 flex items-start gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
-                          <span>Tonal dynamic range &amp; shadow headroom balanced</span>
-                        </li>
-                        <li className="text-xs text-[#172033] dark:text-slate-200 flex items-start gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
-                          <span>Edge-preserving texture noise reduction applied</span>
-                        </li>
-                        <li className="text-xs text-[#172033] dark:text-slate-200 flex items-start gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
-                          <span>High-efficiency WebP candidate calibrated for web delivery</span>
-                        </li>
-                      </ul>
-                    )}
-
-                    <div className="pt-2.5 border-t border-[#E3E7ED] dark:border-[#334155] grid grid-cols-2 gap-2.5 text-[11px]">
-                      <div>
-                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Candidate Resolution:</span>
-                        <span className="font-semibold text-[#172033] dark:text-white">
-                          {displayedVariant.width} × {displayedVariant.height} px
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Candidate File Size:</span>
-                        <div className="flex items-center gap-1.5 flex-wrap">
+                    {/* Honest File-Size Communication */}
+                    <div className="p-3 bg-white/90 dark:bg-slate-900/90 rounded-[6px] border border-amber-200/70 dark:border-amber-800/40 text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#475569] dark:text-slate-400">File size:</span>
+                        <div className="flex items-center gap-1.5">
                           <span className="font-semibold text-[#172033] dark:text-white">
                             {formatBytes(displayedVariant.fileSize)}
                           </span>
@@ -1442,211 +1405,273 @@ export function ImageStudioWorkspace({
                           )}
                         </div>
                       </div>
-                      <div>
-                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Website Readiness:</span>
-                        <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-                          Ready for Website
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[#475569] dark:text-[#94A3B8] block text-[10px]">Web Delivery:</span>
-                        <span className="font-semibold text-[#172033] dark:text-white">
-                          High-efficiency WebP
-                        </span>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="py-2 space-y-2">
-                    <p className="text-xs text-[#475569] dark:text-[#94A3B8] leading-relaxed">
-                      No enhanced candidate generated yet. Click &quot;Enhance for Website&quot; above to inspect candidate improvements.
-                    </p>
-                    <div className="pt-2 border-t border-[#E3E7ED] dark:border-[#334155] flex items-center justify-between text-[11px] text-[#475569] dark:text-[#94A3B8]">
-                      <span>Original Resolution:</span>
-                      <span className="font-medium text-[#172033] dark:text-white">
-                        {displayWidth} × {displayHeight} px
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* STEP 3: Candidate Review & Publishing Boundary */}
-              <div className="flex flex-col gap-2.5 pt-2 border-t border-[#E3E7ED] dark:border-[#1E293B]">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#172033] dark:text-white flex items-center gap-1.5">
-                  <span className="w-4 h-4 rounded-[4px] bg-[#315FEA] text-white text-[10px] flex items-center justify-center font-bold">3</span>
-                  <span>Review &amp; Publishing Boundary</span>
-                </h4>
-
-                {/* State 1: Candidate Generated · Review Required (Keep vs Discard) */}
-                {isVariantPendingReview ? (
-                  <div className="flex flex-col gap-2 p-3 rounded-[6px] bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60">
-                    <div className="flex items-center justify-between text-xs font-semibold text-amber-900 dark:text-amber-300">
-                      <div className="flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                        <span>Candidate Ready for Review</span>
-                      </div>
-                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200">
-                        Pending
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
-                      Compare the candidate against the original photograph. Choose to keep or discard the enhancement.
-                      {isImagePublished && (
-                        <span className="block mt-1 font-medium text-slate-700 dark:text-slate-300">
-                          (Your current website image remains live while you review this candidate.)
-                        </span>
+                      {sizeComparison && (
+                        <p className="text-[11px] text-[#64748B] dark:text-slate-400 leading-normal">
+                          {sizeComparison.explanation}
+                        </p>
                       )}
-                    </p>
-                    <div className="grid grid-cols-2 gap-2 mt-1">
+                    </div>
+
+                    {isImagePublished && (
+                      <p className="text-[11px] text-[#64748B] dark:text-slate-400">
+                        (Your current website image remains live while you review this candidate.)
+                      </p>
+                    )}
+
+                    {/* Decision Actions */}
+                    <div className="grid grid-cols-2 gap-2 pt-2">
                       <Button
                         variant="success"
-                        size="sm"
+                        size="md"
                         isLoading={isApproving}
                         loadingText="Keeping..."
                         onClick={handleApproveVariant}
-                        leftIcon={<Check className="w-3.5 h-3.5" />}
+                        leftIcon={<Check className="w-4 h-4" />}
                         className="w-full justify-center font-semibold"
                         title="Keep enhanced candidate and mark as approved"
                       >
-                        Keep Enhanced
+                        Keep enhanced
                       </Button>
                       <Button
                         variant="destructive-outline"
-                        size="sm"
+                        size="md"
                         isLoading={isRejecting}
                         loadingText="Discarding..."
                         onClick={handleRejectVariant}
-                        leftIcon={<X className="w-3.5 h-3.5" />}
+                        leftIcon={<X className="w-4 h-4" />}
                         className="w-full justify-center"
-                        title="Discard candidate and return to original source"
+                        title="Discard candidate and return to original photo"
                       >
                         Discard
                       </Button>
                     </div>
-                  </div>
-                ) : displayedVariant?.status === 'Approved' ? (
-                  /* State 2: Candidate Approved · Explicit Publishing Separated */
-                  <div className="flex flex-col gap-2 p-3 rounded-[6px] bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/60">
-                    <div className="flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-900 dark:text-blue-300">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                        Candidate Approved
-                      </span>
-                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200">
-                        Ready to Live
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
-                      Candidate is approved for website presentation. Approval does not automatically publish.
-                      {isImagePublished && (
-                        <span className="block mt-1 font-medium text-blue-900 dark:text-blue-200">
-                          Clicking below will update your live website to use this approved candidate.
-                        </span>
-                      )}
-                    </p>
-                    <Button
-                      variant="primary"
-                      size="md"
-                      className="w-full justify-center mt-1 font-semibold"
-                      isLoading={isPublishing}
-                      loadingText="Publishing to Live Website..."
-                      onClick={handlePublishImage}
-                      leftIcon={<Globe className="w-4 h-4" />}
-                    >
-                      {isImagePublished ? 'Update Live Website' : 'Publish to Live Website'}
-                    </Button>
-                    <div className="pt-1 flex justify-end">
+
+                    <div className="pt-1 text-center">
                       <button
                         type="button"
-                        onClick={handleRejectVariant}
-                        disabled={isRejecting}
-                        className="text-[11px] text-[#64748B] hover:text-[#B91C1C] dark:hover:text-rose-400 underline underline-offset-2 transition-colors"
+                        onClick={handleRunEnhancement}
+                        disabled={isProcessing}
+                        className="text-xs text-[#315FEA] hover:underline font-medium inline-flex items-center gap-1"
                       >
-                        Discard Approved Candidate
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Enhance again</span>
                       </button>
                     </div>
                   </div>
-                ) : (displayedVariant?.status === 'Published' || isImagePublished) ? (
-                  /* State 3: Actively Published on Live Website */
-                  <div className="flex flex-col gap-2 p-3 rounded-[6px] bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60">
+
+                  {/* Optional Technical Details Collapsible */}
+                  <details className="text-xs text-[#475569] dark:text-slate-400 group border border-[#E3E7ED] dark:border-[#1E293B] rounded-[6px] p-2.5">
+                    <summary className="cursor-pointer font-medium hover:text-[#172033] dark:hover:text-white flex items-center justify-between select-none">
+                      <span>Technical Details</span>
+                      <span className="text-[10px] group-open:rotate-180 transition-transform">▾</span>
+                    </summary>
+                    <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5 text-[11px]">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Candidate Resolution:</span>
+                        <span className="font-mono text-slate-800 dark:text-slate-200">{displayedVariant.width} × {displayedVariant.height} px</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Original Resolution:</span>
+                        <span className="font-mono text-slate-800 dark:text-slate-200">{displayWidth} × {displayHeight} px</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Web Format:</span>
+                        <span className="font-mono text-slate-800 dark:text-slate-200">WebP (Optimized)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Original File Size:</span>
+                        <span className="font-mono text-slate-800 dark:text-slate-200">{formatBytes(displaySize)}</span>
+                      </div>
+                    </div>
+                  </details>
+                </div>
+              ) : displayedVariant?.status === 'Approved' ? (
+                /* STATE C: Candidate Approved · Ready to Publish */
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/60 rounded-[8px] space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-900 dark:text-emerald-300">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        Active on Live Website
-                      </span>
-                      <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200">
-                        Published
+                      <h3 className="text-sm font-semibold text-blue-950 dark:text-blue-200 flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <span>Ready to publish</span>
+                      </h3>
+                      <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 font-semibold">
+                        Approved
                       </span>
                     </div>
-                    <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] leading-relaxed">
-                      Live website visitors are served the optimized presentation. Master library records remain preserved.
+
+                    <p className="text-xs text-[#475569] dark:text-[#94A3B8] leading-relaxed">
+                      Your enhanced image is saved and approved. Publishing will make it active on your live website.
                     </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-center text-[#B91C1C] hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 dark:hover:bg-rose-950/30 mt-1"
-                      isLoading={isUnpublishing}
-                      loadingText="Unpublishing..."
-                      onClick={handleUnpublishImage}
-                    >
-                      Remove from Live Website
-                    </Button>
-                  </div>
-                ) : (!displayedVariant && effectiveImage?.status === 'Approved') ? (
-                  /* State 4: Initial Un-enhanced Image Ready to Publish */
-                  <div className="mt-1">
+
                     <Button
                       variant="primary"
                       size="md"
                       className="w-full justify-center font-semibold"
                       isLoading={isPublishing}
-                      loadingText="Publishing to Live Website..."
+                      loadingText="Publishing to website..."
                       onClick={handlePublishImage}
                       leftIcon={<Globe className="w-4 h-4" />}
                     >
-                      Publish Original to Live Website
+                      Publish to website
                     </Button>
+
+                    <div className="pt-2 flex items-center justify-between text-xs border-t border-blue-200/60 dark:border-blue-900/40">
+                      <button
+                        type="button"
+                        onClick={handleRunEnhancement}
+                        disabled={isProcessing}
+                        className="text-[#475569] hover:text-[#315FEA] dark:hover:text-blue-400 font-medium inline-flex items-center gap-1"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Enhance again</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRejectVariant}
+                        disabled={isRejecting}
+                        className="text-[#64748B] hover:text-[#B91C1C] dark:hover:text-rose-400 font-medium"
+                      >
+                        Discard candidate
+                      </button>
+                    </div>
                   </div>
-                ) : (
-                  <div className="p-3 rounded-[6px] bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-center">
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Generate an enhancement candidate above to review and publish to your website.
+                </div>
+              ) : isImagePublished ? (
+                /* STATE D: Actively Published on Website */
+                <div className="space-y-4">
+                  <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60 rounded-[8px] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-emerald-950 dark:text-emerald-200 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>Live on website</span>
+                      </h3>
+                      <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 font-semibold">
+                        Published
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-[#475569] dark:text-[#94A3B8] leading-relaxed">
+                      Website visitors are seeing this image. Master library records and original photograph remain safely preserved.
+                    </p>
+
+                    <div className="pt-2 flex flex-col gap-2">
+                      <Button
+                        variant="secondary"
+                        size="md"
+                        className="w-full justify-center font-semibold text-xs"
+                        isLoading={isProcessing}
+                        loadingText="Enhancing photo..."
+                        onClick={handleRunEnhancement}
+                        leftIcon={<Sparkles className="w-4 h-4 text-[#315FEA]" />}
+                      >
+                        Enhance again
+                      </Button>
+
+                      {onReplaceRequested && currentImage && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-center text-xs"
+                          onClick={() => onReplaceRequested(currentImage)}
+                          leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                        >
+                          Replace image
+                        </Button>
+                      )}
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-center text-xs text-[#B91C1C] hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                        isLoading={isUnpublishing}
+                        loadingText="Removing..."
+                        onClick={handleUnpublishImage}
+                      >
+                        Remove from Live Website
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* STATE A: Original Image Only (Default) */
+                <div className="space-y-4">
+                  <div className="p-4 bg-[#F8FAFC] dark:bg-[#1E293B]/70 rounded-[8px] border border-[#CBD5E1] dark:border-[#334155] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-[#172033] dark:text-white flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-[#315FEA]" />
+                        <span>Enhance for Website</span>
+                      </h3>
+                    </div>
+
+                    <p className="text-xs text-[#475569] dark:text-[#94A3B8] leading-relaxed">
+                      Improve lighting, clarity and presentation while keeping your original photo safe.
+                    </p>
+
+                    <Button
+                      variant="primary"
+                      size="md"
+                      className="w-full justify-center font-semibold"
+                      isLoading={isProcessing}
+                      loadingText="Enhancing photo..."
+                      onClick={handleRunEnhancement}
+                      leftIcon={<Sparkles className="w-4 h-4" />}
+                    >
+                      Enhance photo
+                    </Button>
+
+                    <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8] text-center flex items-center justify-center gap-1.5 pt-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#15803D] shrink-0" />
+                      <span>Original photograph is immutable and never overwritten.</span>
                     </p>
                   </div>
-                )}
 
-                {/* Separation Notice */}
-                <p className="text-[10px] text-[#64748B] dark:text-[#94A3B8] mt-1 leading-relaxed">
-                  Keeping or approving a candidate does not automatically modify live website content. Publishing is always explicit.
-                </p>
+                  {/* If original upload is validated and user wants to publish directly without enhancement */}
+                  {effectiveImage?.status === 'Approved' && (
+                    <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-[6px] border border-slate-200 dark:border-slate-800 space-y-2">
+                      <p className="text-xs text-[#475569] dark:text-[#94A3B8]">
+                        Or publish your original photo directly without enhancement:
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-center text-xs font-medium"
+                        isLoading={isPublishing}
+                        loadingText="Publishing..."
+                        onClick={handlePublishImage}
+                        leftIcon={<Globe className="w-3.5 h-3.5" />}
+                      >
+                        Publish original to website
+                      </Button>
+                    </div>
+                  )}
 
-                {/* Additional Media Management Actions */}
-                <div className="flex items-center gap-2 pt-2 border-t border-[#E3E7ED] dark:border-[#1E293B]">
-                  {onReplaceRequested && currentImage && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="flex-1 justify-center"
-                      onClick={() => onReplaceRequested(currentImage)}
-                      leftIcon={<Upload className="w-3.5 h-3.5" />}
-                    >
-                      Replace Source
-                    </Button>
-                  )}
-                  {onDeleteRequested && currentImage && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-[#B91C1C] hover:bg-rose-50"
-                      onClick={() => onDeleteRequested(currentImage)}
-                      title="Delete Image"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
+                  {/* Supporting secondary actions */}
+                  <div className="pt-2 flex flex-col gap-2">
+                    {onReplaceRequested && currentImage && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-center text-xs"
+                        onClick={() => onReplaceRequested(currentImage)}
+                        leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                      >
+                        Replace photo
+                      </Button>
+                    )}
+                    {onDeleteRequested && currentImage && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-center text-xs text-[#B91C1C] hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                        onClick={() => onDeleteRequested(currentImage)}
+                        leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+                      >
+                        Delete from library
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
             </div>
           </aside>
