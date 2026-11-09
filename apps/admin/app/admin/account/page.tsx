@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { useTheme } from '@/lib/theme/ThemeContext';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
@@ -92,6 +93,7 @@ interface SocialLinksIntegration {
 
 export default function AccountPage() {
   const { user, checkAuth } = useAuth();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -804,23 +806,159 @@ export default function AccountPage() {
       {/* TAB 2: SETTINGS (VISUAL SYSTEM & PLATFORM IDENTITY) */}
       {activeTab === 'settings' && (
         <div className="space-y-6 animate-in fade-in duration-150">
+          {/* Panel 1: Theme Preference Selection */}
+          <div className="glass-panel rounded-[8px] p-6 sm:p-8 shadow-xs border border-slate-200/80 dark:border-[#1E293B]">
+            <div>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
+                  <Sun className="w-5 h-5 mr-2 text-[#7950B8]" />
+                  Visual Appearance &amp; Theme Preference
+                </h2>
+                <Badge variant="purple" size="sm" className="font-semibold">
+                  Active: {theme === 'system' ? `System (${resolvedTheme === 'dark' ? 'Dark' : 'Light'})` : theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+                </Badge>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
+                Customize your administrative workspace appearance. Preferences persist across browser sessions.
+              </p>
+            </div>
+
+            {/* Interactive Theme Switcher Grid */}
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4" role="radiogroup" aria-label="Visual theme preference">
+              {/* Option 1: Light Mode */}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={theme === 'light'}
+                onClick={() => {
+                  setTheme('light');
+                  toast.success('Appearance updated: Light Mode active across workspace.');
+                }}
+                className={`p-4 rounded-[8px] border text-left transition-all duration-150 flex flex-col justify-between relative group cursor-pointer ${
+                  theme === 'light'
+                    ? 'border-[#7950B8] ring-2 ring-[#7950B8]/40 bg-[#F0EAFE]/40 dark:bg-[#7950B8]/15 shadow-soft-sm'
+                    : 'border-slate-200 dark:border-[#1E293B] bg-slate-50/80 dark:bg-[#0B1220]/70 hover:border-[#7950B8]/60 hover:bg-slate-100/80 dark:hover:bg-[#1E293B]/60'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full mb-3">
+                  <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-200 dark:border-amber-800 shadow-xs">
+                    <Sun className="w-5 h-5" />
+                  </div>
+                  {theme === 'light' ? (
+                    <div className="w-6 h-6 rounded-full bg-[#7950B8] text-white flex items-center justify-center shadow-xs ring-2 ring-white dark:ring-[#0F172A]">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 rounded-full border border-slate-300 dark:border-slate-600 group-hover:border-[#7950B8] transition-colors" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">Light Mode</p>
+                    {theme === 'light' && <Badge variant="brand" size="xs">Active</Badge>}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 leading-relaxed">
+                    Crisp, high-contrast daytime interface with clean neutral surfaces and cobalt accents.
+                  </p>
+                </div>
+              </button>
+
+              {/* Option 2: Dark Mode */}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={theme === 'dark'}
+                onClick={() => {
+                  setTheme('dark');
+                  toast.success('Appearance updated: Dark Mode active across workspace.');
+                }}
+                className={`p-4 rounded-[8px] border text-left transition-all duration-150 flex flex-col justify-between relative group cursor-pointer ${
+                  theme === 'dark'
+                    ? 'border-[#7950B8] ring-2 ring-[#7950B8]/40 bg-[#F0EAFE]/40 dark:bg-[#7950B8]/15 shadow-soft-sm'
+                    : 'border-slate-200 dark:border-[#1E293B] bg-slate-50/80 dark:bg-[#0B1220]/70 hover:border-[#7950B8]/60 hover:bg-slate-100/80 dark:hover:bg-[#1E293B]/60'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full mb-3">
+                  <div className="w-10 h-10 rounded-full bg-purple-50 dark:bg-purple-950/40 text-[#7950B8] dark:text-purple-300 flex items-center justify-center border border-purple-200 dark:border-purple-800 shadow-xs">
+                    <Moon className="w-5 h-5" />
+                  </div>
+                  {theme === 'dark' ? (
+                    <div className="w-6 h-6 rounded-full bg-[#7950B8] text-white flex items-center justify-center shadow-xs ring-2 ring-white dark:ring-[#0F172A]">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 rounded-full border border-slate-300 dark:border-slate-600 group-hover:border-[#7950B8] transition-colors" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">Dark Mode</p>
+                    {theme === 'dark' && <Badge variant="purple" size="xs">Active</Badge>}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 leading-relaxed">
+                    Deep midnight navy surfaces optimized for low-light focus and reduced eye strain.
+                  </p>
+                </div>
+              </button>
+
+              {/* Option 3: System Preference */}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={theme === 'system'}
+                onClick={() => {
+                  setTheme('system');
+                  toast.success('Appearance updated: System Preference active (syncs with OS).');
+                }}
+                className={`p-4 rounded-[8px] border text-left transition-all duration-150 flex flex-col justify-between relative group cursor-pointer ${
+                  theme === 'system'
+                    ? 'border-[#7950B8] ring-2 ring-[#7950B8]/40 bg-[#F0EAFE]/40 dark:bg-[#7950B8]/15 shadow-soft-sm'
+                    : 'border-slate-200 dark:border-[#1E293B] bg-slate-50/80 dark:bg-[#0B1220]/70 hover:border-[#7950B8]/60 hover:bg-slate-100/80 dark:hover:bg-[#1E293B]/60'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full mb-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-950/40 text-[#315FEA] dark:text-blue-300 flex items-center justify-center border border-blue-200 dark:border-blue-800 shadow-xs">
+                    <Monitor className="w-5 h-5" />
+                  </div>
+                  {theme === 'system' ? (
+                    <div className="w-6 h-6 rounded-full bg-[#7950B8] text-white flex items-center justify-center shadow-xs ring-2 ring-white dark:ring-[#0F172A]">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 rounded-full border border-slate-300 dark:border-slate-600 group-hover:border-[#7950B8] transition-colors" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">System Preference</p>
+                    {theme === 'system' && <Badge variant="cobalt" size="xs">Active</Badge>}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 leading-relaxed">
+                    Automatically matches your device OS preference (currently {resolvedTheme === 'dark' ? 'Dark' : 'Light'}).
+                  </p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Panel 2: Design System Governance & Locked Matrix */}
           <div className="glass-panel rounded-[8px] p-6 sm:p-8 shadow-xs border border-slate-200/80 dark:border-[#1E293B]">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                 <ShieldCheck className="w-5 h-5 mr-2 text-[#315FEA]" />
-                Visual System &amp; Design Standards
+                Design System Standards &amp; Architecture
               </h2>
               <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
                 Authoritative visual system specifications enforced across the Sparovia Platform.
               </p>
             </div>
 
-            {/* Design System Lock Notice */}
+            {/* Design System Governance Notice */}
             <div className="mt-4 p-4 rounded-[8px] bg-blue-50/80 dark:bg-[#315FEA]/10 border border-blue-200/60 dark:border-[#315FEA]/20 flex items-start space-x-3">
               <Info className="w-5 h-5 text-[#315FEA] shrink-0 mt-0.5" />
               <div className="text-xs text-slate-700 dark:text-[#CBD5E1] leading-relaxed">
                 <span className="font-semibold text-slate-900 dark:text-white">Editorial Cobalt Visual Lock:</span>{' '}
-                Sparovia platform UI operates strictly on the approved Editorial Cobalt visual system with flat neutral surfaces (#FFFFFF, #F3F6FA), locked typography, and strict radius hierarchy. Per project governance (<code>RULES.md</code> and <code>DESIGN.md</code>), unapproved customer-facing theme switching is decommissioned.
+                Administrative workspace themes (Light, Dark, and System) provide customized viewing comfort. Per project governance (<code>RULES.md</code> and <code>DESIGN.md</code>), tenant customer-facing website pages operate strictly on the locked Editorial Cobalt design system with flat neutral surfaces (#FFFFFF, #F3F6FA), locked typography, and strict radius hierarchy.
               </div>
             </div>
 
@@ -828,10 +966,13 @@ export default function AccountPage() {
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-4 rounded-[8px] bg-slate-50/80 dark:bg-[#0B1220]/70 border border-slate-200 dark:border-[#1E293B] space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">Brand Color</span>
-                  <div className="w-4 h-4 rounded-[4px] bg-[#315FEA] glow-cobalt" title="#315FEA" />
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">Brand Palette</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-4 h-4 rounded-[4px] bg-[#315FEA] glow-cobalt" title="Editorial Cobalt (#315FEA)" />
+                    <div className="w-4 h-4 rounded-[4px] bg-[#7950B8]" title="Signature Purple (#7950B8)" />
+                  </div>
                 </div>
-                <p className="text-sm font-bold text-[#315FEA]">Editorial Cobalt</p>
+                <p className="text-sm font-bold text-[#315FEA]">Editorial Cobalt &amp; Purple</p>
                 <p className="text-xs text-slate-500 dark:text-[#94A3B8]">#315FEA (Primary) &bull; #7950B8 (Accent)</p>
               </div>
 

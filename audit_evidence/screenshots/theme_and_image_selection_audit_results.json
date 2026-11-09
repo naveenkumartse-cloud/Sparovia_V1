@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-11-09T14:20:28.122Z",
+  "viewportsTested": [
+    1440,
+    1024,
+    768,
+    430,
+    390,
+    375,
+    320
+  ],
+  "overflowAudit": {
+    "1440px": true,
+    "1024px": true,
+    "768px": true,
+    "430px": true,
+    "390px": true,
+    "375px": true,
+    "320px": true
+  },
+  "themeAudit": {
+    "lightModeWorks": true,
+    "darkModeWorks": true,
+    "persistenceKey": "dark",
+    "persistedAfterReload": true,
+    "headerToggleWorks": true
+  },
+  "screenshots": [
+    "account-visual-standards-light.png",
+    "account-visual-standards-dark.png",
+    "dashboard-dark.png",
+    "dashboard-light.png",
+    "images-normal-card.png",
+    "images-selected-purple-overlay.png",
+    "images-mobile-view.png",
+    "image-studio-light.png",
+    "image-studio-dark.png",
+    "leads-menu-dark.png",
+    "lead-detail-popup-both-themes.png",
+    "leads-menu-light.png"
+  ],
+  "passed": true
+}

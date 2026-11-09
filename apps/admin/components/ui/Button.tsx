@@ -9,6 +9,7 @@ export type ButtonVariant =
   | 'cobalt'
   | 'creative'
   | 'purple'
+  | 'soft-purple'
   | 'glass'
   | 'enhance'
   | 'studio'
@@ -19,6 +20,7 @@ export type ButtonVariant =
   | 'destructive'
   | 'destructive-outline'
   | 'success'
+  | 'warning'
   | 'link';
 
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon' | 'icon-sm' | 'icon-xs';
@@ -59,7 +61,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       creative:
         'bg-gradient-to-r from-[#7950B8] to-[#9333EA] hover:from-[#6B3FA8] hover:to-[#7E22CE] active:from-[#581C87] active:to-[#6B21A8] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-[0_4px_16px_rgba(121,80,184,0.35)] focus:ring-[#7950B8] border border-purple-400/30',
       purple:
-        'bg-[#7950B8] hover:bg-[#6820AB] active:bg-[#53198A] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#7950B8] border border-transparent',
+        'bg-[#7950B8] hover:bg-[#6820AB] active:bg-[#53198A] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-[0_4px_16px_rgba(121,80,184,0.25)] focus:ring-[#7950B8] border border-transparent',
+      'soft-purple':
+        'bg-[#F0EAFE] hover:bg-[#E4D7FA] active:bg-[#D4BEF7] text-[#7950B8] dark:bg-[#7950B8]/20 dark:hover:bg-[#7950B8]/30 dark:text-[#C4B5FD] border border-[#7950B8]/20 focus:ring-[#7950B8] shadow-soft-xs',
       glass:
         'glass-panel hover:bg-white/95 dark:hover:bg-[#1E293B]/95 active:scale-[0.98] text-[#172033] dark:text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-white/60 dark:border-white/10',
       enhance:
@@ -80,6 +84,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         'bg-white dark:bg-[#0F172A] hover:bg-rose-50 dark:hover:bg-rose-950/30 text-[#B91C1C] dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 focus:ring-[#B91C1C]',
       success:
         'bg-[#15803D] hover:bg-[#166534] active:bg-[#14532D] text-white shadow-soft-xs focus:ring-[#15803D] border border-transparent',
+      warning:
+        'bg-[#D97706] hover:bg-[#B45309] active:bg-[#92400E] text-white shadow-soft-xs focus:ring-[#D97706] border border-transparent',
       link:
         'bg-transparent hover:bg-transparent text-[#315FEA] hover:text-[#254EDB] dark:text-[#315FEA] dark:hover:text-[#254EDB] underline-offset-4 hover:underline p-0 h-auto font-medium focus:ring-0',
     };

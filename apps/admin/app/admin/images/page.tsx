@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Sparkles,
   Upload,
@@ -122,7 +123,18 @@ function getAspectRatioLabel(width: number, height: number): string {
 }
 
 export default function ImagesPage() {
-  const [activeTab, setActiveTab] = useState<'website' | 'explore'>('website');
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<'website' | 'explore'>(
+    tabParam === 'explore' ? 'explore' : 'website'
+  );
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'explore' || tab === 'website') {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
   const [images, setImages] = useState<ImageDto[]>([]);
   const [categories, setCategories] = useState<WorkCategoryDto[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
@@ -586,9 +598,9 @@ export default function ImagesPage() {
 
       {/* Sticky Bulk Action Toolbar */}
       {selectedImageIds.size > 0 && (
-        <div className="sticky top-20 z-30 p-3.5 sm:p-4 glass-toolbar bg-[#0B1220]/90 text-white rounded-[8px] shadow-overlay flex flex-wrap items-center justify-between gap-4 border border-white/10 backdrop-blur-md glow-cobalt">
+        <div className="sticky top-20 z-30 p-3.5 sm:p-4 glass-toolbar bg-[#0B1220]/95 text-white rounded-[8px] shadow-overlay flex flex-wrap items-center justify-between gap-4 border border-white/10 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <span className="w-6 h-6 rounded-[4px] bg-[#315FEA] text-white flex items-center justify-center text-xs font-bold shadow-xs glow-cobalt">
+            <span className="w-7 h-7 rounded-full bg-[#7950B8] text-white flex items-center justify-center text-xs font-bold shadow-xs ring-2 ring-white/20">
               {selectedImageIds.size}
             </span>
             <span className="text-sm font-semibold">
@@ -609,7 +621,7 @@ export default function ImagesPage() {
             <Button
               type="button"
               size="sm"
-              variant="danger"
+              variant="destructive"
               onClick={() => setBulkDeleteModalOpen(true)}
               leftIcon={<Trash2 className="w-4 h-4" />}
             >
@@ -690,6 +702,7 @@ export default function ImagesPage() {
                 : (liveImage || pendingReplacement);
               const isAssignedPublished = assignedImage?.status === 'Published';
               const isViewingReplacement = hasReplacement && currentMode === 'replacement';
+              const isSelected = assignedImage ? selectedImageIds.has(assignedImage.id) : false;
 
               return (
                 <motion.div
@@ -698,7 +711,11 @@ export default function ImagesPage() {
                   animate={{ opacity: 1, y: 0 }}
                   whileHover={{ y: -4 }}
                   transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                  className="col-span-1 md:col-span-1 lg:col-span-6 bg-white/95 dark:bg-[#0F172A]/95 border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-7 shadow-xs flex flex-col justify-between hover:border-[#7950B8]/60 transition-all min-h-[520px] premium-card"
+                  className={`col-span-1 md:col-span-1 lg:col-span-6 bg-white/95 dark:bg-[#0F172A]/95 border rounded-[8px] p-7 shadow-xs flex flex-col justify-between transition-all min-h-[520px] premium-card ${
+                    isSelected
+                      ? 'border-[#7950B8] ring-2 ring-[#7950B8]/40 shadow-soft-sm bg-[#F0EAFE]/15 dark:bg-[#7950B8]/10'
+                      : 'border-slate-200 dark:border-[#1E293B] hover:border-[#7950B8]/60'
+                  }`}
                 >
                   <div className="space-y-3">
                     {/* Slot Header */}
@@ -774,6 +791,40 @@ export default function ImagesPage() {
                     <div className="relative rounded-[8px] overflow-hidden bg-slate-900/5 dark:bg-[#1E293B]/40 border border-slate-200 dark:border-slate-800 flex items-center justify-center min-h-[260px] aspect-[16/10] group mt-3">
                       {assignedImage ? (
                         <>
+                          {/* Selection Overlay Tint */}
+                          {isSelected && (
+                            <div className="absolute inset-0 bg-[#7950B8]/15 dark:bg-[#7950B8]/25 z-10 pointer-events-none transition-opacity duration-200" />
+                          )}
+
+                          {/* Selection Circular Indicator Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSelectImage(assignedImage.id);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === ' ' || e.key === 'Enter') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                toggleSelectImage(assignedImage.id);
+                              }
+                            }}
+                            className="absolute top-2.5 left-2.5 z-20 min-w-[40px] min-h-[40px] flex items-center justify-center p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7950B8] rounded-full"
+                            aria-label={isSelected ? `Deselect ${slot.title} image` : `Select ${slot.title} image`}
+                            aria-pressed={isSelected}
+                          >
+                            <div
+                              className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-150 shadow-sm ${
+                                isSelected
+                                  ? 'bg-[#7950B8] text-white ring-2 ring-white dark:ring-[#0F172A] scale-100 shadow-md'
+                                  : 'bg-white/85 dark:bg-slate-900/85 text-transparent border border-slate-300 dark:border-slate-600 hover:border-[#7950B8] hover:text-[#7950B8]/60 group-hover:border-[#7950B8]/80 backdrop-blur-xs'
+                              }`}
+                            >
+                              <Check className={`w-4 h-4 stroke-[3] transition-transform duration-150 ${isSelected ? 'scale-100 text-white' : 'scale-75'}`} />
+                            </div>
+                          </button>
+
                           {isViewingReplacement && (
                             <div className="absolute top-2.5 right-2.5 z-10 pointer-events-none">
                               <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA] text-white shadow-xs">
@@ -1097,7 +1148,7 @@ export default function ImagesPage() {
                   {displayedExploreImages.length > 0 && (
                     <Button
                       type="button"
-                      variant="outline"
+                      variant={isAllSelected ? "soft-purple" : "outline"}
                       size="sm"
                       onClick={toggleSelectAll}
                       className="whitespace-nowrap"
@@ -1143,29 +1194,46 @@ export default function ImagesPage() {
                           stiffness: 260,
                           damping: 24,
                         }}
-                        className={`bg-white dark:bg-[#0F172A] border rounded-[8px] overflow-hidden shadow-xs hover:shadow-subtle transition-all duration-200 flex flex-col justify-between group ${
+                        className={`bg-white dark:bg-[#0F172A] border rounded-[8px] overflow-hidden shadow-xs hover:shadow-subtle transition-all duration-200 flex flex-col justify-between group relative ${
                           isSelected
-                            ? 'border-[#315FEA] ring-1 ring-[#315FEA]/40'
+                            ? 'border-[#7950B8] ring-2 ring-[#7950B8]/40 shadow-soft-sm bg-[#F0EAFE]/15 dark:bg-[#7950B8]/10'
                             : 'border-[#CBD5E1] dark:border-[#1E293B] hover:border-[#7950B8]/60'
                         }`}
                       >
                         {/* Image Thumbnail with Overlay Badges */}
                         <div className="relative aspect-[16/10] bg-[#172033]/5 dark:bg-slate-900 overflow-hidden border-b border-[#E3E7ED] dark:border-[#1E293B]">
-                          {/* Checkbox */}
+                          {/* Selection Overlay Tint */}
+                          {isSelected && (
+                            <div className="absolute inset-0 bg-[#7950B8]/15 dark:bg-[#7950B8]/25 z-10 pointer-events-none transition-opacity duration-200" />
+                          )}
+
+                          {/* Selection Circular Indicator Button */}
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleSelectImage(image.id);
                             }}
-                            className={`absolute top-2.5 left-2.5 z-20 w-6 h-6 rounded-[4px] border flex items-center justify-center transition-all ${
-                              isSelected
-                                ? 'bg-[#315FEA] border-[#315FEA] text-white shadow-xs'
-                                : 'bg-white/90 dark:bg-slate-900/90 border-[#CBD5E1] dark:border-slate-600 text-transparent hover:border-[#315FEA] backdrop-blur-xs'
-                            }`}
-                            aria-label={isSelected ? 'Deselect project image' : 'Select project image'}
+                            onKeyDown={(e) => {
+                              if (e.key === ' ' || e.key === 'Enter') {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                toggleSelectImage(image.id);
+                              }
+                            }}
+                            className="absolute top-2.5 left-2.5 z-20 min-w-[40px] min-h-[40px] flex items-center justify-center p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7950B8] rounded-full"
+                            aria-label={isSelected ? `Deselect ${displayTitle}` : `Select ${displayTitle}`}
+                            aria-pressed={isSelected}
                           >
-                            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <div
+                              className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-150 shadow-sm ${
+                                isSelected
+                                  ? 'bg-[#7950B8] text-white ring-2 ring-white dark:ring-[#0F172A] scale-100 shadow-md'
+                                  : 'bg-white/85 dark:bg-slate-900/85 text-transparent border border-slate-300 dark:border-slate-600 hover:border-[#7950B8] hover:text-[#7950B8]/60 group-hover:border-[#7950B8]/80 backdrop-blur-xs'
+                              }`}
+                            >
+                              <Check className={`w-4 h-4 stroke-[3] transition-transform duration-150 ${isSelected ? 'scale-100 text-white' : 'scale-75'}`} />
+                            </div>
                           </button>
 
                           {/* Image Preview */}

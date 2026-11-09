@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '@/lib/auth/AuthContext';
+import { useTheme } from '@/lib/theme/ThemeContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
@@ -17,7 +18,9 @@ import {
   Menu,
   X,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 const NAVIGATION = [
@@ -40,6 +43,8 @@ interface SidebarViewProps {
   isCollapsed?: boolean;
   isMobile?: boolean;
   onClose?: () => void;
+  resolvedTheme?: 'light' | 'dark';
+  onToggleTheme?: () => void;
 }
 
 function SidebarView({ 
@@ -50,7 +55,9 @@ function SidebarView({
   userFullName,
   isCollapsed = false,
   isMobile = false,
-  onClose
+  onClose,
+  resolvedTheme,
+  onToggleTheme
 }: SidebarViewProps) {
   return (
     <>
@@ -229,6 +236,28 @@ function SidebarView({
               <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] truncate">{userEmail}</p>
             </div>
           </Link>
+          {isMobile && onToggleTheme && (
+            <div className="mt-3 pt-3 border-t border-[#E3E7ED] dark:border-[#1E293B] flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Theme</span>
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-[6px] bg-[#F3F6FA] dark:bg-[#1E293B] text-[#172033] dark:text-white border border-[#CBD5E1] dark:border-[#334155] hover:border-[#7950B8] transition-colors"
+              >
+                {resolvedTheme === 'dark' ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-[#7950B8]" />
+                    <span>Dark Mode</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </>
@@ -237,6 +266,7 @@ function SidebarView({
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
+  const { resolvedTheme, setTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -388,6 +418,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               userFullName={user?.fullName}
               isMobile={true}
               onClose={() => setMobileMenuOpen(false)}
+              resolvedTheme={resolvedTheme}
+              onToggleTheme={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
             />
           </div>
         </div>
@@ -409,6 +441,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           userEmail={user?.email}
           userFullName={user?.fullName}
           isCollapsed={desktopCollapsed}
+          resolvedTheme={resolvedTheme}
+          onToggleTheme={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
         />
       </aside>
 
@@ -462,6 +496,24 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
+            {/* Quick Theme Toggle */}
+            <button
+              type="button"
+              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+              aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+              title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode (currently ${resolvedTheme === 'dark' ? 'Dark' : 'Light'})`}
+              className="flex items-center text-xs font-semibold text-[#475569] dark:text-[#94A3B8] hover:text-[#315FEA] dark:hover:text-[#608FFE] transition-colors motion-reduce:transition-none py-2 px-2.5 sm:px-3 rounded-[6px] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] shrink-0"
+            >
+              {resolvedTheme === 'dark' ? (
+                <Sun className="h-4 w-4 text-amber-400 sm:mr-1.5 shrink-0" />
+              ) : (
+                <Moon className="h-4 w-4 text-[#7950B8] sm:mr-1.5 shrink-0" />
+              )}
+              <span className="hidden sm:inline capitalize">
+                {resolvedTheme === 'dark' ? 'Light' : 'Dark'}
+              </span>
+            </button>
+
             <button
               onClick={handleLogout}
               aria-label="Sign Out"
