@@ -104,6 +104,14 @@ html.dark body {
 
 /* Design System Utilities */
 @layer utilities {
+  /* Hide scrollbar utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
   /* Approved logo wordmark exception (DESIGN.md Section 7) */
   .text-brand-gradient {
     background: linear-gradient(135deg, #315FEA 0%, #7950B8 100%);

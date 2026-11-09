@@ -63,9 +63,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       glass:
         'glass-panel hover:bg-white/95 dark:hover:bg-[#1E293B]/95 active:scale-[0.98] text-[#172033] dark:text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-white/60 dark:border-white/10',
       enhance:
-        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-soft-xs focus:ring-[#1D4ED8] border border-transparent',
+        'image-studio-enhance-button focus:ring-[#7950B8]',
       studio:
-        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent transition-colors duration-200 motion-reduce:transition-none',
+        'image-studio-enhance-button focus:ring-[#7950B8]',
       secondary:
         'bg-[#F3F6FA] hover:bg-[#E3E7ED] dark:bg-[#1E293B] dark:hover:bg-[#334155] text-[#172033] dark:text-slate-100 border border-[#CBD5E1] dark:border-[#334155] focus:ring-[#1D4ED8] shadow-soft-xs',
       outline:

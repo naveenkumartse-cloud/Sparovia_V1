@@ -41,6 +41,8 @@ import {
   ImageUploadModal,
   WorkCategoryDto,
 } from '@/components/images/ImageUploadModal';
+import { motion } from 'framer-motion';
+import { EnhanceButton } from '@/components/images/EnhanceButton';
 
 const WEBSITE_SLOTS = [
   {
@@ -690,9 +692,13 @@ export default function ImagesPage() {
               const isViewingReplacement = hasReplacement && currentMode === 'replacement';
 
               return (
-                <div
+                <motion.div
                   key={slot.key}
-                  className="col-span-1 md:col-span-1 lg:col-span-6 bg-white/95 dark:bg-[#0F172A]/95 border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-7 shadow-xs flex flex-col justify-between hover:border-[#315FEA] transition-all min-h-[520px] premium-card"
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -4 }}
+                  transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+                  className="col-span-1 md:col-span-1 lg:col-span-6 bg-white/95 dark:bg-[#0F172A]/95 border border-slate-200 dark:border-[#1E293B] rounded-[8px] p-7 shadow-xs flex flex-col justify-between hover:border-[#7950B8]/60 transition-all min-h-[520px] premium-card"
                 >
                   <div className="space-y-3">
                     {/* Slot Header */}
@@ -843,17 +849,13 @@ export default function ImagesPage() {
                     {hasReplacement && isViewingReplacement ? (
                       <>
                         <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="secondary"
+                          <EnhanceButton
                             size="sm"
                             onClick={() => handleOpenStudio(pendingReplacement)}
-                            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
                             title="Open Image Studio to inspect & enhance replacement"
-                            className="font-semibold"
                           >
                             Enhance
-                          </Button>
+                          </EnhanceButton>
                           <Button
                             type="button"
                             variant="primary"
@@ -896,17 +898,14 @@ export default function ImagesPage() {
                         {isAssignedPublished ? (
                           <>
                             <div className="flex items-center gap-2">
-                              <Button
-                                type="button"
-                                variant="secondary"
+                              <EnhanceButton
                                 size="sm"
                                 onClick={() => handleOpenStudio(assignedImage)}
-                                leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#315FEA] dark:text-blue-400" />}
                                 title="Open Image Studio for enhancement"
-                                className="flex-1 justify-center font-semibold"
+                                className="flex-1 justify-center"
                               >
                                 Enhance in Studio
-                              </Button>
+                              </EnhanceButton>
                               <Button
                                 type="button"
                                 variant="outline"
@@ -945,17 +944,14 @@ export default function ImagesPage() {
                         ) : (
                           <>
                             <div className="flex items-center gap-2">
-                              <Button
-                                type="button"
-                                variant="secondary"
+                              <EnhanceButton
                                 size="sm"
                                 onClick={() => handleOpenStudio(assignedImage)}
-                                leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#315FEA] dark:text-blue-400" />}
                                 title="Open Image Studio for enhancement"
-                                className="flex-1 justify-center font-semibold"
+                                className="flex-1 justify-center"
                               >
                                 Enhance
-                              </Button>
+                              </EnhanceButton>
                               <Button
                                 type="button"
                                 variant="primary"
@@ -1008,7 +1004,7 @@ export default function ImagesPage() {
                       </Button>
                     )}
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -1129,7 +1125,7 @@ export default function ImagesPage() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-6xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                   {displayedExploreImages.map((image) => {
                     const isSelected = selectedImageIds.has(image.id);
                     const isPublished = image.status === 'Published';
@@ -1137,12 +1133,20 @@ export default function ImagesPage() {
                     const displayTitle = cleanImageTitle(image.projectWorkName, image.slot, image.category);
 
                     return (
-                      <div
+                      <motion.div
                         key={image.id}
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        whileHover={{ y: -5 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 260,
+                          damping: 24,
+                        }}
                         className={`bg-white dark:bg-[#0F172A] border rounded-[8px] overflow-hidden shadow-xs hover:shadow-subtle transition-all duration-200 flex flex-col justify-between group ${
                           isSelected
                             ? 'border-[#315FEA] ring-1 ring-[#315FEA]/40'
-                            : 'border-[#CBD5E1] dark:border-[#1E293B] hover:border-[#315FEA]/70'
+                            : 'border-[#CBD5E1] dark:border-[#1E293B] hover:border-[#7950B8]/60'
                         }`}
                       >
                         {/* Image Thumbnail with Overlay Badges */}
@@ -1247,17 +1251,14 @@ export default function ImagesPage() {
                           {isPublished ? (
                             <>
                               {/* Row 1: Primary action to enhance */}
-                              <Button
-                                type="button"
-                                variant="secondary"
+                              <EnhanceButton
                                 size="sm"
+                                fullWidth
                                 onClick={() => handleOpenStudio(image)}
-                                leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#315FEA] dark:text-blue-400" />}
-                                className="w-full justify-center text-xs font-semibold shadow-xs"
                                 title="Open Image Studio for enhancement"
                               >
                                 Enhance in Studio
-                              </Button>
+                              </EnhanceButton>
 
                               {/* Row 2: Secondary maintenance actions */}
                               <div className="flex items-center justify-between gap-2 pt-0.5">
@@ -1299,17 +1300,14 @@ export default function ImagesPage() {
                             <>
                               {/* Row 1: Enhance & Publish */}
                               <div className="grid grid-cols-2 gap-2">
-                                <Button
-                                  type="button"
-                                  variant="secondary"
+                                <EnhanceButton
                                   size="sm"
+                                  fullWidth
                                   onClick={() => handleOpenStudio(image)}
-                                  leftIcon={<Sparkles className="w-3.5 h-3.5 text-[#315FEA] dark:text-blue-400" />}
-                                  className="w-full justify-center text-xs font-semibold"
                                   title="Open Image Studio for enhancement"
                                 >
                                   Enhance
-                                </Button>
+                                </EnhanceButton>
                                 <Button
                                   type="button"
                                   variant="primary"
@@ -1351,7 +1349,7 @@ export default function ImagesPage() {
                             </>
                           )}
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
