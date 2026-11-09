@@ -22,25 +22,25 @@
     },
     "768": {
       "hasOverflow": false,
-      "docW": 768,
+      "docW": 760,
       "winW": 768,
       "overflowingSelector": null
     },
     "1024": {
       "hasOverflow": false,
-      "docW": 1024,
+      "docW": 1016,
       "winW": 1024,
       "overflowingSelector": null
     },
     "1280": {
       "hasOverflow": false,
-      "docW": 1280,
+      "docW": 1272,
       "winW": 1280,
       "overflowingSelector": null
     },
     "1440": {
       "hasOverflow": false,
-      "docW": 1440,
+      "docW": 1432,
       "winW": 1440,
       "overflowingSelector": null
     }

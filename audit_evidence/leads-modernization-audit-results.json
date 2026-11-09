@@ -1,0 +1,94 @@
+{
+  "timestamp": "2026-11-09T12:21:26.565Z",
+  "viewportsTested": [
+    "1440x900",
+    "1024x768",
+    "768x1024",
+    "430x932",
+    "390x844",
+    "375x812",
+    "320x568"
+  ],
+  "overflowAudit": {
+    "320": {
+      "hasOverflow": false,
+      "docW": 320,
+      "winW": 320,
+      "overflowingSelector": null
+    },
+    "375": {
+      "hasOverflow": false,
+      "docW": 375,
+      "winW": 375,
+      "overflowingSelector": null
+    },
+    "390": {
+      "hasOverflow": false,
+      "docW": 390,
+      "winW": 390,
+      "overflowingSelector": null
+    },
+    "430": {
+      "hasOverflow": false,
+      "docW": 430,
+      "winW": 430,
+      "overflowingSelector": null
+    },
+    "768": {
+      "hasOverflow": false,
+      "docW": 768,
+      "winW": 768,
+      "overflowingSelector": null
+    },
+    "1024": {
+      "hasOverflow": false,
+      "docW": 1024,
+      "winW": 1024,
+      "overflowingSelector": null
+    },
+    "1440": {
+      "hasOverflow": false,
+      "docW": 1440,
+      "winW": 1440,
+      "overflowingSelector": null
+    }
+  },
+  "accessibilityIssues": [],
+  "screenshots": [
+    "01-leads-dashboard-desktop.png",
+    "04-lead-cards.png",
+    "03-status-summary-filters.png",
+    "10-search-filtered-results.png",
+    "12-empty-state.png",
+    "05-lead-list-view.png",
+    "06-lead-detail-popup.png",
+    "11-mobile-customer-details.png",
+    "07-add-lead-form.png",
+    "08-edit-lead-form.png",
+    "09-delete-confirmation.png",
+    "responsive-1440px.png",
+    "responsive-1024px.png",
+    "responsive-768px.png",
+    "responsive-430px.png",
+    "responsive-390px.png",
+    "02-leads-dashboard-mobile.png",
+    "responsive-375px.png",
+    "responsive-320px.png"
+  ],
+  "workflowsTested": {
+    "dashboardDesktop": "PASS",
+    "dashboardMobile": "PASS",
+    "statusFilterInteractions": "PASS",
+    "leadCardsRendering": "PASS",
+    "leadListViewTable": "PASS",
+    "leadDetailModal": "PASS",
+    "pipelineStepperStatusUpdate": "PASS",
+    "addLeadFormCreation": "PASS",
+    "editLeadFormPrepopulation": "PASS",
+    "deleteConfirmationModal": "PASS",
+    "searchAndFilterTags": "PASS",
+    "emptyStateHandling": "PASS",
+    "mobileResponsivenessNoOverflow": "PASS"
+  },
+  "passed": true
+}
