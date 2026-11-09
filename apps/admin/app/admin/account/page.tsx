@@ -102,6 +102,13 @@ export default function AccountPage() {
     activeTabParam === 'settings' ? 'settings' : activeTabParam === 'integrations' ? 'integrations' : activeTabParam === 'security' ? 'security' : 'profile'
   );
 
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'settings' || tab === 'integrations' || tab === 'security' || tab === 'profile') {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
   const [copiedTenantId, setCopiedTenantId] = useState(false);
 
   // Dynamic tenant categories state
@@ -938,61 +945,6 @@ export default function AccountPage() {
                   </p>
                 </div>
               </button>
-            </div>
-          </div>
-
-          {/* Panel 2: Design System Governance & Locked Matrix */}
-          <div className="glass-panel rounded-[8px] p-6 sm:p-8 shadow-xs border border-slate-200/80 dark:border-[#1E293B]">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
-                <ShieldCheck className="w-5 h-5 mr-2 text-[#315FEA]" />
-                Design System Standards &amp; Architecture
-              </h2>
-              <p className="text-sm text-slate-500 dark:text-[#94A3B8] mt-1">
-                Authoritative visual system specifications enforced across the Sparovia Platform.
-              </p>
-            </div>
-
-            {/* Design System Governance Notice */}
-            <div className="mt-4 p-4 rounded-[8px] bg-blue-50/80 dark:bg-[#315FEA]/10 border border-blue-200/60 dark:border-[#315FEA]/20 flex items-start space-x-3">
-              <Info className="w-5 h-5 text-[#315FEA] shrink-0 mt-0.5" />
-              <div className="text-xs text-slate-700 dark:text-[#CBD5E1] leading-relaxed">
-                <span className="font-semibold text-slate-900 dark:text-white">Editorial Cobalt Visual Lock:</span>{' '}
-                Administrative workspace themes (Light, Dark, and System) provide customized viewing comfort. Per project governance (<code>RULES.md</code> and <code>DESIGN.md</code>), tenant customer-facing website pages operate strictly on the locked Editorial Cobalt design system with flat neutral surfaces (#FFFFFF, #F3F6FA), locked typography, and strict radius hierarchy.
-              </div>
-            </div>
-
-            {/* Visual Tokens Matrix */}
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 rounded-[8px] bg-slate-50/80 dark:bg-[#0B1220]/70 border border-slate-200 dark:border-[#1E293B] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">Brand Palette</span>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-4 h-4 rounded-[4px] bg-[#315FEA] glow-cobalt" title="Editorial Cobalt (#315FEA)" />
-                    <div className="w-4 h-4 rounded-[4px] bg-[#7950B8]" title="Signature Purple (#7950B8)" />
-                  </div>
-                </div>
-                <p className="text-sm font-bold text-[#315FEA]">Editorial Cobalt &amp; Purple</p>
-                <p className="text-xs text-slate-500 dark:text-[#94A3B8]">#315FEA (Primary) &bull; #7950B8 (Accent)</p>
-              </div>
-
-              <div className="p-4 rounded-[8px] bg-slate-50/80 dark:bg-[#0B1220]/70 border border-slate-200 dark:border-[#1E293B] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">Radius Hierarchy</span>
-                  <Badge variant="cobalt" size="xs">Locked</Badge>
-                </div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">4px / 6px / 8px / 10px</p>
-                <p className="text-xs text-slate-500 dark:text-[#94A3B8]">Indicator: 4px &bull; Control: 6px &bull; Panel: 8px &bull; Dialog: 10px</p>
-              </div>
-
-              <div className="p-4 rounded-[8px] bg-slate-50/80 dark:bg-[#0B1220]/70 border border-slate-200 dark:border-[#1E293B] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">Accessibility</span>
-                  <Badge variant="success" size="xs">Target</Badge>
-                </div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">WCAG 2.2 AA</p>
-                <p className="text-xs text-slate-500 dark:text-[#94A3B8]">Keyboard navigable &bull; Contrast verified &bull; Reduced motion</p>
-              </div>
             </div>
           </div>
         </div>

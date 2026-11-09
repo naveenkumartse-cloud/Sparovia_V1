@@ -63,11 +63,23 @@ async function runThemeAndImageSelectionVerification() {
     console.log('\n[Step 2] Testing Visual Standards in Account (Light Mode)...');
     await client.navigate('http://localhost:3001/admin/account?tab=settings', 2000);
 
-    // Click Light Mode button
+    // Ensure Visual Standards tab is active
     await client.evaluate(`(() => {
-      const lightBtn = Array.from(document.querySelectorAll('button[role="radio"]')).find(b => b.innerText.includes('Light Mode'));
-      if (lightBtn) lightBtn.click();
+      const tab = Array.from(document.querySelectorAll('button[role="tab"]')).find(b => b.innerText.includes('Visual Standards'));
+      if (tab) tab.click();
     })()`);
+    await new Promise((r) => setTimeout(r, 600));
+
+    // Click Light Mode button
+    const lightClicked = await client.evaluate(`(() => {
+      const lightBtn = Array.from(document.querySelectorAll('button[role="radio"]')).find(b => b.innerText.includes('Light Mode'));
+      if (lightBtn) {
+        lightBtn.click();
+        return true;
+      }
+      return false;
+    })()`);
+    console.log(`Light Mode button clicked: ${lightClicked}`);
     await new Promise((r) => setTimeout(r, 600));
 
     const isLightActive = await client.evaluate(`!document.documentElement.classList.contains('dark')`);
@@ -80,10 +92,15 @@ async function runThemeAndImageSelectionVerification() {
 
     // 3. Account Visual Standards — Dark Mode
     console.log('\n[Step 3] Testing Visual Standards in Account (Dark Mode)...');
-    await client.evaluate(`(() => {
+    const darkClicked = await client.evaluate(`(() => {
       const darkBtn = Array.from(document.querySelectorAll('button[role="radio"]')).find(b => b.innerText.includes('Dark Mode'));
-      if (darkBtn) darkBtn.click();
+      if (darkBtn) {
+        darkBtn.click();
+        return true;
+      }
+      return false;
     })()`);
+    console.log(`Dark Mode button clicked: ${darkClicked}`);
     await new Promise((r) => setTimeout(r, 600));
 
     const isDarkActive = await client.evaluate(`document.documentElement.classList.contains('dark')`);
