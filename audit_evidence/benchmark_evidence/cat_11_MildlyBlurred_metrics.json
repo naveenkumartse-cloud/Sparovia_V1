@@ -1,0 +1,18 @@
+{
+  "CategoryId": 11,
+  "CategoryName": "MildlyBlurred",
+  "AssetSource": "photo-beans-hand.jpg (real product shot with mild motion/optical blur)",
+  "ImageCondition": "InsufficientInformation",
+  "OriginalWidth": 2000,
+  "OriginalHeight": 908,
+  "EnhancedWidth": 2000,
+  "EnhancedHeight": 908,
+  "InputSizeBytes": 64619,
+  "OutputSizeBytes": 25280,
+  "CompressionRatio": 0.39121620575991584,
+  "ElapsedMilliseconds": 682.731,
+  "MemoryAllocatedMb": 55.742462158203125,
+  "PsnrDb": 36.6876694675272,
+  "Ssim": 0.9965845641242222,
+  "AppliedCorrections": "Highlights protected against blow-out, Tonal contrast expanded to remove atmospheric haze, Clean surface textures preserved without blurring, Local tonal clarity and textural depth enhanced, Authentic architectural material colors and finishes preserved, Natural edge sharpness preserved with subtle polish, High-resolution original dimensions preserved, Calibrated for high-performance web delivery using optimized WebP encoding, Web delivery size: 24.7 KB (61% smaller than original 63.1 KB)"
+}

@@ -1,0 +1,18 @@
+{
+  "CategoryId": 4,
+  "CategoryName": "BlueColorCast",
+  "AssetSource": "photo-1081.jpg (real architectural photo with overcast cold/blue cast)",
+  "ImageCondition": "MildBlur",
+  "OriginalWidth": 2400,
+  "OriginalHeight": 1611,
+  "EnhancedWidth": 2048,
+  "EnhancedHeight": 1375,
+  "InputSizeBytes": 332431,
+  "OutputSizeBytes": 102254,
+  "CompressionRatio": 0.30759465874121245,
+  "ElapsedMilliseconds": 1634.48,
+  "MemoryAllocatedMb": 118.75782012939453,
+  "PsnrDb": 37.0198221667966,
+  "Ssim": 0.9970685633074501,
+  "AppliedCorrections": "Balanced exposure maintained across midtones, Tonal contrast expanded to remove atmospheric haze, Clean surface textures preserved without blurring, Local tonal clarity and textural depth enhanced, Authentic architectural material colors and finishes preserved, Controlled structural edge definition applied without halos, Responsive web dimensions calibrated (2048 \u00D7 1375 px), Calibrated for high-performance web delivery using optimized WebP encoding, Web delivery size: 99.9 KB (69% smaller than original 324.6 KB)"
+}

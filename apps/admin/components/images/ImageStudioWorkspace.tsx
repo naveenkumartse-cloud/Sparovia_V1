@@ -22,6 +22,8 @@ import {
   Info,
   ShieldCheck,
   Crop,
+  Sliders,
+  ChevronDown,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
@@ -159,6 +161,10 @@ export const APPROVED_OPERATIONS: EnhancementOpDef[] = [
     description: 'Efficient WebP compression calibrated for fast website loading.',
   },
 ];
+
+export const SPECIALIZED_OPERATIONS = APPROVED_OPERATIONS.filter(
+  (op) => op.id !== 'EnhanceForWebsite'
+);
 
 function formatBytes(bytes: number): string {
   if (!bytes || bytes === 0) return '0 B';
@@ -302,6 +308,8 @@ export function ImageStudioWorkspace({
 
   // Action states
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [selectedPreset, setSelectedPreset] = useState<'Light' | 'Balanced' | 'High'>('Balanced');
+  const [specializedPanelOpen, setSpecializedPanelOpen] = useState<boolean>(false);
   const [isApproving, setIsApproving] = useState<boolean>(false);
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
@@ -428,12 +436,18 @@ export function ImageStudioWorkspace({
     }
   };
 
-  // Run Enhance for Website
-  const handleRunEnhancement = async () => {
+  // Run Enhance for Website or Specific Operation
+  const handleRunEnhancement = async (
+    overrideOp?: string,
+    overridePreset?: 'Light' | 'Balanced' | 'High'
+  ) => {
     if (isProcessing) return;
     setIsProcessing(true);
     setErrorMessage(null);
     setSuccessMessage(null);
+
+    const operationToRun = overrideOp || 'EnhanceForWebsite';
+    const presetToRun = overridePreset || selectedPreset;
 
     try {
       let targetImage = currentImage;
@@ -477,10 +491,13 @@ export function ImageStudioWorkspace({
         throw new Error('No image available to enhance.');
       }
 
-      // Execute Enhance for Website pipeline
+      // Execute enhancement pipeline with operation and preset
       const res = await apiClient.post<{ data: ImageVariantDto; message: string }>(
         `/website/images/${targetImage.id}/enhance`,
-        { operation: 'EnhanceForWebsite' }
+        {
+          operation: operationToRun,
+          preset: presetToRun,
+        }
       );
 
       const newVariant = res?.data;
@@ -934,7 +951,7 @@ export function ImageStudioWorkspace({
                           <Button
                             variant="primary"
                             size="sm"
-                            onClick={handleRunEnhancement}
+                            onClick={() => handleRunEnhancement('EnhanceForWebsite', selectedPreset)}
                             isLoading={isProcessing}
                             leftIcon={<Sparkles className="w-3.5 h-3.5" />}
                           >
@@ -1416,7 +1433,7 @@ export function ImageStudioWorkspace({
                     <div className="pt-1 text-center">
                       <button
                         type="button"
-                        onClick={handleRunEnhancement}
+                        onClick={() => handleRunEnhancement('EnhanceForWebsite', selectedPreset)}
                         disabled={isProcessing}
                         className="text-xs text-[#315FEA] hover:underline font-medium inline-flex items-center gap-1"
                       >
@@ -1449,6 +1466,25 @@ export function ImageStudioWorkspace({
                         <span className="text-slate-500">Original File Size:</span>
                         <span className="font-mono text-slate-800 dark:text-slate-200">{formatBytes(displaySize)}</span>
                       </div>
+                      {displayedVariant.effectiveProfile && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Pipeline Profile:</span>
+                          <span className="font-mono text-slate-800 dark:text-slate-200">{displayedVariant.effectiveProfile}</span>
+                        </div>
+                      )}
+                      {displayedVariant.appliedCorrections && displayedVariant.appliedCorrections.length > 0 && (
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
+                          <span className="text-slate-500 font-semibold block">Applied Corrections:</span>
+                          <ul className="space-y-1 pl-1">
+                            {displayedVariant.appliedCorrections.map((corr, idx) => (
+                              <li key={idx} className="flex items-start gap-1.5 text-[10px] text-slate-700 dark:text-slate-300">
+                                <Check className="w-3 h-3 text-[#15803D] shrink-0 mt-0.5" />
+                                <span>{corr}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </details>
                 </div>
@@ -1485,7 +1521,7 @@ export function ImageStudioWorkspace({
                     <div className="pt-2 flex items-center justify-between text-xs border-t border-blue-200/60 dark:border-blue-900/40">
                       <button
                         type="button"
-                        onClick={handleRunEnhancement}
+                        onClick={() => handleRunEnhancement('EnhanceForWebsite', selectedPreset)}
                         disabled={isProcessing}
                         className="text-[#475569] hover:text-[#315FEA] dark:hover:text-blue-400 font-medium inline-flex items-center gap-1"
                       >
@@ -1527,7 +1563,7 @@ export function ImageStudioWorkspace({
                         size="md"
                         isLoading={isProcessing}
                         loadingText="Enhancing photo..."
-                        onClick={handleRunEnhancement}
+                        onClick={() => handleRunEnhancement('EnhanceForWebsite', selectedPreset)}
                       >
                         Enhance again
                       </EnhanceButton>
@@ -1569,15 +1605,51 @@ export function ImageStudioWorkspace({
                     </div>
 
                     <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                      Improve lighting, clarity and presentation while keeping your original photo safe.
+                      Transform ordinary business photographs into natural, professional-looking website images.
                     </p>
+
+                    {/* Preset Selector */}
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">Preset Profile</span>
+                        <span className="text-[10px] text-slate-500 font-normal">Adaptive strength</span>
+                      </div>
+                      <div
+                        className="grid grid-cols-3 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-[6px] border border-slate-200/80 dark:border-slate-700 text-xs font-medium"
+                        role="radiogroup"
+                        aria-label="Enhancement Preset"
+                      >
+                        {(['Light', 'Balanced', 'High'] as const).map((preset) => {
+                          const isSelected = selectedPreset === preset;
+                          return (
+                            <button
+                              key={preset}
+                              type="button"
+                              role="radio"
+                              aria-checked={isSelected}
+                              onClick={() => setSelectedPreset(preset)}
+                              className={`py-1.5 px-2 rounded-[4px] text-center transition-all ${
+                                isSelected
+                                  ? 'bg-white dark:bg-[#0F172A] text-[#315FEA] font-semibold shadow-xs'
+                                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                              }`}
+                            >
+                              <div>{preset}</div>
+                              {preset === 'Balanced' && (
+                                <span className="block text-[9px] font-normal opacity-75">Auto / Rec.</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
 
                     <EnhanceButton
                       fullWidth
                       disabled={isProcessing}
                       isLoading={isProcessing}
                       loadingText="Enhancing photo..."
-                      onClick={handleRunEnhancement}
+                      onClick={() => handleRunEnhancement('EnhanceForWebsite', selectedPreset)}
                     >
                       Enhance for Website
                     </EnhanceButton>
@@ -1586,6 +1658,57 @@ export function ImageStudioWorkspace({
                       <ShieldCheck className="w-3.5 h-3.5 text-[#15803D] shrink-0" />
                       <span>Original photograph is immutable and never overwritten.</span>
                     </p>
+
+                    {/* Specialized Operations & Fine-Tune Collapsible */}
+                    <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                      <button
+                        type="button"
+                        onClick={() => setSpecializedPanelOpen(!specializedPanelOpen)}
+                        className="w-full flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white py-1 transition-colors"
+                        aria-expanded={specializedPanelOpen}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <Sliders className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Specialized Operations & Fine-Tune</span>
+                        </span>
+                        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${specializedPanelOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {specializedPanelOpen && (
+                        <div className="mt-2 space-y-1.5 max-h-60 overflow-y-auto pr-1">
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-1 leading-tight">
+                            Execute one of the 7 approved individual operations using the selected ({selectedPreset}) preset:
+                          </p>
+                          {SPECIALIZED_OPERATIONS.map((op) => {
+                            const IconComponent = op.icon;
+                            return (
+                              <button
+                                key={op.id}
+                                type="button"
+                                disabled={isProcessing}
+                                onClick={() => handleRunEnhancement(op.id, selectedPreset)}
+                                className="w-full text-left p-2 rounded-[6px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#315FEA]/50 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all flex items-start gap-2.5 group disabled:opacity-50"
+                              >
+                                <div className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 group-hover:text-[#315FEA] group-hover:bg-blue-50 dark:group-hover:bg-blue-950/40">
+                                  <IconComponent className="w-3.5 h-3.5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-[#315FEA]">
+                                      {op.name}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-mono">Run</span>
+                                  </div>
+                                  <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                                    {op.tagline}
+                                  </p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* If original upload is validated and user wants to publish directly without enhancement */}

@@ -1,0 +1,18 @@
+{
+  "CategoryId": 13,
+  "CategoryName": "AlreadyGoodProfessional",
+  "AssetSource": "meeting-room.jpg (already balanced, well-exposed professional interior)",
+  "ImageCondition": "AlreadyGood",
+  "OriginalWidth": 1920,
+  "OriginalHeight": 1280,
+  "EnhancedWidth": 1920,
+  "EnhancedHeight": 1280,
+  "InputSizeBytes": 203455,
+  "OutputSizeBytes": 146074,
+  "CompressionRatio": 0.7179671180359293,
+  "ElapsedMilliseconds": 923.897,
+  "MemoryAllocatedMb": 75.67964172363281,
+  "PsnrDb": 32.86682548866763,
+  "Ssim": 0.9982601759082409,
+  "AppliedCorrections": "Balanced exposure maintained across midtones, Natural architectural contrast preserved, Clean surface textures preserved without blurring, Local tonal clarity and textural depth enhanced, Authentic architectural material colors and finishes preserved, Natural edge sharpness preserved with subtle polish, High-resolution original dimensions preserved, Calibrated for high-performance web delivery using optimized WebP encoding, Web delivery size: 142.7 KB (28% smaller than original 198.7 KB)"
+}

@@ -181,6 +181,7 @@ builder.Services.AddSingleton<Sparovia.Application.Images.IImageValidator>(sp =>
     return new Sparovia.Application.Images.ImageValidator(opts);
 });
 builder.Services.AddScoped<Sparovia.Application.Images.IWebsiteImageService, Sparovia.Infrastructure.Images.WebsiteImageService>();
+builder.Services.AddSingleton<Sparovia.Infrastructure.Images.ILocalAiRestorationService, Sparovia.Infrastructure.Images.LocalOnnxRestorationService>();
 builder.Services.AddSingleton<Sparovia.Application.Images.IImageProcessingService, Sparovia.Infrastructure.Images.DeterministicImageProcessingService>();
 builder.Services.AddScoped<Sparovia.Application.Leads.ILeadService, Sparovia.Infrastructure.Leads.LeadService>();
 

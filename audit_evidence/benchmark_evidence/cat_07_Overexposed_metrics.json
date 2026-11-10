@@ -1,0 +1,18 @@
+{
+  "CategoryId": 7,
+  "CategoryName": "Overexposed",
+  "AssetSource": "photo-1081.jpg (bright exterior overexposed into highlights)",
+  "ImageCondition": "InsufficientInformation",
+  "OriginalWidth": 2400,
+  "OriginalHeight": 1611,
+  "EnhancedWidth": 2048,
+  "EnhancedHeight": 1375,
+  "InputSizeBytes": 23009,
+  "OutputSizeBytes": 5072,
+  "CompressionRatio": 0.22043548176800382,
+  "ElapsedMilliseconds": 1412.3836,
+  "MemoryAllocatedMb": 118.3690185546875,
+  "PsnrDb": 100,
+  "Ssim": 1,
+  "AppliedCorrections": "Highlights protected against blow-out, Tonal contrast expanded to remove atmospheric haze, Clean surface textures preserved without blurring, Local tonal clarity and textural depth enhanced, Authentic architectural material colors and finishes preserved, Controlled structural edge definition applied without halos, Responsive web dimensions calibrated (2048 \u00D7 1375 px), Calibrated for high-performance web delivery using optimized WebP encoding, Web delivery size: 5 KB (78% smaller than original 22.5 KB)"
+}

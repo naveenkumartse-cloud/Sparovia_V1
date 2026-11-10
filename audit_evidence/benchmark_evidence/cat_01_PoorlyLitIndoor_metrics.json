@@ -1,0 +1,18 @@
+{
+  "CategoryId": 1,
+  "CategoryName": "PoorlyLitIndoor",
+  "AssetSource": "Unsplash/Wikimedia room.jpg (real indoor photo, underexposed)",
+  "ImageCondition": "PoorLighting_Underexposed",
+  "OriginalWidth": 1920,
+  "OriginalHeight": 1280,
+  "EnhancedWidth": 1920,
+  "EnhancedHeight": 1280,
+  "InputSizeBytes": 233179,
+  "OutputSizeBytes": 99124,
+  "CompressionRatio": 0.42509831502836876,
+  "ElapsedMilliseconds": 918.6698,
+  "MemoryAllocatedMb": 75.66270446777344,
+  "PsnrDb": 21.524533725868512,
+  "Ssim": 0.9527987287709071,
+  "AppliedCorrections": "Shadow visibility and interior depth improved, Tonal contrast expanded to remove atmospheric haze, Clean surface textures preserved without blurring, Local tonal clarity and textural depth enhanced, Authentic architectural material colors and finishes preserved, Controlled structural edge definition applied without halos, High-resolution original dimensions preserved, Calibrated for high-performance web delivery using optimized WebP encoding, Web delivery size: 96.8 KB (57% smaller than original 227.7 KB)"
+}

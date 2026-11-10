@@ -7,10 +7,14 @@ namespace Sparovia.Infrastructure.Images;
 public class DeterministicImageProcessingService : IImageProcessingService
 {
     private readonly ILogger<DeterministicImageProcessingService> _logger;
+    private readonly ILocalAiRestorationService? _aiRestorationService;
 
-    public DeterministicImageProcessingService(ILogger<DeterministicImageProcessingService> logger)
+    public DeterministicImageProcessingService(
+        ILogger<DeterministicImageProcessingService> logger,
+        ILocalAiRestorationService? aiRestorationService = null)
     {
         _logger = logger;
+        _aiRestorationService = aiRestorationService;
     }
 
     public async Task<ImageAnalysisResult> AnalyzeImageAsync(
@@ -114,9 +118,37 @@ public class DeterministicImageProcessingService : IImageProcessingService
                 HighlightRatio = Math.Round(metrics.HighlightRatio, 4),
                 IsLargeEnough = isLargeEnough,
                 RecommendedOperation = recommendedOp,
-                RecommendationReason = recommendedReason
+                RecommendationReason = recommendedReason,
+                Condition = metrics.Condition.ToString(),
+                ColorCast = metrics.CastType.ToString(),
+                CastStrength = metrics.CastStrength,
+                HasCompressionArtifacts = metrics.JpegBlockingScore > 0.035 || metrics.ChromaNoise > 0.025
             };
         }
+    }
+
+    public enum ColorCastType
+    {
+        None,
+        YellowTungsten,
+        CoolBlue,
+        GreenFluorescent,
+        Magenta
+    }
+
+    public enum ImageCondition
+    {
+        AlreadyGood,
+        Normal,
+        PoorLighting_Underexposed,
+        PoorLighting_Overexposed,
+        PoorLighting_HarshSunlight,
+        ColorCast,
+        NoisyOrCompressed,
+        LowResolution,
+        MildBlur,
+        MultipleDefects,
+        InsufficientInformation
     }
 
     public record ImageMetrics(
@@ -128,7 +160,17 @@ public class DeterministicImageProcessingService : IImageProcessingService
         double HighlightRatio,
         double MeanR,
         double MeanG,
-        double MeanB);
+        double MeanB,
+        double ChromaNoise = 0,
+        double LumaNoise = 0,
+        ColorCastType CastType = ColorCastType.None,
+        double CastStrength = 0,
+        double NeutralR = 0,
+        double NeutralG = 0,
+        double NeutralB = 0,
+        int NeutralPixelCount = 0,
+        double JpegBlockingScore = 0,
+        ImageCondition Condition = ImageCondition.Normal);
 
     public static ImageMetrics AnalyzeBitmap(SKBitmap bitmap)
     {
@@ -171,23 +213,43 @@ public class DeterministicImageProcessingService : IImageProcessingService
         double sumB = 0;
         int shadowCount = 0;
         int highlightCount = 0;
+        double sumNeutralR = 0;
+        double sumNeutralG = 0;
+        double sumNeutralB = 0;
+        int neutralPixelCount = 0;
 
         for (var y = 0; y < sampleH; y++)
         {
             for (var x = 0; x < sampleW; x++)
             {
                 var color = sampleBitmap.GetPixel(x, y);
-                sumR += color.Red / 255.0;
-                sumG += color.Green / 255.0;
-                sumB += color.Blue / 255.0;
+                double rNorm = color.Red / 255.0;
+                double gNorm = color.Green / 255.0;
+                double bNorm = color.Blue / 255.0;
+                sumR += rNorm;
+                sumG += gNorm;
+                sumB += bNorm;
 
                 // Rec. 709 luminance
-                var lum = (0.2126 * color.Red + 0.7152 * color.Green + 0.0722 * color.Blue) / 255.0;
+                var lum = 0.2126 * rNorm + 0.7152 * gNorm + 0.0722 * bNorm;
                 lumMatrix[x, y] = lum;
                 sumLum += lum;
 
                 if (lum < 0.08) shadowCount++;
                 if (lum > 0.92) highlightCount++;
+
+                // Near-neutral pixel detection for authentic white balance analysis
+                double maxCh = Math.Max(rNorm, Math.Max(gNorm, bNorm));
+                double minCh = Math.Min(rNorm, Math.Min(gNorm, bNorm));
+                double sat = maxCh > 0.001 ? (maxCh - minCh) / maxCh : 0.0;
+
+                if (sat < 0.22 && lum >= 0.15 && lum <= 0.85)
+                {
+                    sumNeutralR += rNorm;
+                    sumNeutralG += gNorm;
+                    sumNeutralB += bNorm;
+                    neutralPixelCount++;
+                }
             }
         }
 
@@ -237,8 +299,9 @@ public class DeterministicImageProcessingService : IImageProcessingService
             : 0.0;
         var sharpness = Math.Round(sharpnessVariance, 5);
 
-        // Estimate high-frequency noise in smooth patches
+        // Estimate high-frequency noise & chroma noise in smooth patches
         double noiseDiffSum = 0;
+        double chromaNoiseDiffSum = 0;
         var smoothPatchCount = 0;
         for (var y = 1; y < sampleH - 1; y += 2)
         {
@@ -250,10 +313,112 @@ public class DeterministicImageProcessingService : IImageProcessingService
                 {
                     noiseDiffSum += localDiff;
                     smoothPatchCount++;
+
+                    // Chroma variance
+                    var c = sampleBitmap.GetPixel(x, y);
+                    var cN1 = sampleBitmap.GetPixel(x - 1, y);
+                    var cN2 = sampleBitmap.GetPixel(x + 1, y);
+                    double cb = -0.1146 * c.Red - 0.3854 * c.Green + 0.5000 * c.Blue;
+                    double cbN = (-0.1146 * (cN1.Red + cN2.Red) - 0.3854 * (cN1.Green + cN2.Green) + 0.5000 * (cN1.Blue + cN2.Blue)) / 2.0;
+                    chromaNoiseDiffSum += Math.Abs(cb - cbN) / 255.0;
                 }
             }
         }
         var noiseLevel = smoothPatchCount > 0 ? Math.Round(noiseDiffSum / smoothPatchCount, 4) : 0.01;
+        var chromaNoise = smoothPatchCount > 0 ? Math.Round(chromaNoiseDiffSum / smoothPatchCount, 4) : 0.005;
+        var lumaNoise = noiseLevel;
+
+        // Estimate 8x8 DCT grid compression artifacts (WhatsApp / JPEG blocking)
+        double blockBoundaryDiff = 0;
+        int blockBoundaryCount = 0;
+        for (var y = 2; y < sampleH - 2; y += 4)
+        {
+            for (var x = 8; x < sampleW - 8; x += 8)
+            {
+                blockBoundaryDiff += Math.Abs(lumMatrix[x, y] - lumMatrix[x - 1, y]);
+                blockBoundaryCount++;
+            }
+        }
+        double jpegBlockingScore = blockBoundaryCount > 0 ? Math.Round(blockBoundaryDiff / blockBoundaryCount, 4) : 0.0;
+
+        // Color Cast Analysis across near-neutral pixels
+        ColorCastType castType = ColorCastType.None;
+        double castStrength = 0.0;
+        double meanNeutR = neutralPixelCount > 0 ? sumNeutralR / neutralPixelCount : meanR;
+        double meanNeutG = neutralPixelCount > 0 ? sumNeutralG / neutralPixelCount : meanG;
+        double meanNeutB = neutralPixelCount > 0 ? sumNeutralB / neutralPixelCount : meanB;
+
+        if (neutralPixelCount >= 20)
+        {
+            double rg = meanNeutR / Math.Max(0.01, meanNeutG);
+            double bg = meanNeutB / Math.Max(0.01, meanNeutG);
+
+            if (rg > 1.10 && bg < 0.90)
+            {
+                castType = ColorCastType.YellowTungsten;
+                castStrength = Math.Round(Math.Max(rg - 1.0, 1.0 - bg), 3);
+            }
+            else if (bg > 1.12 && rg < 0.90)
+            {
+                castType = ColorCastType.CoolBlue;
+                castStrength = Math.Round(Math.Max(bg - 1.0, 1.0 - rg), 3);
+            }
+            else if (meanNeutG > 1.12 * meanNeutR && meanNeutG > 1.12 * meanNeutB)
+            {
+                castType = ColorCastType.GreenFluorescent;
+                castStrength = Math.Round(meanNeutG / Math.Max(0.01, (meanNeutR + meanNeutB) / 2.0) - 1.0, 3);
+            }
+        }
+
+        // Image Condition Classification
+        ImageCondition condition = ImageCondition.Normal;
+        if (meanLum < 0.06 || meanLum > 0.94)
+        {
+            condition = ImageCondition.InsufficientInformation;
+        }
+        else if (meanLum >= 0.42 && meanLum <= 0.60 && contrast >= 0.16 && contrast <= 0.28 && noiseLevel < 0.018 && castStrength < 0.05 && sharpness >= 0.012)
+        {
+            condition = ImageCondition.AlreadyGood;
+        }
+        else
+        {
+            int defects = 0;
+            if (shadowRatio > 0.15 || meanLum < 0.38) defects++;
+            if (highlightRatio > 0.08 && shadowRatio > 0.12) defects++;
+            if (highlightRatio > 0.12 || meanLum > 0.65) defects++;
+            if (castStrength > 0.07) defects++;
+            if (chromaNoise > 0.025 || noiseLevel > 0.035 || jpegBlockingScore > 0.04) defects++;
+            if (sharpness < 0.007) defects++;
+
+            if (defects >= 2)
+            {
+                condition = ImageCondition.MultipleDefects;
+            }
+            else if (shadowRatio > 0.15 || meanLum < 0.38)
+            {
+                condition = ImageCondition.PoorLighting_Underexposed;
+            }
+            else if (highlightRatio > 0.08 && shadowRatio > 0.12)
+            {
+                condition = ImageCondition.PoorLighting_HarshSunlight;
+            }
+            else if (highlightRatio > 0.12 || meanLum > 0.65)
+            {
+                condition = ImageCondition.PoorLighting_Overexposed;
+            }
+            else if (castStrength > 0.07)
+            {
+                condition = ImageCondition.ColorCast;
+            }
+            else if (chromaNoise > 0.025 || noiseLevel > 0.035 || jpegBlockingScore > 0.04)
+            {
+                condition = ImageCondition.NoisyOrCompressed;
+            }
+            else if (sharpness < 0.007)
+            {
+                condition = ImageCondition.MildBlur;
+            }
+        }
 
         return new ImageMetrics(
             meanLum,
@@ -264,7 +429,17 @@ public class DeterministicImageProcessingService : IImageProcessingService
             highlightRatio,
             meanR,
             meanG,
-            meanB);
+            meanB,
+            chromaNoise,
+            lumaNoise,
+            castType,
+            castStrength,
+            meanNeutR,
+            meanNeutG,
+            meanNeutB,
+            neutralPixelCount,
+            jpegBlockingScore,
+            condition);
     }
 
     public async Task<ProcessedImageResult> ProcessImageAsync(
@@ -540,27 +715,78 @@ public class DeterministicImageProcessingService : IImageProcessingService
                 }
                 else if (string.Equals(baseOp, "EnhanceForWebsite", StringComparison.OrdinalIgnoreCase))
                 {
-                    effectiveProfile = "EnhanceForWebsite:Adaptive";
+                    effectiveProfile = string.Equals(preset, "Balanced", StringComparison.OrdinalIgnoreCase)
+                        ? "EnhanceForWebsite:Adaptive"
+                        : $"EnhanceForWebsite:{preset}";
                     var metrics = AnalyzeBitmap(workingBitmap);
 
-                    // 1. Adaptive Tonal Balancing & Highlight Protection via Perceptual Tone Curve
+                    // Optional qualified Local AI Restoration Engine check
+                    if (_aiRestorationService?.IsAvailable == true &&
+                        (metrics.Condition == ImageCondition.NoisyOrCompressed || metrics.NoiseLevel > 0.025))
+                    {
+                        var aiRestored = await _aiRestorationService.TryRestoreAsync(workingBitmap, new ImageAnalysisResult
+                        {
+                            Width = workingBitmap.Width,
+                            Height = workingBitmap.Height,
+                            NoiseLevel = metrics.NoiseLevel,
+                            Condition = metrics.Condition.ToString()
+                        }, cancellationToken);
+
+                        if (aiRestored != null)
+                        {
+                            if (ownsWorkingBitmap) workingBitmap.Dispose();
+                            workingBitmap = aiRestored;
+                            ownsWorkingBitmap = true;
+                            appliedCorrections.Add("Qualified non-generative local AI restoration applied (DnCNN noise residual reduction)");
+                            metrics = AnalyzeBitmap(workingBitmap);
+                        }
+                    }
+
+                    // Preset adjustments: Light, Balanced, High
+                    float shadowMultiplier = string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase) ? 0.65f :
+                                             string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase) ? 1.35f : 1.0f;
+                    float sharpMultiplier = string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase) ? 0.60f :
+                                            string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase) ? 1.30f : 1.0f;
+                    float wbStrength = string.Equals(preset, "Light", StringComparison.OrdinalIgnoreCase) ? 0.35f :
+                                       string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase) ? 0.70f : 0.50f;
+
+                    // 1. Adaptive White Balance & Color Cast Removal (Material Safe)
+                    if (metrics.CastStrength > 0.04 && metrics.NeutralPixelCount >= 20)
+                    {
+                        var wbToned = ApplyAdaptiveWhiteBalance(workingBitmap, metrics, wbStrength);
+                        if (ownsWorkingBitmap) workingBitmap.Dispose();
+                        workingBitmap = wbToned;
+                        ownsWorkingBitmap = true;
+
+                        string castName = metrics.CastType == ColorCastType.YellowTungsten ? "warm indoor tungsten" :
+                                          metrics.CastType == ColorCastType.CoolBlue ? "cool overcast" :
+                                          metrics.CastType == ColorCastType.GreenFluorescent ? "fluorescent" : "color";
+                        appliedCorrections.Add($"White balance corrected ({castName} cast neutralized while preserving material hues)");
+                        if (metrics.CastType == ColorCastType.CoolBlue)
+                        {
+                            appliedCorrections.Add("Cool color cast neutralized");
+                        }
+                        metrics = AnalyzeBitmap(workingBitmap);
+                    }
+
+                    // 2. Adaptive Tonal Balancing & Highlight Protection via Perceptual Tone Curve
                     float shadowLift = 0.0f;
                     float highlightComp = 0.0f;
                     float contrastFactor = 1.0f;
 
                     if (metrics.HighlightRatio > 0.05 || metrics.MeanLum > 0.65)
                     {
-                        highlightComp = 0.12f;
+                        highlightComp = 0.12f * (string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase) ? 1.25f : 1.0f);
                         appliedCorrections.Add("Highlights protected against blow-out");
                     }
                     else if (metrics.ShadowRatio > 0.15 || metrics.MeanLum < 0.40)
                     {
-                        shadowLift = 0.18f;
+                        shadowLift = 0.18f * shadowMultiplier;
                         appliedCorrections.Add("Shadow visibility and interior depth improved");
                     }
                     else
                     {
-                        shadowLift = 0.05f;
+                        shadowLift = 0.05f * shadowMultiplier;
                         appliedCorrections.Add("Balanced exposure maintained across midtones");
                     }
 
@@ -587,43 +813,64 @@ public class DeterministicImageProcessingService : IImageProcessingService
                     workingBitmap = toned;
                     ownsWorkingBitmap = true;
 
-                    // 2. Texture-Safe Edge-Preserving Noise Suppression
-                    if (metrics.NoiseLevel > 0.012)
+                    // 3. Texture-Safe Edge-Preserving Noise Suppression & Artifact Handling
+                    if (metrics.NoiseLevel > 0.012 || metrics.ChromaNoise > 0.020 || metrics.JpegBlockingScore > 0.035)
                     {
-                        var denoised = ApplyEdgePreservingDenoise(workingBitmap, 0.65f, 22);
+                        float lumaSig = string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase) ? 0.85f : 0.65f;
+                        float chromaSig = string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase) ? 1.8f : 1.4f;
+                        int threshold = string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase) ? 26 : 20;
+
+                        var denoised = ApplyChromaAndTextureDenoise(workingBitmap, lumaSig, chromaSig, threshold);
                         if (ownsWorkingBitmap) workingBitmap.Dispose();
                         workingBitmap = denoised;
                         ownsWorkingBitmap = true;
                         appliedCorrections.Add("Edge-preserving texture noise reduction applied");
+
+                        if (metrics.JpegBlockingScore > 0.035)
+                        {
+                            appliedCorrections.Add("WhatsApp and compression artifacts suppressed");
+                        }
                     }
                     else
                     {
                         appliedCorrections.Add("Clean surface textures preserved without blurring");
                     }
 
-                    // 3. Strict Material and Architectural Authenticity
+                    // 4. Multi-Scale Local Contrast & Clarity (Micro-contrast)
+                    if (metrics.Contrast <= 0.30)
+                    {
+                        float clarityAmt = 0.14f * shadowMultiplier;
+                        var clarified = ApplyLocalContrast(workingBitmap, amount: clarityAmt, radius: 4.0f);
+                        if (ownsWorkingBitmap) workingBitmap.Dispose();
+                        workingBitmap = clarified;
+                        ownsWorkingBitmap = true;
+                        appliedCorrections.Add("Local tonal clarity and textural depth enhanced");
+                    }
+
+                    // 5. Strict Material and Architectural Authenticity
                     // Zero RGB chromaticity distortion: tone curve is applied identically across RGB channels
                     appliedCorrections.Add("Authentic architectural material colors and finishes preserved");
 
-                    // 4. Adaptive Halo-Free Edge Sharpening (Dead-zone threshold & delta clamping)
+                    // 6. Adaptive Halo-Free Edge Sharpening (Dead-zone threshold & delta clamping)
                     float sharpAmount;
                     if (metrics.Sharpness < 0.015)
                     {
-                        sharpAmount = 0.35f;
+                        sharpAmount = 0.35f * sharpMultiplier;
                         appliedCorrections.Add("Controlled structural edge definition applied without halos");
                     }
                     else
                     {
-                        sharpAmount = 0.15f;
+                        sharpAmount = 0.15f * sharpMultiplier;
                         appliedCorrections.Add("Natural edge sharpness preserved with subtle polish");
                     }
 
-                    var sharpened = ApplyAdaptiveSharpening(workingBitmap, amount: sharpAmount, threshold: 6, maxDelta: 12);
+                    int maxDelta = string.Equals(preset, "High", StringComparison.OrdinalIgnoreCase) ? 14 : 11;
+                    var sharpened = ApplyAdaptiveSharpening(workingBitmap, amount: sharpAmount, threshold: 6, maxDelta: maxDelta);
                     if (ownsWorkingBitmap) workingBitmap.Dispose();
                     workingBitmap = sharpened;
                     ownsWorkingBitmap = true;
 
-                    // 5. Responsive Web Dimension Calibration (Capped to max 2048px for web delivery)
+                    // 7. Responsive Web Dimension Calibration (Capped to max 2048px for web delivery)
                     const int maxWebDimension = 2048;
                     if (workingBitmap.Width > maxWebDimension || workingBitmap.Height > maxWebDimension)
                     {
@@ -1107,6 +1354,218 @@ public class DeterministicImageProcessingService : IImageProcessingService
             i++;
         }
         return $"{d:0.#} {suffixes[i]}";
+    }
+
+    public static SKBitmap ApplyAdaptiveWhiteBalance(
+        SKBitmap source,
+        ImageMetrics metrics,
+        float strength = 0.50f)
+    {
+        if (metrics.CastStrength <= 0.03 || metrics.NeutralPixelCount < 15)
+        {
+            return source.Copy();
+        }
+
+        var total = source.ByteCount;
+        var bytesPerPixel = source.BytesPerPixel;
+        if (bytesPerPixel < 3) return source.Copy();
+
+        double neutY = 0.2126 * metrics.NeutralR + 0.7152 * metrics.NeutralG + 0.0722 * metrics.NeutralB;
+        if (neutY <= 0.05) return source.Copy();
+
+        float rawGainR = (float)Math.Clamp(neutY / Math.Max(0.05, metrics.NeutralR), 0.75, 1.35);
+        float rawGainG = (float)Math.Clamp(neutY / Math.Max(0.05, metrics.NeutralG), 0.75, 1.35);
+        float rawGainB = (float)Math.Clamp(neutY / Math.Max(0.05, metrics.NeutralB), 0.75, 1.35);
+
+        float gainR = 1.0f + (rawGainR - 1.0f) * strength;
+        float gainG = 1.0f + (rawGainG - 1.0f) * strength;
+        float gainB = 1.0f + (rawGainB - 1.0f) * strength;
+
+        var srcBytes = new byte[total];
+        var destBytes = new byte[total];
+        System.Runtime.InteropServices.Marshal.Copy(source.GetPixels(), srcBytes, 0, total);
+
+        bool hasAlpha = bytesPerPixel == 4;
+
+        for (int i = 0; i < total; i += bytesPerPixel)
+        {
+            byte r = srcBytes[i];
+            byte g = srcBytes[i + 1];
+            byte b = srcBytes[i + 2];
+
+            int maxVal = Math.Max(r, Math.Max(g, b));
+            int minVal = Math.Min(r, Math.Min(g, b));
+            float sat = maxVal > 0 ? (float)(maxVal - minVal) / maxVal : 0f;
+
+            // Material protection envelope:
+            // S <= 0.12: neutral surfaces (100% white balance correction applied)
+            // S >= 0.35: rich material colors (wood finishes, terracotta, fabrics) 0% correction applied!
+            float w = Math.Clamp((0.35f - sat) / 0.23f, 0.0f, 1.0f);
+
+            if (w > 0f)
+            {
+                float effGainR = 1.0f + (gainR - 1.0f) * w;
+                float effGainG = 1.0f + (gainG - 1.0f) * w;
+                float effGainB = 1.0f + (gainB - 1.0f) * w;
+
+                destBytes[i] = (byte)Math.Clamp((int)Math.Round(r * effGainR), 0, 255);
+                destBytes[i + 1] = (byte)Math.Clamp((int)Math.Round(g * effGainG), 0, 255);
+                destBytes[i + 2] = (byte)Math.Clamp((int)Math.Round(b * effGainB), 0, 255);
+            }
+            else
+            {
+                destBytes[i] = r;
+                destBytes[i + 1] = g;
+                destBytes[i + 2] = b;
+            }
+
+            if (hasAlpha)
+            {
+                destBytes[i + 3] = srcBytes[i + 3];
+            }
+        }
+
+        var dest = new SKBitmap(source.Width, source.Height, source.ColorType, source.AlphaType);
+        System.Runtime.InteropServices.Marshal.Copy(destBytes, 0, dest.GetPixels(), total);
+        return dest;
+    }
+
+    public static SKBitmap ApplyChromaAndTextureDenoise(
+        SKBitmap source,
+        float lumaSigma = 0.7f,
+        float chromaSigma = 1.5f,
+        int lumaThreshold = 20)
+    {
+        using var lumaBlur = ApplyBlur(source, lumaSigma);
+        using var chromaBlur = ApplyBlur(source, chromaSigma);
+
+        var total = source.ByteCount;
+        var bytesPerPixel = source.BytesPerPixel;
+        if (bytesPerPixel < 3) return source.Copy();
+
+        var srcBytes = new byte[total];
+        var lumaBytes = new byte[total];
+        var chromaBytes = new byte[total];
+        var destBytes = new byte[total];
+
+        System.Runtime.InteropServices.Marshal.Copy(source.GetPixels(), srcBytes, 0, total);
+        System.Runtime.InteropServices.Marshal.Copy(lumaBlur.GetPixels(), lumaBytes, 0, total);
+        System.Runtime.InteropServices.Marshal.Copy(chromaBlur.GetPixels(), chromaBytes, 0, total);
+
+        bool hasAlpha = bytesPerPixel == 4;
+
+        for (int i = 0; i < total; i += bytesPerPixel)
+        {
+            float r = srcBytes[i];
+            float g = srcBytes[i + 1];
+            float b = srcBytes[i + 2];
+
+            // Source YCbCr
+            float y = 0.2126f * r + 0.7152f * g + 0.0722f * b;
+            float cb = -0.1146f * r - 0.3854f * g + 0.5000f * b + 128f;
+            float cr = 0.5000f * r - 0.4542f * g - 0.0458f * b + 128f;
+
+            // Luma blur Y
+            float rL = lumaBytes[i];
+            float gL = lumaBytes[i + 1];
+            float bL = lumaBytes[i + 2];
+            float yL = 0.2126f * rL + 0.7152f * gL + 0.0722f * bL;
+
+            // Chroma blur Cb/Cr
+            float rC = chromaBytes[i];
+            float gC = chromaBytes[i + 1];
+            float bC = chromaBytes[i + 2];
+            float cbC = -0.1146f * rC - 0.3854f * gC + 0.5000f * bC + 128f;
+            float crC = 0.5000f * rC - 0.4542f * gC - 0.0458f * bC + 128f;
+
+            // Denoise Luma only where gradient is low (preserves wood grain, brick lines, textures)
+            float yDiff = Math.Abs(y - yL);
+            float targetY;
+            if (yDiff < lumaThreshold)
+            {
+                float blend = 1.0f - (yDiff / lumaThreshold);
+                targetY = y + (yL - y) * blend;
+            }
+            else
+            {
+                targetY = y;
+            }
+
+            // Denoise Chroma smoothly (human vision has low chroma resolution, eliminates color speckles)
+            float targetCb = cb + (cbC - cb) * 0.75f;
+            float targetCr = cr + (crC - cr) * 0.75f;
+
+            // Reconstruct RGB
+            float cbShift = targetCb - 128f;
+            float crShift = targetCr - 128f;
+
+            destBytes[i] = (byte)Math.Clamp((int)Math.Round(targetY + 1.402f * crShift), 0, 255);
+            destBytes[i + 1] = (byte)Math.Clamp((int)Math.Round(targetY - 0.344136f * cbShift - 0.714136f * crShift), 0, 255);
+            destBytes[i + 2] = (byte)Math.Clamp((int)Math.Round(targetY + 1.772f * cbShift), 0, 255);
+
+            if (hasAlpha)
+            {
+                destBytes[i + 3] = srcBytes[i + 3];
+            }
+        }
+
+        var dest = new SKBitmap(source.Width, source.Height, source.ColorType, source.AlphaType);
+        System.Runtime.InteropServices.Marshal.Copy(destBytes, 0, dest.GetPixels(), total);
+        return dest;
+    }
+
+    public static SKBitmap ApplyLocalContrast(
+        SKBitmap source,
+        float amount = 0.16f,
+        float radius = 4.0f)
+    {
+        using var blurred = ApplyBlur(source, radius);
+
+        var total = source.ByteCount;
+        var bytesPerPixel = source.BytesPerPixel;
+        if (bytesPerPixel < 3) return source.Copy();
+
+        var srcBytes = new byte[total];
+        var blurBytes = new byte[total];
+        var destBytes = new byte[total];
+
+        System.Runtime.InteropServices.Marshal.Copy(source.GetPixels(), srcBytes, 0, total);
+        System.Runtime.InteropServices.Marshal.Copy(blurred.GetPixels(), blurBytes, 0, total);
+
+        bool hasAlpha = bytesPerPixel == 4;
+
+        for (int i = 0; i < total; i += bytesPerPixel)
+        {
+            float r = srcBytes[i];
+            float g = srcBytes[i + 1];
+            float b = srcBytes[i + 2];
+            float y = 0.2126f * r + 0.7152f * g + 0.0722f * b;
+
+            float rB = blurBytes[i];
+            float gB = blurBytes[i + 1];
+            float bB = blurBytes[i + 2];
+            float yB = 0.2126f * rB + 0.7152f * gB + 0.0722f * bB;
+
+            float diff = y - yB;
+            // Midtone envelope: 4 * normY * (1 - normY), peaks at 0.5, zero at 0 and 1
+            float normY = y / 255.0f;
+            float envelope = 4.0f * normY * (1.0f - normY);
+
+            float delta = Math.Clamp(diff * amount * envelope, -12f, 12f);
+
+            destBytes[i] = (byte)Math.Clamp((int)Math.Round(r + delta), 0, 255);
+            destBytes[i + 1] = (byte)Math.Clamp((int)Math.Round(g + delta), 0, 255);
+            destBytes[i + 2] = (byte)Math.Clamp((int)Math.Round(b + delta), 0, 255);
+
+            if (hasAlpha)
+            {
+                destBytes[i + 3] = srcBytes[i + 3];
+            }
+        }
+
+        var dest = new SKBitmap(source.Width, source.Height, source.ColorType, source.AlphaType);
+        System.Runtime.InteropServices.Marshal.Copy(destBytes, 0, dest.GetPixels(), total);
+        return dest;
     }
 
     public static SKBitmap ApplyPerceptualToneCurve(

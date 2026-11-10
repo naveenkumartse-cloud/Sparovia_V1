@@ -231,6 +231,10 @@ public class ImageAnalysisResult
     public bool IsLargeEnough { get; set; }
     public string RecommendedOperation { get; set; } = "ImproveSharpness";
     public string RecommendationReason { get; set; } = string.Empty;
+    public string Condition { get; set; } = "Normal";
+    public string ColorCast { get; set; } = "None";
+    public double CastStrength { get; set; }
+    public bool HasCompressionArtifacts { get; set; }
 }
 
 public class ProcessedImageResult

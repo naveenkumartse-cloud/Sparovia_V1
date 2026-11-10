@@ -1,0 +1,18 @@
+{
+  "CategoryId": 6,
+  "CategoryName": "HarshSunlightShadows",
+  "AssetSource": "photo-d88.jpg (real ceramic lamp with deep harsh sunlight shadows by LoMit / CC BY-SA 4.0)",
+  "ImageCondition": "MildBlur",
+  "OriginalWidth": 1280,
+  "OriginalHeight": 1757,
+  "EnhancedWidth": 1280,
+  "EnhancedHeight": 1757,
+  "InputSizeBytes": 257459,
+  "OutputSizeBytes": 118048,
+  "CompressionRatio": 0.45851184072027,
+  "ElapsedMilliseconds": 786.7074,
+  "MemoryAllocatedMb": 69.36601257324219,
+  "PsnrDb": 33.5623435926306,
+  "Ssim": 0.998600436646715,
+  "AppliedCorrections": "Balanced exposure maintained across midtones, Natural architectural contrast preserved, Clean surface textures preserved without blurring, Local tonal clarity and textural depth enhanced, Authentic architectural material colors and finishes preserved, Controlled structural edge definition applied without halos, High-resolution original dimensions preserved, Calibrated for high-performance web delivery using optimized WebP encoding, Web delivery size: 115.3 KB (54% smaller than original 251.4 KB)"
+}
