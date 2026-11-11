@@ -466,29 +466,17 @@ public class LeadService : ILeadService
             {
                 website = await _dbContext.Websites
                     .AsNoTracking()
-                    .Where(w => w.Domain == domain || w.Domain.ToLower() == cleanDomain || w.Domain.ToLower().Contains(cleanDomain) || cleanDomain.Contains(w.Domain.ToLower()))
+                    .Where(w => w.Domain == domain || w.Domain.ToLower() == cleanDomain)
                     .OrderByDescending(w => w.UpdatedAt)
                     .FirstOrDefaultAsync(cancellationToken);
 
-                if (website == null)
+                if (website == null && (cleanDomain.EndsWith(".vercel.app") || cleanDomain.EndsWith(".onrender.com") || cleanDomain.Contains("sparovia") || cleanDomain.Contains("publicsite")))
                 {
-                    if (cleanDomain.EndsWith(".vercel.app") || cleanDomain.EndsWith(".onrender.com") || cleanDomain.Contains("sparovia") || cleanDomain.Contains("publicsite"))
-                    {
-                        website = await _dbContext.Websites
-                            .AsNoTracking()
-                            .Where(w => w.ConnectionStatus == "Connected")
-                            .OrderByDescending(w => w.UpdatedAt)
-                            .FirstOrDefaultAsync(cancellationToken);
-                    }
-
-                    if (website == null)
-                    {
-                        var totalWebsites = await _dbContext.Websites.CountAsync(cancellationToken);
-                        if (totalWebsites >= 1)
-                        {
-                            website = await _dbContext.Websites.AsNoTracking().OrderByDescending(w => w.UpdatedAt).FirstOrDefaultAsync(cancellationToken);
-                        }
-                    }
+                    website = await _dbContext.Websites
+                        .AsNoTracking()
+                        .Where(w => w.ConnectionStatus == "Connected")
+                        .OrderByDescending(w => w.UpdatedAt)
+                        .FirstOrDefaultAsync(cancellationToken);
                 }
             }
         }
@@ -655,7 +643,12 @@ public class LeadService : ILeadService
         CancellationToken cancellationToken = default)
     {
         // 1. Verify webhook authentication token
-        var configuredToken = _configuration["WhatsApp:WebhookToken"] ?? "sparovia_wa_webhook_secret_key_v1";
+        var configuredToken = _configuration["WhatsApp:WebhookToken"];
+        if (string.IsNullOrWhiteSpace(configuredToken))
+        {
+            _logger.LogError("AUDIT: LEAD_WEBHOOK_MISCONFIGURED. TenantId={TenantId}, Reason=MissingWebhookTokenConfiguration", tenantId);
+            return LeadOperationResult.Fail("UNAUTHORIZED", "Webhook authentication service is not properly configured.");
+        }
         if (string.IsNullOrWhiteSpace(webhookToken) || !CryptographicEquals(webhookToken, configuredToken))
         {
             _logger.LogWarning("AUDIT: LEAD_WEBHOOK_UNAUTHORIZED. TenantId={TenantId}, Reason=InvalidWebhookToken", tenantId);

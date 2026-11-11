@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { ImageDto } from './ImageStudioWorkspace';
+import { EnhanceButton } from './EnhanceButton';
 
 export interface WorkCategoryDto {
   id: string;
@@ -256,8 +257,7 @@ export function ImageUploadModal({
         <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5 w-full">
           <div>
             {selectedFile && dimensions && localPreviewUrl && onOpenStudio && (
-              <Button
-                variant="primary"
+              <EnhanceButton
                 size="md"
                 type="button"
                 className="w-full sm:w-auto"
@@ -275,10 +275,9 @@ export function ImageUploadModal({
                   });
                   onClose();
                 }}
-                leftIcon={<Sparkles className="w-4 h-4" />}
               >
                 Enhance in Studio
-              </Button>
+              </EnhanceButton>
             )}
           </div>
           <div className="flex items-center justify-end gap-2 w-full sm:w-auto">

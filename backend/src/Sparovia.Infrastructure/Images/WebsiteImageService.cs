@@ -24,6 +24,7 @@ public class WebsiteImageService : IWebsiteImageService
     private readonly IImageProcessingService _imageProcessor;
     private readonly ILogger<WebsiteImageService> _logger;
     private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
+    private readonly ISigningSecretProvider _signingSecretProvider;
     private const string ImageBucket = "sparovia-images";
 
     private static readonly HashSet<string> AllowedEnhancementOperations = new(StringComparer.OrdinalIgnoreCase)
@@ -61,7 +62,8 @@ public class WebsiteImageService : IWebsiteImageService
         IWebsiteContentService contentService,
         IImageProcessingService imageProcessor,
         ILogger<WebsiteImageService> logger,
-        Microsoft.Extensions.Configuration.IConfiguration configuration)
+        Microsoft.Extensions.Configuration.IConfiguration configuration,
+        ISigningSecretProvider signingSecretProvider)
     {
         _dbContext = dbContext;
         _storageProvider = storageProvider;
@@ -70,6 +72,7 @@ public class WebsiteImageService : IWebsiteImageService
         _imageProcessor = imageProcessor;
         _logger = logger;
         _configuration = configuration;
+        _signingSecretProvider = signingSecretProvider;
     }
 
     public async Task<List<ImageDto>> GetImagesAsync(Guid tenantId, string? usageType = null, bool includeUnused = false, CancellationToken cancellationToken = default)
@@ -2537,7 +2540,7 @@ public class WebsiteImageService : IWebsiteImageService
 
     public string GenerateImageSignature(Guid imageId, Guid tenantId, long expiresUnix)
     {
-        var secret = _configuration["Jwt:Secret"] ?? "Sparovia-Default-Development-Key-At-Least-32-Bytes-Long-12345";
+        var secret = _signingSecretProvider.GetSigningSecret();
         var payload = $"{imageId:D}:{tenantId:D}:{expiresUnix}";
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
@@ -2557,6 +2560,37 @@ public class WebsiteImageService : IWebsiteImageService
             Encoding.UTF8.GetBytes(signature));
     }
 
+    public string GenerateVariantSignature(Guid imageId, Guid variantId, Guid tenantId, long expiresUnix)
+    {
+        var secret = _signingSecretProvider.GetSigningSecret();
+        var payload = $"{imageId:D}:{variantId:D}:{tenantId:D}:{expiresUnix}";
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    public bool VerifyVariantSignature(Guid imageId, Guid variantId, Guid tenantId, long expiresUnix, string signature)
+    {
+        if (DateTimeOffset.UtcNow.ToUnixTimeSeconds() > expiresUnix)
+        {
+            return false;
+        }
+
+        var expected = GenerateVariantSignature(imageId, variantId, tenantId, expiresUnix);
+        if (CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(expected),
+            Encoding.UTF8.GetBytes(signature)))
+        {
+            return true;
+        }
+
+        // Backward compatibility fallback for in-flight tokens signed under legacy variantId:tenantId:exp format
+        var legacyExpected = GenerateImageSignature(variantId, tenantId, expiresUnix);
+        return CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(legacyExpected),
+            Encoding.UTF8.GetBytes(signature));
+    }
+
     private string GeneratePreviewUrl(Guid imageId, Guid tenantId)
     {
         var expires = DateTimeOffset.UtcNow.AddDays(7).ToUnixTimeSeconds();
@@ -2567,7 +2601,7 @@ public class WebsiteImageService : IWebsiteImageService
     private string GenerateVariantPreviewUrl(Guid imageId, Guid variantId, Guid tenantId)
     {
         var expires = DateTimeOffset.UtcNow.AddDays(7).ToUnixTimeSeconds();
-        var sig = GenerateImageSignature(variantId, tenantId, expires);
+        var sig = GenerateVariantSignature(imageId, variantId, tenantId, expires);
         return $"/api/v1/website/images/{imageId}/variants/{variantId}/file?sig={sig}&exp={expires}";
     }
 

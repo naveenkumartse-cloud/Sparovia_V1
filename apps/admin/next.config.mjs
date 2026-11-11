@@ -1,7 +1,4 @@
 /** @type {import('next').NextConfig} */
-// Ensure local font fetching succeeds in environments with custom root certificates / proxies
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 const nextConfig = {
   output: 'export',
   reactStrictMode: true,

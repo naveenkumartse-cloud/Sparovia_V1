@@ -42,6 +42,15 @@ function CustomerLeadsContent() {
   const [leadsPage, setLeadsPage] = useState(1);
   const [leadsPageSize, setLeadsPageSize] = useState<number>(12);
   const [leadsSearch, setLeadsSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(leadsSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [leadsSearch]);
+
   const [statusFilter, setStatusFilter] = useState<LeadStatus>('All');
   const [sourceFilter, setSourceFilter] = useState<LeadSource>('All');
   const [sortOrder, setSortOrder] = useState<SortOption>('newest');
@@ -95,8 +104,8 @@ function CustomerLeadsContent() {
       queryParams.set('page', leadsPage.toString());
       queryParams.set('pageSize', leadsPageSize.toString());
 
-      if (leadsSearch.trim()) {
-        queryParams.set('search', leadsSearch.trim());
+      if (debouncedSearch.trim()) {
+        queryParams.set('search', debouncedSearch.trim());
       }
       if (statusFilter !== 'All') {
         queryParams.set('status', statusFilter);
@@ -117,7 +126,7 @@ function CustomerLeadsContent() {
     } finally {
       setLeadsLoading(false);
     }
-  }, [leadsPage, leadsPageSize, leadsSearch, statusFilter, sourceFilter, sortOrder]);
+  }, [leadsPage, leadsPageSize, debouncedSearch, statusFilter, sourceFilter, sortOrder]);
 
   useEffect(() => {
     fetchLeads();

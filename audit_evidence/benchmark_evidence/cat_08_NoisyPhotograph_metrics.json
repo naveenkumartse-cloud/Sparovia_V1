@@ -10,8 +10,8 @@
   "InputSizeBytes": 706791,
   "OutputSizeBytes": 650374,
   "CompressionRatio": 0.9201786666779854,
-  "ElapsedMilliseconds": 3175.7479,
-  "MemoryAllocatedMb": 114.8597412109375,
+  "ElapsedMilliseconds": 1652.985,
+  "MemoryAllocatedMb": 114.86061096191406,
   "PsnrDb": 30.534783328587633,
   "Ssim": 0.9963615114265532,
   "AppliedCorrections": "Balanced exposure maintained across midtones, Natural architectural contrast preserved, Edge-preserving texture noise reduction applied, WhatsApp and compression artifacts suppressed, Local tonal clarity and textural depth enhanced, Authentic architectural material colors and finishes preserved, Natural edge sharpness preserved with subtle polish, High-resolution original dimensions preserved, Calibrated for high-performance web delivery using optimized WebP encoding, Web delivery size: 635.1 KB (8% smaller than original 690.2 KB)"

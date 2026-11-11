@@ -23,6 +23,7 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   dot?: boolean;
   dotPulse?: boolean;
   icon?: React.ReactNode;
+  isOverlay?: boolean;
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
@@ -69,25 +70,30 @@ export function Badge({
   icon,
   children,
   className,
+  isOverlay = false,
   ...props
 }: BadgeProps) {
   const sizeStyles: Record<BadgeSize, string> = {
-    xs: 'px-1.5 py-0.5 text-[10px] font-semibold gap-1',
-    sm: 'px-2 py-0.5 text-[11px] font-semibold gap-1.5',
-    md: 'px-2.5 py-0.5 text-xs font-semibold gap-1.5',
+    xs: isOverlay ? 'px-2 py-0.5 text-[11px] font-semibold gap-1.5' : 'px-1.5 py-0.5 text-[10px] font-semibold gap-1',
+    sm: isOverlay ? 'px-2.5 py-0.5 text-xs font-semibold gap-1.5' : 'px-2 py-0.5 text-[11px] font-semibold gap-1.5',
+    md: isOverlay ? 'px-3 py-1 text-xs font-semibold gap-2' : 'px-2.5 py-0.5 text-xs font-semibold gap-1.5',
   };
+
+  const showDot = dot || isOverlay;
 
   return (
     <span
       className={cn(
         'inline-flex items-center justify-center rounded-[4px] border font-sans select-none whitespace-nowrap leading-normal shrink-0 transition-colors',
-        variantStyles[variant],
+        isOverlay
+          ? 'bg-white/95 dark:bg-[#0F172A]/95 text-[#172033] dark:text-slate-100 border-slate-200/90 dark:border-slate-700/90 shadow-xs backdrop-blur-md'
+          : variantStyles[variant],
         sizeStyles[size],
         className
       )}
       {...props}
     >
-      {dot && (
+      {showDot && (
         <span
           className={cn(
             'w-1.5 h-1.5 rounded-full shrink-0',
@@ -98,7 +104,7 @@ export function Badge({
         />
       )}
       {icon && <span className="shrink-0 inline-flex items-center">{icon}</span>}
-      {children && <span>{children}</span>}
+      {children && <span className={cn(isOverlay && 'truncate')}>{children}</span>}
     </span>
   );
 }

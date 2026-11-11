@@ -272,7 +272,7 @@ public class IdentityService : IIdentityService
                     Success = true,
                     PhoneNumber = request.PhoneNumber?.Trim() ?? normalizedPhone,
                     PhoneNumberNormalized = normalizedPhone,
-                    DevOtp = otp,
+                    DevOtp = (_environment != null && _environment.IsDevelopment()) ? otp : null,
                     VerificationLink = verificationLink
                 };
             }
@@ -372,7 +372,7 @@ public class IdentityService : IIdentityService
             {
                 Success = true,
                 CooldownRemainingSeconds = _otpOptions.Value.ResendCooldownSeconds,
-                DevOtp = otp
+                DevOtp = (_environment != null && _environment.IsDevelopment()) ? otp : null
             };
         }
         catch (Exception ex)

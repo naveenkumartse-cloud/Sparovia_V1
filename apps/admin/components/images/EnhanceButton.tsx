@@ -10,11 +10,13 @@ export interface EnhanceButtonProps extends React.ButtonHTMLAttributes<HTMLButto
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
   children?: React.ReactNode;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 /**
  * Authoritative Sparovia Image Studio Creative Action Button
- * Restricted purple glassmorphism treatment strictly for Enhance actions.
+ * Centralized restrained purple treatment strictly for Enhance actions across the platform.
  */
 export const EnhanceButton = React.forwardRef<HTMLButtonElement, EnhanceButtonProps>(
   (
@@ -27,14 +29,17 @@ export const EnhanceButton = React.forwardRef<HTMLButtonElement, EnhanceButtonPr
       className,
       disabled,
       type = 'button',
+      leftIcon,
+      rightIcon,
       ...props
     },
     ref
   ) => {
+    // Standardized to match Button.tsx control heights, paddings, and 6px border radius (radius.control)
     const sizeClasses = {
-      sm: 'py-2 px-3 text-xs gap-1.5',
-      md: 'py-2.5 px-4 text-xs sm:text-sm gap-2',
-      lg: 'py-3 px-5 text-sm sm:text-base gap-2.5',
+      sm: 'h-9 min-h-[36px] px-3.5 text-xs sm:text-sm font-medium rounded-[6px] gap-1.5',
+      md: 'h-10 min-h-[40px] px-4 text-sm font-semibold rounded-[6px] gap-2',
+      lg: 'h-11 min-h-[44px] px-5 sm:px-6 text-sm sm:text-base font-semibold rounded-[6px] gap-2.5',
     };
 
     const iconSizes = {
@@ -49,7 +54,7 @@ export const EnhanceButton = React.forwardRef<HTMLButtonElement, EnhanceButtonPr
         type={type}
         disabled={disabled || isLoading}
         className={cn(
-          'image-studio-enhance-button font-semibold rounded-[6px] inline-flex items-center justify-center select-none',
+          'image-studio-enhance-button font-semibold rounded-[6px] inline-flex items-center justify-center select-none transition-all duration-150',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7950B8] focus-visible:ring-offset-2',
           sizeClasses[size],
           fullWidth ? 'w-full' : '',
@@ -65,8 +70,9 @@ export const EnhanceButton = React.forwardRef<HTMLButtonElement, EnhanceButtonPr
           </>
         ) : (
           <>
-            <Sparkles className={cn('shrink-0 text-white', iconSizes[size])} />
+            {leftIcon !== undefined ? leftIcon : <Sparkles className={cn('shrink-0 text-white', iconSizes[size])} />}
             <span>{children}</span>
+            {rightIcon && <span className="shrink-0">{rightIcon}</span>}
           </>
         )}
       </button>

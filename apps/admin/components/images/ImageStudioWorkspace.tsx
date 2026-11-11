@@ -323,6 +323,48 @@ export function ImageStudioWorkspace({
   const [originalLoadError, setOriginalLoadError] = useState<boolean>(false);
   const [enhancedLoadError, setEnhancedLoadError] = useState<boolean>(false);
   const [retryKey, setRetryKey] = useState<number>(0);
+  const [isRetryingOriginal, setIsRetryingOriginal] = useState<boolean>(false);
+
+  // Self-managed blob URL for pending uploads so closing/unmounting modals cannot invalidate studio preview
+  const [localBlobUrl, setLocalBlobUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (pendingUpload?.file) {
+      try {
+        const u = URL.createObjectURL(pendingUpload.file);
+        setLocalBlobUrl(u);
+        return () => {
+          URL.revokeObjectURL(u);
+        };
+      } catch {
+        setLocalBlobUrl(null);
+      }
+    } else {
+      setLocalBlobUrl(null);
+    }
+  }, [pendingUpload?.file]);
+
+  const handleRetryOriginalLoad = async () => {
+    setOriginalLoadError(false);
+    setIsRetryingOriginal(true);
+    try {
+      if (currentImage?.id) {
+        const res = await apiClient.get<{ data: ImageDto }>(`/website/images/${currentImage.id}`);
+        if (res?.data) {
+          setCurrentImage(res.data);
+          onImageUpdated(res.data);
+        }
+      } else if (pendingUpload?.file) {
+        const u = URL.createObjectURL(pendingUpload.file);
+        setLocalBlobUrl(u);
+      }
+    } catch {
+      // Retain existing state on network error
+    } finally {
+      setIsRetryingOriginal(false);
+      setRetryKey((k) => k + 1);
+    }
+  };
 
   // Split slider drag refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -662,7 +704,9 @@ export function ImageStudioWorkspace({
   };
 
   const effectiveImage = currentImage;
-  const rawOriginalUrl = effectiveImage ? resolveImageUrl(effectiveImage.previewUrl) : (pendingUpload?.previewUrl || '');
+  const rawOriginalUrl = effectiveImage
+    ? resolveImageUrl(effectiveImage.previewUrl)
+    : (localBlobUrl || pendingUpload?.previewUrl || '');
   const originalUrl = rawOriginalUrl && retryKey > 0
     ? `${rawOriginalUrl}${rawOriginalUrl.includes('?') ? '&' : '?'}retry=${retryKey}`
     : rawOriginalUrl;
@@ -984,10 +1028,8 @@ export function ImageStudioWorkspace({
                           variant="secondary"
                           size="sm"
                           className="mt-3"
-                          onClick={() => {
-                            setOriginalLoadError(false);
-                            setRetryKey((k) => k + 1);
-                          }}
+                          onClick={handleRetryOriginalLoad}
+                          isLoading={isRetryingOriginal}
                           leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
                         >
                           Retry Loading
@@ -1060,10 +1102,8 @@ export function ImageStudioWorkspace({
                           variant="secondary"
                           size="sm"
                           className="mt-3"
-                          onClick={() => {
-                            setOriginalLoadError(false);
-                            setRetryKey((k) => k + 1);
-                          }}
+                          onClick={handleRetryOriginalLoad}
+                          isLoading={isRetryingOriginal}
                           leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
                         >
                           Retry Loading
@@ -1105,6 +1145,16 @@ export function ImageStudioWorkspace({
                       <div className="flex flex-col items-center justify-center p-6 text-center text-slate-700 dark:text-slate-300">
                         <AlertCircle className="w-6 h-6 text-rose-500 mb-2" />
                         <p className="text-xs font-semibold">Original Unavailable</p>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="mt-2 text-xs h-7 py-1 px-2.5"
+                          onClick={handleRetryOriginalLoad}
+                          isLoading={isRetryingOriginal}
+                          leftIcon={<RefreshCw className="w-3 h-3" />}
+                        >
+                          Retry
+                        </Button>
                       </div>
                     ) : (
                       /* eslint-disable-next-line @next/next/no-img-element */
@@ -1166,6 +1216,16 @@ export function ImageStudioWorkspace({
                       <div className="flex flex-col items-center justify-center p-6 text-center text-slate-700 dark:text-slate-300">
                         <AlertCircle className="w-6 h-6 text-rose-500 mb-2" />
                         <p className="text-xs font-semibold">Original Unavailable</p>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="mt-2 text-xs h-7 py-1 px-2.5"
+                          onClick={handleRetryOriginalLoad}
+                          isLoading={isRetryingOriginal}
+                          leftIcon={<RefreshCw className="w-3 h-3" />}
+                        >
+                          Retry
+                        </Button>
                       </div>
                     ) : (
                       /* eslint-disable-next-line @next/next/no-img-element */

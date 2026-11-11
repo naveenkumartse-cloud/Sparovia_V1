@@ -622,29 +622,17 @@ public class WebsiteContentService : IWebsiteContentService
             {
                 website = await _dbContext.Websites
                     .AsNoTracking()
-                    .Where(w => w.Domain == domain || w.Domain.ToLower() == cleanDomain || w.Domain.ToLower().Contains(cleanDomain) || cleanDomain.Contains(w.Domain.ToLower()))
+                    .Where(w => w.Domain == domain || w.Domain.ToLower() == cleanDomain)
                     .OrderByDescending(w => w.UpdatedAt)
                     .FirstOrDefaultAsync(cancellationToken);
 
-                if (website == null)
+                if (website == null && (cleanDomain.EndsWith(".vercel.app") || cleanDomain.EndsWith(".onrender.com") || cleanDomain.Contains("sparovia") || cleanDomain.Contains("publicsite")))
                 {
-                    if (cleanDomain.EndsWith(".vercel.app") || cleanDomain.EndsWith(".onrender.com") || cleanDomain.Contains("sparovia") || cleanDomain.Contains("publicsite"))
-                    {
-                        website = await _dbContext.Websites
-                            .AsNoTracking()
-                            .Where(w => w.ConnectionStatus == "Connected")
-                            .OrderByDescending(w => w.UpdatedAt)
-                            .FirstOrDefaultAsync(cancellationToken);
-                    }
-
-                    if (website == null)
-                    {
-                        var totalWebsites = await _dbContext.Websites.CountAsync(cancellationToken);
-                        if (totalWebsites >= 1)
-                        {
-                            website = await _dbContext.Websites.AsNoTracking().OrderByDescending(w => w.UpdatedAt).FirstOrDefaultAsync(cancellationToken);
-                        }
-                    }
+                    website = await _dbContext.Websites
+                        .AsNoTracking()
+                        .Where(w => w.ConnectionStatus == "Connected")
+                        .OrderByDescending(w => w.UpdatedAt)
+                        .FirstOrDefaultAsync(cancellationToken);
                 }
             }
         }

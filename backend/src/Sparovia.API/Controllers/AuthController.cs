@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Sparovia.Application.Common.Interfaces;
 
 namespace Sparovia.API.Controllers;
 
@@ -20,17 +21,20 @@ public class AuthController : ControllerBase
     private readonly IWebHostEnvironment _environment;
     private readonly SparoviaDbContext _dbContext;
     private readonly IConfiguration _configuration;
+    private readonly ISigningSecretProvider _signingSecretProvider;
 
     public AuthController(
         IIdentityService identityService, 
         IWebHostEnvironment environment,
         SparoviaDbContext dbContext,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ISigningSecretProvider signingSecretProvider)
     {
         _identityService = identityService;
         _environment = environment;
         _dbContext = dbContext;
         _configuration = configuration;
+        _signingSecretProvider = signingSecretProvider;
     }
 
     [HttpPost("register")]
@@ -81,7 +85,7 @@ public class AuthController : ControllerBase
             { "message", "Account created successfully. Please verify your phone number to continue." }
         };
 
-        if (!string.IsNullOrEmpty(result.DevOtp))
+        if (_environment.IsDevelopment() && !string.IsNullOrEmpty(result.DevOtp))
         {
             data["devOtp"] = result.DevOtp;
         }
@@ -129,7 +133,7 @@ public class AuthController : ControllerBase
             { "cooldownRemainingSeconds", result.CooldownRemainingSeconds }
         };
 
-        if (!string.IsNullOrEmpty(result.DevOtp))
+        if (_environment.IsDevelopment() && !string.IsNullOrEmpty(result.DevOtp))
         {
             data["devOtp"] = result.DevOtp;
         }
@@ -363,10 +367,9 @@ public class AuthController : ControllerBase
 
     private string GenerateJwtToken(Guid userId, string email, string role, Guid tenantId, string fullName)
     {
-        var jwtSecret = _configuration["Jwt:Secret"] 
-            ?? "SparoviaDefaultProductionGradeJwtSigningKey2026_EnterpriseGradeSecretKey!";
-        var jwtIssuer = _configuration["Jwt:Issuer"] ?? "Sparovia.API";
-        var jwtAudience = _configuration["Jwt:Audience"] ?? "Sparovia.Client";
+        var jwtSecret = _signingSecretProvider.GetSigningSecret();
+        var jwtIssuer = _signingSecretProvider.GetIssuer();
+        var jwtAudience = _signingSecretProvider.GetAudience();
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

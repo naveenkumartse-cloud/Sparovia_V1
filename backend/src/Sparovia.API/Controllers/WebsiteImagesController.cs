@@ -1,9 +1,13 @@
 using System.Security.Claims;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Sparovia.Application.Common.Interfaces;
 using Sparovia.Application.Images;
 using Sparovia.Infrastructure.Data;
 
@@ -15,16 +19,22 @@ public class WebsiteImagesController : ControllerBase
 {
     private readonly IWebsiteImageService _imageService;
     private readonly SparoviaDbContext _dbContext;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<WebsiteImagesController> _logger;
+    private readonly ISigningSecretProvider _signingSecretProvider;
 
     public WebsiteImagesController(
         IWebsiteImageService imageService,
         SparoviaDbContext dbContext,
-        ILogger<WebsiteImagesController> logger)
+        IConfiguration configuration,
+        ILogger<WebsiteImagesController> logger,
+        ISigningSecretProvider signingSecretProvider)
     {
         _imageService = imageService;
         _dbContext = dbContext;
+        _configuration = configuration;
         _logger = logger;
+        _signingSecretProvider = signingSecretProvider;
     }
 
     private bool TryGetTenantId(out Guid tenantId, out IActionResult? failureResult)
@@ -1062,23 +1072,42 @@ public class ReplaceImageForm
             tenantId = uTenantId;
         }
 
-        // 1b. Check query token if not authenticated
+        // 1b. Validate cryptographic signature of query token if not authenticated
         if (tenantId == null && !string.IsNullOrWhiteSpace(token))
         {
             try
             {
-                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var jwtSecret = _signingSecretProvider.GetSigningSecret();
+                var jwtIssuer = _signingSecretProvider.GetIssuer();
+                var jwtAudience = _signingSecretProvider.GetAudience();
+
+                var handler = new JwtSecurityTokenHandler();
                 if (handler.CanReadToken(token))
                 {
-                    var jwt = handler.ReadJwtToken(token);
-                    var tClaim = jwt.Claims.FirstOrDefault(c => c.Type == "TenantId" || c.Type == "tenant_id")?.Value;
+                    var validationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtIssuer,
+                        ValidateAudience = true,
+                        ValidAudience = jwtAudience,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromMinutes(5)
+                    };
+
+                    var principal = handler.ValidateToken(token, validationParameters, out _);
+                    var tClaim = principal.FindFirst("TenantId")?.Value ?? principal.FindFirst("tenant_id")?.Value;
                     if (Guid.TryParse(tClaim, out var tokenTenantId))
                     {
                         tenantId = tokenTenantId;
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Cryptographic validation of image query token failed: {Message}", ex.Message);
+            }
         }
 
         // 2. Validate HMAC signed URL if provided
@@ -1136,22 +1165,42 @@ public class ReplaceImageForm
             tenantId = uTenantId;
         }
 
+        // 1b. Validate cryptographic signature of query token if not authenticated
         if (tenantId == null && !string.IsNullOrWhiteSpace(token))
         {
             try
             {
-                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var jwtSecret = _signingSecretProvider.GetSigningSecret();
+                var jwtIssuer = _signingSecretProvider.GetIssuer();
+                var jwtAudience = _signingSecretProvider.GetAudience();
+
+                var handler = new JwtSecurityTokenHandler();
                 if (handler.CanReadToken(token))
                 {
-                    var jwt = handler.ReadJwtToken(token);
-                    var tClaim = jwt.Claims.FirstOrDefault(c => c.Type == "TenantId" || c.Type == "tenant_id")?.Value;
+                    var validationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtIssuer,
+                        ValidateAudience = true,
+                        ValidAudience = jwtAudience,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromMinutes(5)
+                    };
+
+                    var principal = handler.ValidateToken(token, validationParameters, out _);
+                    var tClaim = principal.FindFirst("TenantId")?.Value ?? principal.FindFirst("tenant_id")?.Value;
                     if (Guid.TryParse(tClaim, out var tokenTenantId))
                     {
                         tenantId = tokenTenantId;
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Cryptographic validation of variant query token failed: {Message}", ex.Message);
+            }
         }
 
         if (tenantId == null && !string.IsNullOrWhiteSpace(sig) && exp.HasValue)
@@ -1162,7 +1211,7 @@ public class ReplaceImageForm
                 .Select(i => (Guid?)i.TenantId)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (imgTenant.HasValue && _imageService.VerifyImageSignature(variantId, imgTenant.Value, exp.Value, sig))
+            if (imgTenant.HasValue && _imageService.VerifyVariantSignature(id, variantId, imgTenant.Value, exp.Value, sig))
             {
                 tenantId = imgTenant.Value;
             }

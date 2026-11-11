@@ -32,4 +32,6 @@ public interface IWebsiteImageService
     Task<ImageFileStreamResult?> GetImageFileAsync(Guid? tenantId, Guid imageId, Guid? variantId = null, bool isPublicRequest = false, CancellationToken cancellationToken = default);
     string GenerateImageSignature(Guid imageId, Guid tenantId, long expiresUnix);
     bool VerifyImageSignature(Guid imageId, Guid tenantId, long expiresUnix, string signature);
+    string GenerateVariantSignature(Guid imageId, Guid variantId, Guid tenantId, long expiresUnix);
+    bool VerifyVariantSignature(Guid imageId, Guid variantId, Guid tenantId, long expiresUnix, string signature);
 }

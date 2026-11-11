@@ -10,8 +10,8 @@
   "InputSizeBytes": 13488,
   "OutputSizeBytes": 4338,
   "CompressionRatio": 0.32161921708185054,
-  "ElapsedMilliseconds": 780.2296,
-  "MemoryAllocatedMb": 69.03185272216797,
+  "ElapsedMilliseconds": 480.2968,
+  "MemoryAllocatedMb": 69.02540588378906,
   "PsnrDb": 54.07869085125167,
   "Ssim": 0.9999533449993571,
   "AppliedCorrections": "Highlights protected against blow-out, Tonal contrast expanded to remove atmospheric haze, Clean surface textures preserved without blurring, Local tonal clarity and textural depth enhanced, Authentic architectural material colors and finishes preserved, Controlled structural edge definition applied without halos, High-resolution original dimensions preserved, Calibrated for high-performance web delivery using optimized WebP encoding, Web delivery size: 4.2 KB (68% smaller than original 13.2 KB)"

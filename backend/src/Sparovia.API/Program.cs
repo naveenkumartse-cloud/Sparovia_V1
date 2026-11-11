@@ -201,6 +201,10 @@ else
 }
 builder.Services.AddScoped<Sparovia.Application.AI.IAIService, Sparovia.Infrastructure.AI.AIService>();
 
+// Cryptographic Signing & Verification Provider
+var signingSecretProvider = new Sparovia.Infrastructure.Security.SigningSecretProvider(builder.Configuration, builder.Environment);
+builder.Services.AddSingleton<Sparovia.Application.Common.Interfaces.ISigningSecretProvider>(signingSecretProvider);
+
 // Authentication - Supports both Cookie and JWT Bearer schemes seamlessly
 builder.Services.AddAuthentication(options =>
     {
@@ -248,10 +252,9 @@ builder.Services.AddAuthentication(options =>
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
-        var jwtSecret = builder.Configuration["Jwt:Secret"] 
-            ?? "SparoviaDefaultProductionGradeJwtSigningKey2026_EnterpriseGradeSecretKey!";
-        var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Sparovia.API";
-        var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "Sparovia.Client";
+        var jwtSecret = signingSecretProvider.GetSigningSecret();
+        var jwtIssuer = signingSecretProvider.GetIssuer();
+        var jwtAudience = signingSecretProvider.GetAudience();
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -323,7 +326,6 @@ builder.Services.AddCors(options =>
                 if (Uri.TryCreate(origin, UriKind.Absolute, out var uri))
                 {
                     if (uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)) return true;
-                    if (uri.Host.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase)) return true;
                 }
 
                 return false;
@@ -355,6 +357,11 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append("X-Frame-Options", "DENY");
     context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
     context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    if (!app.Environment.IsDevelopment())
+    {
+        context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+    }
     await next();
 });
 
@@ -422,99 +429,6 @@ using (var scope = app.Services.CreateScope())
         try
         {
             dbContext.Database.Migrate();
-
-            var defaultAdmins = new[]
-            {
-                (Phone: "9080437109", Name: "Naveen", Password: "Naveen@123"),
-                (Phone: "7603922493", Name: "Hari", Password: "Hari@123")
-            };
-
-            foreach (var admin in defaultAdmins)
-            {
-                var normalizedPhone = Sparovia.Application.Common.PhoneNumberHelper.NormalizeIndianPhoneNumber(admin.Phone) ?? $"+91{admin.Phone}";
-                var targetUser = dbContext.Users
-                    .Include(u => u.Memberships)
-                    .FirstOrDefault(u => u.PhoneNumberNormalized == normalizedPhone || u.PhoneNumber == admin.Phone);
-
-                Guid tenantId;
-                if (targetUser != null)
-                {
-                    targetUser.PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(admin.Password);
-                    targetUser.PhoneVerified = true;
-                    targetUser.EmailVerified = true;
-                    if (!targetUser.Memberships.Any())
-                    {
-                        var tenant = new Sparovia.Domain.Entities.Tenant { Name = $"{targetUser.FullName}'s Workspace" };
-                        dbContext.Tenants.Add(tenant);
-                        tenantId = tenant.Id;
-                        dbContext.Memberships.Add(new Sparovia.Domain.Entities.Membership
-                        {
-                            UserId = targetUser.Id,
-                            User = targetUser,
-                            TenantId = tenant.Id,
-                            Tenant = tenant,
-                            Role = "Owner"
-                        });
-                    }
-                    else
-                    {
-                        tenantId = targetUser.Memberships.First().TenantId;
-                    }
-                    dbContext.SaveChanges();
-                    Log.Information("Synchronized credentials for phone {Phone}", targetUser.PhoneNumber);
-                }
-                else
-                {
-                    var newUser = new Sparovia.Domain.Entities.User
-                    {
-                        FullName = admin.Name,
-                        PhoneNumber = admin.Phone,
-                        PhoneNumberNormalized = normalizedPhone,
-                        PhoneVerified = true,
-                        Email = $"{normalizedPhone.TrimStart('+')}@user.sparovia.com",
-                        NormalizedEmail = $"{normalizedPhone.TrimStart('+')}@user.sparovia.com".ToUpperInvariant(),
-                        PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(admin.Password),
-                        EmailVerified = true
-                    };
-                    dbContext.Users.Add(newUser);
-
-                    var tenant = new Sparovia.Domain.Entities.Tenant
-                    {
-                        Name = $"{admin.Name}'s Workspace"
-                    };
-                    dbContext.Tenants.Add(tenant);
-                    tenantId = tenant.Id;
-
-                    var membership = new Sparovia.Domain.Entities.Membership
-                    {
-                        UserId = newUser.Id,
-                        User = newUser,
-                        TenantId = tenant.Id,
-                        Tenant = tenant,
-                        Role = "Owner"
-                    };
-                    dbContext.Memberships.Add(membership);
-
-                    dbContext.SaveChanges();
-                    Log.Information("Provisioned account for phone {Phone}", newUser.PhoneNumber);
-                }
-
-                var existingContext = dbContext.BusinessContexts.FirstOrDefault(bc => bc.TenantId == tenantId);
-                if (existingContext == null)
-                {
-                    dbContext.BusinessContexts.Add(new Sparovia.Domain.Entities.BusinessContext
-                    {
-                        TenantId = tenantId,
-                        BusinessName = $"{admin.Name} Interiors",
-                        BusinessType = "Interior Design",
-                        PrimaryCategory = "Residential",
-                        BusinessEmail = $"{normalizedPhone.TrimStart('+')}@user.sparovia.com",
-                        IsConfirmed = true,
-                        ConfirmedAt = DateTime.UtcNow
-                    });
-                    dbContext.SaveChanges();
-                }
-            }
         }
         catch (Exception ex)
         {

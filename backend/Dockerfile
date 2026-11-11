@@ -24,7 +24,6 @@ EXPOSE 8080
 EXPOSE 8081
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV DOTNET_EnableWriteXorExecute=0
 
 # Install native dependencies required by graphics runtimes (SkiaSharp / libfontconfig)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -34,4 +33,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish .
+USER $APP_UID
 ENTRYPOINT ["dotnet", "Sparovia.API.dll"]
