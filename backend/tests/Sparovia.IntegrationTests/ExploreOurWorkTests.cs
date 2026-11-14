@@ -81,7 +81,7 @@ public class ExploreOurWorkTests : IClassFixture<WebApplicationFactory<Program>>
         return client;
     }
 
-    private async Task SetupAndConfirmBusinessContextAsync(HttpClient client, string businessName, string email)
+    private async Task SetupAndConfirmBusinessContextAsync(HttpClient client, string businessName, string email, string? websiteUrl = null)
     {
         var basics = new BusinessBasicsDto
         {
@@ -90,7 +90,7 @@ public class ExploreOurWorkTests : IClassFixture<WebApplicationFactory<Program>>
             PrimaryCategory = "Architectural Interiors",
             BusinessPhone = "+1 555-0199",
             BusinessEmail = email,
-            Website = "https://example.com"
+            Website = websiteUrl ?? "https://example.com"
         };
         var r1 = await client.PutAsJsonAsync("/api/v1/onboarding/business-basics", basics);
         r1.EnsureSuccessStatusCode();
@@ -320,8 +320,9 @@ public class ExploreOurWorkTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task ExploreOurWork_PublicWebsiteIntegration_DeliversOnlyPublishedActiveImages()
     {
         var email = $"eow_public_{Guid.NewGuid():N}@test.local";
+        var uniqueDomain = $"eow-{Guid.NewGuid():N}.sparovia.test";
         var client = await GetAuthenticatedClientAsync(email);
-        await SetupAndConfirmBusinessContextAsync(client, "Public Integration Studio", email);
+        await SetupAndConfirmBusinessContextAsync(client, "Public Integration Studio", email, $"https://{uniqueDomain}");
 
         var form = CreateExploreOurWorkMultipartContent(
             CreateValidJpegBytes(),
@@ -360,7 +361,7 @@ public class ExploreOurWorkTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal("image/jpeg", pubFileResp.Content.Headers.ContentType?.MediaType);
 
         // 5. Public website published-content API should include the new published image in our-work section
-        var contentResp = await publicAnonClient.GetAsync("/api/v1/website/published-content?domain=example.com");
+        var contentResp = await publicAnonClient.GetAsync($"/api/v1/website/published-content?domain={uniqueDomain}");
         Assert.Equal(HttpStatusCode.OK, contentResp.StatusCode);
         var contentBody = await contentResp.Content.ReadFromJsonAsync<JsonElement>();
 

@@ -153,6 +153,7 @@ public class VerificationUrlTests : IClassFixture<WebApplicationFactory<Program>
         {
             builder.UseEnvironment("Production");
             builder.UseSetting("ConnectionStrings:DefaultConnection", "Host=localhost;Database=sparovia_dev;Username=postgres;Password=Sparovia@16");
+            builder.UseSetting("Jwt:Secret", "TestProductionSecret_MustBeAtLeast32CharactersLongForHMACSHA256!");
         }).CreateClient();
 
         var email = $"prod-env-{Guid.NewGuid()}@sparovia.com";
