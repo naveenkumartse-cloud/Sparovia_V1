@@ -24,6 +24,7 @@ EXPOSE 8080
 EXPOSE 8081
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV JWT_SECRET=Sparovia_Production_Secret_Key_2026_Enterprise_Secure_Token_HMAC256!
 
 # Install native dependencies required by graphics runtimes (SkiaSharp / libfontconfig)
 RUN apt-get update && apt-get install -y --no-install-recommends \
