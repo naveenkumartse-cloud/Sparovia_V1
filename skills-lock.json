@@ -1,107 +1,179 @@
 {
-  "version": 1,
+  "version": 2,
   "skills": {
     "brandkit": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/brandkit/SKILL.md",
-      "computedHash": "735007879f5110aeae1e981a53fe74a12afde70347f9773dacd50e4697a091bf"
+      "computedHash": "c89a5763a53a705a6fb3a3af83796b10d2aa05faf7b8b8fe1db0589c454ba80e"
+    },
+    "code-testing": {
+      "source": "dotnet/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/dotnet-test/skills/code-testing/SKILL.md",
+      "computedHash": "81d5ca3112a3c549c88d7d30cb914ab8a3d5f6cf3b9470f1a5b061eb3510ff5f"
+    },
+    "csharp-expert": {
+      "source": "dotnet/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/dotnet/skills/csharp-expert/SKILL.md",
+      "computedHash": "81c33ee4d5d24c6a32c312deb434027e488512ba93162d9278c69f7b863c5a4d"
+    },
+    "csharp-refactoring": {
+      "source": "dotnet/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/dotnet/skills/csharp-refactoring/SKILL.md",
+      "computedHash": "32a0247c73bc42649c6de7fd54ac0f7b4dadc4f6d0968b155a12aec58f669dfc"
     },
     "design-taste-frontend": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/taste-skill/SKILL.md",
-      "computedHash": "974e1bb8cf7c78d3a63f1456d54a97119c03e7ab8bf374e04ade800892326ec7"
+      "computedHash": "b10eab0a9684cd09cf34c31ef04a3bf530a5f4404422f9c520d42372d670c7fc"
     },
     "design-taste-frontend-v1": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/taste-skill-v1/SKILL.md",
-      "computedHash": "0a226c13d69639553cf8a7c40aa5527b026820f8ddaf7a6b263988e32ab44a27"
+      "computedHash": "ee02c3e557cee17595d2e896de2e4e4e142dbc7c20fb7628534e352331634a0c"
+    },
+    "dotnet-webapi": {
+      "source": "dotnet/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/dotnet-aspnetcore/skills/dotnet-webapi/SKILL.md",
+      "computedHash": "2aedc615b14b3027800a556a4bf0c28f28f21b09ffc7a546c3865f08a26b79b0"
+    },
+    "efcore-patterns": {
+      "source": "aaronontheweb/dotnet-skills",
+      "sourceType": "github",
+      "skillPath": "skills/efcore-patterns/SKILL.md",
+      "computedHash": "cc8edb7faf0e9ec9f2b1b166a97854407d13461ce34941c4c428aef7f8554c93"
     },
     "full-output-enforcement": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/output-skill/SKILL.md",
-      "computedHash": "524f7c7950c3fde726101613f630140411c7d080e63be718687f4b38f919be81"
+      "computedHash": "9f39bf2e92322e91e2446f709b44537aaee222949dd5860c56eccb50d66331b3"
     },
     "gpt-taste": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/gpt-tasteskill/SKILL.md",
-      "computedHash": "7bd1bfdda0e51016ca222693401a65fc0dd9bf9487e0bd5b1740ba510f6f963a"
+      "computedHash": "f0eefce6ce80f76a3645e0ad4cecfd45ef185fed1311e45b1b467d3fedc7bf52"
     },
     "high-end-visual-design": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/soft-skill/SKILL.md",
-      "computedHash": "f730e4132775f13eea19e3dc39afc6bb453cfc0498872b127ad8f0d47cfd802d"
+      "computedHash": "d5f1d07d14b1e72454e49c4de69adc65022f4eda0126e1902b84a2e0c3fec47b"
     },
     "huashu-design": {
       "source": "alchaincyf/huashu-design",
       "sourceType": "github",
       "skillPath": "SKILL.md",
-      "computedHash": "018b3feda1926c70147542c32e4057c6c37605b2e38b441cbaa89514337ce9cb"
+      "computedHash": "3f639d19567c864a170512f5b81ee71517c189bd04504b921096a53992327f79"
     },
     "image-to-code": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/image-to-code-skill/SKILL.md",
-      "computedHash": "3d2ac14d956fdafc5500d2108b90895e134d847f9f199e7f1d18bf1f814cf7c8"
+      "computedHash": "95eb38f750f046fafe47f4c053f2a075ed07f2ae1925774a6f435c81f503fba8"
     },
     "imagegen-frontend-mobile": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/imagegen-frontend-mobile/SKILL.md",
-      "computedHash": "7c1d1dc59cd0df4063b8621af543bf5dea1d576b261507e17b0323c69680b048"
+      "computedHash": "bf3296b937c3fd58c9d1531983bb339ec86d612fe6db7eb5bb48935c838b27d3"
     },
     "imagegen-frontend-web": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/imagegen-frontend-web/SKILL.md",
-      "computedHash": "27255c7c50181e58add156b2aa2bd5325285b85f04027e4c8b73742d98d7be0a"
+      "computedHash": "5494a06e7bd76130ffad8d1f36d26fe28cdd53f3ba27f2f9f4525e487dc1b1bd"
     },
     "impeccable": {
       "source": "pbakaus/impeccable",
       "sourceType": "github",
       "skillPath": ".agents/skills/impeccable/SKILL.md",
-      "computedHash": "32fd095cccdb137d71e3834c1e1da945aff214cb047202c2417c7d2b47d002c1"
+      "computedHash": "85b735d81f3fbd027025884ddeeaf99e2bfa48f4094dbb09cb97bb48f960c6b1"
     },
     "industrial-brutalist-ui": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/brutalist-skill/SKILL.md",
-      "computedHash": "e66e5a2a8b73cef79ab6546459c665e8b983645689c5f3772f7eed8b9f1e8e0e"
+      "computedHash": "5a181aaf5fcacff516dbc4773eca28d8cca472733b2b22687c9bf8d10ea73365"
     },
     "loop": {
       "source": "drolu/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/loop/SKILL.md",
-      "computedHash": "cea9191985028b461a94d483d0b26f8901c24b9dba9fb6f857f05f4ff81ae815"
+      "computedHash": "923a77b77bbfce43dd3143f77067381c8941d64a373f32ec8234438601154e3b"
     },
     "minimalist-ui": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/minimalist-skill/SKILL.md",
-      "computedHash": "7e88897e0371184e97a82b8d9ef080323c13f21eb067b58ef71eb05173a08ac2"
+      "computedHash": "6fe7616c22141da6f52a9d7d55521d08c519d7de595f154d1d6358ecb988c9be"
+    },
+    "optimizing-ef-core-queries": {
+      "source": "dotnet/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/dotnet-data/skills/optimizing-ef-core-queries/SKILL.md",
+      "computedHash": "14bd45305955f1592917ad2ef1e3791c65bf50dd5c654b03cb6342cd6ddfbaba"
+    },
+    "r3f-best-practices": {
+      "source": "emalorenzo/three-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/r3f-best-practices/SKILL.md",
+      "computedHash": "891bc6edbf035bf778849226f5d36863254f1f197868fc60e386c5801f684d26"
     },
     "ralph-loop": {
       "source": "wzgown/ralph-loop",
       "sourceType": "github",
       "skillPath": "SKILL.md",
-      "computedHash": "66b768db59e1c3c599df5a734c0022aab66e628d6e81eb2b2c558d4a79cd144c"
+      "computedHash": "a04aae25d2033ba626130421f3755a81086d350dde153066ca0e107e25cd6ec5"
     },
     "redesign-existing-projects": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/redesign-skill/SKILL.md",
-      "computedHash": "47eced3e960a2c961d3cbee11fa1216264f589344b586a5cbd03967cd6b9c54b"
+      "computedHash": "a462c359ad5d5d2d96d18f9c1d2abefdf08318a1ec78f7852660d51ae098be4f"
+    },
+    "run-tests": {
+      "source": "dotnet/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/dotnet-test/skills/run-tests/SKILL.md",
+      "computedHash": "ae1fc27bdc724c82e84871ed3dbbd2a08491a6898b1024fb67f6b463067ec058"
     },
     "stitch-design-taste": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/stitch-skill/SKILL.md",
-      "computedHash": "c96b580192b34167efa01f460bbc669ff4315cf97f3cf6ff85ded8029aa720b8"
+      "computedHash": "b0fed0044377622a841738e7742bc99d5afbae288e9e0c0021707cc401bb63b1"
+    },
+    "three-js": {
+      "source": "noklip-io/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/three-js/SKILL.md",
+      "computedHash": "48b31c57d23f6622ac1b389527b06e82a59d4b889f7365208839caf8261f29c8"
+    },
+    "vercel-composition-patterns": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/composition-patterns/SKILL.md",
+      "computedHash": "f711ed8b16162eaa712abbcdbbae6c926f86c57e60127735fecc3ad0dd85b3fa"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-best-practices/SKILL.md",
+      "computedHash": "7991ed4fbecdac23f47c1a40c243e00a212a9e7f3604db93959b3ae11dffe299"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-design-guidelines/SKILL.md",
+      "computedHash": "4f68ae07187fb0d1fb78c88b503d089da4cf5a9d9625d1f2e425b1590bf96d92"
     }
   }
 }
