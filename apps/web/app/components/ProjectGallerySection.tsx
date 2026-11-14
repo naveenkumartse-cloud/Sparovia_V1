@@ -180,8 +180,8 @@ export default function ProjectGallerySection() {
                     }}
                     className={`px-5 py-2.5 rounded-[6px] text-xs uppercase tracking-wider font-semibold transition-colors duration-200 focus-ring cursor-pointer shadow-xs ${
                       isActive
-                        ? 'bg-[#102B50] text-white border border-[#102B50]'
-                        : 'bg-white text-charcoal-700 hover:text-[#102B50] border border-gray-200/80 hover:border-[#C6A052]'
+                        ? 'bg-[#011E75] text-white border border-[#011E75]'
+                        : 'bg-white text-charcoal-700 hover:text-[#011E75] border border-gray-200/80 hover:border-[#CE9E34]'
                     }`}
                   >
                     {cat}
@@ -246,12 +246,12 @@ export default function ProjectGallerySection() {
 
                   {/* View Icon Button (Top Right) */}
                   <div className="absolute top-4 right-4 z-10 w-8 h-8 rounded-[6px] bg-white/90 backdrop-blur-md flex items-center justify-center text-charcoal-900 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 shadow-xs">
-                    <Maximize2 className="w-4 h-4 text-[#102B50]" />
+                    <Maximize2 className="w-4 h-4 text-[#011E75]" />
                   </div>
 
                   {/* Content (Bottom Left) */}
                   <div className="absolute bottom-5 left-5 right-5 z-10 text-white pointer-events-none">
-                    <span className="block text-[10px] uppercase tracking-[0.2em] text-[#C6A052] font-black mb-1">
+                    <span className="block text-[10px] uppercase tracking-[0.2em] text-[#CE9E34] font-black mb-1">
                       Project Showcase
                     </span>
                     <h3 className="font-sans text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
@@ -338,7 +338,7 @@ export default function ProjectGallerySection() {
               {/* Sidebar Info */}
               <div className="w-full md:w-80 p-5 sm:p-6 md:p-8 flex flex-col justify-between bg-white border-t md:border-t-0 md:border-l border-gray-100 overflow-y-auto">
                 <div>
-                  <span className="text-[11px] uppercase tracking-[0.2em] text-[#C6A052] font-black block mb-2">
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-[#CE9E34] font-black block mb-2">
                     {selectedItem.category}
                   </span>
                   <h3 className="font-sans text-xl sm:text-2xl font-bold text-charcoal-900 mb-3">

@@ -19,12 +19,12 @@ function generateFaviconSvg(letter: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
     <linearGradient id="kvnGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#102B50"/>
-      <stop offset="100%" stop-color="#0C2340"/>
+      <stop offset="0%" stop-color="#011E75"/>
+      <stop offset="100%" stop-color="#011247"/>
     </linearGradient>
   </defs>
-  <rect width="100" height="100" rx="20" fill="url(#kvnGrad)" stroke="#C6A052" stroke-width="4"/>
-  <text x="50" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="56" font-weight="900" fill="#C6A052" text-anchor="middle" dominant-baseline="central">${letter}</text>
+  <rect width="100" height="100" rx="20" fill="url(#kvnGrad)" stroke="#CE9E34" stroke-width="4"/>
+  <text x="50" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="56" font-weight="900" fill="#CE9E34" text-anchor="middle" dominant-baseline="central">${letter}</text>
 </svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
@@ -54,17 +54,17 @@ function generateFaviconPng(letter: string): Promise<string> {
       ctx.quadraticCurveTo(0, 0, radius, 0);
       ctx.closePath();
 
-      // Deep Navy background
-      ctx.fillStyle = '#102B50';
+      // Royal Navy Blue background
+      ctx.fillStyle = '#011E75';
       ctx.fill();
 
       // Metallic Gold border
       ctx.lineWidth = 3;
-      ctx.strokeStyle = '#C6A052';
+      ctx.strokeStyle = '#CE9E34';
       ctx.stroke();
 
-      // Gold letter
-      ctx.fillStyle = '#C6A052';
+      // Metallic Gold letter
+      ctx.fillStyle = '#CE9E34';
       ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';

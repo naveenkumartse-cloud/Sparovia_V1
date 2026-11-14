@@ -27,34 +27,19 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-12">
           
-          {/* Brand Info & Logo */}
+          {/* Brand Info & Complete Official Logo */}
           <div className="md:col-span-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="relative h-11 w-11 shrink-0 rounded-md overflow-hidden bg-white border border-[#E8DCC4] shadow-xs">
-                <Image
-                  src="/images/Logo.jpeg"
-                  alt="KVN Interior Logo"
-                  width={48}
-                  height={48}
-                  className="w-full h-full object-contain p-0.5"
-                />
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5 leading-none">
-                  <span className="font-sans text-xl font-black tracking-wider text-white">
-                    KVN
-                  </span>
-                  <span className="font-sans text-xl font-bold tracking-wider text-[#C6A052]">
-                    INTERIOR
-                  </span>
-                </div>
-                <span className="text-[9px] font-semibold tracking-[0.16em] uppercase text-gray-400 mt-0.5">
-                  uPVC Windows • Doors • Home Interior
-                </span>
-              </div>
+            <div className="relative h-16 w-16 sm:h-18 sm:w-18 shrink-0 rounded-lg overflow-hidden bg-white p-1 border border-[#CE9E34]/30 shadow-md">
+              <Image
+                src="/images/logo.png"
+                alt="KVN Interior — uPVC Windows, Doors & Home Interior"
+                width={72}
+                height={72}
+                className="w-full h-full object-contain"
+              />
             </div>
 
-            <p className="text-xs text-gray-300 font-normal leading-relaxed max-w-sm pt-2">
+            <p className="text-xs text-gray-300 font-normal leading-relaxed max-w-sm pt-1">
               {footer.shortDescription || 'Crafting bespoke residential interiors, modular casework, and architectural uPVC window and door systems with precision craftsmanship.'}
             </p>
 
@@ -62,19 +47,19 @@ export default function Footer() {
             <div className="space-y-2 pt-2 text-xs text-gray-300">
               {phone && (
                 <div className="flex items-center gap-2.5">
-                  <Phone className="w-3.5 h-3.5 text-[#C6A052] shrink-0" />
+                  <Phone className="w-3.5 h-3.5 text-[#CE9E34] shrink-0" />
                   <span>{phone}</span>
                 </div>
               )}
               {email && (
                 <div className="flex items-center gap-2.5">
-                  <Mail className="w-3.5 h-3.5 text-[#C6A052] shrink-0" />
+                  <Mail className="w-3.5 h-3.5 text-[#CE9E34] shrink-0" />
                   <span>{email}</span>
                 </div>
               )}
               {address && (
                 <div className="flex items-center gap-2.5">
-                  <MapPin className="w-3.5 h-3.5 text-[#C6A052] shrink-0" />
+                  <MapPin className="w-3.5 h-3.5 text-[#CE9E34] shrink-0" />
                   <span>{address}</span>
                 </div>
               )}
@@ -110,32 +95,32 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="md:col-span-3 space-y-3">
-            <h4 className="font-sans text-xs font-bold uppercase tracking-widest text-[#C6A052]">
+            <h4 className="font-sans text-xs font-bold uppercase tracking-widest text-[#CE9E34]">
               Services &amp; Solutions
             </h4>
             <ul className="space-y-2 text-xs text-gray-300 font-medium">
               <li>
-                <a href="#interiors" className="hover:text-[#C6A052] transition-colors">
+                <a href="#interiors" className="hover:text-[#CE9E34] transition-colors">
                   Modular Kitchens
                 </a>
               </li>
               <li>
-                <a href="#interiors" className="hover:text-[#C6A052] transition-colors">
+                <a href="#interiors" className="hover:text-[#CE9E34] transition-colors">
                   Bespoke Wardrobes
                 </a>
               </li>
               <li>
-                <a href="#interiors" className="hover:text-[#C6A052] transition-colors">
+                <a href="#interiors" className="hover:text-[#CE9E34] transition-colors">
                   Living &amp; TV Units
                 </a>
               </li>
               <li>
-                <a href="#upvc" className="hover:text-[#C6A052] transition-colors">
+                <a href="#upvc" className="hover:text-[#CE9E34] transition-colors">
                   uPVC Windows &amp; Doors
                 </a>
               </li>
               <li>
-                <a href="#gallery" className="hover:text-[#C6A052] transition-colors">
+                <a href="#gallery" className="hover:text-[#CE9E34] transition-colors">
                   Completed Projects
                 </a>
               </li>
@@ -144,14 +129,14 @@ export default function Footer() {
 
           {/* Navigation Links */}
           <div className="md:col-span-4 space-y-3 md:text-right">
-            <h4 className="font-sans text-xs font-bold uppercase tracking-widest text-[#C6A052]">
+            <h4 className="font-sans text-xs font-bold uppercase tracking-widest text-[#CE9E34]">
               Navigation
             </h4>
             <nav aria-label="Footer Navigation">
               <ul className="space-y-2 text-xs text-gray-300 font-medium">
                 {templateConfig.navLinks.map((link) => (
                   <li key={link.name}>
-                    <a href={link.href} className="hover:text-[#C6A052] transition-colors focus-ring rounded">
+                    <a href={link.href} className="hover:text-[#CE9E34] transition-colors focus-ring rounded">
                       {link.name}
                     </a>
                   </li>
@@ -168,7 +153,7 @@ export default function Footer() {
           
           <button
             onClick={scrollToTop}
-            className="flex items-center gap-1.5 text-[#C6A052] hover:text-white transition-colors focus-ring rounded cursor-pointer"
+            className="flex items-center gap-1.5 text-[#CE9E34] hover:text-white transition-colors focus-ring rounded cursor-pointer"
             aria-label={templateConfig.ui.scrollToTopAriaLabel}
           >
             <span>Back to top</span>

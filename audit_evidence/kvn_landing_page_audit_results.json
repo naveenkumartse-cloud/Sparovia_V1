@@ -98,13 +98,13 @@
     }
   ],
   "cwv": {
-    "ttfb": 20,
-    "domInteractive": 63,
-    "domContentLoaded": 64,
-    "loadComplete": 117,
-    "firstPaint": 136,
-    "firstContentfulPaint": 136,
-    "largestContentfulPaint": 136,
+    "ttfb": 7,
+    "domInteractive": 104,
+    "domContentLoaded": 104,
+    "loadComplete": 131,
+    "firstPaint": 144,
+    "firstContentfulPaint": 144,
+    "largestContentfulPaint": 144,
     "cumulativeLayoutShift": 0
   },
   "skeletonCheck": {
@@ -116,10 +116,10 @@
   },
   "brandCheck": {
     "logoFound": true,
-    "logoSrc": "http://localhost:3300/images/Logo.jpeg",
-    "logoNaturalDimensions": "640x640",
+    "logoSrc": "http://localhost:3300/images/logo.png",
+    "logoNaturalDimensions": "1254x1254",
     "footerLogoFound": true,
-    "hasKvnWordmark": true,
+    "hasDuplicateHeaderText": false,
     "primaryBtnBg": "rgba(0, 0, 0, 0)",
     "primaryBtnColor": "rgb(51, 65, 85)"
   },

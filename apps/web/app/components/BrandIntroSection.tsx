@@ -51,8 +51,8 @@ export default function BrandIntroSection() {
                     className="h-[195px] lg:h-[260px]"
                   />
 
-                  <div className="relative h-[130px] lg:h-[185px] rounded-panel bg-[#FAF7EE] p-4 lg:p-6 flex flex-col justify-between border border-[#E8DCC4] shadow-soft-sm">
-                    <Award className="w-7 h-7 lg:w-8 lg:h-8 text-[#C6A052]" />
+                  <div className="relative h-[130px] lg:h-[185px] rounded-panel bg-[#FAF8F2] p-4 lg:p-6 flex flex-col justify-between border border-[#EBDEBA] shadow-soft-sm">
+                    <Award className="w-7 h-7 lg:w-8 lg:h-8 text-[#CE9E34]" />
                     <div>
                       <span className="font-sans text-sm lg:text-lg font-bold text-charcoal-900 block leading-snug">Dedicated Quality</span>
                       <span className="text-xs text-charcoal-700 font-medium">Bespoke Architectural Finish</span>
@@ -81,7 +81,7 @@ export default function BrandIntroSection() {
                 <ul className="space-y-3.5">
                   {about.pillars.map((pillar: string, index: number) => (
                     <li key={index} className="flex items-center gap-3 text-xs sm:text-sm text-charcoal-800 font-medium">
-                      <CheckCircle2 className="w-5 h-5 text-[#C6A052] shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-[#CE9E34] shrink-0" />
                       <span>{pillar}</span>
                     </li>
                   ))}

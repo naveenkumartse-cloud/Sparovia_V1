@@ -63,14 +63,14 @@ export default function FaqSection() {
                   >
                     <span
                       className={`font-sans font-semibold text-base sm:text-lg transition-colors duration-200 ${
-                        isOpen ? 'text-[#102B50]' : 'text-charcoal-900 group-hover:text-[#102B50]'
+                        isOpen ? 'text-[#011E75]' : 'text-charcoal-900 group-hover:text-[#011E75]'
                       }`}
                     >
                       {faq.question}
                     </span>
-                    <div className="w-8 h-8 rounded-[6px] bg-surface group-hover:bg-[#FAF7EE] flex items-center justify-center text-charcoal-700 group-hover:text-[#C6A052] shrink-0 transition-colors">
+                    <div className="w-8 h-8 rounded-[6px] bg-surface group-hover:bg-[#FAF8F2] flex items-center justify-center text-charcoal-700 group-hover:text-[#CE9E34] shrink-0 transition-colors">
                       {isOpen ? (
-                        <Minus className="w-4 h-4 text-[#C6A052]" />
+                        <Minus className="w-4 h-4 text-[#CE9E34]" />
                       ) : (
                         <Plus className="w-4 h-4" />
                       )}

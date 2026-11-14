@@ -67,7 +67,7 @@ function ThemeLabels({ themes }: { themes: ThemeItem[] }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
         {themes.map((theme, i) => (
           <div key={i} className="text-center md:text-left">
-            <span className="block text-[11px] uppercase tracking-[0.15em] text-[#C6A052] font-black mb-1.5">
+            <span className="block text-[11px] uppercase tracking-[0.15em] text-[#CE9E34] font-black mb-1.5">
               {theme.label}
             </span>
             <p className="text-xs text-charcoal-600 leading-relaxed">
@@ -117,7 +117,7 @@ function DesktopHorizontalGallery() {
                 loading="lazy"
               />
             </div>
-            <span className="block mt-3 text-[11px] uppercase tracking-[0.12em] text-charcoal-700 font-semibold group-hover:text-[#C6A052] transition-colors">
+            <span className="block mt-3 text-[11px] uppercase tracking-[0.12em] text-charcoal-700 font-semibold group-hover:text-[#CE9E34] transition-colors">
               {item.label}
             </span>
           </div>
@@ -208,7 +208,7 @@ export default function UpvcSection() {
       <Container size="wide">
         <FadeIn direction="up" delay={0.1}>
           <div className="mb-8">
-            <span className="text-[11px] uppercase tracking-[0.15em] text-[#C6A052] font-black">
+            <span className="text-[11px] uppercase tracking-[0.15em] text-[#CE9E34] font-black">
               Window &amp; Door Installations
             </span>
           </div>

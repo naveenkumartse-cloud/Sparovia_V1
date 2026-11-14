@@ -243,7 +243,7 @@ export function SocialControl() {
                 {/* Header */}
                 <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-[#102B50]/10 text-[#102B50] flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-[#011E75]/10 text-[#011E75] flex items-center justify-center shrink-0">
                       <MessageSquareMore className="w-4 h-4" />
                     </div>
                     <div>
@@ -454,8 +454,8 @@ export function SocialControl() {
         title="Contact and Social channels"
         className={`group relative w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 focus-ring ${
           isOpen
-            ? 'bg-[#0C2340] text-white shadow-xl shadow-[#0C2340]/40 ring-4 ring-[#C6A052]/30'
-            : 'bg-[#102B50] hover:bg-[#163A6B] text-white shadow-xl shadow-[#102B50]/35 ring-4 ring-[#C6A052]/20'
+            ? 'bg-[#01185E] text-white shadow-xl shadow-[#01185E]/40 ring-4 ring-[#CE9E34]/30'
+            : 'bg-[#011E75] hover:bg-[#01185E] text-white shadow-xl shadow-[#011E75]/35 ring-4 ring-[#CE9E34]/20'
         }`}
       >
         {isOpen ? (

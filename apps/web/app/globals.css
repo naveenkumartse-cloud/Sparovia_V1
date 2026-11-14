@@ -11,7 +11,7 @@ html {
   scroll-padding-top: 80px;
   color-scheme: light;
   background-color: #ffffff;
-  color: #0c2340;
+  color: #172033;
 }
 
 /* Lenis recommended CSS */
@@ -38,7 +38,7 @@ html.lenis.lenis-scrolling iframe {
 body {
   font-family: var(--font-inter);
   background-color: #ffffff;
-  color: #102B50;
+  color: #172033;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -81,50 +81,54 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #C6A052;
+  background: #CE9E34;
 }
 
 /* KVN Interior Brand Design Utilities */
 @layer utilities {
   .text-gold-accent {
-    color: #C6A052;
+    color: #CE9E34;
   }
 
   .text-gold-metallic {
-    background: linear-gradient(135deg, #B89047 0%, #DFBE76 50%, #9E7B35 100%);
+    background: linear-gradient(135deg, #BA8B27 0%, #DFB95C 50%, #9E741B 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   .bg-gold-accent {
-    background-color: #C6A052;
+    background-color: #CE9E34;
   }
 
   .bg-gold-warm {
-    background-color: #FAF7EE;
+    background-color: #FAF8F2;
+  }
+
+  .bg-surface-silver {
+    background-color: #F3F4F5;
   }
 
   .badge-gold {
-    background-color: #FAF7EE;
-    color: #8C6A1F;
-    border: 1px solid #E8DCC4;
+    background-color: #FAF8F2;
+    color: #9E741B;
+    border: 1px solid #EBDEBA;
   }
 
   .badge-navy {
-    background-color: #F0F4FA;
-    color: #102B50;
-    border: 1px solid #C4D4EB;
+    background-color: #EEF2FC;
+    color: #011E75;
+    border: 1px solid #BDCEF2;
   }
 
   /* Backward compatibility for any remaining badge-purple references */
   .badge-purple {
-    background-color: #FAF7EE;
-    color: #8C6A1F;
-    border: 1px solid #E8DCC4;
+    background-color: #FAF8F2;
+    color: #9E741B;
+    border: 1px solid #EBDEBA;
   }
 
   .text-purple-accent {
-    color: #C6A052;
+    color: #CE9E34;
   }
 
   .focus-ring {

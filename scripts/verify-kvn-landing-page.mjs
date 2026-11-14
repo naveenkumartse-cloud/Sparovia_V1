@@ -13,8 +13,8 @@ sections.forEach(s => {
 });
 
 console.log('Footer element:', html.includes('<footer') ? 'FOUND' : 'MISSING');
-console.log('KVN Logo image (/images/Logo.jpeg):', html.includes('/images/Logo.jpeg') ? 'FOUND' : 'MISSING');
-console.log('KVN Brand Text:', html.includes('KVN') && html.includes('INTERIOR') ? 'FOUND' : 'MISSING');
+console.log('KVN Official Logo image (/images/logo.png):', html.includes('/images/logo.png') ? 'FOUND' : 'MISSING');
+console.log('Recreated Header KVN letters/text:', html.includes('>KVN</span>') || html.includes('>INTERIOR</span>') ? 'FOUND (ERROR: Duplicate Text)' : 'NONE (CORRECT)');
 console.log('Primary CTA "Get a Quote":', html.includes('Get a Quote') ? 'FOUND' : 'MISSING');
 console.log('Headline "Transform Your Space.":', html.includes('Transform Your Space.') ? 'FOUND' : 'MISSING');
 console.log('Modular Kitchens:', html.includes('Modular Kitchens') ? 'FOUND' : 'MISSING');

@@ -18,7 +18,7 @@ export default function FinalCtaSection() {
   return (
     <Section background="white" padding="spacious" className="relative overflow-hidden">
       <Container>
-        <div className="relative rounded-panel overflow-hidden bg-[#0A192F] text-white p-6 sm:p-12 lg:p-20 shadow-2xl border border-[#C6A052]/30">
+        <div className="relative rounded-panel overflow-hidden bg-[#0A192F] text-white p-6 sm:p-12 lg:p-20 shadow-2xl border border-[#CE9E34]/30">
           {/* Subtle Background Image Overlay */}
           <div className="absolute inset-0 z-0 opacity-15">
             <Image
@@ -34,7 +34,7 @@ export default function FinalCtaSection() {
           <div className="relative z-10 max-w-2xl mx-auto text-center">
             <FadeIn direction="up">
               {brandEyebrow && (
-                <span className="text-[11px] uppercase tracking-[0.25em] text-[#C6A052] font-black block mb-4">
+                <span className="text-[11px] uppercase tracking-[0.25em] text-[#CE9E34] font-black block mb-4">
                   {brandEyebrow}
                 </span>
               )}
@@ -48,7 +48,7 @@ export default function FinalCtaSection() {
               </p>
 
               <div className="flex justify-center">
-                <Button href="#contact" variant="primary" size="lg" icon className="bg-[#C6A052] hover:bg-[#B89047] text-[#0A192F] font-bold border-none shadow-gold-glow">
+                <Button href="#contact" variant="primary" size="lg" icon className="bg-[#CE9E34] hover:bg-[#BA8B27] text-[#0A192F] font-bold border-none shadow-gold-glow">
                   {ctaLabel}
                 </Button>
               </div>

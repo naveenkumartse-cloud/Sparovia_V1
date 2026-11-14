@@ -6,6 +6,7 @@ import { DynamicFavicon } from '@/components/providers/DynamicFavicon';
 import { SocialControl } from '@/components/ui/SocialControl';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://sparoviapublicsite.vercel.app'),
   title: 'KVN Interior | Premium Home Interiors & uPVC Windows',
   description: 'Custom Home Interiors, Modular Kitchens, Luxury Wardrobes, Living Units & Architectural uPVC Window and Door Solutions by KVN Interior.',
   keywords: [
@@ -21,24 +22,26 @@ export const metadata: Metadata = {
   authors: [{ name: 'KVN Interior' }],
   icons: {
     icon: [
-      { url: '/images/Logo.jpeg', type: 'image/jpeg' },
+      { url: '/images/logo.png', type: 'image/png' },
       { url: '/icon.png', type: 'image/png' },
       { url: '/favicon.ico', sizes: 'any' },
     ],
     shortcut: '/favicon.ico',
     apple: [
-      { url: '/images/Logo.jpeg', type: 'image/jpeg' },
+      { url: '/images/logo.png', type: 'image/png' },
     ],
   },
   openGraph: {
     title: 'KVN Interior | Premium Home Interiors & uPVC Windows',
     description: 'Custom Home Interiors, Modular Kitchens, Luxury Wardrobes, Living Units & Architectural uPVC Window and Door Solutions by KVN Interior.',
     type: 'website',
+    images: [{ url: '/images/logo.png', width: 1254, height: 1254, alt: 'KVN Interior Logo' }],
   },
   twitter: {
     card: 'summary',
     title: 'KVN Interior | Premium Home Interiors & uPVC Windows',
     description: 'Custom Home Interiors, Modular Kitchens, Luxury Wardrobes, Living Units & Architectural uPVC Window and Door Solutions by KVN Interior.',
+    images: ['/images/logo.png'],
   },
 };
 
@@ -58,7 +61,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
-      <body className="bg-white text-charcoal-900 antialiased selection:bg-gold-200 selection:text-[#102B50]">
+      <body className="bg-white text-charcoal-900 antialiased selection:bg-gold-200 selection:text-[#011E75]">
         <SmoothScrollProvider>
           <WebsiteContentProvider>
             <DynamicFavicon />

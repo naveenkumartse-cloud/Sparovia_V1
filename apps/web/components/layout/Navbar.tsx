@@ -52,45 +52,32 @@ export default function Navbar() {
       role="banner"
       className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ease-out ${
         scrolled
-          ? 'py-2.5 bg-white/95 backdrop-blur-md shadow-[0_1px_3px_rgba(16,43,80,0.08)] border-b border-gray-100'
-          : 'py-4 bg-white/90 backdrop-blur-sm border-b border-gray-100/60'
+          ? 'py-2 bg-white/98 backdrop-blur-md shadow-[0_1px_3px_rgba(1,30,117,0.08)] border-b border-gray-100'
+          : 'py-3 sm:py-3.5 bg-white/95 backdrop-blur-sm border-b border-gray-100/70'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between relative z-20">
 
-        {/* Brand Logo — Official KVN Interior Logo */}
+        {/* Complete Original KVN Interior Client Logo — Single Asset, Zero Recreated/Duplicate Text */}
         <a
           href="#hero"
-          className="flex items-center gap-3 group focus-ring rounded-lg py-0.5"
+          className="flex items-center group focus-ring rounded-lg py-0.5 transition-transform duration-200 hover:scale-[1.02]"
           aria-label={`${displayName} — return to top`}
           onClick={closeMobileMenu}
         >
-          <div className="relative h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-md overflow-hidden bg-white border border-[#E8DCC4] shadow-xs">
+          <div className="relative h-11 w-11 sm:h-13 sm:w-13 md:h-14 md:w-14 shrink-0 flex items-center justify-center">
             <Image
-              src="/images/Logo.jpeg"
-              alt="KVN Interior Logo"
-              width={48}
-              height={48}
+              src="/images/logo.png"
+              alt="KVN Interior — uPVC Windows, Doors & Home Interior"
+              width={56}
+              height={56}
               priority
-              className="w-full h-full object-contain p-0.5"
+              className="w-full h-full object-contain"
             />
-          </div>
-          <div className="flex flex-col justify-center">
-            <div className="flex items-center gap-1.5 leading-none">
-              <span className="font-sans text-base sm:text-lg font-black tracking-wider text-[#102B50]">
-                KVN
-              </span>
-              <span className="font-sans text-base sm:text-lg font-bold tracking-wider text-[#C6A052]">
-                INTERIOR
-              </span>
-            </div>
-            <span className="text-[8px] sm:text-[9px] font-semibold tracking-[0.16em] uppercase text-charcoal-600 mt-0.5 hidden xs:block">
-              uPVC Windows • Doors • Interiors
-            </span>
           </div>
         </a>
 
-        {/* Desktop Navigation — Minimal Links */}
+        {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center gap-8" aria-label="Primary Navigation">
           {templateConfig.navLinks.map((link) => (
             <a

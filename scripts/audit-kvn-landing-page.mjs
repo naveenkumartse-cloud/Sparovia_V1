@@ -152,12 +152,12 @@ async function runAudit() {
 
     // 2. Brand Identity & Logo Check
     const brandCheck = await client.evaluate(`(() => {
-      const logoImg = document.querySelector('header img[alt*="KVN Interior Logo"]');
-      const footerLogoImg = document.querySelector('footer img[alt*="KVN Interior Logo"]');
+      const logoImg = document.querySelector('header img[alt*="KVN Interior"]');
+      const footerLogoImg = document.querySelector('footer img[alt*="KVN Interior"]');
       const logoNaturalWidth = logoImg ? logoImg.naturalWidth : 0;
       const logoNaturalHeight = logoImg ? logoImg.naturalHeight : 0;
-      const headerText = document.querySelector('header')?.innerText || '';
-      const hasKvnWordmark = headerText.includes('KVN') && headerText.includes('INTERIOR');
+      const headerText = document.querySelector('header nav')?.innerText || document.querySelector('header')?.innerText || '';
+      const hasDuplicateHeaderText = document.querySelector('header a[href="#hero"]')?.innerText?.includes('KVN') || false;
       const primaryBtn = document.querySelector('header a[href="#contact"]');
       const primaryBtnStyle = primaryBtn ? window.getComputedStyle(primaryBtn) : null;
       return {
@@ -165,7 +165,7 @@ async function runAudit() {
         logoSrc: logoImg ? logoImg.src : null,
         logoNaturalDimensions: logoNaturalWidth + 'x' + logoNaturalHeight,
         footerLogoFound: Boolean(footerLogoImg),
-        hasKvnWordmark,
+        hasDuplicateHeaderText,
         primaryBtnBg: primaryBtnStyle ? primaryBtnStyle.backgroundColor : null,
         primaryBtnColor: primaryBtnStyle ? primaryBtnStyle.color : null,
       };
