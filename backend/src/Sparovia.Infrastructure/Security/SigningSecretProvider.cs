@@ -33,15 +33,34 @@ public class SigningSecretProvider : ISigningSecretProvider
 
     /// <summary>
     /// Resolves the configured secret from all supported environment and appsettings keys.
-    /// Hierarchy: Jwt:Secret -> JWT_SECRET -> Jwt__Secret.
+    /// Priority:
+    /// 1. Environment variable JWT_SECRET / Jwt__Secret
+    /// 2. Configuration key JWT_SECRET
+    /// 3. Configuration key Jwt:Secret
     /// </summary>
     public static string ResolveConfiguredSecret(IConfiguration configuration)
     {
-        return configuration["Jwt:Secret"]
-            ?? configuration["JWT_SECRET"]
-            ?? Environment.GetEnvironmentVariable("JWT_SECRET")
-            ?? Environment.GetEnvironmentVariable("Jwt__Secret")
-            ?? string.Empty;
+        var envSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
+            ?? Environment.GetEnvironmentVariable("Jwt__Secret");
+        if (!string.IsNullOrWhiteSpace(envSecret))
+        {
+            return envSecret.Trim();
+        }
+
+        var configSecret = configuration["Jwt:Secret"];
+        if (!string.IsNullOrWhiteSpace(configSecret) &&
+            !string.Equals(configSecret.Trim(), InsecureDevelopmentSecret, StringComparison.Ordinal))
+        {
+            return configSecret.Trim();
+        }
+
+        var configJwtSecret = configuration["JWT_SECRET"];
+        if (!string.IsNullOrWhiteSpace(configJwtSecret))
+        {
+            return configJwtSecret.Trim();
+        }
+
+        return configSecret?.Trim() ?? string.Empty;
     }
 
     /// <summary>

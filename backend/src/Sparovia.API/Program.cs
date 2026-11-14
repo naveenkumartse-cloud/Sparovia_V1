@@ -113,6 +113,17 @@ builder.Services.AddRateLimiter(options =>
 
 // Database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    var databaseUrl = builder.Configuration["DATABASE_URL"]
+        ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+    if (!string.IsNullOrWhiteSpace(databaseUrl))
+    {
+        connectionString = ParseDatabaseUrl(databaseUrl);
+        Log.Information("Resolved database connection from DATABASE_URL environment variable.");
+    }
+}
+
 if (string.IsNullOrEmpty(connectionString))
 {
     Log.Warning("Database connection string is missing or empty.");
@@ -451,4 +462,44 @@ finally
     Log.CloseAndFlush();
 }
 
-public partial class Program { }
+public partial class Program
+{
+    public static string ParseDatabaseUrl(string databaseUrl)
+    {
+        if (string.IsNullOrWhiteSpace(databaseUrl)) return string.Empty;
+        var trimmed = databaseUrl.Trim();
+        if (!trimmed.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) &&
+            !trimmed.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
+            return trimmed;
+        }
+
+        try
+        {
+            var uri = new Uri(trimmed);
+            var userInfo = uri.UserInfo.Split(':', 2);
+            var username = userInfo.Length > 0 ? Uri.UnescapeDataString(userInfo[0]) : string.Empty;
+            var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty;
+            var host = uri.Host;
+            var port = uri.Port > 0 ? uri.Port : 5432;
+            var database = uri.AbsolutePath.TrimStart('/');
+
+            var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder
+            {
+                Host = host,
+                Port = port,
+                Database = database,
+                Username = username,
+                Password = password,
+                SslMode = Npgsql.SslMode.Require
+            };
+
+            return npgsqlBuilder.ConnectionString;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to parse DATABASE_URL URI format. Falling back to raw string.");
+            return trimmed;
+        }
+    }
+}
