@@ -37,12 +37,12 @@ export default function WhyChooseUsSection() {
             <FadeIn key={item.index || index} direction="up" delay={0.1 * index}>
               <div className="flex flex-col justify-between h-full group">
                 <div>
-                  {/* Index Number & Purple Accent Bar */}
+                  {/* Index Number & Gold Accent Bar */}
                   <div className="flex items-center gap-3 mb-5">
-                    <span className="text-xs uppercase tracking-[0.2em] font-bold text-brand-600">
+                    <span className="text-xs uppercase tracking-[0.2em] font-black text-[#C6A052]">
                       {item.index}
                     </span>
-                    <div className="h-[1.5px] w-8 bg-brand-600/40 group-hover:w-12 group-hover:bg-brand-600 transition-all duration-300" />
+                    <div className="h-[2px] w-8 bg-[#C6A052]/50 group-hover:w-12 group-hover:bg-[#C6A052] transition-all duration-300" />
                   </div>
 
                   {/* Title */}

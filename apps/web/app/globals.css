@@ -7,11 +7,11 @@
 }
 
 html {
-  /* scroll-behavior is intentionally omitted — Lenis handles smooth scrolling */
-  scroll-padding-top: 80px; /* clears the fixed navbar on anchor-link scroll */
+  /* scroll-padding clears the fixed navbar on anchor-link scroll */
+  scroll-padding-top: 80px;
   color-scheme: light;
   background-color: #ffffff;
-  color: #0f172a;
+  color: #0c2340;
 }
 
 /* Lenis recommended CSS */
@@ -38,13 +38,11 @@ html.lenis.lenis-scrolling iframe {
 body {
   font-family: var(--font-inter);
   background-color: #ffffff;
-  color: #0f172a;
+  color: #102B50;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-
 
 /* Reduced Motion Overrides */
 @media (prefers-reduced-motion: reduce) {
@@ -83,29 +81,50 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #7c3aed;
+  background: #C6A052;
 }
 
-/* Design System Utilities */
+/* KVN Interior Brand Design Utilities */
 @layer utilities {
-  .text-purple-accent {
-    color: #7c3aed;
+  .text-gold-accent {
+    color: #C6A052;
   }
 
-  .text-purple-gradient {
-    background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 50%, #8b5cf6 100%);
+  .text-gold-metallic {
+    background: linear-gradient(135deg, #B89047 0%, #DFBE76 50%, #9E7B35 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
-  .bg-purple-gradient {
-    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  .bg-gold-accent {
+    background-color: #C6A052;
   }
 
+  .bg-gold-warm {
+    background-color: #FAF7EE;
+  }
+
+  .badge-gold {
+    background-color: #FAF7EE;
+    color: #8C6A1F;
+    border: 1px solid #E8DCC4;
+  }
+
+  .badge-navy {
+    background-color: #F0F4FA;
+    color: #102B50;
+    border: 1px solid #C4D4EB;
+  }
+
+  /* Backward compatibility for any remaining badge-purple references */
   .badge-purple {
-    background-color: #f5f3ff;
-    color: #6d28d9;
-    border: 1px solid #ddd6fe;
+    background-color: #FAF7EE;
+    color: #8C6A1F;
+    border: 1px solid #E8DCC4;
+  }
+
+  .text-purple-accent {
+    color: #C6A052;
   }
 
   .focus-ring {

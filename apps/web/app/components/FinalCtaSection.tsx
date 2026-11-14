@@ -11,16 +11,16 @@ import Image from 'next/image';
 export default function FinalCtaSection() {
   const { contact, hero, website } = useTemplateContent();
 
-  const brandEyebrow = website?.name ? website.name.toUpperCase() : (contact.eyebrow || '');
+  const brandEyebrow = website?.name ? website.name.toUpperCase() : (contact.eyebrow || 'KVN INTERIOR');
   const bgImage = hero.heroImage || mediaConfig.hero.primaryImage;
-  const ctaLabel = contact.ctaLabel || 'Get in Touch';
+  const ctaLabel = contact.ctaLabel || 'Request Consultation';
 
   return (
     <Section background="white" padding="spacious" className="relative overflow-hidden">
       <Container>
-        <div className="relative rounded-panel overflow-hidden bg-charcoal-900 text-white p-6 sm:p-12 lg:p-20 shadow-2xl">
+        <div className="relative rounded-panel overflow-hidden bg-[#0A192F] text-white p-6 sm:p-12 lg:p-20 shadow-2xl border border-[#C6A052]/30">
           {/* Subtle Background Image Overlay */}
-          <div className="absolute inset-0 z-0 opacity-20">
+          <div className="absolute inset-0 z-0 opacity-15">
             <Image
               src={bgImage}
               alt="Residential Project View"
@@ -34,7 +34,7 @@ export default function FinalCtaSection() {
           <div className="relative z-10 max-w-2xl mx-auto text-center">
             <FadeIn direction="up">
               {brandEyebrow && (
-                <span className="text-[11px] uppercase tracking-[0.25em] text-brand-300 font-bold block mb-4">
+                <span className="text-[11px] uppercase tracking-[0.25em] text-[#C6A052] font-black block mb-4">
                   {brandEyebrow}
                 </span>
               )}
@@ -44,11 +44,11 @@ export default function FinalCtaSection() {
               </h2>
 
               <p className="text-sm sm:text-base text-gray-300 font-normal leading-relaxed mb-10 max-w-lg mx-auto">
-                {contact.description}
+                {contact.description || 'Schedule an initial consultation with our interior and window specialists to explore possibilities for your home.'}
               </p>
 
               <div className="flex justify-center">
-                <Button href="#contact" variant="primary" size="lg" icon>
+                <Button href="#contact" variant="primary" size="lg" icon className="bg-[#C6A052] hover:bg-[#B89047] text-[#0A192F] font-bold border-none shadow-gold-glow">
                   {ctaLabel}
                 </Button>
               </div>

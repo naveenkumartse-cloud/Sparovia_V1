@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { templateConfig, TemplateThemeItem } from '@/config/templateConfig';
+import { contentConfig } from '@/config/contentConfig';
 
 export interface WebsiteDto {
   id: string;
@@ -569,22 +570,30 @@ export function adaptTemplateContent(
  * Context & Provider Implementation
  * ──────────────────────────────────────────────────────────────── */
 
-const emptyAdaptedContent = adaptTemplateContent({}, null, true, null, async () => {});
+export const DEFAULT_WEBSITE: WebsiteDto = {
+  id: 'kvn-interior-default',
+  name: 'KVN Interior',
+  domain: 'kvninterior.com',
+  connectionStatus: 'Connected',
+  templateId: 'kvn-interiors-v1',
+};
+
+const initialAdaptedContent = adaptTemplateContent(contentConfig, DEFAULT_WEBSITE, false, null, async () => {});
 
 const WebsiteContentContext = createContext<WebsiteContentContextType>({
-  website: null,
-  sections: {},
-  isLoading: true,
+  website: DEFAULT_WEBSITE,
+  sections: contentConfig,
+  isLoading: false,
   error: null,
   refresh: async () => {},
   getSection: <T extends unknown>(_sectionKey: string, fallback?: T) => (fallback as T),
-  templateContent: emptyAdaptedContent,
+  templateContent: initialAdaptedContent,
 });
 
 export function WebsiteContentProvider({ children }: { children: React.ReactNode }) {
-  const [website, setWebsite] = useState<WebsiteDto | null>(null);
-  const [sections, setSections] = useState<Record<string, any>>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [website, setWebsite] = useState<WebsiteDto | null>(DEFAULT_WEBSITE);
+  const [sections, setSections] = useState<Record<string, any>>(contentConfig);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const apiUrl = useMemo(() => {

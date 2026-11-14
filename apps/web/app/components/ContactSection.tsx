@@ -162,13 +162,13 @@ export default function ContactSection() {
     }
   };
 
-  const brandName = website?.name || 'Sparovia';
+  const brandName = website?.name || 'KVN Interior';
 
   const renderFormContent = (includeHeader: boolean) => {
     if (submitted) {
       return (
         <div className="text-center py-12">
-          <div className="w-16 h-16 rounded-[8px] bg-brand-50 border border-brand-200 flex items-center justify-center mx-auto mb-6 text-brand-600">
+          <div className="w-16 h-16 rounded-[8px] bg-[#FAF7EE] border border-[#E8DCC4] flex items-center justify-center mx-auto mb-6 text-[#C6A052]">
             <CheckCircle2 className="w-8 h-8" />
           </div>
           <h3 className="font-sans text-2xl font-bold text-charcoal-900 mb-2">
@@ -208,7 +208,7 @@ export default function ContactSection() {
               {contact.ctaLabel ? 'Request a Quote' : 'Send an Enquiry'}
             </h3>
             <p className="text-xs text-charcoal-500 mt-1">
-              Share your requirements and we will connect with you promptly.
+              Share your requirements and our interior specialists will connect with you promptly.
             </p>
           </div>
         )}
@@ -240,7 +240,7 @@ export default function ContactSection() {
               </label>
               <span className="text-[11px] text-gray-500 font-medium">10-digit mobile</span>
             </div>
-            <div className="relative flex items-center rounded-[6px] border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#315FEA] focus-within:border-[#315FEA] shadow-xs">
+            <div className="relative flex items-center rounded-[6px] border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#102B50] focus-within:border-[#102B50] shadow-xs">
               <span className="inline-flex items-center px-3.5 py-3.5 bg-gray-100 text-charcoal-800 font-semibold text-xs sm:text-sm select-none border-r border-gray-300">
                 +91
               </span>
@@ -379,13 +379,13 @@ export default function ContactSection() {
                 )}
               </div>
 
-              {/* Optional Public Notice / Advisory (ONLY rendered when non-empty) */}
+              {/* Optional Public Notice / Advisory */}
               {hasNotice && (
-                <div className="p-4 rounded-[8px] bg-blue-50/70 border border-blue-200/80 text-blue-950 text-xs sm:text-sm">
+                <div className="p-4 rounded-[8px] bg-[#FAF7EE] border border-[#E8DCC4] text-[#102B50] text-xs sm:text-sm">
                   <div className="flex items-start gap-2.5">
-                    <Info className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
+                    <Info className="w-4 h-4 text-[#C6A052] shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <span className="font-semibold text-xs uppercase tracking-wider text-brand-700 block">
+                      <span className="font-semibold text-xs uppercase tracking-wider text-[#C6A052] block">
                         Notice
                       </span>
                       <p className="text-charcoal-800 leading-relaxed whitespace-pre-line">
@@ -396,11 +396,11 @@ export default function ContactSection() {
                 </div>
               )}
 
-              {/* Operating Hours Card (ONLY rendered when non-empty, preserves line breaks) */}
+              {/* Operating Hours Card */}
               {hasHours && (
                 <div className="p-5 rounded-[8px] bg-surface border border-gray-200 shadow-soft-sm space-y-2.5">
                   <div className="flex items-center gap-2 text-charcoal-900 font-semibold text-sm">
-                    <Clock className="w-4 h-4 text-brand-600 shrink-0" />
+                    <Clock className="w-4 h-4 text-[#C6A052] shrink-0" />
                     <span>Operating Hours</span>
                   </div>
                   <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed whitespace-pre-line font-normal pl-6">
@@ -414,7 +414,7 @@ export default function ContactSection() {
                 <div className="p-5 rounded-[8px] bg-surface border border-gray-200 shadow-soft-sm space-y-3.5">
                   {hasAddress && (
                     <div className="flex items-start gap-2.5 text-xs sm:text-sm">
-                      <MapPin className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
+                      <MapPin className="w-4 h-4 text-[#C6A052] shrink-0 mt-0.5" />
                       <div>
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500 block mb-0.5">
                           Operating Address
@@ -428,7 +428,7 @@ export default function ContactSection() {
 
                   {hasPhone && (
                     <div className="flex items-start gap-2.5 text-xs sm:text-sm">
-                      <Phone className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
+                      <Phone className="w-4 h-4 text-[#C6A052] shrink-0 mt-0.5" />
                       <div>
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500 block mb-0.5">
                           Phone
@@ -445,7 +445,7 @@ export default function ContactSection() {
 
                   {hasEmail && (
                     <div className="flex items-start gap-2.5 text-xs sm:text-sm">
-                      <Mail className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
+                      <Mail className="w-4 h-4 text-[#C6A052] shrink-0 mt-0.5" />
                       <div>
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500 block mb-0.5">
                           Email

@@ -6,32 +6,39 @@ import { DynamicFavicon } from '@/components/providers/DynamicFavicon';
 import { SocialControl } from '@/components/ui/SocialControl';
 
 export const metadata: Metadata = {
-  title: 'Sparovia | Business Website',
-  description: 'Custom Home Interiors, Modular Kitchens, Wardrobes, Living Units & Architectural Window Solutions.',
+  title: 'KVN Interior | Premium Home Interiors & uPVC Windows',
+  description: 'Custom Home Interiors, Modular Kitchens, Luxury Wardrobes, Living Units & Architectural uPVC Window and Door Solutions by KVN Interior.',
   keywords: [
-    'Interior Design',
+    'KVN Interior',
+    'Interior Design Bengaluru',
     'Modular Kitchens',
-    'Architectural Windows',
-    'Wardrobes',
+    'uPVC Windows',
+    'uPVC Doors',
+    'Luxury Wardrobes',
     'Living TV Units',
     'Home Interior Solutions',
   ],
-  authors: [{ name: 'Sparovia' }],
+  authors: [{ name: 'KVN Interior' }],
   icons: {
     icon: [
+      { url: '/images/Logo.jpeg', type: 'image/jpeg' },
       { url: '/icon.png', type: 'image/png' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico', sizes: 'any' },
     ],
     shortcut: '/favicon.ico',
     apple: [
-      { url: '/apple-icon.svg', type: 'image/svg+xml' },
+      { url: '/images/Logo.jpeg', type: 'image/jpeg' },
     ],
   },
   openGraph: {
-    title: 'Sparovia | Home Interiors & Architectural Systems',
-    description: 'Custom Home Interiors, Modular Kitchens, Wardrobes, Living Units & Architectural Window Solutions.',
+    title: 'KVN Interior | Premium Home Interiors & uPVC Windows',
+    description: 'Custom Home Interiors, Modular Kitchens, Luxury Wardrobes, Living Units & Architectural uPVC Window and Door Solutions by KVN Interior.',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'KVN Interior | Premium Home Interiors & uPVC Windows',
+    description: 'Custom Home Interiors, Modular Kitchens, Luxury Wardrobes, Living Units & Architectural uPVC Window and Door Solutions by KVN Interior.',
   },
 };
 
@@ -49,9 +56,9 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
-      <body className="bg-white text-charcoal-900 antialiased selection:bg-brand-200 selection:text-brand-900">
+      <body className="bg-white text-charcoal-900 antialiased selection:bg-gold-200 selection:text-[#102B50]">
         <SmoothScrollProvider>
           <WebsiteContentProvider>
             <DynamicFavicon />

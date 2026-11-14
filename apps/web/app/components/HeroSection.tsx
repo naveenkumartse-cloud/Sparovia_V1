@@ -7,7 +7,6 @@ import { mediaConfig } from '@/config/mediaConfig';
 import { Container } from '@/components/ui/Container';
 import { Eyebrow, HeroHeading, Subheading } from '@/components/ui/Typography';
 import { Button } from '@/components/ui/Button';
-import { FadeIn } from '@/components/ui/Motion';
 import { ArrowDown } from 'lucide-react';
 import Image from 'next/image';
 
@@ -61,7 +60,7 @@ export default function HeroSection() {
       {/* Desktop (lg+): left-to-right — editorial layout, text on white left, image on right */}
       <div className="hidden lg:block absolute inset-0 z-[1] bg-gradient-to-r from-white/95 via-white/80 to-transparent pointer-events-none" />
       {/* Mobile/Tablet: White gradient from top down to ensure dark text at top is fully readable */}
-      <div className="lg:hidden absolute inset-0 z-[1] bg-gradient-to-b from-white/95 via-white/80 to-black/10 pointer-events-none" />
+      <div className="lg:hidden absolute inset-0 z-[1] bg-gradient-to-b from-white/95 via-white/85 to-black/10 pointer-events-none" />
       {/* Bottom fade (universal) — smooth visual transition into next section */}
       <div className="absolute inset-0 z-[1] bg-gradient-to-t from-white via-transparent to-transparent pointer-events-none" />
 
@@ -71,9 +70,9 @@ export default function HeroSection() {
         style={shouldReduceMotion ? {} : { opacity: overlayOpacity }}
       />
 
-      {/* Hero Editorial Content */}
+      {/* Hero Editorial Content — Rendered immediately without delayed reveal animation */}
       <motion.div
-        className="relative z-10 w-full pt-20 sm:pt-24 lg:pt-28 pb-16"
+        className="relative z-10 w-full pt-20 sm:pt-24 lg:pt-28 pb-14 sm:pb-16"
         style={shouldReduceMotion ? {} : {
           opacity: contentOpacity,
           y: contentY,
@@ -83,39 +82,33 @@ export default function HeroSection() {
           <div className="max-w-2xl">
 
             {/* Eyebrow */}
-            <FadeIn direction="up" delay={0.15} duration={0.7}>
-              <Eyebrow icon={false} className="mb-5">
+            <div className="mb-4 sm:mb-5">
+              <Eyebrow icon={false}>
                 {hero.eyebrow}
               </Eyebrow>
-            </FadeIn>
+            </div>
 
             {/* Headline */}
-            <FadeIn direction="up" delay={0.3} duration={0.8}>
-              <HeroHeading className="text-charcoal-900 mb-5">
-                {hero.headline}
-              </HeroHeading>
-            </FadeIn>
+            <HeroHeading className="text-charcoal-900 mb-4 sm:mb-5">
+              {hero.headline}
+            </HeroHeading>
 
             {/* Short Supporting Copy */}
-            <FadeIn direction="up" delay={0.45} duration={0.7}>
-              <Subheading className="mb-10 text-charcoal-600 max-w-xl">
-                {hero.subheadline}
-              </Subheading>
-            </FadeIn>
+            <Subheading className="mb-8 sm:mb-10 text-charcoal-600 max-w-xl">
+              {hero.subheadline}
+            </Subheading>
 
             {/* CTAs */}
-            <FadeIn direction="up" delay={0.6} duration={0.7}>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <Button href="#contact" variant="primary" size="lg" icon className="w-full sm:w-auto justify-center">
-                  {hero.primaryCta}
-                </Button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+              <Button href="#contact" variant="primary" size="lg" icon className="w-full sm:w-auto justify-center">
+                {hero.primaryCta}
+              </Button>
 
-                <Button href="#gallery" variant="outline" size="lg" className="w-full sm:w-auto justify-center">
-                  <span>{hero.secondaryCta}</span>
-                  <ArrowDown className="w-4 h-4 ml-2 text-brand-600" />
-                </Button>
-              </div>
-            </FadeIn>
+              <Button href="#gallery" variant="outline" size="lg" className="w-full sm:w-auto justify-center">
+                <span>{hero.secondaryCta}</span>
+                <ArrowDown className="w-4 h-4 ml-2 text-gold-500" />
+              </Button>
+            </div>
 
           </div>
         </Container>

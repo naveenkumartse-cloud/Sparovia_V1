@@ -64,11 +64,9 @@ export default function ProjectGallerySection() {
   // Move focus to close button when lightbox opens; restore on close
   useEffect(() => {
     if (selectedIndex !== null) {
-      // Small delay lets the DOM render before focusing
       const timer = setTimeout(() => closeButtonRef.current?.focus(), 50);
       return () => clearTimeout(timer);
     } else {
-      // Restore focus to the gallery item that opened the lightbox
       if (triggerRef.current) {
         triggerRef.current.focus();
         triggerRef.current = null;
@@ -182,8 +180,8 @@ export default function ProjectGallerySection() {
                     }}
                     className={`px-5 py-2.5 rounded-[6px] text-xs uppercase tracking-wider font-semibold transition-colors duration-200 focus-ring cursor-pointer shadow-xs ${
                       isActive
-                        ? 'bg-brand-600 text-white'
-                        : 'bg-white text-charcoal-700 hover:text-brand-600 border border-gray-200/80 hover:border-brand-200'
+                        ? 'bg-[#102B50] text-white border border-[#102B50]'
+                        : 'bg-white text-charcoal-700 hover:text-[#102B50] border border-gray-200/80 hover:border-[#C6A052]'
                     }`}
                   >
                     {cat}
@@ -218,7 +216,7 @@ export default function ProjectGallerySection() {
                   className="relative w-full h-full rounded-panel overflow-hidden bg-surface border border-gray-100 shadow-soft-sm group cursor-pointer"
                   tabIndex={0}
                   role="button"
-                  aria-label={`View ${item.label} project image`}
+                  aria-label={`View details for ${item.label}`}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
@@ -241,19 +239,19 @@ export default function ProjectGallerySection() {
 
                   {/* Category Pill Badge (Top Left) */}
                   <div className="absolute top-4 left-4 z-10">
-                    <span className="px-2.5 py-1 rounded-[4px] badge-purple text-[10px] uppercase tracking-wider font-bold shadow-soft-sm">
+                    <span className="px-2.5 py-1 rounded-[4px] badge-gold text-[10px] uppercase tracking-wider font-bold shadow-soft-sm">
                       {item.category}
                     </span>
                   </div>
 
                   {/* View Icon Button (Top Right) */}
                   <div className="absolute top-4 right-4 z-10 w-8 h-8 rounded-[6px] bg-white/90 backdrop-blur-md flex items-center justify-center text-charcoal-900 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 shadow-xs">
-                    <Maximize2 className="w-4 h-4 text-brand-600" />
+                    <Maximize2 className="w-4 h-4 text-[#102B50]" />
                   </div>
 
                   {/* Content (Bottom Left) */}
                   <div className="absolute bottom-5 left-5 right-5 z-10 text-white pointer-events-none">
-                    <span className="block text-[10px] uppercase tracking-[0.2em] text-brand-300 font-bold mb-1">
+                    <span className="block text-[10px] uppercase tracking-[0.2em] text-[#C6A052] font-black mb-1">
                       Project Showcase
                     </span>
                     <h3 className="font-sans text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
@@ -268,15 +266,15 @@ export default function ProjectGallerySection() {
 
       </Container>
 
-      {/* Lightbox Modal */}
+      {/* Accessible Project Lightbox Dialog */}
       <AnimatePresence>
-        {selectedItem !== null && (
+        {selectedItem && (
           <div
             ref={lightboxRef}
-            className="fixed inset-0 z-50 bg-charcoal-900/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 lg:p-8"
             role="dialog"
             aria-modal="true"
-            aria-label={`Project image: ${selectedItem.alt}`}
+            aria-label={`${selectedItem.label} project details`}
+            className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 lg:p-8"
           >
             {/* Backdrop click to close */}
             <div
@@ -340,7 +338,7 @@ export default function ProjectGallerySection() {
               {/* Sidebar Info */}
               <div className="w-full md:w-80 p-5 sm:p-6 md:p-8 flex flex-col justify-between bg-white border-t md:border-t-0 md:border-l border-gray-100 overflow-y-auto">
                 <div>
-                  <span className="text-[11px] uppercase tracking-[0.2em] text-brand-600 font-bold block mb-2">
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-[#C6A052] font-black block mb-2">
                     {selectedItem.category}
                   </span>
                   <h3 className="font-sans text-xl sm:text-2xl font-bold text-charcoal-900 mb-3">

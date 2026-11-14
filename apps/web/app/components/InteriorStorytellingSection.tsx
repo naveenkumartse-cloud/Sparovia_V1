@@ -78,7 +78,7 @@ function AlternatingStorytelling({ categories }: { categories: CategoryItem[] })
             <div className="w-full lg:w-2/5 flex flex-col justify-center px-1 sm:px-4 lg:px-0">
               <FadeIn direction={isEven ? "left" : "right"} delay={0.2}>
                 {/* Index Number */}
-                <span className="block text-[11px] uppercase tracking-[0.2em] text-brand-600 font-bold mb-3">
+                <span className="block text-[11px] uppercase tracking-[0.2em] text-[#C6A052] font-black mb-3">
                   {displayIndex}
                 </span>
 

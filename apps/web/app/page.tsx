@@ -1,7 +1,6 @@
 'use client';
 
 import { useWebsiteContent } from '@/components/providers/WebsiteContentProvider';
-import PublicWebsiteSkeleton from '@/components/ui/PublicWebsiteSkeleton';
 import PublicWebsiteError from '@/components/ui/PublicWebsiteError';
 import PublicWebsiteEmpty from '@/components/ui/PublicWebsiteEmpty';
 
@@ -19,12 +18,7 @@ import ContactSection from './components/ContactSection';
 import Footer from '@/components/layout/Footer';
 
 export default function Home() {
-  const { website, sections, isLoading, error, refresh } = useWebsiteContent();
-
-  // 1. Initial Loading State: Display branded skeleton matching the page layout
-  if (isLoading) {
-    return <PublicWebsiteSkeleton />;
-  }
+  const { website, sections, error, refresh } = useWebsiteContent();
 
   // 2. Error State: Display clean public error card with retry action
   if (error && !website && Object.keys(sections).length === 0) {

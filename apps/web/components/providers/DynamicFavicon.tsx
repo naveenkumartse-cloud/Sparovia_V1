@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useWebsiteContent } from './WebsiteContentProvider';
 
 function getFirstLetter(name?: string | null): string {
-  if (!name) return 'S';
+  if (!name) return 'K';
   const trimmed = name.trim();
   for (let i = 0; i < trimmed.length; i++) {
     const char = trimmed[i];
@@ -12,19 +12,19 @@ function getFirstLetter(name?: string | null): string {
       return char.toUpperCase();
     }
   }
-  return trimmed[0]?.toUpperCase() || 'S';
+  return trimmed[0]?.toUpperCase() || 'K';
 }
 
 function generateFaviconSvg(letter: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
-    <linearGradient id="clientGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#315FEA"/>
-      <stop offset="100%" stop-color="#7950B8"/>
+    <linearGradient id="kvnGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#102B50"/>
+      <stop offset="100%" stop-color="#0C2340"/>
     </linearGradient>
   </defs>
-  <rect width="100" height="100" rx="24" fill="url(#clientGrad)"/>
-  <text x="50" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="60" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="central">${letter}</text>
+  <rect width="100" height="100" rx="20" fill="url(#kvnGrad)" stroke="#C6A052" stroke-width="4"/>
+  <text x="50" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="56" font-weight="900" fill="#C6A052" text-anchor="middle" dominant-baseline="central">${letter}</text>
 </svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
@@ -41,7 +41,7 @@ function generateFaviconPng(letter: string): Promise<string> {
         return;
       }
 
-      const radius = 16;
+      const radius = 14;
       ctx.beginPath();
       ctx.moveTo(radius, 0);
       ctx.lineTo(64 - radius, 0);
@@ -54,14 +54,18 @@ function generateFaviconPng(letter: string): Promise<string> {
       ctx.quadraticCurveTo(0, 0, radius, 0);
       ctx.closePath();
 
-      const grad = ctx.createLinearGradient(0, 0, 64, 64);
-      grad.addColorStop(0, '#315FEA');
-      grad.addColorStop(1, '#7950B8');
-      ctx.fillStyle = grad;
+      // Deep Navy background
+      ctx.fillStyle = '#102B50';
       ctx.fill();
 
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 38px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      // Metallic Gold border
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#C6A052';
+      ctx.stroke();
+
+      // Gold letter
+      ctx.fillStyle = '#C6A052';
+      ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(letter, 32, 34);
@@ -79,12 +83,12 @@ export function DynamicFavicon() {
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
-    const letter = getFirstLetter(website?.name);
+    const letter = getFirstLetter(website?.name || 'KVN');
     const svgUrl = generateFaviconSvg(letter);
 
     // Update document title if client business name exists
     if (website?.name?.trim()) {
-      document.title = `${website.name.trim()} | Home Interiors & Architectural Systems`;
+      document.title = `${website.name.trim()} | Premium Home Interiors & uPVC Windows`;
     }
 
     generateFaviconPng(letter).then((pngUrl) => {

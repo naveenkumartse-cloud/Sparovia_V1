@@ -62,15 +62,15 @@ export default function FaqSection() {
                     className="w-full py-6 text-left flex items-center justify-between gap-6 group focus-ring rounded-lg cursor-pointer"
                   >
                     <span
-                      className={`font-sans font-semibold text-base sm:text-lg transition-colors duration-300 ${
-                        isOpen ? 'text-brand-600' : 'text-charcoal-900 group-hover:text-brand-600'
+                      className={`font-sans font-semibold text-base sm:text-lg transition-colors duration-200 ${
+                        isOpen ? 'text-[#102B50]' : 'text-charcoal-900 group-hover:text-[#102B50]'
                       }`}
                     >
                       {faq.question}
                     </span>
-                    <div className="w-8 h-8 rounded-[6px] bg-surface group-hover:bg-brand-50 flex items-center justify-center text-charcoal-700 group-hover:text-brand-600 shrink-0 transition-colors">
+                    <div className="w-8 h-8 rounded-[6px] bg-surface group-hover:bg-[#FAF7EE] flex items-center justify-center text-charcoal-700 group-hover:text-[#C6A052] shrink-0 transition-colors">
                       {isOpen ? (
-                        <Minus className="w-4 h-4 text-brand-600" />
+                        <Minus className="w-4 h-4 text-[#C6A052]" />
                       ) : (
                         <Plus className="w-4 h-4" />
                       )}

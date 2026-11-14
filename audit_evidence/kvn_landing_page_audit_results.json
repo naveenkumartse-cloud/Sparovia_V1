@@ -1,0 +1,165 @@
+{
+  "viewports": [
+    {
+      "viewport": "320px_narrow_mobile",
+      "width": 320,
+      "height": 640,
+      "overflow": {
+        "hasOverflow": false,
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "diff": 0
+      },
+      "screenshot": "kvn_landing_320px_narrow_mobile.png"
+    },
+    {
+      "viewport": "375px_mobile",
+      "width": 375,
+      "height": 667,
+      "overflow": {
+        "hasOverflow": false,
+        "scrollWidth": 375,
+        "clientWidth": 375,
+        "diff": 0
+      },
+      "screenshot": "kvn_landing_375px_mobile.png"
+    },
+    {
+      "viewport": "390px_modern_iphone",
+      "width": 390,
+      "height": 844,
+      "overflow": {
+        "hasOverflow": false,
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "diff": 0
+      },
+      "screenshot": "kvn_landing_390px_modern_iphone.png"
+    },
+    {
+      "viewport": "430px_large_mobile",
+      "width": 430,
+      "height": 932,
+      "overflow": {
+        "hasOverflow": false,
+        "scrollWidth": 430,
+        "clientWidth": 430,
+        "diff": 0
+      },
+      "screenshot": "kvn_landing_430px_large_mobile.png"
+    },
+    {
+      "viewport": "768px_tablet_portrait",
+      "width": 768,
+      "height": 1024,
+      "overflow": {
+        "hasOverflow": false,
+        "scrollWidth": 760,
+        "clientWidth": 760,
+        "diff": 0
+      },
+      "screenshot": "kvn_landing_768px_tablet_portrait.png"
+    },
+    {
+      "viewport": "1024px_laptop_small",
+      "width": 1024,
+      "height": 768,
+      "overflow": {
+        "hasOverflow": false,
+        "scrollWidth": 1016,
+        "clientWidth": 1016,
+        "diff": 0
+      },
+      "screenshot": "kvn_landing_1024px_laptop_small.png"
+    },
+    {
+      "viewport": "1280px_laptop",
+      "width": 1280,
+      "height": 800,
+      "overflow": {
+        "hasOverflow": false,
+        "scrollWidth": 1272,
+        "clientWidth": 1272,
+        "diff": 0
+      },
+      "screenshot": "kvn_landing_1280px_laptop.png"
+    },
+    {
+      "viewport": "1440px_desktop",
+      "width": 1440,
+      "height": 900,
+      "overflow": {
+        "hasOverflow": false,
+        "scrollWidth": 1432,
+        "clientWidth": 1432,
+        "diff": 0
+      },
+      "screenshot": "kvn_landing_1440px_desktop.png"
+    }
+  ],
+  "cwv": {
+    "ttfb": 20,
+    "domInteractive": 63,
+    "domContentLoaded": 64,
+    "loadComplete": 117,
+    "firstPaint": 136,
+    "firstContentfulPaint": 136,
+    "largestContentfulPaint": 136,
+    "cumulativeLayoutShift": 0
+  },
+  "skeletonCheck": {
+    "hasSkeletonMarkup": false,
+    "skeletonElementsCount": 0,
+    "heroPresent": true,
+    "heroHeadline": "Transform Your Space.",
+    "navbarPresent": true
+  },
+  "brandCheck": {
+    "logoFound": true,
+    "logoSrc": "http://localhost:3300/images/Logo.jpeg",
+    "logoNaturalDimensions": "640x640",
+    "footerLogoFound": true,
+    "hasKvnWordmark": true,
+    "primaryBtnBg": "rgba(0, 0, 0, 0)",
+    "primaryBtnColor": "rgb(51, 65, 85)"
+  },
+  "navCheck": {
+    "linksCount": 5,
+    "targetsExist": [
+      {
+        "name": "INTERIOR",
+        "href": "#interiors",
+        "targetExists": true
+      },
+      {
+        "name": "UPVC WINDOWS",
+        "href": "#upvc",
+        "targetExists": true
+      },
+      {
+        "name": "PROJECTS",
+        "href": "#gallery",
+        "targetExists": true
+      },
+      {
+        "name": "ABOUT",
+        "href": "#about",
+        "targetExists": true
+      },
+      {
+        "name": "CONTACT",
+        "href": "#contact",
+        "targetExists": true
+      }
+    ]
+  },
+  "formCheck": {
+    "found": true,
+    "validationErrorTriggered": null,
+    "nameValue": "Rajesh Kumar",
+    "phoneValue": "9876543210",
+    "messageValue": "Seeking consultation for 3BHK modular kitchen and acoustic uPVC casement windows.",
+    "readyToSubmit": true
+  },
+  "consoleErrors": []
+}

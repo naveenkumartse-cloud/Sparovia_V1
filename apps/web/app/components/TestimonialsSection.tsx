@@ -53,50 +53,52 @@ export default function TestimonialsSection() {
         </div>
 
         {/* Editorial Quote Presentation */}
-        <div className="relative bg-white rounded-panel p-5 sm:p-8 md:p-12 border border-gray-100 shadow-soft-sm">
-          <Quote className="w-10 h-10 text-brand-200 mb-6" />
+        <div className="relative bg-white rounded-panel p-6 sm:p-10 md:p-12 border border-[#E8DCC4] shadow-soft-sm">
+          <Quote className="w-10 h-10 text-[#C6A052]/50 mb-6" />
 
           <AnimatePresence mode="wait">
             <motion.div
               key={activeIndex}
-              initial={shouldReduceMotion ? {} : { opacity: 0, y: 10 }}
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={shouldReduceMotion ? {} : { opacity: 0, y: -10 }}
-              transition={{ duration: 0.4 }}
-              className="min-h-[140px] flex flex-col justify-between"
+              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
             >
-              <blockquote className="font-sans text-lg sm:text-xl font-medium text-charcoal-900 leading-relaxed italic mb-8">
-                &quot;{quoteText}&quot;
+              <blockquote className="font-sans text-lg sm:text-xl md:text-2xl font-medium text-charcoal-900 leading-snug mb-8">
+                &ldquo;{quoteText}&rdquo;
               </blockquote>
 
-              <div className="flex items-center justify-between border-t border-gray-100 pt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-gray-100 pt-6">
                 <div>
-                  <h3 className="font-sans text-base font-bold text-charcoal-900">
+                  <span className="block font-sans font-bold text-sm text-[#102B50]">
                     {authorName}
-                  </h3>
+                  </span>
                   {roleOrLocation && (
-                    <p className="text-xs text-brand-600 font-medium mt-0.5">
+                    <span className="block text-xs text-muted-500 font-medium">
                       {roleOrLocation}
-                    </p>
+                    </span>
                   )}
                 </div>
 
-                {/* Keyboard Accessible Prev/Next controls */}
+                {/* Carousel Controls */}
                 {testimonialsList.length > 1 && (
-                  <div className="flex items-center gap-2" role="group" aria-label="Testimonial controls">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={prevTestimonial}
-                      className="w-10 h-10 rounded-[6px] bg-surface hover:bg-brand-50 text-charcoal-700 hover:text-brand-600 border border-gray-200 flex items-center justify-center transition-colors focus-ring cursor-pointer shadow-xs"
+                      className="p-2 rounded-control bg-gray-50 hover:bg-[#FAF7EE] text-[#102B50] border border-gray-200 hover:border-[#C6A052] transition-colors focus-ring cursor-pointer"
                       aria-label="Previous testimonial"
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeft className="w-4 h-4" />
                     </button>
+                    <span className="text-xs text-charcoal-600 font-medium px-2">
+                      {activeIndex + 1} / {testimonialsList.length}
+                    </span>
                     <button
                       onClick={nextTestimonial}
-                      className="w-10 h-10 rounded-[6px] bg-surface hover:bg-brand-50 text-charcoal-700 hover:text-brand-600 border border-gray-200 flex items-center justify-center transition-colors focus-ring cursor-pointer shadow-xs"
+                      className="p-2 rounded-control bg-gray-50 hover:bg-[#FAF7EE] text-[#102B50] border border-gray-200 hover:border-[#C6A052] transition-colors focus-ring cursor-pointer"
                       aria-label="Next testimonial"
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
                 )}

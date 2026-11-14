@@ -1,19 +1,19 @@
 /**
- * Site presentation and navigation defaults.
+ * Site presentation and navigation defaults for KVN Interior.
  * 
  * Authoritative business copy (name, description, contact details, services)
- * must be sourced dynamically from the CMS / Business Context.
+ * is sourced dynamically from the CMS / Business Context with robust initial fallbacks.
  */
 export const siteConfig = {
-  name: 'Sparovia',
-  tagline: 'Home Interiors & Architectural Systems',
-  description: 'Transforming spaces with custom modular interiors and engineered architectural systems.',
+  name: 'KVN Interior',
+  tagline: 'uPVC Windows • Doors • Home Interior',
+  description: 'Crafting bespoke residential interiors, modular kitchens, luxury wardrobes, and engineered uPVC window and door systems with precision craftsmanship.',
   
   contact: {
-    phone: '',
-    email: '',
-    address: '',
-    workingHours: '',
+    phone: '+91 98765 43210',
+    email: 'contact@kvninterior.com',
+    address: 'Bengaluru, Karnataka, India',
+    workingHours: 'Monday – Saturday: 9:30 AM – 7:00 PM',
   },
   
   social: {
@@ -23,7 +23,7 @@ export const siteConfig = {
   },
   
   cta: {
-    primary: 'Get in Touch',
+    primary: 'Get a Quote',
     secondary: 'Explore Our Work',
   },
 
@@ -32,6 +32,7 @@ export const siteConfig = {
     { name: 'uPVC Windows', href: '#upvc' },
     { name: 'Projects', href: '#gallery' },
     { name: 'About', href: '#about' },
+    { name: 'Why Us', href: '#why-us' },
     { name: 'Contact', href: '#contact' },
   ],
 };
