@@ -246,7 +246,7 @@ export default function ContactSection() {
               </label>
               <span className="text-[11px] text-gray-500 font-medium">10-digit mobile</span>
             </div>
-            <div className="relative flex items-center rounded-[6px] border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#011E75] focus-within:border-[#011E75] shadow-xs">
+            <div className="relative flex items-center rounded-[6px] border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#0044A7] focus-within:border-[#0044A7] shadow-xs">
               <span className="inline-flex items-center px-3.5 py-3.5 bg-gray-100 text-charcoal-800 font-semibold text-xs sm:text-sm select-none border-r border-gray-300">
                 +91
               </span>
@@ -387,7 +387,7 @@ export default function ContactSection() {
 
               {/* Optional Public Notice / Advisory */}
               {hasNotice && (
-                <div className="p-4 rounded-[8px] bg-[#FAF8F2] border border-[#EBDEBA] text-[#011E75] text-xs sm:text-sm">
+                <div className="p-4 rounded-[8px] bg-[#FAF8F2] border border-[#EBDEBA] text-[#0044A7] text-xs sm:text-sm">
                   <div className="flex items-start gap-2.5">
                     <Info className="w-4 h-4 text-[#CE9E34] shrink-0 mt-0.5" />
                     <div className="space-y-1">

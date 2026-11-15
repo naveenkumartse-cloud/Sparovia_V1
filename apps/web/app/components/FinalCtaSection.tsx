@@ -18,37 +18,47 @@ export default function FinalCtaSection() {
   return (
     <Section background="white" padding="default" className="relative overflow-hidden">
       <Container>
-        <div className="relative rounded-panel overflow-hidden bg-gradient-to-br from-[#011E75] via-[#01185E] to-[#001247] text-white p-6 sm:p-10 lg:p-14 shadow-2xl border border-[#CE9E34]/40">
-          {/* Subtle Background Image Overlay */}
-          <div className="absolute inset-0 z-0 opacity-15">
+        <div className="relative rounded-panel overflow-hidden shadow-xl border border-gray-200/90 p-6 sm:p-10 lg:p-14">
+          {/* Natural Background Photograph — Zero Blue Filters, Zero Artificial Color Grading */}
+          <div className="absolute inset-0 z-0">
             <Image
               src={bgImage}
-              alt="Residential Project View"
+              alt="Architectural Building and Interior View"
               fill
-              sizes="100vw"
+              sizes="(max-width: 1280px) 100vw, 1280px"
               className="object-cover object-center"
+              quality={90}
             />
           </div>
+
+          {/* Subtle Neutral Dark Scrim — Preserves 100% of Natural Building Colors & Architectural Details while Ensuring Text Readability */}
+          <div className="absolute inset-0 z-[1] bg-black/40" />
 
           {/* Content */}
           <div className="relative z-10 max-w-2xl mx-auto text-center">
             <FadeIn direction="up">
               {brandEyebrow && (
-                <span className="text-[11px] uppercase tracking-[0.25em] text-[#CE9E34] font-black block mb-3">
+                <span className="text-[11px] uppercase tracking-[0.25em] text-[#CE9E34] font-black block mb-3 drop-shadow-sm">
                   {brandEyebrow}
                 </span>
               )}
 
-              <h2 className="font-sans text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white mb-3.5 sm:mb-4 uppercase leading-[1.1]">
-                {contact.heading || "LET'S CREATE YOUR SPACE."}
+              <h2 className="font-sans text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-3.5 sm:mb-4 uppercase leading-[1.15] drop-shadow-sm">
+                {contact.heading || "LET'S DISCUSS YOUR PROJECT"}
               </h2>
 
-              <p className="text-sm sm:text-base text-blue-100/90 font-normal leading-relaxed mb-6 sm:mb-8 max-w-lg mx-auto">
+              <p className="text-sm sm:text-base text-white/95 font-normal leading-relaxed mb-6 sm:mb-8 max-w-lg mx-auto drop-shadow-xs">
                 {contact.description || 'Schedule an initial consultation with our interior and window specialists to explore possibilities for your home.'}
               </p>
 
               <div className="flex justify-center">
-                <Button href="#contact" variant="primary" size="lg" icon className="bg-[#CE9E34] hover:bg-[#D4A328] text-[#011E75] font-bold border-none shadow-gold-glow transition-all hover:scale-[1.02]">
+                <Button
+                  href="#contact"
+                  variant="primary"
+                  size="lg"
+                  icon
+                  className="bg-[#0044A7] hover:bg-[#00388A] text-white font-bold border border-[#0044A7] hover:border-[#CE9E34] shadow-md transition-all hover:scale-[1.02]"
+                >
                   {ctaLabel}
                 </Button>
               </div>

@@ -61,7 +61,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
-      <body className="bg-white text-charcoal-900 antialiased selection:bg-gold-200 selection:text-[#011E75]">
+      <body className="bg-white text-charcoal-900 antialiased selection:bg-gold-200 selection:text-[#0044A7]">
         <SmoothScrollProvider>
           <WebsiteContentProvider>
             <DynamicFavicon />

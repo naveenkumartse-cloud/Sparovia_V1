@@ -184,8 +184,8 @@ export default function ProjectGallerySection() {
                     }}
                     className={`px-5 py-2.5 rounded-[6px] text-xs uppercase tracking-wider font-semibold transition-colors duration-200 focus-ring cursor-pointer shadow-xs ${
                       isActive
-                        ? 'bg-[#011E75] text-white border border-[#011E75]'
-                        : 'bg-white text-charcoal-700 hover:text-[#011E75] border border-gray-200/80 hover:border-[#CE9E34]'
+                        ? 'bg-[#0044A7] text-white border border-[#0044A7]'
+                        : 'bg-white text-charcoal-700 hover:text-[#0044A7] border border-gray-200/80 hover:border-[#CE9E34]'
                     }`}
                   >
                     {cat}
@@ -250,7 +250,7 @@ export default function ProjectGallerySection() {
 
                   {/* View Icon Button (Top Right) */}
                   <div className="absolute top-4 right-4 z-10 w-8 h-8 rounded-[6px] bg-white/90 backdrop-blur-md flex items-center justify-center text-charcoal-900 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 shadow-xs">
-                    <Maximize2 className="w-4 h-4 text-[#011E75]" />
+                    <Maximize2 className="w-4 h-4 text-[#0044A7]" />
                   </div>
 
                   {/* Content (Bottom Left) */}

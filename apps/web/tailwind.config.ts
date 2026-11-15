@@ -21,11 +21,11 @@ const config: Config = {
           300: '#92B0E9',
           400: '#5E8BDD',
           500: '#2B5EC7',
-          600: '#011E75', // Official KVN Royal Navy Blue
-          700: '#01185E',
-          800: '#011247',
-          900: '#000D33',
-          navy: '#011E75',
+          600: '#0044A7', // Official KVN Locked Primary Blue
+          700: '#00388A',
+          800: '#002D6E',
+          900: '#001D47',
+          navy: '#0044A7',
           gold: '#CE9E34',
           'gold-light': '#DFB95C',
           'gold-dark': '#A87D20',
@@ -50,10 +50,10 @@ const config: Config = {
           300: '#92B0E9',
           400: '#5E8BDD',
           500: '#2B5EC7',
-          600: '#011E75',
-          700: '#01185E',
-          800: '#011247',
-          900: '#000D33',
+          600: '#0044A7',
+          700: '#00388A',
+          800: '#002D6E',
+          900: '#001D47',
         },
         charcoal: {
           600: '#475569', // Supporting Text
@@ -83,11 +83,11 @@ const config: Config = {
         '30': '7.5rem',  // 120px
       },
       boxShadow: {
-        subtle: '0 1px 2px rgb(1 30 117 / 0.06)',
-        overlay: '0 12px 32px rgb(1 30 117 / 0.14)',
-        'soft-sm': '0 1px 3px rgba(1, 30, 117, 0.04), 0 1px 2px rgba(1, 30, 117, 0.02)',
-        'soft-md': '0 4px 16px -2px rgba(1, 30, 117, 0.06)',
-        'soft-lg': '0 12px 32px -4px rgba(1, 30, 117, 0.08)',
+        subtle: '0 1px 2px rgb(0 68 167 / 0.06)',
+        overlay: '0 12px 32px rgb(0 68 167 / 0.14)',
+        'soft-sm': '0 1px 3px rgba(0, 68, 167, 0.04), 0 1px 2px rgba(0, 68, 167, 0.02)',
+        'soft-md': '0 4px 16px -2px rgba(0, 68, 167, 0.06)',
+        'soft-lg': '0 12px 32px -4px rgba(0, 68, 167, 0.08)',
         'gold-glow': '0 0 20px -4px rgba(206, 158, 52, 0.35)',
       },
     },

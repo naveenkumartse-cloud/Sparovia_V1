@@ -19,8 +19,8 @@ function generateFaviconSvg(letter: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
     <linearGradient id="kvnGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#011E75"/>
-      <stop offset="100%" stop-color="#011247"/>
+      <stop offset="0%" stop-color="#0044A7"/>
+      <stop offset="100%" stop-color="#002D6E"/>
     </linearGradient>
   </defs>
   <rect width="100" height="100" rx="20" fill="url(#kvnGrad)" stroke="#CE9E34" stroke-width="4"/>
@@ -55,7 +55,7 @@ function generateFaviconPng(letter: string): Promise<string> {
       ctx.closePath();
 
       // Royal Navy Blue background
-      ctx.fillStyle = '#011E75';
+      ctx.fillStyle = '#0044A7';
       ctx.fill();
 
       // Metallic Gold border

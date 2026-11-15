@@ -70,7 +70,7 @@ export default function TestimonialsSection() {
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-gray-100 pt-4 sm:pt-5">
                 <div>
-                  <span className="block font-sans font-bold text-sm text-[#011E75]">
+                  <span className="block font-sans font-bold text-sm text-[#0044A7]">
                     {authorName}
                   </span>
                   {roleOrLocation && (
@@ -85,7 +85,7 @@ export default function TestimonialsSection() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={prevTestimonial}
-                      className="p-2 rounded-control bg-gray-50 hover:bg-[#FAF8F2] text-[#011E75] border border-gray-200 hover:border-[#CE9E34] transition-colors focus-ring cursor-pointer"
+                      className="p-2 rounded-control bg-gray-50 hover:bg-[#FAF8F2] text-[#0044A7] border border-gray-200 hover:border-[#CE9E34] transition-colors focus-ring cursor-pointer"
                       aria-label="Previous testimonial"
                     >
                       <ChevronLeft className="w-4 h-4" />
@@ -95,7 +95,7 @@ export default function TestimonialsSection() {
                     </span>
                     <button
                       onClick={nextTestimonial}
-                      className="p-2 rounded-control bg-gray-50 hover:bg-[#FAF8F2] text-[#011E75] border border-gray-200 hover:border-[#CE9E34] transition-colors focus-ring cursor-pointer"
+                      className="p-2 rounded-control bg-gray-50 hover:bg-[#FAF8F2] text-[#0044A7] border border-gray-200 hover:border-[#CE9E34] transition-colors focus-ring cursor-pointer"
                       aria-label="Next testimonial"
                     >
                       <ChevronRight className="w-4 h-4" />

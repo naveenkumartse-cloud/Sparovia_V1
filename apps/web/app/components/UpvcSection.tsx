@@ -140,7 +140,7 @@ function InstallationCarousel() {
             disabled={!canScrollLeft}
             aria-label="Previous installations"
             aria-controls="installation-carousel-track"
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#011E75] text-white flex items-center justify-center border border-[#CE9E34]/40 shadow-sm transition-all duration-200 hover:bg-[#022899] hover:border-[#CE9E34] hover:shadow-[0_0_12px_rgba(206,158,52,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CE9E34] focus-visible:ring-offset-2 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-[#011E75] disabled:hover:border-[#CE9E34]/40 disabled:hover:shadow-none disabled:active:scale-100 cursor-pointer"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#0044A7] text-white flex items-center justify-center border border-[#CE9E34]/40 shadow-sm transition-all duration-200 hover:bg-[#00388A] hover:border-[#CE9E34] hover:shadow-[0_0_12px_rgba(206,158,52,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CE9E34] focus-visible:ring-offset-2 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-[#0044A7] disabled:hover:border-[#CE9E34]/40 disabled:hover:shadow-none disabled:active:scale-100 cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
           </button>
@@ -150,7 +150,7 @@ function InstallationCarousel() {
             disabled={!canScrollRight}
             aria-label="Next installations"
             aria-controls="installation-carousel-track"
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#011E75] text-white flex items-center justify-center border border-[#CE9E34]/40 shadow-sm transition-all duration-200 hover:bg-[#022899] hover:border-[#CE9E34] hover:shadow-[0_0_12px_rgba(206,158,52,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CE9E34] focus-visible:ring-offset-2 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-[#011E75] disabled:hover:border-[#CE9E34]/40 disabled:hover:shadow-none disabled:active:scale-100 cursor-pointer"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#0044A7] text-white flex items-center justify-center border border-[#CE9E34]/40 shadow-sm transition-all duration-200 hover:bg-[#00388A] hover:border-[#CE9E34] hover:shadow-[0_0_12px_rgba(206,158,52,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CE9E34] focus-visible:ring-offset-2 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-[#0044A7] disabled:hover:border-[#CE9E34]/40 disabled:hover:shadow-none disabled:active:scale-100 cursor-pointer"
           >
             <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
           </button>
@@ -164,7 +164,7 @@ function InstallationCarousel() {
         role="region"
         aria-label="Window and Door Installations Carousel"
         tabIndex={0}
-        className="flex gap-4 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#011E75] rounded-xl scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="flex gap-4 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0044A7] rounded-xl scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {upvcGallery.map((item, i) => (
