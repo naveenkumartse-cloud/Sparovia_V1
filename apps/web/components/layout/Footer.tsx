@@ -18,9 +18,9 @@ export default function Footer() {
   const hasFacebook = Boolean(social?.facebookEnabled && social?.facebookUrl);
   const hasInstagram = Boolean(social?.instagramEnabled && social?.instagramUrl);
 
-  const phone = contact?.phone || '+91 98765 43210';
-  const email = contact?.email || 'contact@kvninterior.com';
-  const address = contact?.address || 'Bengaluru, Karnataka, India';
+  const phone = contact?.phone;
+  const email = contact?.email;
+  const address = contact?.address;
 
   return (
     <footer className="bg-[#0A192F] text-white pt-16 pb-10 relative border-t border-[#132A4A]" role="contentinfo">
@@ -40,7 +40,7 @@ export default function Footer() {
             </div>
 
             <p className="text-xs text-gray-300 font-normal leading-relaxed max-w-sm pt-1">
-              {footer.shortDescription || 'Crafting bespoke residential interiors, modular casework, and architectural uPVC window and door systems with precision craftsmanship.'}
+              {footer.shortDescription || (website?.name ? `Official website for ${website.name}.` : '')}
             </p>
 
             {/* Quick Contact Line */}

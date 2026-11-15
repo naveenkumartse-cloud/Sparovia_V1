@@ -5,6 +5,7 @@ import { AlertCircle, RefreshCw } from 'lucide-react';
 
 interface PublicWebsiteErrorProps {
   onRetry: () => Promise<void> | void;
+  error?: string | null;
 }
 
 /**
@@ -14,7 +15,7 @@ interface PublicWebsiteErrorProps {
  * Never leaks internal endpoints, server errors, or stack traces.
  * Offers a simple, clear retry button.
  */
-export default function PublicWebsiteError({ onRetry }: PublicWebsiteErrorProps) {
+export default function PublicWebsiteError({ onRetry, error }: PublicWebsiteErrorProps) {
   const [retrying, setRetrying] = useState(false);
 
   const handleRetry = async () => {

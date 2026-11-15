@@ -18,20 +18,21 @@ import ContactSection from './components/ContactSection';
 import Footer from '@/components/layout/Footer';
 
 export default function Home() {
-  const { website, sections, error, refresh } = useWebsiteContent();
+  const { website, sections, error, refresh, isLoading } = useWebsiteContent();
 
-  // 2. Error State: Display clean public error card with retry action
-  if (error && !website && Object.keys(sections).length === 0) {
-    return <PublicWebsiteError onRetry={refresh} />;
+  const hasPublishedSections = Object.keys(sections).length > 0;
+
+  // 1. Error State: Display clean public error card with retry action
+  if (error && !website && !hasPublishedSections) {
+    return <PublicWebsiteError onRetry={refresh} error={error} />;
   }
 
-  // 3. No Published Content State: Display intentional clean empty/setup state
-  const hasPublishedSections = Object.keys(sections).length > 0;
-  if (!hasPublishedSections && !website) {
+  // 2. No Published Content State: Display intentional clean empty/setup state once loaded
+  if (!isLoading && !hasPublishedSections && !website) {
     return <PublicWebsiteEmpty />;
   }
 
-  if (website && !hasPublishedSections) {
+  if (!isLoading && website && !hasPublishedSections) {
     return <PublicWebsiteEmpty businessName={website.name} />;
   }
 

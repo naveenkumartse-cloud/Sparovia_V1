@@ -90,7 +90,13 @@ export default function ContactSection() {
     const timeoutId = setTimeout(() => abortController.abort(), 20000);
 
     try {
-      let apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5043/api/v1';
+      let apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+      if (!apiUrl && typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        apiUrl = 'https://sparovia-api.onrender.com/api/v1';
+      }
+      if (!apiUrl) {
+        apiUrl = 'http://localhost:5043/api/v1';
+      }
       apiUrl = apiUrl.replace(/\/+$/, '');
       if (!apiUrl.endsWith('/api/v1')) {
         apiUrl = `${apiUrl}/api/v1`;

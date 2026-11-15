@@ -26,7 +26,11 @@ export default function ProjectGallerySection() {
   // Support dynamic items from CMS if provided, or fallback to mediaConfig.gallery
   const rawGalleryItems: MediaItem[] = useMemo(() => {
     if (Array.isArray(ourWork.items) && ourWork.items.length > 0) {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/v1\/?$/, '') || 'http://localhost:5043';
+      const apiBase = process.env.NEXT_PUBLIC_API_URL 
+        || process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/v1\/?$/, '') 
+        || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' 
+            ? 'https://sparovia-api.onrender.com' 
+            : 'http://localhost:5043');
       return ourWork.items.map((item: any, idx: number) => {
         let src = item.image || item.src || '';
         if (src.startsWith('/api/')) {

@@ -493,6 +493,7 @@ public partial class Program
                 Password = password,
                 SslMode = Npgsql.SslMode.Require
             };
+            npgsqlBuilder["Trust Server Certificate"] = true;
 
             return npgsqlBuilder.ConnectionString;
         }

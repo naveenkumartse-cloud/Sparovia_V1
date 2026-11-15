@@ -66,8 +66,87 @@ function startStaticServer() {
   });
 }
 
+// Local mock API server for published content during audit
+function startMockApiServer() {
+  const apiServer = http.createServer((req, res) => {
+    console.log('[Mock API Request]', req.method, req.url);
+    const origin = req.headers.origin || 'http://localhost:3300';
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
+    if (req.url.startsWith('/api/v1/website/published-content')) {
+      const data = {
+        website: {
+          id: 'kvn-interior-id',
+          name: 'KVN Interior',
+          domain: 'kvninterior.com',
+          connectionStatus: 'Connected',
+          templateId: 'kvn-interiors-v1'
+        },
+        sections: {
+          hero: {
+            headline: 'Bespoke Luxury Interiors & Precision uPVC Architecture',
+            eyebrow: 'KVN Interior — Engineering Luxury Living',
+            subheadline: 'Architectural interior craftsmanship and engineered German uPVC window & door systems designed for enduring beauty and high performance.',
+            primaryCta: 'Get a Quote',
+            secondaryCta: 'Explore Our Work'
+          },
+          about: {
+            badge: 'About KVN Interior',
+            title: 'Architectural Craftsmanship Meets Engineering Precision',
+            description: 'At KVN Interior, we merge bespoke interior architecture with precision German-engineered uPVC window and door systems.',
+            pillars: ['Bespoke Interior Craftsmanship', 'Engineered uPVC Architecture', 'Turnkey Project Execution']
+          },
+          services: {
+            eyebrow: 'Our Capabilities',
+            heading: 'Comprehensive Interior Design & uPVC Systems',
+            description: 'From custom modular kitchens to acoustic uPVC profiles, we deliver excellence.',
+            categories: [
+              { name: 'Modular Kitchens & Living', tagline: 'Italian & German ergonomic finishes', description: 'Custom cabinetry and living units.' },
+              { name: 'uPVC Windows & Doors', tagline: 'Multi-chambered acoustic profiles', description: 'High-durability uPVC solutions.' }
+            ]
+          },
+          contact: {
+            phone: '+91 98765 43210',
+            email: 'contact@kvninterior.com',
+            address: 'KVN Interior Studio, Prime Boulevard, City'
+          }
+        }
+      };
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(data));
+      return;
+    }
+
+    if (req.url.startsWith('/api/v1/leads/public')) {
+      res.writeHead(201, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, leadId: 'audit-test-lead-1' }));
+      return;
+    }
+
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Not found' }));
+  });
+
+  return new Promise((resolve) => {
+    apiServer.listen(5043, () => {
+      console.log('[Mock API] Serving published content on http://localhost:5043');
+      resolve(apiServer);
+    });
+  });
+}
+
 async function runAudit() {
   const server = await startStaticServer();
+  const apiServer = await startMockApiServer();
   const client = new BrowserAuditClient(9222);
 
   const results = {
@@ -287,6 +366,7 @@ async function runAudit() {
   } finally {
     await client.close();
     server.close();
+    apiServer.close();
     console.log('[Audit] Server and Chrome closed.');
   }
 }

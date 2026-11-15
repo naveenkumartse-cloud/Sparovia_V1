@@ -251,7 +251,11 @@ export function adaptTemplateContent(
   const brandName = website?.name || '';
   const currentYear = new Date().getFullYear();
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/v1\/?$/, '') || 'http://localhost:5043';
+  const apiBase = process.env.NEXT_PUBLIC_API_URL 
+    || process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/v1\/?$/, '') 
+    || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' 
+        ? 'https://sparovia-api.onrender.com' 
+        : 'http://localhost:5043');
   const resolveImageUrl = (src?: string | null): string | undefined => {
     if (!src) return undefined;
     if (src.startsWith('/api/')) {
@@ -570,34 +574,32 @@ export function adaptTemplateContent(
  * Context & Provider Implementation
  * ──────────────────────────────────────────────────────────────── */
 
-export const DEFAULT_WEBSITE: WebsiteDto = {
-  id: 'kvn-interior-default',
-  name: 'KVN Interior',
-  domain: 'kvninterior.com',
-  connectionStatus: 'Connected',
-  templateId: 'kvn-interiors-v1',
-};
-
-const initialAdaptedContent = adaptTemplateContent(contentConfig, DEFAULT_WEBSITE, false, null, async () => {});
+const emptyAdaptedContent = adaptTemplateContent({}, null, true, null, async () => {});
 
 const WebsiteContentContext = createContext<WebsiteContentContextType>({
-  website: DEFAULT_WEBSITE,
-  sections: contentConfig,
-  isLoading: false,
+  website: null,
+  sections: {},
+  isLoading: true,
   error: null,
   refresh: async () => {},
   getSection: <T extends unknown>(_sectionKey: string, fallback?: T) => (fallback as T),
-  templateContent: initialAdaptedContent,
+  templateContent: emptyAdaptedContent,
 });
 
 export function WebsiteContentProvider({ children }: { children: React.ReactNode }) {
-  const [website, setWebsite] = useState<WebsiteDto | null>(DEFAULT_WEBSITE);
-  const [sections, setSections] = useState<Record<string, any>>(contentConfig);
-  const [isLoading, setIsLoading] = useState(false);
+  const [website, setWebsite] = useState<WebsiteDto | null>(null);
+  const [sections, setSections] = useState<Record<string, any>>({});
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const apiUrl = useMemo(() => {
-    let url = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5043/api/v1';
+    let url = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!url && typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      url = 'https://sparovia-api.onrender.com/api/v1';
+    }
+    if (!url) {
+      url = 'http://localhost:5043/api/v1';
+    }
     url = url.replace(/\/+$/, '');
     if (!url.endsWith('/api/v1')) {
       url = `${url}/api/v1`;
@@ -634,7 +636,7 @@ export function WebsiteContentProvider({ children }: { children: React.ReactNode
       } else {
         const errText = await res.text().catch(() => '');
         console.warn(`[Sparovia CMS] Failed to load published content (${res.status}): ${errText}`);
-        setError(`HTTP ${res.status}`);
+        setError(`HTTP ${res.status}: Failed to load published content`);
       }
     } catch (err: any) {
       console.warn('[Sparovia CMS] Network or fetch error while loading published content:', err);

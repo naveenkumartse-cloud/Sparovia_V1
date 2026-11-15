@@ -1,19 +1,19 @@
 /**
- * Site presentation and navigation defaults for KVN Interior.
+ * Site presentation and navigation defaults.
  * 
  * Authoritative business copy (name, description, contact details, services)
- * is sourced dynamically from the CMS / Business Context with robust initial fallbacks.
+ * must be sourced dynamically from the CMS / Business Context.
  */
 export const siteConfig = {
   name: 'KVN Interior',
   tagline: 'uPVC Windows • Doors • Home Interior',
-  description: 'Crafting bespoke residential interiors, modular kitchens, luxury wardrobes, and engineered uPVC window and door systems with precision craftsmanship.',
+  description: '',
   
   contact: {
-    phone: '+91 98765 43210',
-    email: 'contact@kvninterior.com',
-    address: 'Bengaluru, Karnataka, India',
-    workingHours: 'Monday – Saturday: 9:30 AM – 7:00 PM',
+    phone: '',
+    email: '',
+    address: '',
+    workingHours: '',
   },
   
   social: {
