@@ -324,3 +324,224 @@ html.dark body {
     }
   }
 }
+
+/* =========================================================================
+   SPAROVIA LOGO LOADER 7-STAGE ANIMATION SYSTEM
+   Based on Storyboard Specification: 09-logo-skeleton-loader-sequence.png
+   Stages:
+   1. Outline (Initial)
+   2. Light Start (Top)
+   3. Tracing Path
+   4. Half Complete
+   5. Almost Complete
+   6. Full Glow Moments
+   7. Loop (Back to Outline)
+   ========================================================================= */
+
+@keyframes sparoviaOutlineLoop {
+  0%, 14% {
+    opacity: 0.85;
+  }
+  28% {
+    opacity: 0.8;
+  }
+  46% {
+    opacity: 0.65;
+  }
+  64% {
+    opacity: 0.45;
+  }
+  78%, 88% {
+    opacity: 0.2;
+  }
+  96%, 100% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes sparoviaTraceD0Loop {
+  0%, 10% {
+    stroke-dashoffset: 2100;
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+    stroke-dashoffset: 1850;
+  }
+  36% {
+    stroke-dashoffset: 1250;
+    opacity: 1;
+  }
+  54% {
+    stroke-dashoffset: 600;
+    opacity: 1;
+  }
+  72% {
+    stroke-dashoffset: 100;
+    opacity: 0.9;
+  }
+  82%, 88% {
+    stroke-dashoffset: 0;
+    opacity: 0.7;
+  }
+  94%, 100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes sparoviaTraceD1Loop {
+  0%, 26% {
+    stroke-dashoffset: 1300;
+    opacity: 0;
+  }
+  36% {
+    opacity: 0.5;
+    stroke-dashoffset: 1200;
+  }
+  54% {
+    opacity: 0.9;
+    stroke-dashoffset: 750;
+  }
+  72% {
+    opacity: 1;
+    stroke-dashoffset: 200;
+  }
+  82%, 88% {
+    stroke-dashoffset: 0;
+    opacity: 0.7;
+  }
+  94%, 100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes sparoviaFillLoop {
+  0%, 12% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    filter: none;
+  }
+  22% {
+    opacity: 0.3;
+    clip-path: inset(0 0 80% 0);
+    filter: none;
+  }
+  40% {
+    opacity: 0.6;
+    clip-path: inset(0 0 55% 0);
+    filter: none;
+  }
+  58% {
+    opacity: 0.85;
+    clip-path: inset(0 0 35% 0);
+    filter: drop-shadow(0 0 6px rgba(121, 80, 184, 0.4));
+  }
+  72% {
+    opacity: 0.95;
+    clip-path: inset(0 0 10% 0);
+    filter: drop-shadow(0 0 10px rgba(49, 95, 234, 0.5)) drop-shadow(0 0 16px rgba(168, 85, 247, 0.5));
+  }
+  80%, 87% {
+    /* Stage 6: Full Glow Moments */
+    opacity: 1;
+    clip-path: inset(0 0 0% 0);
+    filter: drop-shadow(0 0 16px rgba(0, 229, 255, 0.75)) drop-shadow(0 0 28px rgba(168, 85, 247, 0.7));
+  }
+  93% {
+    opacity: 0.35;
+    clip-path: inset(0 0 0% 0);
+    filter: drop-shadow(0 0 8px rgba(49, 95, 234, 0.25));
+  }
+  98%, 100% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    filter: none;
+  }
+}
+
+@keyframes sparoviaAuraLoop {
+  0%, 15% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  45% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+  70% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+  80%, 87% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  95%, 100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+.sparovia-loader-active .sparovia-loader-outline {
+  animation: sparoviaOutlineLoop 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.sparovia-loader-active .sparovia-trace-d0 {
+  animation: sparoviaTraceD0Loop 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.sparovia-loader-active .sparovia-trace-d1 {
+  animation: sparoviaTraceD1Loop 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.sparovia-loader-active .sparovia-loader-fill {
+  animation: sparoviaFillLoop 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.sparovia-loader-active .sparovia-loader-aura {
+  animation: sparoviaAuraLoop 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Reduced Motion Fallback */
+.sparovia-loader-reduced .sparovia-loader-outline {
+  opacity: 0.25;
+}
+
+.sparovia-loader-reduced .sparovia-loader-fill {
+  opacity: 1;
+  clip-path: none;
+  filter: none;
+}
+
+.sparovia-loader-reduced .sparovia-loader-trace,
+.sparovia-loader-reduced .sparovia-loader-aura {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sparovia-loader-active .sparovia-loader-outline,
+  .sparovia-loader-active .sparovia-trace-d0,
+  .sparovia-loader-active .sparovia-trace-d1,
+  .sparovia-loader-active .sparovia-loader-fill,
+  .sparovia-loader-active .sparovia-loader-aura {
+    animation: none !important;
+  }
+
+  .sparovia-loader-active .sparovia-loader-outline {
+    opacity: 0.25 !important;
+  }
+
+  .sparovia-loader-active .sparovia-loader-fill {
+    opacity: 1 !important;
+    clip-path: none !important;
+    filter: none !important;
+  }
+
+  .sparovia-loader-active .sparovia-loader-trace,
+  .sparovia-loader-active .sparovia-loader-aura {
+    display: none !important;
+  }
+}
+

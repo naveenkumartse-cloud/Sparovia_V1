@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sparovia Logo Loader Animation - 7-Stage Sequence</title>
+  <style>
+    :root {
+      --sparovia-cyan: #00E5FF;
+      --sparovia-blue: #315FEA;
+      --sparovia-violet: #7950B8;
+      --sparovia-magenta: #D946EF;
+      --sparovia-outline-light: #BAC4F9;
+      --sparovia-outline-dark: #608FFE;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0B1220;
+      color: #F8FAFC;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 36px;
+    }
+
+    .light-theme {
+      background: #F8FAFC;
+      color: #0F172A;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+    }
+
+    .light-theme h1 {
+      color: #0F172A;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #94A3B8;
+      margin-top: 4px;
+    }
+
+    /* Container for storyboard sequence comparison */
+    .sequence-board {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 1200px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 24px 16px;
+    }
+
+    .light-theme .sequence-board {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .stage-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+      position: relative;
+    }
+
+    .stage-card:not(:last-child)::after {
+      content: '→';
+      position: absolute;
+      right: -12px;
+      top: 45px;
+      font-size: 14px;
+      color: #475569;
+    }
+
+    .stage-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94A3B8;
+      line-height: 1.3;
+      min-height: 30px;
+    }
+
+    .light-theme .stage-title {
+      color: #475569;
+    }
+
+    .svg-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 110px;
+      height: 115px;
+    }
+
+    .loader-svg {
+      width: 90px;
+      height: 94px;
+      overflow: visible;
+    }
+
+    /* Base outline */
+    .outline-path {
+      fill: none;
+      stroke: var(--sparovia-outline-dark);
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.75;
+      transition: opacity 0.3s ease;
+    }
+
+    .light-theme .outline-path {
+      stroke: var(--sparovia-outline-light);
+      opacity: 0.9;
+    }
+
+    /* Trace path */
+    .trace-path-0 {
+      fill: none;
+      stroke: url(#traceGradD0);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 2100;
+    }
+
+    .trace-path-1 {
+      fill: none;
+      stroke: url(#traceGradD1);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1300;
+    }
+
+    /* Fill layer */
+    .fill-group {
+      transition: opacity 0.3s ease;
+    }
+
+    .ambient-glow {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, rgba(0, 229, 255, 0.2) 50%, transparent 70%);
+      filter: blur(16px);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    /* --- STATIC STAGE DEFINITIONS (FOR STEP-BY-STEP VERIFICATION) --- */
+    
+    /* Stage 1: Outline (Initial) */
+    .stage-1 .outline-path { opacity: 0.85; stroke-width: 2.2; }
+    .stage-1 .fill-group { opacity: 0; clip-path: inset(0 0 100% 0); }
+    .stage-1 .trace-path-0 { opacity: 0; stroke-dashoffset: 2100; }
+    .stage-1 .trace-path-1 { opacity: 0; stroke-dashoffset: 1300; }
+    .stage-1 .ambient-glow { opacity: 0; }
+
+    /* Stage 2: Light Start (Top) */
+    .stage-2 .outline-path { opacity: 0.8; }
+    .stage-2 .fill-group { opacity: 0.25; clip-path: inset(0 0 82% 0); }
+    .stage-2 .trace-path-0 { opacity: 1; stroke-dashoffset: 1850; filter: drop-shadow(0 0 6px var(--sparovia-cyan)); }
+    .stage-2 .trace-path-1 { opacity: 0; stroke-dashoffset: 1300; }
+    .stage-2 .ambient-glow { opacity: 0.15; transform: scale(0.7); }
+
+    /* Stage 3: Tracing Path */
+    .stage-3 .outline-path { opacity: 0.7; }
+    .stage-3 .fill-group { opacity: 0.55; clip-path: inset(0 0 58% 0); }
+    .stage-3 .trace-path-0 { opacity: 1; stroke-dashoffset: 1250; filter: drop-shadow(0 0 8px var(--sparovia-cyan)) drop-shadow(0 0 12px var(--sparovia-blue)); }
+    .stage-3 .trace-path-1 { opacity: 0.4; stroke-dashoffset: 1200; }
+    .stage-3 .ambient-glow { opacity: 0.35; transform: scale(0.85); }
+
+    /* Stage 4: Half Complete */
+    .stage-4 .outline-path { opacity: 0.5; }
+    .stage-4 .fill-group { opacity: 0.8; clip-path: inset(0 0 38% 0); }
+    .stage-4 .trace-path-0 { opacity: 1; stroke-dashoffset: 600; filter: drop-shadow(0 0 8px var(--sparovia-blue)); }
+    .stage-4 .trace-path-1 { opacity: 0.9; stroke-dashoffset: 750; filter: drop-shadow(0 0 8px var(--sparovia-violet)); }
+    .stage-4 .ambient-glow { opacity: 0.6; transform: scale(0.95); }
+
+    /* Stage 5: Almost Complete */
+    .stage-5 .outline-path { opacity: 0.35; }
+    .stage-5 .fill-group { opacity: 0.92; clip-path: inset(0 0 12% 0); }
+    .stage-5 .trace-path-0 { opacity: 0.9; stroke-dashoffset: 100; filter: drop-shadow(0 0 8px var(--sparovia-cyan)); }
+    .stage-5 .trace-path-1 { opacity: 1; stroke-dashoffset: 200; filter: drop-shadow(0 0 10px var(--sparovia-magenta)); }
+    .stage-5 .ambient-glow { opacity: 0.8; transform: scale(1.02); }
+
+    /* Stage 6: Full Glow Moments */
+    .stage-6 .outline-path { opacity: 0.2; }
+    .stage-6 .fill-group {
+      opacity: 1;
+      clip-path: inset(0 0 0% 0);
+      filter: drop-shadow(0 0 16px rgba(0, 229, 255, 0.75)) drop-shadow(0 0 28px rgba(168, 85, 247, 0.7));
+    }
+    .stage-6 .trace-path-0 { opacity: 0.7; stroke-dashoffset: 0; }
+    .stage-6 .trace-path-1 { opacity: 0.7; stroke-dashoffset: 0; }
+    .stage-6 .ambient-glow { opacity: 1; transform: scale(1.15); filter: blur(22px); }
+
+    /* Stage 7: Loop (Back to Outline) */
+    .stage-7 .outline-path { opacity: 0.75; }
+    .stage-7 .fill-group { opacity: 0.2; clip-path: inset(0 0 0% 0); }
+    .stage-7 .trace-path-0 { opacity: 0.2; stroke-dashoffset: 0; }
+    .stage-7 .trace-path-1 { opacity: 0.2; stroke-dashoffset: 0; }
+    .stage-7 .ambient-glow { opacity: 0.15; transform: scale(0.9); }
+
+    /* --- CONTINUOUS LIVE ANIMATION KEYFRAMES --- */
+    @keyframes liveOutline {
+      0%, 14% { opacity: 0.85; }
+      28% { opacity: 0.8; }
+      46% { opacity: 0.65; }
+      64% { opacity: 0.45; }
+      78%, 88% { opacity: 0.2; }
+      96%, 100% { opacity: 0.85; }
+    }
+
+    @keyframes liveTraceD0 {
+      0%, 10% {
+        stroke-dashoffset: 2100;
+        opacity: 0;
+      }
+      18% {
+        opacity: 1;
+        stroke-dashoffset: 1850;
+      }
+      36% {
+        stroke-dashoffset: 1250;
+        opacity: 1;
+      }
+      54% {
+        stroke-dashoffset: 600;
+        opacity: 1;
+      }
+      72% {
+        stroke-dashoffset: 100;
+        opacity: 0.9;
+      }
+      82%, 88% {
+        stroke-dashoffset: 0;
+        opacity: 0.7;
+      }
+      94%, 100% {
+        stroke-dashoffset: 0;
+        opacity: 0;
+      }
+    }
+
+    @keyframes liveTraceD1 {
+      0%, 26% {
+        stroke-dashoffset: 1300;
+        opacity: 0;
+      }
+      36% {
+        opacity: 0.5;
+        stroke-dashoffset: 1200;
+      }
+      54% {
+        opacity: 0.9;
+        stroke-dashoffset: 750;
+      }
+      72% {
+        opacity: 1;
+        stroke-dashoffset: 200;
+      }
+      82%, 88% {
+        stroke-dashoffset: 0;
+        opacity: 0.7;
+      }
+      94%, 100% {
+        stroke-dashoffset: 0;
+        opacity: 0;
+      }
+    }
+
+    @keyframes liveFill {
+      0%, 12% {
+        opacity: 0;
+        clip-path: inset(0 0 100% 0);
+        filter: none;
+      }
+      22% {
+        opacity: 0.3;
+        clip-path: inset(0 0 80% 0);
+        filter: none;
+      }
+      40% {
+        opacity: 0.6;
+        clip-path: inset(0 0 55% 0);
+        filter: none;
+      }
+      58% {
+        opacity: 0.85;
+        clip-path: inset(0 0 35% 0);
+        filter: drop-shadow(0 0 6px rgba(121, 80, 184, 0.4));
+      }
+      72% {
+        opacity: 0.95;
+        clip-path: inset(0 0 10% 0);
+        filter: drop-shadow(0 0 10px rgba(49, 95, 234, 0.5)) drop-shadow(0 0 16px rgba(168, 85, 247, 0.5));
+      }
+      80%, 87% {
+        /* Stage 6: Full Glow Moment */
+        opacity: 1;
+        clip-path: inset(0 0 0% 0);
+        filter: drop-shadow(0 0 16px rgba(0, 229, 255, 0.75)) drop-shadow(0 0 28px rgba(168, 85, 247, 0.7));
+      }
+      93% {
+        opacity: 0.35;
+        clip-path: inset(0 0 0% 0);
+        filter: drop-shadow(0 0 8px rgba(49, 95, 234, 0.25));
+      }
+      98%, 100% {
+        opacity: 0;
+        clip-path: inset(0 0 100% 0);
+        filter: none;
+      }
+    }
+
+    @keyframes liveAura {
+      0%, 15% {
+        opacity: 0;
+        transform: scale(0.7);
+      }
+      45% {
+        opacity: 0.4;
+        transform: scale(0.9);
+      }
+      70% {
+        opacity: 0.7;
+        transform: scale(1.05);
+      }
+      80%, 87% {
+        opacity: 1;
+        transform: scale(1.15);
+      }
+      95%, 100% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+    }
+
+    /* Live animation classes */
+    .live-animated .outline-path {
+      animation: liveOutline 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .live-animated .trace-path-0 {
+      animation: liveTraceD0 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .live-animated .trace-path-1 {
+      animation: liveTraceD1 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .live-animated .fill-group {
+      animation: liveFill 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .live-animated .ambient-glow {
+      animation: liveAura 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    /* Live preview showcase cards */
+    .preview-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .showcase-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      min-height: 240px;
+    }
+
+    .light-theme .showcase-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <h1>Sparovia — Premium Animated Logo Loader System</h1>
+    <p class="subtitle">Visual Storyboard Verification: Stages 1 through 7 (Matching 09-logo-skeleton-loader-sequence.png)</p>
+  </div>
+
+  <!-- Shared SVG Definitions Template -->
+  <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
+    <defs>
+      <linearGradient id="traceGradD0" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00E5FF" />
+        <stop offset="50%" stop-color="#315FEA" />
+        <stop offset="100%" stop-color="#A855F7" />
+      </linearGradient>
+      <linearGradient id="traceGradD1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#315FEA" />
+        <stop offset="60%" stop-color="#7950B8" />
+        <stop offset="100%" stop-color="#D946EF" />
+      </linearGradient>
+      <linearGradient id="sparoviaFullGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00E5FF" />
+        <stop offset="35%" stop-color="#315FEA" />
+        <stop offset="70%" stop-color="#7950B8" />
+        <stop offset="100%" stop-color="#D946EF" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- 7-Stage Visual Board -->
+  <div class="sequence-board">
+    <!-- Stage 1 -->
+    <div class="stage-card stage-1">
+      <div class="svg-wrapper">
+        <div class="ambient-glow"></div>
+        <svg class="loader-svg" viewBox="-20 -20 570 595">
+          <path class="outline-path" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="outline-path" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          <g class="fill-group">
+            <path fill="url(#sparoviaFullGrad)" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+            <path fill="url(#sparoviaFullGrad)" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          </g>
+          <path class="trace-path-0" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="trace-path-1" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+        </svg>
+      </div>
+      <span class="stage-title">1. Outline<br>(Initial)</span>
+    </div>
+
+    <!-- Stage 2 -->
+    <div class="stage-card stage-2">
+      <div class="svg-wrapper">
+        <div class="ambient-glow"></div>
+        <svg class="loader-svg" viewBox="-20 -20 570 595">
+          <path class="outline-path" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="outline-path" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          <g class="fill-group">
+            <path fill="url(#sparoviaFullGrad)" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+            <path fill="url(#sparoviaFullGrad)" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          </g>
+          <path class="trace-path-0" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="trace-path-1" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+        </svg>
+      </div>
+      <span class="stage-title">2. Light Start<br>(Top)</span>
+    </div>
+
+    <!-- Stage 3 -->
+    <div class="stage-card stage-3">
+      <div class="svg-wrapper">
+        <div class="ambient-glow"></div>
+        <svg class="loader-svg" viewBox="-20 -20 570 595">
+          <path class="outline-path" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="outline-path" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          <g class="fill-group">
+            <path fill="url(#sparoviaFullGrad)" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+            <path fill="url(#sparoviaFullGrad)" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          </g>
+          <path class="trace-path-0" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="trace-path-1" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+        </svg>
+      </div>
+      <span class="stage-title">3. Tracing Path</span>
+    </div>
+
+    <!-- Stage 4 -->
+    <div class="stage-card stage-4">
+      <div class="svg-wrapper">
+        <div class="ambient-glow"></div>
+        <svg class="loader-svg" viewBox="-20 -20 570 595">
+          <path class="outline-path" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="outline-path" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          <g class="fill-group">
+            <path fill="url(#sparoviaFullGrad)" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+            <path fill="url(#sparoviaFullGrad)" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          </g>
+          <path class="trace-path-0" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="trace-path-1" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+        </svg>
+      </div>
+      <span class="stage-title">4. Half<br>Complete</span>
+    </div>
+
+    <!-- Stage 5 -->
+    <div class="stage-card stage-5">
+      <div class="svg-wrapper">
+        <div class="ambient-glow"></div>
+        <svg class="loader-svg" viewBox="-20 -20 570 595">
+          <path class="outline-path" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="outline-path" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          <g class="fill-group">
+            <path fill="url(#sparoviaFullGrad)" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+            <path fill="url(#sparoviaFullGrad)" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          </g>
+          <path class="trace-path-0" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="trace-path-1" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+        </svg>
+      </div>
+      <span class="stage-title">5. Almost<br>Complete</span>
+    </div>
+
+    <!-- Stage 6 -->
+    <div class="stage-card stage-6">
+      <div class="svg-wrapper">
+        <div class="ambient-glow"></div>
+        <svg class="loader-svg" viewBox="-20 -20 570 595">
+          <path class="outline-path" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="outline-path" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          <g class="fill-group">
+            <path fill="url(#sparoviaFullGrad)" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+            <path fill="url(#sparoviaFullGrad)" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          </g>
+          <path class="trace-path-0" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="trace-path-1" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+        </svg>
+      </div>
+      <span class="stage-title">6. Full Glow<br>Moments</span>
+    </div>
+
+    <!-- Stage 7 -->
+    <div class="stage-card stage-7">
+      <div class="svg-wrapper">
+        <div class="ambient-glow"></div>
+        <svg class="loader-svg" viewBox="-20 -20 570 595">
+          <path class="outline-path" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="outline-path" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          <g class="fill-group">
+            <path fill="url(#sparoviaFullGrad)" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+            <path fill="url(#sparoviaFullGrad)" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          </g>
+          <path class="trace-path-0" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+          <path class="trace-path-1" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+        </svg>
+      </div>
+      <span class="stage-title">7. Loop<br>(Back to Outline)</span>
+    </div>
+  </div>
+
+  <!-- Live Dynamic Animated Preview -->
+  <div class="preview-section">
+    <h2 style="font-size: 16px; font-weight: 600; color: #E2E8F0;">Continuous Live Animation Modes</h2>
+    <div class="showcase-grid">
+      <!-- Initial Application Loader Context -->
+      <div class="showcase-card">
+        <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #38BDF8;">Initial Application Loader</span>
+        <div class="svg-wrapper live-animated" style="width: 140px; height: 140px;">
+          <div class="ambient-glow" style="width: 160px; height: 160px;"></div>
+          <svg class="loader-svg" style="width: 120px; height: 125px;" viewBox="-20 -20 570 595">
+            <path class="outline-path" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+            <path class="outline-path" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+            <g class="fill-group">
+              <path fill="url(#sparoviaFullGrad)" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+              <path fill="url(#sparoviaFullGrad)" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+            </g>
+            <path class="trace-path-0" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+            <path class="trace-path-1" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+          </svg>
+        </div>
+        <p style="font-size: 13px; color: #94A3B8; margin-top: 4px;">Centered, zero traditional spinner, seamless fade</p>
+      </div>
+
+      <!-- Menu Navigation Loader Context -->
+      <div class="showcase-card">
+        <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #C084FC;">Menu Navigation Loader</span>
+        <div style="display: flex; align-items: center; gap: 14px; padding: 12px 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;">
+          <div class="svg-wrapper live-animated" style="width: 36px; height: 38px;">
+            <div class="ambient-glow" style="width: 50px; height: 50px;"></div>
+            <svg class="loader-svg" style="width: 36px; height: 38px;" viewBox="-20 -20 570 595">
+              <path class="outline-path" stroke-width="3.5" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+              <path class="outline-path" stroke-width="3.5" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+              <g class="fill-group">
+                <path fill="url(#sparoviaFullGrad)" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+                <path fill="url(#sparoviaFullGrad)" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+              </g>
+              <path class="trace-path-0" stroke-width="4.5" d="M 259 0 L 279 2 L 288 5 L 305 15 L 397 79 L 402 86 L 402 96 L 398 102 L 329 151 L 319 151 L 315 149 L 270 117 L 262 114 L 259 115 L 138 197 L 136 205 L 140 210 L 219 262 L 227 262 L 238 255 L 514 50 L 519 48 L 525 49 L 528 51 L 530 58 L 528 63 L 518 75 L 437 169 L 304 317 L 235 388 L 228 391 L 217 391 L 199 381 L 26 262 L 13 249 L 5 236 L 0 221 L 0 200 L 9 176 L 17 165 L 28 155 L 187 43 L 231 10 L 245 3 L 259 0 Z" />
+              <path class="trace-path-1" stroke-width="4.5" d="M 374 277 L 385 277 L 391 280 L 445 316 L 463 330 L 473 346 L 478 362 L 478 379 L 473 397 L 462 415 L 450 426 L 271 537 L 250 548 L 237 551 L 223 551 L 208 548 L 196 543 L 19 429 L 13 425 L 8 418 L 7 410 L 13 401 L 84 348 L 94 346 L 109 354 L 226 431 L 233 435 L 240 436 L 346 369 L 347 364 L 343 360 L 325 351 L 321 347 L 319 341 L 320 335 L 335 316 L 374 277 Z" />
+            </svg>
+          </div>
+          <div>
+            <div style="font-size: 13px; font-weight: 600; color: #FFFFFF;">Loading Images...</div>
+            <div style="font-size: 11px; color: #94A3B8;">Switching workspace route</div>
+          </div>
+        </div>
+        <p style="font-size: 13px; color: #94A3B8; margin-top: 4px;">Compact (36px), non-intrusive, zero interface block</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

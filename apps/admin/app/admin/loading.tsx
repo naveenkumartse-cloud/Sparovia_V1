@@ -1,5 +1,6 @@
 import React from 'react';
 import { SparoviaLogo } from '@/components/ui/SparoviaLogo';
+import { SparoviaLogoLoader } from '@/components/ui/SparoviaLogoLoader';
 
 export default function AdminLoading() {
   return (
@@ -10,10 +11,13 @@ export default function AdminLoading() {
       aria-label="Loading page content"
     >
       <div className="text-center space-y-4">
-        <SparoviaLogo size="auth" priority={true} />
-        <div className="w-5 h-5 border-2 border-[#315FEA]/30 border-t-[#315FEA] rounded-full animate-spin mx-auto mt-2" />
-        <p className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">Loading...</p>
+        {/* Production 7-stage animated logo loader (replaces traditional spinner) */}
+        <SparoviaLogoLoader mode="navigation" size="lg" />
+        <span className="sr-only">
+          <SparoviaLogo size="auth" priority={true} />
+        </span>
       </div>
     </div>
   );
 }
+

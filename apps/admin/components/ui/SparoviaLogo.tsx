@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { SparoviaLogoLoader } from './SparoviaLogoLoader';
 
 export interface SparoviaLogoProps {
   /**
@@ -17,6 +18,8 @@ export interface SparoviaLogoProps {
   className?: string;
   showAdminBadge?: boolean;
   priority?: boolean;
+  /** Whether to render the 7-stage animated logo loader */
+  animated?: boolean;
 }
 
 const SIZE_CONFIGS = {
@@ -70,8 +73,30 @@ export function SparoviaLogo({
   className,
   showAdminBadge = false,
   priority = true,
+  animated = false,
 }: SparoviaLogoProps) {
   const config = SIZE_CONFIGS[size] || SIZE_CONFIGS.sidebar;
+
+  if (size === 'loader' || animated) {
+    return (
+      <div className={cn('flex flex-col items-center justify-center select-none', className)}>
+        <SparoviaLogoLoader
+          mode={size === 'loader' ? 'initial' : 'inline'}
+          size={size === 'loader' ? 'initial' : (size === 'sm' ? 'sm' : 'md')}
+        />
+        <span className="sr-only">
+          <Image
+            src="/images/logo.png"
+            alt="Sparovia - Business Experience Platform"
+            width={config.width}
+            height={config.height}
+            priority={priority}
+            className="object-contain"
+          />
+        </span>
+      </div>
+    );
+  }
 
   if (size === 'collapsed') {
     return (

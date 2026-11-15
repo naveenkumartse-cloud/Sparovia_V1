@@ -3,6 +3,7 @@
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { SparoviaLogo } from '@/components/ui/SparoviaLogo';
+import { SparoviaLogoLoader } from '@/components/ui/SparoviaLogoLoader';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
@@ -38,7 +39,7 @@ const NAVIGATION = [
 interface SidebarViewProps {
   isConfirmed: boolean;
   pathname: string | null;
-  onNavigate: () => void;
+  onNavigate: (href?: string) => void;
   userEmail?: string;
   userFullName?: string;
   isCollapsed?: boolean;
@@ -46,6 +47,7 @@ interface SidebarViewProps {
   onClose?: () => void;
   resolvedTheme?: 'light' | 'dark';
   onToggleTheme?: () => void;
+  navigatingRoute?: string | null;
 }
 
 function SidebarView({ 
@@ -58,7 +60,8 @@ function SidebarView({
   isMobile = false,
   onClose,
   resolvedTheme,
-  onToggleTheme
+  onToggleTheme,
+  navigatingRoute
 }: SidebarViewProps) {
   return (
     <>
@@ -68,7 +71,7 @@ function SidebarView({
           <Link 
             href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} 
             className="flex items-center select-none"
-            onClick={onNavigate}
+            onClick={() => onNavigate(isConfirmed ? "/admin" : "/admin/onboarding/business-basics")}
           >
             <SparoviaLogo size="sidebar" showAdminBadge={true} priority={true} />
           </Link>
@@ -87,13 +90,18 @@ function SidebarView({
             href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} 
             className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] rounded-[6px]"
             title="Sparovia Admin"
+            onClick={() => onNavigate(isConfirmed ? "/admin" : "/admin/onboarding/business-basics")}
           >
             <SparoviaLogo size="collapsed" priority={true} />
           </Link>
         </div>
       ) : (
         <div className="flex h-16 shrink-0 items-center px-6 border-b border-[#E3E7ED] dark:border-[#1E293B]">
-          <Link href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} className="flex items-center select-none">
+          <Link
+            href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"}
+            className="flex items-center select-none"
+            onClick={() => onNavigate(isConfirmed ? "/admin" : "/admin/onboarding/business-basics")}
+          >
             <SparoviaLogo size="sidebar" showAdminBadge={true} priority={true} />
           </Link>
         </div>
@@ -117,6 +125,7 @@ function SidebarView({
             const isExact = pathname === item.href;
             const isSubPath = item.href !== '/admin' && (pathname?.startsWith(item.href) || (item.href === '/admin/business-context' && pathname?.startsWith('/admin/onboarding')));
             const isActive = isExact || isSubPath;
+            const isNavigatingThis = navigatingRoute === item.href;
 
             if (isLocked) {
               if (isCollapsed) {
@@ -157,13 +166,17 @@ function SidebarView({
                       ? 'bg-[#315FEA]/10 dark:bg-[#1E293B] text-[#315FEA] dark:text-white shadow-soft-xs border border-[#315FEA]/20 dark:border-[#334155]/60 font-semibold' 
                       : 'text-[#475569] dark:text-[#94A3B8] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B]/50 hover:text-[#172033] dark:hover:text-white'}
                   `}
-                  onClick={onNavigate}
+                  onClick={() => onNavigate(item.href)}
                 >
-                  <item.icon
-                    className={`h-5 w-5 shrink-0 transition-colors motion-reduce:transition-none ${isActive ? 'text-[#315FEA]' : 'text-[#64748B] group-hover:text-[#315FEA]'}`}
-                    aria-hidden="true"
-                  />
-                  {isActive && (
+                  {isNavigatingThis ? (
+                    <SparoviaLogoLoader mode="navigation" size="sm" />
+                  ) : (
+                    <item.icon
+                      className={`h-5 w-5 shrink-0 transition-colors motion-reduce:transition-none ${isActive ? 'text-[#315FEA]' : 'text-[#64748B] group-hover:text-[#315FEA]'}`}
+                      aria-hidden="true"
+                    />
+                  )}
+                  {isActive && !isNavigatingThis && (
                     <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#315FEA]" />
                   )}
                 </Link>
@@ -180,7 +193,7 @@ function SidebarView({
                     ? 'bg-[#315FEA]/10 dark:bg-[#1E293B] text-[#315FEA] dark:text-white shadow-soft-xs border border-[#315FEA]/20 dark:border-[#334155]/60 font-semibold' 
                     : 'text-[#475569] dark:text-[#94A3B8] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B]/50 hover:text-[#172033] dark:hover:text-white'}
                 `}
-                onClick={onNavigate}
+                onClick={() => onNavigate(item.href)}
               >
                 <item.icon
                   className={`
@@ -190,14 +203,21 @@ function SidebarView({
                   aria-hidden="true"
                 />
                 <span className="truncate">{item.name}</span>
-                {isActive && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#315FEA]" />
+                {isNavigatingThis ? (
+                  <span className="ml-auto flex items-center">
+                    <SparoviaLogoLoader mode="navigation" size="sm" />
+                  </span>
+                ) : (
+                  isActive && (
+                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#315FEA]" />
+                  )
                 )}
               </Link>
             );
           })}
         </nav>
       </div>
+
 
       {/* User profile card in sidebar bottom */}
       {isCollapsed ? (
@@ -215,7 +235,7 @@ function SidebarView({
           <Link 
             href="/admin/account"
             className="flex items-center space-x-3 group hover:opacity-95 transition-opacity"
-            onClick={onNavigate}
+            onClick={() => onNavigate('/admin/account')}
           >
             <div className="w-8 h-8 rounded-[6px] bg-[#315FEA] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-soft-xs">
               {userFullName ? userFullName[0].toUpperCase() : 'U'}
@@ -262,13 +282,44 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
+  const [navigatingRoute, setNavigatingRoute] = useState<string | null>(null);
+  const [showNavLoader, setShowNavLoader] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // Close mobile drawer on route changes
+  // Close mobile drawer and clear navigation loading immediately on route changes
   useEffect(() => {
     setMobileMenuOpen(false);
+    setNavigatingRoute(null);
+    setShowNavLoader(false);
   }, [pathname]);
+
+  // Debounce menu navigation loader (120ms): avoids visual flashing on instantaneous transitions
+  useEffect(() => {
+    if (!navigatingRoute) {
+      setShowNavLoader(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setShowNavLoader(true);
+    }, 120);
+
+    const safetyTimeout = setTimeout(() => {
+      setNavigatingRoute(null);
+      setShowNavLoader(false);
+    }, 8000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(safetyTimeout);
+    };
+  }, [navigatingRoute]);
+
+  const handleNavigate = (href?: string) => {
+    if (!href || href === pathname) return;
+    setNavigatingRoute(href);
+  };
 
   // Focus trap, Escape key handling, and focus restoration for mobile drawer
   useEffect(() => {
@@ -353,12 +404,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex items-center justify-center transition-colors">
-        <div className="text-center space-y-4">
-          <SparoviaLogo size="loader" priority={true} />
-          <div className="w-6 h-6 border-2 border-[#315FEA]/30 border-t-[#315FEA] rounded-full animate-spin mx-auto mt-2" />
-          <p className="text-xs font-medium text-[#475569] dark:text-[#94A3B8]">Loading secure workspace...</p>
-        </div>
+      <div
+        className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex items-center justify-center transition-colors"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading Sparovia secure workspace"
+      >
+        <SparoviaLogo size="loader" priority={true} />
       </div>
     );
   }
@@ -405,13 +457,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <SidebarView
               isConfirmed={isConfirmed}
               pathname={pathname}
-              onNavigate={() => setMobileMenuOpen(false)}
+              onNavigate={(href) => {
+                setMobileMenuOpen(false);
+                handleNavigate(href);
+              }}
               userEmail={user?.email}
               userFullName={user?.fullName}
               isMobile={true}
               onClose={() => setMobileMenuOpen(false)}
               resolvedTheme={resolvedTheme}
               onToggleTheme={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+              navigatingRoute={navigatingRoute}
             />
           </div>
         </div>
@@ -429,12 +485,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <SidebarView
           isConfirmed={isConfirmed}
           pathname={pathname}
-          onNavigate={() => {}}
+          onNavigate={(href) => handleNavigate(href)}
           userEmail={user?.email}
           userFullName={user?.fullName}
           isCollapsed={desktopCollapsed}
           resolvedTheme={resolvedTheme}
           onToggleTheme={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+          navigatingRoute={navigatingRoute}
         />
       </aside>
 
@@ -483,6 +540,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </span>
             </div>
           </div>
+
+          {/* Menu Navigation Loader (compact animated logo indicator) */}
+          {showNavLoader && (
+            <div
+              role="status"
+              aria-live="polite"
+              aria-label="Loading destination route"
+              className="flex items-center gap-2 px-2.5 py-1 rounded-[6px] bg-[#315FEA]/10 dark:bg-[#1E293B] border border-[#315FEA]/20 text-[#315FEA] dark:text-[#608FFE] text-xs font-medium animate-fadeIn select-none"
+            >
+              <SparoviaLogoLoader mode="navigation" size="navigation" />
+              <span className="hidden md:inline text-[11px] font-semibold tracking-tight">
+                Loading...
+              </span>
+            </div>
+          )}
 
           <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
             {/* Quick Theme Toggle */}

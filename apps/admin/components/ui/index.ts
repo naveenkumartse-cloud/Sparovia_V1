@@ -18,3 +18,4 @@ export * from './ConfirmationDialog';
 export * from './SearchInput';
 export * from './StatusIndicator';
 export * from './SparoviaLogo';
+export * from './SparoviaLogoLoader';
