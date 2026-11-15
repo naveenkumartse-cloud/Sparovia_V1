@@ -18,7 +18,7 @@ export default function FinalCtaSection() {
   return (
     <Section background="white" padding="default" className="relative overflow-hidden">
       <Container>
-        <div className="relative rounded-panel overflow-hidden bg-[#0A192F] text-white p-6 sm:p-10 lg:p-14 shadow-2xl border border-[#CE9E34]/30">
+        <div className="relative rounded-panel overflow-hidden bg-gradient-to-br from-[#011E75] via-[#01185E] to-[#001247] text-white p-6 sm:p-10 lg:p-14 shadow-2xl border border-[#CE9E34]/40">
           {/* Subtle Background Image Overlay */}
           <div className="absolute inset-0 z-0 opacity-15">
             <Image
@@ -43,12 +43,12 @@ export default function FinalCtaSection() {
                 {contact.heading || "LET'S CREATE YOUR SPACE."}
               </h2>
 
-              <p className="text-sm sm:text-base text-gray-300 font-normal leading-relaxed mb-6 sm:mb-8 max-w-lg mx-auto">
+              <p className="text-sm sm:text-base text-blue-100/90 font-normal leading-relaxed mb-6 sm:mb-8 max-w-lg mx-auto">
                 {contact.description || 'Schedule an initial consultation with our interior and window specialists to explore possibilities for your home.'}
               </p>
 
               <div className="flex justify-center">
-                <Button href="#contact" variant="primary" size="lg" icon className="bg-[#CE9E34] hover:bg-[#BA8B27] text-[#0A192F] font-bold border-none shadow-gold-glow">
+                <Button href="#contact" variant="primary" size="lg" icon className="bg-[#CE9E34] hover:bg-[#D4A328] text-[#011E75] font-bold border-none shadow-gold-glow transition-all hover:scale-[1.02]">
                   {ctaLabel}
                 </Button>
               </div>

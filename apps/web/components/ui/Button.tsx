@@ -26,8 +26,8 @@ export function Button({
   const baseStyles = 'inline-flex items-center justify-center font-sans font-semibold text-xs uppercase tracking-wider transition-colors duration-200 rounded-[6px] focus-ring disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-xs';
 
   const variantStyles = {
-    primary: 'bg-[#011E75] hover:bg-[#01185E] active:bg-[#011247] text-white border border-[#011E75] shadow-xs hover:shadow-subtle',
-    secondary: 'bg-[#FAF8F2] hover:bg-[#F5EEDC] text-[#011E75] border border-[#EBDEBA]',
+    primary: 'bg-[#011E75] hover:bg-[#01185E] active:bg-[#011247] text-white border border-[#011E75] hover:border-[#CE9E34] shadow-xs hover:shadow-subtle',
+    secondary: 'bg-[#FAF8F2] hover:bg-[#F5EEDC] text-[#011E75] border border-[#EBDEBA] hover:border-[#CE9E34]',
     outline: 'bg-white hover:bg-[#FAF8F2] text-[#011E75] border border-[#CBD5E1] hover:border-[#CE9E34] shadow-xs',
     ghost: 'bg-transparent hover:bg-[#EEF2FC] text-[#475569] hover:text-[#011E75]',
   };

@@ -23,19 +23,19 @@ export default function Footer() {
   const address = contact?.address;
 
   return (
-    <footer className="bg-[#0A192F] text-white pt-10 sm:pt-12 pb-8 relative border-t border-[#132A4A]" role="contentinfo">
+    <footer className="bg-[#011654] text-white pt-10 sm:pt-12 pb-8 relative border-t border-[#0A2685]" role="contentinfo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
           
           {/* Brand Info & Complete Official Logo */}
           <div className="md:col-span-5 space-y-4">
-            <div className="relative inline-flex items-center justify-center rounded-xl bg-white p-2.5 sm:p-3 border border-[#CE9E34]/40 shadow-lg">
-              <div className="relative h-12 sm:h-14 w-auto aspect-[2172/724] shrink-0">
+            <div className="relative inline-flex items-center justify-center rounded-xl bg-white p-3 sm:p-4 border border-[#CE9E34]/40 shadow-lg">
+              <div className="relative h-16 sm:h-20 w-auto aspect-[719/584] shrink-0">
                 <Image
                   src="/images/logo.png"
                   alt="KVN Interior — uPVC Windows, Doors & Home Interior"
-                  width={217}
-                  height={72}
+                  width={180}
+                  height={146}
                   className="h-full w-auto object-contain"
                 />
               </div>
@@ -150,7 +150,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-6 border-t border-[#132A4A] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-normal">
+        <div className="pt-6 border-t border-[#0A2685] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-300 font-normal">
           <p>{copyrightText}</p>
           
           <button
