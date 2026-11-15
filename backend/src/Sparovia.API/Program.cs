@@ -6,6 +6,8 @@ using System.Text;
 using Serilog;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using Sparovia.Application;
+using Sparovia.Infrastructure;
 using Sparovia.Application.Common.Interfaces;
 using Sparovia.Infrastructure.Data;
 using Sparovia.Infrastructure.Storage;
@@ -111,110 +113,11 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-// Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (string.IsNullOrWhiteSpace(connectionString))
-{
-    var databaseUrl = builder.Configuration["DATABASE_URL"]
-        ?? Environment.GetEnvironmentVariable("DATABASE_URL");
-    if (!string.IsNullOrWhiteSpace(databaseUrl))
-    {
-        connectionString = ParseDatabaseUrl(databaseUrl);
-        Log.Information("Resolved database connection from DATABASE_URL environment variable.");
-    }
-}
+// Clean Architecture: Application & Infrastructure Registrations
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
-if (string.IsNullOrEmpty(connectionString))
-{
-    Log.Warning("Database connection string is missing or empty.");
-}
-else
-{
-    builder.Services.AddDbContext<SparoviaDbContext>(options =>
-    {
-        options.UseNpgsql(connectionString);
-        options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-    });
-}
-
-// Storage, Email & SMS
-var storageOptions = Sparovia.Infrastructure.Storage.SupabaseStorageOptions.FromConfiguration(builder.Configuration);
-if (!string.IsNullOrWhiteSpace(storageOptions.Key))
-{
-    Log.Information("Supabase Storage configured for bucket '{Bucket}' at '{Url}'", storageOptions.Bucket, storageOptions.Url);
-}
-else if (builder.Environment.IsProduction())
-{
-    Log.Warning("Supabase Storage credentials (SUPABASE_SERVICE_ROLE_KEY) are missing in Production. Image uploads will require this environment variable.");
-}
-builder.Services.AddHttpClient<IStorageProvider, SupabaseStorageProvider>();
-
-// Phone OTP & SMS Services
-builder.Services.Configure<PhoneOtpOptions>(builder.Configuration.GetSection(PhoneOtpOptions.SectionName));
-builder.Services.AddSingleton<IOtpService, OtpService>();
-
-var smsOptions = Sparovia.Infrastructure.Sms.SmsOptions.FromConfiguration(builder.Configuration);
-builder.Services.AddSingleton(Microsoft.Extensions.Options.Options.Create(smsOptions));
-builder.Services.AddHttpClient<ISmsService, Sparovia.Infrastructure.Sms.SmsService>();
-
-var smtpOptions = Sparovia.Infrastructure.Email.SmtpOptions.FromConfiguration(builder.Configuration);
-builder.Services.AddSingleton(Microsoft.Extensions.Options.Options.Create(smtpOptions));
-
-if (!string.IsNullOrWhiteSpace(smtpOptions.Host) && smtpOptions.EnableDelivery)
-{
-    if (string.IsNullOrWhiteSpace(smtpOptions.Username) ||
-        string.IsNullOrWhiteSpace(smtpOptions.Password) ||
-        string.IsNullOrWhiteSpace(smtpOptions.FromEmail))
-    {
-        Log.Warning("SMTP configuration is incomplete. SmtpEmailService will require valid credentials for delivery.");
-    }
-    builder.Services.AddScoped<IEmailService, Sparovia.Infrastructure.Email.SmtpEmailService>();
-}
-else
-{
-    if (builder.Environment.IsProduction())
-    {
-        Log.Warning("Production environment detected without SMTP_HOST configured. Using StubEmailService until SMTP is configured in hosting environment.");
-    }
-    builder.Services.AddSingleton<IEmailService, StubEmailService>();
-}
-
-// Identity
-builder.Services.AddScoped<IIdentityService, IdentityService>();
-builder.Services.AddScoped<Sparovia.Application.Onboarding.IOnboardingService, Sparovia.Infrastructure.Onboarding.OnboardingService>();
-builder.Services.AddScoped<Sparovia.Application.BusinessPresence.IBusinessPresenceService, Sparovia.Infrastructure.BusinessPresence.BusinessPresenceService>();
-builder.Services.AddScoped<Sparovia.Application.WebsiteContent.IWebsiteContentService, Sparovia.Infrastructure.WebsiteContent.WebsiteContentService>();
-builder.Services.Configure<Sparovia.Application.Images.ImageUploadOptions>(
-    builder.Configuration.GetSection(Sparovia.Application.Images.ImageUploadOptions.SectionName));
-builder.Services.AddSingleton<Sparovia.Application.Images.IImageValidator>(sp =>
-{
-    var opts = sp.GetService<Microsoft.Extensions.Options.IOptions<Sparovia.Application.Images.ImageUploadOptions>>()?.Value;
-    return new Sparovia.Application.Images.ImageValidator(opts);
-});
-builder.Services.AddScoped<Sparovia.Application.Images.IWebsiteImageService, Sparovia.Infrastructure.Images.WebsiteImageService>();
-builder.Services.AddSingleton<Sparovia.Infrastructure.Images.ILocalAiRestorationService, Sparovia.Infrastructure.Images.LocalOnnxRestorationService>();
-builder.Services.AddSingleton<Sparovia.Application.Images.IImageProcessingService, Sparovia.Infrastructure.Images.DeterministicImageProcessingService>();
-builder.Services.AddScoped<Sparovia.Application.Leads.ILeadService, Sparovia.Infrastructure.Leads.LeadService>();
-
-// AI Platform Foundation
-builder.Services.Configure<Sparovia.Infrastructure.AI.AIOptions>(
-    builder.Configuration.GetSection(Sparovia.Infrastructure.AI.AIOptions.SectionName));
-builder.Services.AddSingleton<Sparovia.Application.AI.IAICredentialEncryptionService, Sparovia.Infrastructure.AI.AesGcmAICredentialEncryptionService>();
-builder.Services.AddHttpClient<Sparovia.Infrastructure.AI.HttpAIProviderAdapter>();
-var aiConfig = builder.Configuration.GetSection(Sparovia.Infrastructure.AI.AIOptions.SectionName).Get<Sparovia.Infrastructure.AI.AIOptions>() ?? new Sparovia.Infrastructure.AI.AIOptions();
-if (string.Equals(aiConfig.Provider, "Stub", StringComparison.OrdinalIgnoreCase) && !builder.Environment.IsProduction())
-{
-    builder.Services.AddScoped<Sparovia.Application.AI.IAIProvider, Sparovia.Infrastructure.AI.StubAIProviderAdapter>();
-}
-else
-{
-    builder.Services.AddScoped<Sparovia.Application.AI.IAIProvider, Sparovia.Infrastructure.AI.HttpAIProviderAdapter>();
-}
-builder.Services.AddScoped<Sparovia.Application.AI.IAIService, Sparovia.Infrastructure.AI.AIService>();
-
-// Cryptographic Signing & Verification Provider
 var signingSecretProvider = new Sparovia.Infrastructure.Security.SigningSecretProvider(builder.Configuration, builder.Environment);
-builder.Services.AddSingleton<Sparovia.Application.Common.Interfaces.ISigningSecretProvider>(signingSecretProvider);
 
 // Authentication - Supports both Cookie and JWT Bearer schemes seamlessly
 builder.Services.AddAuthentication(options =>
@@ -435,7 +338,7 @@ app.MapHealthChecks("/api/v1/health", new Microsoft.AspNetCore.Diagnostics.Healt
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetService<SparoviaDbContext>();
-    if (dbContext != null && !string.IsNullOrEmpty(connectionString) && dbContext.Database.IsNpgsql())
+    if (dbContext != null && dbContext.Database.IsNpgsql())
     {
         try
         {
@@ -464,43 +367,6 @@ finally
 
 public partial class Program
 {
-    public static string ParseDatabaseUrl(string databaseUrl)
-    {
-        if (string.IsNullOrWhiteSpace(databaseUrl)) return string.Empty;
-        var trimmed = databaseUrl.Trim();
-        if (!trimmed.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) &&
-            !trimmed.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
-        {
-            return trimmed;
-        }
-
-        try
-        {
-            var uri = new Uri(trimmed);
-            var userInfo = uri.UserInfo.Split(':', 2);
-            var username = userInfo.Length > 0 ? Uri.UnescapeDataString(userInfo[0]) : string.Empty;
-            var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty;
-            var host = uri.Host;
-            var port = uri.Port > 0 ? uri.Port : 5432;
-            var database = uri.AbsolutePath.TrimStart('/');
-
-            var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder
-            {
-                Host = host,
-                Port = port,
-                Database = database,
-                Username = username,
-                Password = password,
-                SslMode = Npgsql.SslMode.Require
-            };
-            npgsqlBuilder["Trust Server Certificate"] = true;
-
-            return npgsqlBuilder.ConnectionString;
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Failed to parse DATABASE_URL URI format. Falling back to raw string.");
-            return trimmed;
-        }
-    }
+    public static string ParseDatabaseUrl(string databaseUrl) =>
+        Sparovia.Infrastructure.DependencyInjection.ParseDatabaseUrl(databaseUrl);
 }
