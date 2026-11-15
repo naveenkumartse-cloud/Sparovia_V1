@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/lib/auth/AuthContext';
 import { apiClient } from '@/lib/api/client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { DashboardSkeleton } from '@/components/ui/Skeleton';
 import { Badge } from '@/components/ui/Badge';
@@ -38,8 +38,12 @@ export default function AdminDashboard() {
   const [recentLeads, setRecentLeads] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMissingUrlModalOpen, setIsMissingUrlModalOpen] = useState(false);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
     const fetchSummary = async () => {
       try {
         const data = await apiClient.get('/onboarding/summary');

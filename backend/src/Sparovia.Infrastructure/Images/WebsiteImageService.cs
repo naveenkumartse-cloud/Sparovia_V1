@@ -238,6 +238,29 @@ public class WebsiteImageService : IWebsiteImageService
             await EnsureWorkCategoryExistsAsync(tenantId, website.Id, category, cancellationToken);
         }
 
+        // Handle existing images in the target slot to prevent state collisions
+        bool isReplacementForPublished = false;
+        if (!string.IsNullOrWhiteSpace(slot))
+        {
+            var existingInSlot = await _dbContext.Images
+                .Where(i => i.TenantId == tenantId && i.Slot == slot && i.Status != "Deleted")
+                .ToListAsync(cancellationToken);
+
+            foreach (var existing in existingInSlot)
+            {
+                if (existing.Status == "Published")
+                {
+                    isReplacementForPublished = true;
+                }
+                else
+                {
+                    existing.IsActiveWebsiteUsage = false;
+                    existing.Status = "Unused";
+                    existing.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+        }
+
         // 5. Create Image domain entity with compensating delete protection
         var image = new Image
         {
@@ -256,7 +279,7 @@ public class WebsiteImageService : IWebsiteImageService
             Category = category,
             Caption = caption,
             Status = "Approved", // Ready for website placement
-            IsActiveWebsiteUsage = true,
+            IsActiveWebsiteUsage = !isReplacementForPublished,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

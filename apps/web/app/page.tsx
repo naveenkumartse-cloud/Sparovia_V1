@@ -3,6 +3,7 @@
 import { useWebsiteContent } from '@/components/providers/WebsiteContentProvider';
 import PublicWebsiteError from '@/components/ui/PublicWebsiteError';
 import PublicWebsiteEmpty from '@/components/ui/PublicWebsiteEmpty';
+import PublicWebsiteLoader from '@/components/ui/PublicWebsiteLoader';
 
 import Navbar from '@/components/layout/Navbar';
 import HeroSection from './components/HeroSection';
@@ -27,7 +28,12 @@ export default function Home() {
     return <PublicWebsiteError onRetry={refresh} error={error} />;
   }
 
-  // 2. No Published Content State: Display intentional clean empty/setup state once loaded
+  // 2. Initial Loading State: Architectural branded client loading experience (zero grey skeletons, zero layout shifts)
+  if (isLoading && !hasPublishedSections && !error) {
+    return <PublicWebsiteLoader businessName={website?.name} />;
+  }
+
+  // 3. No Published Content State: Display intentional clean empty/setup state once loaded
   if (!isLoading && !hasPublishedSections && !website) {
     return <PublicWebsiteEmpty />;
   }

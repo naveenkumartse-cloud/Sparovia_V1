@@ -155,8 +155,11 @@ export default function ImagesPage() {
   const [uploadSlot, setUploadSlot] = useState<string | null>(null);
   const [replacingImage, setReplacingImage] = useState<ImageDto | null>(null);
 
-  // Publishing state
+  // Publishing and action feedback states
   const [publishing, setPublishing] = useState(false);
+  const [publishingImageId, setPublishingImageId] = useState<string | null>(null);
+  const [unpublishingImageId, setUnpublishingImageId] = useState<string | null>(null);
+  const [approvingImageId, setApprovingImageId] = useState<string | null>(null);
 
   // Edit Metadata Modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -295,6 +298,7 @@ export default function ImagesPage() {
   // Publish image
   const handlePublishImage = async (image: ImageDto, variantId?: string) => {
     setPublishing(true);
+    setPublishingImageId(image.id);
     try {
       await apiClient.post(`/website/images/${image.id}/publish`, { variantId });
       await fetchImages();
@@ -303,28 +307,35 @@ export default function ImagesPage() {
       toast.error(err?.message || 'Publishing failed. Your previous live image remains unchanged.');
     } finally {
       setPublishing(false);
+      setPublishingImageId(null);
     }
   };
 
   // Unpublish image from live website
   const handleUnpublishImage = async (image: ImageDto) => {
+    setUnpublishingImageId(image.id);
     try {
       await apiClient.post(`/website/images/${image.id}/unpublish`, {});
       await fetchImages();
       toast.success('Image removed from live website.');
     } catch (err: any) {
       toast.error(err?.message || 'Failed to unpublish image from live website.');
+    } finally {
+      setUnpublishingImageId(null);
     }
   };
 
   // Approve image
   const handleApproveImage = async (image: ImageDto) => {
+    setApprovingImageId(image.id);
     try {
       await apiClient.post(`/website/images/${image.id}/approve`, {});
       await fetchImages();
       toast.success('Image approved.');
     } catch (err: any) {
       toast.error(err?.message || 'Failed to approve image.');
+    } finally {
+      setApprovingImageId(null);
     }
   };
 
@@ -918,6 +929,8 @@ export default function ImagesPage() {
                             variant="primary"
                             size="sm"
                             onClick={() => handlePublishImage(pendingReplacement)}
+                            isLoading={publishingImageId === pendingReplacement.id}
+                            disabled={Boolean(publishingImageId || unpublishingImageId)}
                             leftIcon={<Globe className="w-3.5 h-3.5" />}
                             title="Publish replacement to live website"
                             className="font-semibold"
@@ -980,6 +993,8 @@ export default function ImagesPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleUnpublishImage(assignedImage)}
+                                isLoading={unpublishingImageId === assignedImage.id}
+                                disabled={Boolean(publishingImageId || unpublishingImageId)}
                                 className="text-xs text-[#64748B] hover:text-[#B91C1C] dark:hover:text-rose-400 p-0 h-auto"
                                 title="Remove from public website"
                               >
@@ -1014,6 +1029,8 @@ export default function ImagesPage() {
                                 variant="primary"
                                 size="sm"
                                 onClick={() => handlePublishImage(assignedImage)}
+                                isLoading={publishingImageId === assignedImage.id}
+                                disabled={Boolean(publishingImageId || unpublishingImageId)}
                                 leftIcon={<Globe className="w-3.5 h-3.5" />}
                                 className="flex-1 justify-center font-semibold"
                                 title="Publish image to live website"
@@ -1352,6 +1369,8 @@ export default function ImagesPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleUnpublishImage(image)}
+                                  isLoading={unpublishingImageId === image.id}
+                                  disabled={Boolean(publishingImageId || unpublishingImageId)}
                                   className="text-xs text-[#64748B] hover:text-[#B91C1C] dark:hover:text-rose-400 px-2 py-1 h-auto"
                                   title="Remove from public website"
                                 >
@@ -1387,6 +1406,8 @@ export default function ImagesPage() {
                                   variant="primary"
                                   size="sm"
                                   onClick={() => handlePublishImage(image)}
+                                  isLoading={publishingImageId === image.id}
+                                  disabled={Boolean(publishingImageId || unpublishingImageId)}
                                   leftIcon={<Globe className="w-3.5 h-3.5" />}
                                   className="w-full justify-center text-xs font-semibold"
                                   title={image.slot?.startsWith('replaces:') ? 'Publish replacement to public portfolio' : 'Publish to public portfolio'}

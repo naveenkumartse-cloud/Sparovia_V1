@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { SparoviaLogo } from '@/components/ui/SparoviaLogo';
 import { SparoviaLogoLoader } from '@/components/ui/SparoviaLogoLoader';
+import { cn } from '@/lib/utils';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
@@ -287,6 +288,29 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const drawerRef = useRef<HTMLDivElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
 
+  // Initial application loader timing & smooth completion management
+  const [initialLoadingActive, setInitialLoadingActive] = useState<boolean>(isLoading);
+  const [isLoaderFadingOut, setIsLoaderFadingOut] = useState<boolean>(false);
+  const initialLoadStartRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    if (!isLoading && initialLoadingActive && !isLoaderFadingOut) {
+      const elapsed = Date.now() - initialLoadStartRef.current;
+      const minDisplayMs = 600; // ensures the 7-stage animated sequence completes gracefully
+      const remaining = Math.max(0, minDisplayMs - elapsed);
+
+      const timer = setTimeout(() => {
+        setIsLoaderFadingOut(true);
+        const exitTimer = setTimeout(() => {
+          setInitialLoadingActive(false);
+        }, 300); // 300ms smooth fade-out exit
+        return () => clearTimeout(exitTimer);
+      }, remaining);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, initialLoadingActive, isLoaderFadingOut]);
+
   // Close mobile drawer and clear navigation loading immediately on route changes
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -405,7 +429,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   if (isLoading) {
     return (
       <div
-        className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex items-center justify-center transition-colors"
+        className="fixed inset-0 z-[99999] bg-slate-50 dark:bg-[#0B1220] flex items-center justify-center transition-colors"
         role="status"
         aria-live="polite"
         aria-label="Loading Sparovia secure workspace"
@@ -423,6 +447,20 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1220] text-[#172033] dark:text-[#E2E8F0] transition-colors duration-150 relative">
+      {/* Smooth initial application loading overlay */}
+      {initialLoadingActive && (
+        <div
+          className={cn(
+            'fixed inset-0 z-[99999] bg-slate-50 dark:bg-[#0B1220] flex items-center justify-center transition-opacity duration-300 ease-out',
+            isLoaderFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          )}
+          role="status"
+          aria-live="polite"
+          aria-label="Loading Sparovia secure workspace"
+        >
+          <SparoviaLogoLoader mode="initial" size="initial" />
+        </div>
+      )}
       {/* Fixed Ambient Light Meshes for Genuine Glass Refraction */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
         {/* Editorial Cobalt ambient glow (top left) */}

@@ -193,8 +193,8 @@ export default function LoginPage() {
         ? '/admin/onboarding/business-basics'
         : '/admin';
 
-      // Perform a clean navigation so browser session and cookies initialize fresh
-      window.location.href = dest;
+      // Navigate via Next.js client router without triggering a second full-page browser reload
+      router.replace(dest);
     } catch (err: any) {
       const genericMsg = 'Invalid email/phone number or password.';
       const rawError = err?.message || '';

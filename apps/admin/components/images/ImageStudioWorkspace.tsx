@@ -17,6 +17,7 @@ import {
   Globe,
   Trash2,
   Upload,
+  Save,
   RefreshCw,
   Loader2,
   Info,
@@ -314,6 +315,7 @@ export function ImageStudioWorkspace({
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
   const [isUnpublishing, setIsUnpublishing] = useState<boolean>(false);
+  const [isSavingOriginal, setIsSavingOriginal] = useState<boolean>(false);
 
   // User feedback
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -637,20 +639,81 @@ export function ImageStudioWorkspace({
     }
   };
 
+  // Save original un-enhanced photograph directly to media library
+  const handleSaveOriginal = async (): Promise<ImageDto | null> => {
+    if (!pendingUpload || isSavingOriginal) return null;
+    setIsSavingOriginal(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', pendingUpload.file);
+      if (pendingUpload.projectWorkName) formData.append('projectWorkName', pendingUpload.projectWorkName);
+      if (pendingUpload.caption) formData.append('caption', pendingUpload.caption);
+      if (pendingUpload.category) formData.append('category', pendingUpload.category);
+      if (pendingUpload.slot) {
+        formData.append('usageType', 'WebsiteImage');
+        formData.append('slot', pendingUpload.slot);
+      } else {
+        formData.append('usageType', pendingUpload.usageType);
+      }
+
+      let uploadRes;
+      if (pendingUpload.replacingImageId) {
+        uploadRes = await apiClient.postFormData<{ data: ImageDto }>(
+          `/website/images/${pendingUpload.replacingImageId}/replace`,
+          formData
+        );
+      } else if (pendingUpload.usageType === 'ExploreOurWork' && !pendingUpload.slot) {
+        uploadRes = await apiClient.postFormData<{ data: ImageDto }>('/website/images/explore-our-work', formData);
+      } else {
+        uploadRes = await apiClient.postFormData<{ data: ImageDto }>('/website/images', formData);
+      }
+
+      const uploadedImg = uploadRes?.data;
+      if (!uploadedImg) {
+        throw new Error('Failed to save original photograph to media library.');
+      }
+
+      setCurrentImage(uploadedImg);
+      onImageUpdated(uploadedImg);
+      setSuccessMessage('Original photograph saved to media library successfully.');
+      toast.success('Original photograph saved to media library.');
+      return uploadedImg;
+    } catch (err: any) {
+      const msg = err?.message || 'Failed to save photograph to library.';
+      setErrorMessage(msg);
+      toast.error(msg);
+      return null;
+    } finally {
+      setIsSavingOriginal(false);
+    }
+  };
+
   // Publishing: Explicit separate action
   const handlePublishImage = async () => {
-    if (!currentImage || isPublishing) return;
+    if (isPublishing) return;
+    let targetImage = currentImage;
+
+    // If this is a pending upload not yet persisted, save it first before publishing
+    if (!targetImage && pendingUpload) {
+      targetImage = await handleSaveOriginal();
+      if (!targetImage) return;
+    }
+
+    if (!targetImage) return;
     setIsPublishing(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
     try {
       const variantToPublish = displayedVariant?.status === 'Approved' ? displayedVariant.id : undefined;
-      await apiClient.post(`/website/images/${currentImage.id}/publish`, {
+      await apiClient.post(`/website/images/${targetImage.id}/publish`, {
         variantId: variantToPublish,
       });
 
-      const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${currentImage.id}`);
+      const updatedImgRes = await apiClient.get<{ data: ImageDto }>(`/website/images/${targetImage.id}`);
       if (updatedImgRes?.data) {
         setCurrentImage(updatedImgRes.data);
         onImageUpdated(updatedImgRes.data);
@@ -839,11 +902,11 @@ export function ImageStudioWorkspace({
           {/* View Mode Controls & Window Actions */}
           <div className="flex items-center gap-2">
             {/* View Mode Toggle */}
-            <div className="hidden sm:flex items-center p-0.5 bg-slate-100 dark:bg-slate-800 rounded-[6px] border border-slate-200 dark:border-slate-700">
+            <div className="flex items-center p-0.5 bg-slate-100 dark:bg-slate-800 rounded-[6px] border border-slate-200 dark:border-slate-700">
               <button
                 type="button"
                 onClick={() => setViewMode('split')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-[4px] transition-colors ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 text-xs font-medium rounded-[4px] transition-colors ${
                   viewMode === 'split'
                     ? 'bg-white dark:bg-[#0F172A] text-[#315FEA] shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
@@ -851,12 +914,12 @@ export function ImageStudioWorkspace({
                 title="Interactive Split Slider"
               >
                 <SplitSquareVertical className="w-3.5 h-3.5" />
-                <span>Slider</span>
+                <span className="hidden sm:inline">Slider</span>
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('side-by-side')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-[4px] transition-colors ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 text-xs font-medium rounded-[4px] transition-colors ${
                   viewMode === 'side-by-side'
                     ? 'bg-white dark:bg-[#0F172A] text-[#315FEA] shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
@@ -864,12 +927,13 @@ export function ImageStudioWorkspace({
                 title="Side by Side Inspection"
               >
                 <Columns className="w-3.5 h-3.5" />
-                <span>Side by Side</span>
+                <span className="hidden sm:inline">Side by Side</span>
+                <span className="sm:hidden text-[10px]">Side</span>
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('stacked')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-[4px] transition-colors ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 text-xs font-medium rounded-[4px] transition-colors ${
                   viewMode === 'stacked'
                     ? 'bg-white dark:bg-[#0F172A] text-[#315FEA] shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
@@ -877,7 +941,8 @@ export function ImageStudioWorkspace({
                 title="Stacked Vertical Inspection"
               >
                 <Rows className="w-3.5 h-3.5" />
-                <span>Stacked</span>
+                <span className="hidden sm:inline">Stacked</span>
+                <span className="sm:hidden text-[10px]">Stack</span>
               </button>
             </div>
 
@@ -1129,15 +1194,20 @@ export function ImageStudioWorkspace({
                   </div>
                 )
               ) : viewMode === 'side-by-side' ? (
-                /* View Mode: Side by Side */
+                /* View Mode: Side by Side (Respects 2-column layout on >=360px viewports; responsive fallback below 360px) */
                 <div
-                  className="w-full h-full grid grid-cols-1 md:grid-cols-2 gap-3 p-3"
+                  className="w-full h-full flex flex-col min-[360px]:grid min-[360px]:grid-cols-2 gap-2 sm:gap-3 p-2 sm:p-3 overflow-y-auto"
                   style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }}
                 >
+                  {/* Notice below 360px */}
+                  <div className="block min-[360px]:hidden text-[10px] text-slate-500 text-center py-1 bg-slate-100 dark:bg-slate-800 rounded px-2">
+                    Side-by-side adapts to vertical stack on screens under 360px for readability.
+                  </div>
+
                   {/* Left Column: Original Photo */}
-                  <div className="relative rounded-[6px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-800">
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-slate-900/80 text-white border border-white/10">
+                  <div className="relative min-h-[140px] sm:min-h-[220px] rounded-[6px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-800">
+                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
+                      <span className="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-1.5 py-0.5 sm:px-2 rounded-[4px] bg-slate-900/80 text-white border border-white/10">
                         BEFORE · Original
                       </span>
                     </div>
@@ -1169,11 +1239,11 @@ export function ImageStudioWorkspace({
                   </div>
 
                   {/* Right Column: Enhanced Candidate or Pending State */}
-                  <div className="relative rounded-[6px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center border border-[#7950B8]/30">
+                  <div className="relative min-h-[140px] sm:min-h-[220px] rounded-[6px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center border border-[#7950B8]/30">
                     {displayedVariant && enhancedUrl ? (
                       <>
-                        <div className="absolute top-3 left-3 z-10">
-                          <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
+                        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
+                          <span className="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-1.5 py-0.5 sm:px-2 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
                             AFTER · Enhanced for Website
                           </span>
                         </div>
@@ -1202,13 +1272,13 @@ export function ImageStudioWorkspace({
               ) : (
                 /* View Mode: Stacked */
                 <div
-                  className="w-full h-full flex flex-col gap-3 p-3 overflow-auto"
+                  className="w-full h-full flex flex-col gap-2 sm:gap-3 p-2 sm:p-3 overflow-y-auto"
                   style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }}
                 >
                   {/* Top Row: Original Photo */}
-                  <div className="relative min-h-[220px] flex-1 rounded-[6px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-800">
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-slate-900/80 text-white border border-white/10">
+                  <div className="relative min-h-[160px] sm:min-h-[220px] flex-1 rounded-[6px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-800">
+                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
+                      <span className="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-1.5 py-0.5 sm:px-2 rounded-[4px] bg-slate-900/80 text-white border border-white/10">
                         BEFORE · Original
                       </span>
                     </div>
@@ -1240,11 +1310,11 @@ export function ImageStudioWorkspace({
                   </div>
 
                   {/* Bottom Row: Enhanced Candidate or Pending State */}
-                  <div className="relative min-h-[220px] flex-1 rounded-[6px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center border border-[#7950B8]/30">
+                  <div className="relative min-h-[160px] sm:min-h-[220px] flex-1 rounded-[6px] bg-white dark:bg-slate-900 overflow-hidden flex items-center justify-center border border-[#7950B8]/30">
                     {displayedVariant && enhancedUrl ? (
                       <>
-                        <div className="absolute top-3 left-3 z-10">
-                          <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
+                        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
+                          <span className="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-1.5 py-0.5 sm:px-2 rounded-[4px] bg-[#315FEA]/90 text-white border border-white/20">
                             AFTER · Enhanced for Website
                           </span>
                         </div>
@@ -1771,8 +1841,28 @@ export function ImageStudioWorkspace({
                     </div>
                   </div>
 
-                  {/* If original upload is validated and user wants to publish directly without enhancement */}
-                  {effectiveImage?.status === 'Approved' && (
+                  {/* Save to library for pending upload without enhancement */}
+                  {pendingUpload && !currentImage && (
+                    <div className="p-3 bg-blue-50/60 dark:bg-blue-950/20 rounded-[6px] border border-blue-200/80 dark:border-blue-900/50 space-y-2">
+                      <p className="text-xs text-[#475569] dark:text-[#94A3B8]">
+                        Save original photograph to your library:
+                      </p>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="w-full justify-center text-xs font-semibold"
+                        isLoading={isSavingOriginal}
+                        loadingText="Saving to library..."
+                        onClick={() => handleSaveOriginal()}
+                        leftIcon={<Save className="w-3.5 h-3.5 text-[#315FEA]" />}
+                      >
+                        Save to Media Library
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* If original upload is validated or pending and user wants to publish directly without enhancement */}
+                  {(effectiveImage?.status === 'Approved' || (!effectiveImage && Boolean(pendingUpload))) && (
                     <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-[6px] border border-slate-200 dark:border-slate-800 space-y-2">
                       <p className="text-xs text-[#475569] dark:text-[#94A3B8]">
                         Or publish your original photo directly without enhancement:
@@ -1781,8 +1871,8 @@ export function ImageStudioWorkspace({
                         variant="outline"
                         size="sm"
                         className="w-full justify-center text-xs font-medium"
-                        isLoading={isPublishing}
-                        loadingText="Publishing..."
+                        isLoading={isPublishing || isSavingOriginal}
+                        loadingText={isSavingOriginal ? 'Saving original...' : 'Publishing...'}
                         onClick={handlePublishImage}
                         leftIcon={<Globe className="w-3.5 h-3.5" />}
                       >
