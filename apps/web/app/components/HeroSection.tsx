@@ -72,7 +72,7 @@ export default function HeroSection() {
 
       {/* Hero Editorial Content — Rendered immediately without delayed reveal animation */}
       <motion.div
-        className="relative z-10 w-full pt-20 sm:pt-22 lg:pt-24 pb-10 sm:pb-12"
+        className="relative z-10 w-full pt-[104px] sm:pt-28 lg:pt-32 pb-10 sm:pb-12"
         style={shouldReduceMotion ? {} : {
           opacity: contentOpacity,
           y: contentY,
