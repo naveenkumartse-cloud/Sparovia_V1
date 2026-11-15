@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useTheme } from '@/lib/theme/ThemeContext';
+import { SparoviaLogo } from '@/components/ui/SparoviaLogo';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
@@ -66,15 +67,10 @@ function SidebarView({
         <div className="flex h-16 shrink-0 items-center justify-between px-5 border-b border-[#E3E7ED] dark:border-[#1E293B]">
           <Link 
             href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} 
-            className="flex items-center space-x-2 select-none"
+            className="flex items-center select-none"
             onClick={onNavigate}
           >
-            <span className="font-extrabold text-xl text-brand-gradient tracking-tight">
-              SPAROVIA
-            </span>
-            <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20">
-              ADMIN
-            </span>
+            <SparoviaLogo size="sidebar" showAdminBadge={true} priority={true} />
           </Link>
           <button
             type="button"
@@ -89,21 +85,16 @@ function SidebarView({
         <div className="flex h-16 shrink-0 items-center justify-center border-b border-[#E3E7ED] dark:border-[#1E293B]">
           <Link 
             href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} 
-            className="w-10 h-10 rounded-[6px] bg-[#315FEA] flex items-center justify-center text-white font-extrabold text-base shadow-soft-xs hover:bg-[#254EDB] transition-colors"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] rounded-[6px]"
             title="Sparovia Admin"
           >
-            S
+            <SparoviaLogo size="collapsed" priority={true} />
           </Link>
         </div>
       ) : (
         <div className="flex h-16 shrink-0 items-center px-6 border-b border-[#E3E7ED] dark:border-[#1E293B]">
-          <Link href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} className="flex items-center space-x-2 select-none">
-            <span className="font-extrabold text-xl text-brand-gradient tracking-tight">
-              SPAROVIA
-            </span>
-            <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20">
-              ADMIN
-            </span>
+          <Link href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} className="flex items-center select-none">
+            <SparoviaLogo size="sidebar" showAdminBadge={true} priority={true} />
           </Link>
         </div>
       )}
@@ -465,12 +456,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </button>
 
             {/* Mobile Branding (< lg) */}
-            <div className="lg:hidden flex items-center space-x-1.5 min-w-0">
-              <Link href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} className="flex items-center space-x-1.5 min-w-0 select-none">
-                <span className="font-extrabold text-base sm:text-lg text-brand-gradient tracking-tight truncate">SPAROVIA</span>
-                <span className="hidden min-[380px]:inline-block text-[9px] uppercase font-bold tracking-widest px-1 py-0.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20 shrink-0">
-                  ADMIN
-                </span>
+            <div className="lg:hidden flex items-center min-w-0">
+              <Link href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} className="flex items-center min-w-0 select-none">
+                <SparoviaLogo size="sidebar" showAdminBadge={true} priority={true} />
               </Link>
             </div>
 

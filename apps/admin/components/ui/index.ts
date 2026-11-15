@@ -17,3 +17,4 @@ export * from './PageHeader';
 export * from './ConfirmationDialog';
 export * from './SearchInput';
 export * from './StatusIndicator';
+export * from './SparoviaLogo';

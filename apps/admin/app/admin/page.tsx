@@ -9,6 +9,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { Modal } from '@/components/ui/Modal';
+import { toast } from '@/components/ui/Toast';
+import { validateClientWebsiteUrl } from '@/lib/utils/url';
 import { 
   Building2, 
   Laptop2, 
@@ -34,6 +37,7 @@ export default function AdminDashboard() {
   const [newLeadsCount, setNewLeadsCount] = useState<number | null>(null);
   const [recentLeads, setRecentLeads] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMissingUrlModalOpen, setIsMissingUrlModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -63,6 +67,13 @@ export default function AdminDashboard() {
   }
 
   const isConfirmed = contextSummary?.isConfirmed ?? false;
+  const websiteValidation = validateClientWebsiteUrl(contextSummary?.website);
+
+  const handleMissingUrlClick = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    toast.warning('Website URL is not configured yet.');
+    setIsMissingUrlModalOpen(true);
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
@@ -91,17 +102,30 @@ export default function AdminDashboard() {
         }
         actions={
           <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-            <a
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center h-10 px-4 rounded-[6px] text-xs sm:text-sm font-semibold glass-panel text-[#172033] dark:text-white hover:bg-white/95 dark:hover:bg-[#1E293B]/95 transition-all shadow-soft-xs"
-              title="Open your public website in a new window"
-            >
-              <Globe className="w-4 h-4 mr-2 text-[#315FEA]" />
-              <span>Preview Live Website</span>
-              <ExternalLink className="w-3.5 h-3.5 ml-1.5 opacity-60" />
-            </a>
+            {websiteValidation.isValid && websiteValidation.url ? (
+              <a
+                href={websiteValidation.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center h-10 px-4 rounded-[6px] text-xs sm:text-sm font-semibold glass-panel text-[#172033] dark:text-white hover:bg-white/95 dark:hover:bg-[#1E293B]/95 transition-all shadow-soft-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA]"
+                title="Open your public website in a new window"
+              >
+                <Globe className="w-4 h-4 mr-2 text-[#315FEA]" />
+                <span>Preview Live Website</span>
+                <ExternalLink className="w-3.5 h-3.5 ml-1.5 opacity-60" />
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={handleMissingUrlClick}
+                className="inline-flex items-center justify-center h-10 px-4 rounded-[6px] text-xs sm:text-sm font-semibold glass-panel text-[#172033] dark:text-white hover:bg-white/95 dark:hover:bg-[#1E293B]/95 transition-all shadow-soft-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA]"
+                title="Website URL is not configured yet"
+              >
+                <Globe className="w-4 h-4 mr-2 text-[#315FEA]" />
+                <span>Preview Live Website</span>
+                <ExternalLink className="w-3.5 h-3.5 ml-1.5 opacity-60" />
+              </button>
+            )}
 
             <Link
               href={isConfirmed ? "/admin/business-context" : "/admin/onboarding/business-basics"}
@@ -426,6 +450,48 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Missing Website URL Guidance Modal */}
+      <Modal
+        isOpen={isMissingUrlModalOpen}
+        onClose={() => setIsMissingUrlModalOpen(false)}
+        title={
+          <div className="flex items-center gap-2 text-slate-900 dark:text-white">
+            <Globe className="w-5 h-5 text-[#315FEA]" />
+            <span>Website URL Not Configured</span>
+          </div>
+        }
+        description="A valid website destination is required to preview your live client site."
+        footer={
+          <div className="flex items-center justify-end gap-3 w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsMissingUrlModalOpen(false)}
+            >
+              Close
+            </Button>
+            <Link
+              href="/admin/business-presence"
+              onClick={() => setIsMissingUrlModalOpen(false)}
+            >
+              <Button variant="primary" size="sm">
+                <span>Configure in Business Presence</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+              </Button>
+            </Link>
+          </div>
+        }
+      >
+        <div className="space-y-3 py-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+          <p className="font-semibold text-slate-900 dark:text-white">
+            Website URL is not configured yet.
+          </p>
+          <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
+            Your workspace has not configured an active public website URL link yet. Please configure your canonical website link in Business Presence or review your canonical business basics to enable instant live website previewing.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }
