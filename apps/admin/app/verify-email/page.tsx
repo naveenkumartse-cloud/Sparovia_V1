@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { SparoviaLogo } from '@/components/ui/SparoviaLogo';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { apiClient } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -264,10 +265,12 @@ export default function VerifyEmailPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center mb-6">
-        <Link href="/" className="inline-block">
-          <span className="text-3xl font-extrabold text-brand-gradient tracking-tight">
-            SPAROVIA
-          </span>
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center mb-3 sm:mb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA] rounded-[6px]"
+          aria-label="Sparovia Home"
+        >
+          <SparoviaLogo size="auth" priority={true} />
         </Link>
       </div>
 

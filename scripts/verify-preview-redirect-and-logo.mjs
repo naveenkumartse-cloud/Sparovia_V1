@@ -172,18 +172,22 @@ it('Tenant with missing URL does not borrow another tenant URL', () => {
 // ---------------------------------------------------------------------
 console.log('\n--- TEST GROUP 3: Approved Sparovia Logo Asset Integrity ---');
 
-it('apps/admin/public/images/logo.png is the approved Sparovia logo (578,949 bytes)', () => {
+it('apps/admin/public/images/logo.png is the approved Sparovia official platform logo (602,890 bytes, 2172x724, RGBA)', () => {
   const p = path.resolve('apps/admin/public/images/logo.png');
   assert.strictEqual(fs.existsSync(p), true);
-  const stat = fs.statSync(p);
-  assert.strictEqual(stat.size, 578949, `Expected Sparovia high-res logo 578949 bytes, got ${stat.size}`);
-});
+  const buf = fs.readFileSync(p);
+  assert.strictEqual(buf.length, 602890, `Expected Sparovia high-res official logo 602,890 bytes, got ${buf.length}`);
 
-it('apps/admin/public/images/sparovia-logo.png exists and matches approved platform logo', () => {
-  const p = path.resolve('apps/admin/public/images/sparovia-logo.png');
-  assert.strictEqual(fs.existsSync(p), true);
-  const stat = fs.statSync(p);
-  assert.strictEqual(stat.size, 578949);
+  const width = buf.readUInt32BE(16);
+  const height = buf.readUInt32BE(20);
+  const bitDepth = buf.readUInt8(24);
+  const colorType = buf.readUInt8(25);
+
+  assert.strictEqual(width, 2172, `Expected width 2172, got ${width}`);
+  assert.strictEqual(height, 724, `Expected height 724, got ${height}`);
+  assert.strictEqual(bitDepth, 8, `Expected bitDepth 8, got ${bitDepth}`);
+  assert.strictEqual(colorType, 6, `Expected colorType 6 (RGBA with alpha transparency), got ${colorType}`);
+  assert.strictEqual(width / height, 3, `Expected aspect ratio 3:1, got ${width / height}`);
 });
 
 it('KVN client website logo in apps/web is completely preserved and untouched', () => {
@@ -198,11 +202,14 @@ it('KVN client website logo in apps/web is completely preserved and untouched', 
 // ---------------------------------------------------------------------
 console.log('\n--- TEST GROUP 4: Shared Branding & UI Component Integration ---');
 
-it('SparoviaLogo shared component exists and exports correctly', () => {
+it('SparoviaLogo shared component exists and exports correctly with no background wrappers', () => {
   const logoComp = fs.readFileSync(path.resolve('apps/admin/components/ui/SparoviaLogo.tsx'), 'utf8');
   assert.strictEqual(logoComp.includes('export function SparoviaLogo'), true);
-  assert.strictEqual(logoComp.includes('/images/sparovia-logo.png'), true);
+  assert.strictEqual(logoComp.includes('/images/logo.png'), true);
   assert.strictEqual(logoComp.includes('object-contain'), true);
+  // Ensure collapsed logo container has zero colored boxes, cards, or borders
+  assert.strictEqual(logoComp.includes('bg-[#315FEA]/10 dark:bg-[#315FEA]/20 border border-[#315FEA]/30'), false);
+  assert.strictEqual(logoComp.includes('bg-transparent'), true);
 
   const indexComp = fs.readFileSync(path.resolve('apps/admin/components/ui/index.ts'), 'utf8');
   assert.strictEqual(indexComp.includes("export * from './SparoviaLogo';"), true);
@@ -224,11 +231,25 @@ it('Register page uses SparoviaLogo component with identical sizing and alignmen
   assert.strictEqual(regSrc.includes('text-brand-gradient'), false);
 });
 
-it('AdminShell sidebar renders SparoviaLogo in expanded, mobile, and collapsed states', () => {
+it('AdminShell renders SparoviaLogo in expanded sidebar, mobile drawer, collapsed rail, and application loader', () => {
   const shellSrc = fs.readFileSync(path.resolve('apps/admin/components/admin/AdminShell.tsx'), 'utf8');
   assert.strictEqual(shellSrc.includes('<SparoviaLogo size="sidebar" showAdminBadge={true} priority={true} />'), true);
   assert.strictEqual(shellSrc.includes('<SparoviaLogo size="collapsed" priority={true} />'), true);
+  assert.strictEqual(shellSrc.includes('<SparoviaLogo size="loader" priority={true} />'), true);
   assert.strictEqual(shellSrc.includes('text-brand-gradient'), false);
+});
+
+it('Menu navigation loader (apps/admin/app/admin/loading.tsx) exists and renders SparoviaLogo', () => {
+  const loadingSrc = fs.readFileSync(path.resolve('apps/admin/app/admin/loading.tsx'), 'utf8');
+  assert.strictEqual(loadingSrc.includes('<SparoviaLogo size="auth" priority={true} />'), true);
+});
+
+it('All other auth pages (forgot-password, reset-password, verify-email, verify-phone) use SparoviaLogo', () => {
+  for (const page of ['forgot-password', 'reset-password', 'verify-email', 'verify-phone']) {
+    const src = fs.readFileSync(path.resolve(`apps/admin/app/${page}/page.tsx`), 'utf8');
+    assert.strictEqual(src.includes('<SparoviaLogo'), true, `${page} must use SparoviaLogo`);
+    assert.strictEqual(src.includes('text-brand-gradient'), false, `${page} must not use text-brand-gradient`);
+  }
 });
 
 it('Dashboard Preview Live Website button uses validated URL, opens in new tab, and provides modal feedback for missing URL', () => {
@@ -249,14 +270,14 @@ it('Dashboard Preview Live Website button uses validated URL, opens in new tab, 
 // ---------------------------------------------------------------------
 console.log('\n--- TEST GROUP 5: Exported Production Build Verification ---');
 
-it('Exported login.html contains sparovia-logo image', () => {
+it('Exported login.html contains official logo image', () => {
   const loginHtml = fs.readFileSync(path.resolve('apps/admin/out/login.html'), 'utf8');
-  assert.strictEqual(loginHtml.includes('sparovia-logo.png'), true);
+  assert.strictEqual(loginHtml.includes('logo.png'), true);
 });
 
-it('Exported register.html contains sparovia-logo image', () => {
+it('Exported register.html contains official logo image', () => {
   const regHtml = fs.readFileSync(path.resolve('apps/admin/out/register.html'), 'utf8');
-  assert.strictEqual(regHtml.includes('sparovia-logo.png'), true);
+  assert.strictEqual(regHtml.includes('logo.png'), true);
 });
 
 it('Exported admin page bundle contains Preview Live Website and missing URL guidance', () => {

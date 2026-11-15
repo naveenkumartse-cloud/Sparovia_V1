@@ -7,12 +7,13 @@ import { cn } from '@/lib/utils';
 export interface SparoviaLogoProps {
   /**
    * Sizing profile:
-   * - 'auth': Standard sizing for Login and Register pages (~44px height)
-   * - 'sidebar': Compact sizing for expanded sidebar and mobile drawer (~32px height)
-   * - 'collapsed': Square/icon fitting for collapsed sidebar navigation
+   * - 'auth': Prominent horizontal logo for Login, Register, Forgot Password, Reset Password, and Verify pages (~48-56px height)
+   * - 'sidebar': Proportional horizontal logo for expanded sidebar and mobile drawer (~32-36px height)
+   * - 'collapsed': Preserves complete logo fitting cleanly in collapsed sidebar rail without any background container
+   * - 'loader': Prominent horizontal logo for workspace loading animations and route navigation loaders (~48-56px height)
    * - 'sm' | 'md' | 'lg': General utility sizes
    */
-  size?: 'auth' | 'sidebar' | 'collapsed' | 'sm' | 'md' | 'lg';
+  size?: 'auth' | 'sidebar' | 'collapsed' | 'loader' | 'sm' | 'md' | 'lg';
   className?: string;
   showAdminBadge?: boolean;
   priority?: boolean;
@@ -20,19 +21,24 @@ export interface SparoviaLogoProps {
 
 const SIZE_CONFIGS = {
   auth: {
-    height: 44,
-    width: 133,
-    imageClass: 'h-11 w-auto max-w-[170px]',
+    height: 56,
+    width: 168,
+    imageClass: 'h-12 sm:h-14 w-auto max-w-[210px]',
   },
   sidebar: {
-    height: 32,
-    width: 96,
-    imageClass: 'h-8 w-auto max-w-[130px]',
+    height: 36,
+    width: 108,
+    imageClass: 'h-8 sm:h-9 w-auto max-w-[130px]',
   },
   collapsed: {
-    height: 32,
-    width: 32,
-    imageClass: 'h-8 w-8',
+    height: 18,
+    width: 54,
+    imageClass: 'w-full h-auto max-h-7',
+  },
+  loader: {
+    height: 56,
+    width: 168,
+    imageClass: 'h-12 sm:h-14 w-auto max-w-[220px]',
   },
   sm: {
     height: 24,
@@ -45,18 +51,19 @@ const SIZE_CONFIGS = {
     imageClass: 'h-9 w-auto',
   },
   lg: {
-    height: 52,
-    width: 156,
-    imageClass: 'h-13 w-auto',
+    height: 56,
+    width: 168,
+    imageClass: 'h-14 w-auto',
   },
 };
 
 /**
  * Shared Sparovia Platform Logo Component
  * - Single source of truth for Sparovia platform branding
- * - Preserves approved 3.015:1 aspect ratio with object-contain
- * - Renders the approved platform logo asset (/images/sparovia-logo.png)
- * - Retains clean typography and sharp rendering across high-DPI displays
+ * - Renders the official approved transparent platform logo (/images/logo.png)
+ * - Preserves exact 3:1 aspect ratio with object-contain
+ * - Sits directly on the existing application background with zero background containers, cards, or borders
+ * - Retains full PNG alpha transparency and sharp rendering across high-DPI displays
  */
 export function SparoviaLogo({
   size = 'sidebar',
@@ -70,18 +77,18 @@ export function SparoviaLogo({
     return (
       <div
         className={cn(
-          'w-10 h-10 rounded-[6px] bg-[#315FEA]/10 dark:bg-[#315FEA]/20 border border-[#315FEA]/30 flex items-center justify-center p-1.5 transition-colors',
+          'w-12 h-10 flex items-center justify-center p-0.5 select-none bg-transparent',
           className
         )}
         title="Sparovia Admin"
       >
         <Image
-          src="/images/sparovia-logo.png"
-          alt="Sparovia"
+          src="/images/logo.png"
+          alt="Sparovia - Business Experience Platform"
           width={config.width}
           height={config.height}
           priority={priority}
-          className="w-full h-full object-contain select-none"
+          className="w-full h-auto max-h-7 object-contain select-none"
           draggable={false}
         />
       </div>
@@ -92,8 +99,8 @@ export function SparoviaLogo({
     <div className={cn('inline-flex items-center gap-2 select-none', className)}>
       <div className="relative flex items-center">
         <Image
-          src="/images/sparovia-logo.png"
-          alt="Sparovia Platform"
+          src="/images/logo.png"
+          alt="Sparovia - Business Experience Platform"
           width={config.width}
           height={config.height}
           priority={priority}

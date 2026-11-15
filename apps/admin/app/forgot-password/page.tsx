@@ -6,6 +6,7 @@ import { apiClient } from '@/lib/api/client';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { toast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
+import { SparoviaLogo } from '@/components/ui/SparoviaLogo';
 import { ArrowLeft, ArrowRight, Mail } from 'lucide-react';
 
 import { isValidEmail } from '@/lib/validation/authValidation';
@@ -44,10 +45,12 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors">
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center mb-6">
-        <Link href="/" className="inline-block mb-4">
-          <span className="text-3xl font-extrabold text-brand-gradient tracking-tight">
-            SPAROVIA
-          </span>
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center mb-3 sm:mb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA] rounded-[6px]"
+          aria-label="Sparovia Home"
+        >
+          <SparoviaLogo size="auth" priority={true} />
         </Link>
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
           Forgot your password?

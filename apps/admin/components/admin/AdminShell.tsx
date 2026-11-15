@@ -353,10 +353,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#0B1220] flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-3 border-[#315FEA]/30 border-t-[#315FEA] rounded-full animate-spin mx-auto" />
-          <p className="text-sm font-medium text-[#475569] dark:text-[#94A3B8]">Loading secure workspace...</p>
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0B1220] flex items-center justify-center transition-colors">
+        <div className="text-center space-y-4">
+          <SparoviaLogo size="loader" priority={true} />
+          <div className="w-6 h-6 border-2 border-[#315FEA]/30 border-t-[#315FEA] rounded-full animate-spin mx-auto mt-2" />
+          <p className="text-xs font-medium text-[#475569] dark:text-[#94A3B8]">Loading secure workspace...</p>
         </div>
       </div>
     );
