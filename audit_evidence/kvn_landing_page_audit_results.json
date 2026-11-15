@@ -98,13 +98,13 @@
     }
   ],
   "cwv": {
-    "ttfb": 7,
-    "domInteractive": 173,
-    "domContentLoaded": 173,
-    "loadComplete": 326,
-    "firstPaint": 256,
-    "firstContentfulPaint": 256,
-    "largestContentfulPaint": 256,
+    "ttfb": 8,
+    "domInteractive": 111,
+    "domContentLoaded": 111,
+    "loadComplete": 221,
+    "firstPaint": 148,
+    "firstContentfulPaint": 148,
+    "largestContentfulPaint": 148,
     "cumulativeLayoutShift": 0
   },
   "skeletonCheck": {
@@ -165,8 +165,8 @@
   "carouselCheck": {
     "found": true,
     "itemsCount": 4,
-    "prevButtonsCount": 2,
-    "nextButtonsCount": 2,
+    "prevButtonsCount": 1,
+    "nextButtonsCount": 1,
     "buttonBgColor": "rgb(1, 30, 117)",
     "initialScrollLeft": 4,
     "afterNextScrollLeft": 392,

@@ -9,7 +9,7 @@ interface TypographyProps {
 
 export function Eyebrow({ children, className, icon = true }: TypographyProps & { icon?: boolean }) {
   return (
-    <div className={cn('inline-flex items-center gap-2 px-3 py-1 rounded-[4px] badge-gold mb-4 font-sans text-xs uppercase tracking-wider font-semibold', className)}>
+    <div className={cn('inline-flex items-center gap-2 px-3 py-1 rounded-[4px] badge-gold mb-2.5 sm:mb-3 font-sans text-xs uppercase tracking-wider font-semibold', className)}>
       {icon && <Sparkles className="w-3.5 h-3.5 text-gold-500" />}
       <span>{children}</span>
     </div>
@@ -18,7 +18,7 @@ export function Eyebrow({ children, className, icon = true }: TypographyProps & 
 
 export function HeroHeading({ children, className }: TypographyProps) {
   return (
-    <h1 className={cn('font-sans text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-charcoal-900 leading-[1.1] mb-6 break-words', className)}>
+    <h1 className={cn('font-sans text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-charcoal-900 leading-[1.1] mb-3.5 sm:mb-4 break-words', className)}>
       {children}
     </h1>
   );
@@ -26,7 +26,7 @@ export function HeroHeading({ children, className }: TypographyProps) {
 
 export function SectionHeading({ children, className }: TypographyProps) {
   return (
-    <h2 className={cn('font-sans text-2xl sm:text-4xl lg:text-5xl font-bold text-charcoal-900 tracking-tight mb-4 break-words', className)}>
+    <h2 className={cn('font-sans text-2xl sm:text-4xl lg:text-5xl font-bold text-charcoal-900 tracking-tight mb-2.5 sm:mb-3 break-words', className)}>
       {children}
     </h2>
   );

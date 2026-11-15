@@ -145,11 +145,11 @@ export default function ProjectGallerySection() {
   };
 
   return (
-    <Section id="gallery" background="surface" padding="spacious">
+    <Section id="gallery" background="surface" padding="default">
       <Container>
 
         {/* Section Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-8">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-6 sm:mb-8 gap-4 sm:gap-6">
           <div className="max-w-2xl">
             <FadeIn direction="up">
               <Eyebrow icon={false}>

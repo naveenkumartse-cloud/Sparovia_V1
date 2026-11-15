@@ -36,7 +36,7 @@ export default function HeroSection() {
     <section
       ref={heroRef}
       id="hero"
-      className="relative min-h-[92vh] sm:min-h-screen flex items-center justify-center overflow-hidden bg-white"
+      className="relative min-h-[85vh] lg:min-h-[88vh] flex items-center justify-center overflow-hidden bg-white"
     >
       {/* Full-bleed Background Image with Scroll-Driven Parallax */}
       <motion.div
@@ -72,7 +72,7 @@ export default function HeroSection() {
 
       {/* Hero Editorial Content — Rendered immediately without delayed reveal animation */}
       <motion.div
-        className="relative z-10 w-full pt-20 sm:pt-24 lg:pt-28 pb-14 sm:pb-16"
+        className="relative z-10 w-full pt-20 sm:pt-22 lg:pt-24 pb-10 sm:pb-12"
         style={shouldReduceMotion ? {} : {
           opacity: contentOpacity,
           y: contentY,
@@ -82,19 +82,19 @@ export default function HeroSection() {
           <div className="max-w-2xl">
 
             {/* Eyebrow */}
-            <div className="mb-4 sm:mb-5">
+            <div className="mb-3 sm:mb-4">
               <Eyebrow icon={false}>
                 {hero.eyebrow}
               </Eyebrow>
             </div>
 
             {/* Headline */}
-            <HeroHeading className="text-charcoal-900 mb-4 sm:mb-5">
+            <HeroHeading className="text-charcoal-900 mb-3.5 sm:mb-4">
               {hero.headline}
             </HeroHeading>
 
             {/* Short Supporting Copy */}
-            <Subheading className="mb-8 sm:mb-10 text-charcoal-600 max-w-xl">
+            <Subheading className="mb-6 sm:mb-7 text-charcoal-600 max-w-xl">
               {hero.subheadline}
             </Subheading>
 

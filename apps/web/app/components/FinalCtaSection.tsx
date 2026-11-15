@@ -16,9 +16,9 @@ export default function FinalCtaSection() {
   const ctaLabel = contact.ctaLabel || 'Request Consultation';
 
   return (
-    <Section background="white" padding="spacious" className="relative overflow-hidden">
+    <Section background="white" padding="default" className="relative overflow-hidden">
       <Container>
-        <div className="relative rounded-panel overflow-hidden bg-[#0A192F] text-white p-6 sm:p-12 lg:p-20 shadow-2xl border border-[#CE9E34]/30">
+        <div className="relative rounded-panel overflow-hidden bg-[#0A192F] text-white p-6 sm:p-10 lg:p-14 shadow-2xl border border-[#CE9E34]/30">
           {/* Subtle Background Image Overlay */}
           <div className="absolute inset-0 z-0 opacity-15">
             <Image
@@ -34,16 +34,16 @@ export default function FinalCtaSection() {
           <div className="relative z-10 max-w-2xl mx-auto text-center">
             <FadeIn direction="up">
               {brandEyebrow && (
-                <span className="text-[11px] uppercase tracking-[0.25em] text-[#CE9E34] font-black block mb-4">
+                <span className="text-[11px] uppercase tracking-[0.25em] text-[#CE9E34] font-black block mb-3">
                   {brandEyebrow}
                 </span>
               )}
 
-              <h2 className="font-sans text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white mb-6 uppercase leading-[1.1]">
+              <h2 className="font-sans text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white mb-3.5 sm:mb-4 uppercase leading-[1.1]">
                 {contact.heading || "LET'S CREATE YOUR SPACE."}
               </h2>
 
-              <p className="text-sm sm:text-base text-gray-300 font-normal leading-relaxed mb-10 max-w-lg mx-auto">
+              <p className="text-sm sm:text-base text-gray-300 font-normal leading-relaxed mb-6 sm:mb-8 max-w-lg mx-auto">
                 {contact.description || 'Schedule an initial consultation with our interior and window specialists to explore possibilities for your home.'}
               </p>
 

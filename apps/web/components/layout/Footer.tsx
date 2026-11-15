@@ -23,9 +23,9 @@ export default function Footer() {
   const address = contact?.address;
 
   return (
-    <footer className="bg-[#0A192F] text-white pt-16 pb-10 relative border-t border-[#132A4A]" role="contentinfo">
+    <footer className="bg-[#0A192F] text-white pt-10 sm:pt-12 pb-8 relative border-t border-[#132A4A]" role="contentinfo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
           
           {/* Brand Info & Complete Official Logo */}
           <div className="md:col-span-5 space-y-4">
@@ -150,7 +150,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-[#132A4A] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-normal">
+        <div className="pt-6 border-t border-[#132A4A] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-normal">
           <p>{copyrightText}</p>
           
           <button

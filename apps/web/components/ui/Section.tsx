@@ -26,9 +26,9 @@ export function Section({
 
   const paddingClasses = {
     none: 'py-0',
-    compact: 'py-10 sm:py-16',
-    default: 'py-16 sm:py-20 lg:py-24',
-    spacious: 'py-20 sm:py-24 lg:py-32',
+    compact: 'py-8 sm:py-10 lg:py-12',
+    default: 'py-10 sm:py-12 lg:py-14',
+    spacious: 'py-12 sm:py-14 lg:py-16',
   };
 
   return (

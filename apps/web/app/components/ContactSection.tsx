@@ -365,16 +365,16 @@ export default function ContactSection() {
   };
 
   return (
-    <Section id="contact" background="white" padding="spacious">
+    <Section id="contact" background="white" padding="default">
       <Container>
         {hasPresenceInfo ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start max-w-6xl mx-auto w-full">
             {/* Left Column: Presence Information & Business Details */}
-            <FadeIn direction="up" className="lg:col-span-5 space-y-6">
+            <FadeIn direction="up" className="lg:col-span-5 space-y-5">
               <div>
                 <Eyebrow icon={false}>{contact.eyebrow || 'CONTACT'}</Eyebrow>
 
-                <h2 className="font-sans text-2xl sm:text-3xl font-bold text-charcoal-900 mt-2 mb-3">
+                <h2 className="font-sans text-2xl sm:text-3xl font-bold text-charcoal-900 mt-2 mb-2.5">
                   {contact.heading || "Let's Discuss Your Project."}
                 </h2>
 
@@ -404,7 +404,7 @@ export default function ContactSection() {
 
               {/* Operating Hours Card */}
               {hasHours && (
-                <div className="p-5 rounded-[8px] bg-surface border border-gray-200 shadow-soft-sm space-y-2.5">
+                <div className="p-4 sm:p-5 rounded-[8px] bg-surface border border-gray-200 shadow-soft-sm space-y-2">
                   <div className="flex items-center gap-2 text-charcoal-900 font-semibold text-sm">
                     <Clock className="w-4 h-4 text-[#CE9E34] shrink-0" />
                     <span>Operating Hours</span>
@@ -417,7 +417,7 @@ export default function ContactSection() {
 
               {/* Canonical Contact Details (Address, Phone, Email) */}
               {(hasPhone || hasEmail || hasAddress) && (
-                <div className="p-5 rounded-[8px] bg-surface border border-gray-200 shadow-soft-sm space-y-3.5">
+                <div className="p-4 sm:p-5 rounded-[8px] bg-surface border border-gray-200 shadow-soft-sm space-y-3">
                   {hasAddress && (
                     <div className="flex items-start gap-2.5 text-xs sm:text-sm">
                       <MapPin className="w-4 h-4 text-[#CE9E34] shrink-0 mt-0.5" />
@@ -471,7 +471,7 @@ export default function ContactSection() {
 
             {/* Right Column: Quote Inquiry Form */}
             <FadeIn direction="up" className="lg:col-span-7 w-full">
-              <div className="bg-surface p-5 sm:p-8 md:p-10 rounded-[8px] border border-gray-200 shadow-soft-sm">
+              <div className="bg-surface p-5 sm:p-7 md:p-8 rounded-[8px] border border-gray-200 shadow-soft-sm">
                 {renderFormContent(false)}
               </div>
             </FadeIn>
@@ -480,7 +480,7 @@ export default function ContactSection() {
           /* Standalone Centered Form when no presence info is configured */
           <div className="max-w-2xl mx-auto w-full">
             <FadeIn direction="up">
-              <div className="bg-surface p-5 sm:p-8 md:p-12 rounded-[8px] border border-gray-200 shadow-soft-sm">
+              <div className="bg-surface p-5 sm:p-7 md:p-8 rounded-[8px] border border-gray-200 shadow-soft-sm">
                 {renderFormContent(true)}
               </div>
             </FadeIn>

@@ -65,10 +65,10 @@ interface ThemeItem {
 function ThemeLabels({ themes }: { themes: ThemeItem[] }) {
   return (
     <FadeIn direction="up" delay={0.3}>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
         {themes.map((theme, i) => (
           <div key={i} className="text-center md:text-left">
-            <span className="block text-[11px] uppercase tracking-[0.15em] text-[#CE9E34] font-black mb-1.5">
+            <span className="block text-[11px] uppercase tracking-[0.15em] text-[#CE9E34] font-black mb-1">
               {theme.label}
             </span>
             <p className="text-xs text-charcoal-600 leading-relaxed">
@@ -81,7 +81,7 @@ function ThemeLabels({ themes }: { themes: ThemeItem[] }) {
   );
 }
 
-/* ─── Window & Door Installations Carousel with Circular Controls ─── */
+/* ─── Window & Door Installations Carousel with Top-Right Controls ─── */
 
 function InstallationCarousel() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -121,28 +121,28 @@ function InstallationCarousel() {
 
   return (
     <div className="w-full">
-      {/* Section Sub-header with Navigation Controls */}
-      <div className="flex items-center justify-between mb-6 sm:mb-8">
+      {/* Section Sub-header with Top-Right Circular Navigation Controls */}
+      <div className="flex items-center justify-between mb-4 sm:mb-5">
         <div>
           <span className="text-[11px] uppercase tracking-[0.15em] text-[#CE9E34] font-black">
             Window &amp; Door Installations
           </span>
-          <p className="text-xs text-charcoal-600 mt-1">
+          <p className="text-xs text-charcoal-600 mt-0.5">
             Precision engineered uPVC architectural systems
           </p>
         </div>
 
-        {/* Circular Navigation Buttons */}
-        <div className="flex items-center gap-2.5">
+        {/* Compact Circular Navy-Blue Controls in Top-Right Corner */}
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => scroll('left')}
             disabled={!canScrollLeft}
             aria-label="Previous installations"
             aria-controls="installation-carousel-track"
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#011E75] text-white flex items-center justify-center border border-[#CE9E34]/40 shadow-md transition-all duration-200 hover:bg-[#022899] hover:border-[#CE9E34] hover:shadow-[0_0_14px_rgba(206,158,52,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CE9E34] focus-visible:ring-offset-2 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-[#011E75] disabled:hover:border-[#CE9E34]/40 disabled:hover:shadow-none disabled:active:scale-100"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#011E75] text-white flex items-center justify-center border border-[#CE9E34]/40 shadow-sm transition-all duration-200 hover:bg-[#022899] hover:border-[#CE9E34] hover:shadow-[0_0_12px_rgba(206,158,52,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CE9E34] focus-visible:ring-offset-2 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-[#011E75] disabled:hover:border-[#CE9E34]/40 disabled:hover:shadow-none disabled:active:scale-100 cursor-pointer"
           >
-            <ChevronLeft className="w-5 h-5 text-white" strokeWidth={2.5} />
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
           </button>
           <button
             type="button"
@@ -150,75 +150,44 @@ function InstallationCarousel() {
             disabled={!canScrollRight}
             aria-label="Next installations"
             aria-controls="installation-carousel-track"
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#011E75] text-white flex items-center justify-center border border-[#CE9E34]/40 shadow-md transition-all duration-200 hover:bg-[#022899] hover:border-[#CE9E34] hover:shadow-[0_0_14px_rgba(206,158,52,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CE9E34] focus-visible:ring-offset-2 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-[#011E75] disabled:hover:border-[#CE9E34]/40 disabled:hover:shadow-none disabled:active:scale-100"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#011E75] text-white flex items-center justify-center border border-[#CE9E34]/40 shadow-sm transition-all duration-200 hover:bg-[#022899] hover:border-[#CE9E34] hover:shadow-[0_0_12px_rgba(206,158,52,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CE9E34] focus-visible:ring-offset-2 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-[#011E75] disabled:hover:border-[#CE9E34]/40 disabled:hover:shadow-none disabled:active:scale-100 cursor-pointer"
           >
-            <ChevronRight className="w-5 h-5 text-white" strokeWidth={2.5} />
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
           </button>
         </div>
       </div>
 
-      {/* Relative Carousel Track Container with Side Floating Arrows */}
-      <div className="relative group/carousel">
-        {/* Floating Left Arrow (Flanking cards on screens >= 640px) */}
-        <div className="hidden sm:flex absolute -left-4 lg:-left-6 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
-          <button
-            type="button"
-            onClick={() => scroll('left')}
-            disabled={!canScrollLeft}
-            aria-label="Previous installations"
-            aria-controls="installation-carousel-track"
-            className="pointer-events-auto w-12 h-12 rounded-full bg-[#011E75] text-white flex items-center justify-center border border-[#CE9E34]/50 shadow-xl transition-all duration-200 hover:bg-[#022899] hover:border-[#CE9E34] hover:scale-105 hover:shadow-[0_0_16px_rgba(206,158,52,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CE9E34] focus-visible:ring-offset-2 active:scale-95 disabled:opacity-0 disabled:pointer-events-none"
+      {/* Horizontal Carousel Track (Clean, Unobstructed, No Side Arrows Overlap) */}
+      <div
+        ref={scrollRef}
+        id="installation-carousel-track"
+        role="region"
+        aria-label="Window and Door Installations Carousel"
+        tabIndex={0}
+        className="flex gap-4 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#011E75] rounded-xl scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        {upvcGallery.map((item, i) => (
+          <div
+            key={i}
+            data-carousel-item
+            className="flex-shrink-0 snap-start group select-none w-[78vw] max-w-[320px] sm:w-[calc(50%-12px)] sm:max-w-[360px] lg:w-[calc(33.333%-16px)] lg:max-w-[420px]"
           >
-            <ChevronLeft className="w-6 h-6 text-white" strokeWidth={2.5} />
-          </button>
-        </div>
-
-        {/* Floating Right Arrow (Flanking cards on screens >= 640px) */}
-        <div className="hidden sm:flex absolute -right-4 lg:-right-6 top-1/2 -translate-y-1/2 z-20 pointer-events-none">
-          <button
-            type="button"
-            onClick={() => scroll('right')}
-            disabled={!canScrollRight}
-            aria-label="Next installations"
-            aria-controls="installation-carousel-track"
-            className="pointer-events-auto w-12 h-12 rounded-full bg-[#011E75] text-white flex items-center justify-center border border-[#CE9E34]/50 shadow-xl transition-all duration-200 hover:bg-[#022899] hover:border-[#CE9E34] hover:scale-105 hover:shadow-[0_0_16px_rgba(206,158,52,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CE9E34] focus-visible:ring-offset-2 active:scale-95 disabled:opacity-0 disabled:pointer-events-none"
-          >
-            <ChevronRight className="w-6 h-6 text-white" strokeWidth={2.5} />
-          </button>
-        </div>
-
-        {/* Horizontal Carousel Track */}
-        <div
-          ref={scrollRef}
-          id="installation-carousel-track"
-          role="region"
-          aria-label="Window and Door Installations Carousel"
-          tabIndex={0}
-          className="flex gap-4 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#011E75] rounded-xl scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-          style={{ WebkitOverflowScrolling: 'touch' }}
-        >
-          {upvcGallery.map((item, i) => (
-            <div
-              key={i}
-              data-carousel-item
-              className="flex-shrink-0 snap-start group select-none w-[78vw] max-w-[320px] sm:w-[calc(50%-12px)] sm:max-w-[360px] lg:w-[calc(33.333%-16px)] lg:max-w-[420px]"
-            >
-              <div className="relative rounded-panel overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3]">
-                <Image
-                  src={item.src}
-                  alt={item.alt}
-                  fill
-                  sizes="(max-width: 640px) 78vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
-              <span className="block mt-3 text-[11px] uppercase tracking-[0.12em] text-charcoal-700 font-semibold group-hover:text-[#CE9E34] transition-colors">
-                {item.label}
-              </span>
+            <div className="relative rounded-panel overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3]">
+              <Image
+                src={item.src}
+                alt={item.alt}
+                fill
+                sizes="(max-width: 640px) 78vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-105"
+                loading="lazy"
+              />
             </div>
-          ))}
-        </div>
+            <span className="block mt-2.5 text-[11px] uppercase tracking-[0.12em] text-charcoal-700 font-semibold group-hover:text-[#CE9E34] transition-colors">
+              {item.label}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -231,11 +200,11 @@ export default function UpvcSection() {
   const themes = upvc.themes || [];
 
   return (
-    <Section id="upvc" background="surface" padding="spacious">
+    <Section id="upvc" background="surface" padding="default">
       <Container>
 
         {/* Section Intro */}
-        <div className="max-w-2xl mb-12 lg:mb-16">
+        <div className="max-w-2xl mb-8 sm:mb-10">
           <FadeIn direction="up">
             <Eyebrow icon={false}>
               {upvc.eyebrow}
@@ -257,7 +226,7 @@ export default function UpvcSection() {
         <ArchitecturalHero />
 
         {/* Theme Labels */}
-        <div className="mt-12 lg:mt-16 mb-16 lg:mb-20">
+        <div className="mt-6 sm:mt-8 mb-8 sm:mb-10">
           <ThemeLabels themes={themes} />
         </div>
 
@@ -271,7 +240,7 @@ export default function UpvcSection() {
 
         {/* Subtle CTA */}
         <FadeIn direction="up" delay={0.2}>
-          <div className="mt-12 flex justify-center md:justify-start">
+          <div className="mt-6 sm:mt-8 flex justify-center md:justify-start">
             <Button href="#contact" variant="outline" size="md" icon>
               Get a Quote
             </Button>

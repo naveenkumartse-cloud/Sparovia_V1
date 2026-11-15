@@ -35,11 +35,11 @@ export default function TestimonialsSection() {
   const roleOrLocation = current?.location || '';
 
   return (
-    <Section id="testimonials" background="surface" padding="spacious">
+    <Section id="testimonials" background="surface" padding="default">
       <Container size="narrow">
 
         {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-12 lg:mb-16">
+        <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-8">
           <FadeIn direction="up">
             <Eyebrow icon={false}>
               {testimonials.eyebrow}
@@ -53,8 +53,8 @@ export default function TestimonialsSection() {
         </div>
 
         {/* Editorial Quote Presentation */}
-        <div className="relative bg-white rounded-panel p-6 sm:p-10 md:p-12 border border-[#EBDEBA] shadow-soft-sm">
-          <Quote className="w-10 h-10 text-[#CE9E34]/50 mb-6" />
+        <div className="relative bg-white rounded-panel p-5 sm:p-7 md:p-8 border border-[#EBDEBA] shadow-soft-sm">
+          <Quote className="w-8 h-8 text-[#CE9E34]/50 mb-4" />
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -64,11 +64,11 @@ export default function TestimonialsSection() {
               exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
             >
-              <blockquote className="font-sans text-lg sm:text-xl md:text-2xl font-medium text-charcoal-900 leading-snug mb-8">
+              <blockquote className="font-sans text-lg sm:text-xl md:text-2xl font-medium text-charcoal-900 leading-snug mb-5">
                 &ldquo;{quoteText}&rdquo;
               </blockquote>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-gray-100 pt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-gray-100 pt-4 sm:pt-5">
                 <div>
                   <span className="block font-sans font-bold text-sm text-[#011E75]">
                     {authorName}

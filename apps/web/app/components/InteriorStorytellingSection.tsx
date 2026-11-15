@@ -43,7 +43,7 @@ function AlternatingStorytelling({ categories }: { categories: CategoryItem[] })
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <div className="flex flex-col gap-16 lg:gap-24">
+    <div className="flex flex-col gap-10 sm:gap-14">
       {categories.map((cat, i) => {
         const isEven = i % 2 === 0; // Even: Image Left, Odd: Image Right on desktop
         const displayName = cat.name || cat.title || 'Interior Solution';
@@ -53,7 +53,7 @@ function AlternatingStorytelling({ categories }: { categories: CategoryItem[] })
         return (
           <div 
             key={cat.id || i} 
-            className={`flex flex-col lg:flex-row gap-8 lg:gap-16 items-center ${
+            className={`flex flex-col lg:flex-row gap-6 lg:gap-12 items-center ${
               !isEven ? 'lg:flex-row-reverse' : ''
             }`}
           >
@@ -78,24 +78,24 @@ function AlternatingStorytelling({ categories }: { categories: CategoryItem[] })
             <div className="w-full lg:w-2/5 flex flex-col justify-center px-1 sm:px-4 lg:px-0">
               <FadeIn direction={isEven ? "left" : "right"} delay={0.2}>
                 {/* Index Number */}
-                <span className="block text-[11px] uppercase tracking-[0.2em] text-[#CE9E34] font-black mb-3">
+                <span className="block text-[11px] uppercase tracking-[0.2em] text-[#CE9E34] font-black mb-2">
                   {displayIndex}
                 </span>
 
                 {/* Category Title */}
-                <h3 className="font-sans text-3xl sm:text-4xl font-bold text-charcoal-900 tracking-tight mb-3 leading-tight">
+                <h3 className="font-sans text-2xl sm:text-3xl font-bold text-charcoal-900 tracking-tight mb-2 leading-tight">
                   {displayName}
                 </h3>
 
                 {/* Tagline */}
                 {cat.tagline && (
-                  <p className="text-base text-muted-500 font-medium italic mb-5">
+                  <p className="text-sm sm:text-base text-muted-500 font-medium italic mb-3">
                     {cat.tagline}
                   </p>
                 )}
 
                 {/* Description */}
-                <p className="text-sm sm:text-base text-charcoal-700 leading-relaxed mb-8 max-w-sm">
+                <p className="text-sm sm:text-base text-charcoal-700 leading-relaxed mb-5 max-w-sm">
                   {cat.description}
                 </p>
 
@@ -117,11 +117,11 @@ export default function InteriorStorytellingSection() {
   const categories = services.categories || [];
 
   return (
-    <Section id="interiors" background="white" padding="spacious">
+    <Section id="interiors" background="white" padding="default">
       <Container>
 
         {/* Section Intro */}
-        <div className="mb-16 lg:mb-24 max-w-2xl mx-auto text-center lg:text-left lg:mx-0">
+        <div className="mb-8 sm:mb-10 max-w-2xl mx-auto text-center lg:text-left lg:mx-0">
           <FadeIn direction="up">
             <Eyebrow icon={false} className="lg:justify-start justify-center">
               {services.eyebrow}
@@ -132,7 +132,7 @@ export default function InteriorStorytellingSection() {
               {services.heading}
             </SectionHeading>
           </FadeIn>
-          <FadeIn direction="up" delay={0.2}>
+          <FadeIn direction="up" delay={0.15}>
             <Subheading>
               {services.description}
             </Subheading>

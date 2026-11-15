@@ -21,11 +21,11 @@ export default function FaqSection() {
   const faqs = faq.list || [];
 
   return (
-    <Section id="faq" background="white" padding="spacious">
+    <Section id="faq" background="white" padding="default">
       <Container size="narrow">
 
         {/* Section Intro */}
-        <div className="max-w-2xl mb-12 lg:mb-16">
+        <div className="max-w-2xl mb-6 sm:mb-8">
           <FadeIn direction="up">
             <Eyebrow icon={false}>
               {faq.eyebrow}
@@ -59,7 +59,7 @@ export default function FaqSection() {
                         toggleFaq(index);
                       }
                     }}
-                    className="w-full py-6 text-left flex items-center justify-between gap-6 group focus-ring rounded-lg cursor-pointer"
+                    className="w-full py-4 sm:py-5 text-left flex items-center justify-between gap-6 group focus-ring rounded-lg cursor-pointer"
                   >
                     <span
                       className={`font-sans font-semibold text-base sm:text-lg transition-colors duration-200 ${
@@ -89,7 +89,7 @@ export default function FaqSection() {
                         transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1.0] }}
                         className="overflow-hidden"
                       >
-                        <p className="pb-6 pt-1 text-sm sm:text-base text-charcoal-600 font-normal leading-relaxed max-w-2xl">
+                        <p className="pb-4 sm:pb-5 pt-1 text-sm sm:text-base text-charcoal-600 font-normal leading-relaxed max-w-2xl">
                           {faq.answer}
                         </p>
                       </motion.div>
