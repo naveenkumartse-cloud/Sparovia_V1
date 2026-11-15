@@ -99,12 +99,12 @@
   ],
   "cwv": {
     "ttfb": 7,
-    "domInteractive": 162,
-    "domContentLoaded": 163,
-    "loadComplete": 386,
-    "firstPaint": 220,
-    "firstContentfulPaint": 220,
-    "largestContentfulPaint": 220,
+    "domInteractive": 173,
+    "domContentLoaded": 173,
+    "loadComplete": 326,
+    "firstPaint": 256,
+    "firstContentfulPaint": 256,
+    "largestContentfulPaint": 256,
     "cumulativeLayoutShift": 0
   },
   "skeletonCheck": {
@@ -117,7 +117,7 @@
   "brandCheck": {
     "logoFound": true,
     "logoSrc": "http://localhost:3300/images/logo.png",
-    "logoNaturalDimensions": "1254x1254",
+    "logoNaturalDimensions": "857x775",
     "footerLogoFound": true,
     "hasDuplicateHeaderText": false,
     "primaryBtnBg": "rgba(0, 0, 0, 0)",
@@ -161,5 +161,17 @@
     "messageValue": "Seeking consultation for 3BHK modular kitchen and acoustic uPVC casement windows.",
     "readyToSubmit": true
   },
-  "consoleErrors": []
+  "consoleErrors": [],
+  "carouselCheck": {
+    "found": true,
+    "itemsCount": 4,
+    "prevButtonsCount": 2,
+    "nextButtonsCount": 2,
+    "buttonBgColor": "rgb(1, 30, 117)",
+    "initialScrollLeft": 4,
+    "afterNextScrollLeft": 392,
+    "afterPrevScrollLeft": 4,
+    "navigationWorks": true,
+    "initialCanPrev": false
+  }
 }

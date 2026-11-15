@@ -29,14 +29,16 @@ export default function Footer() {
           
           {/* Brand Info & Complete Official Logo */}
           <div className="md:col-span-5 space-y-4">
-            <div className="relative h-16 w-16 sm:h-18 sm:w-18 shrink-0 rounded-lg overflow-hidden bg-white p-1 border border-[#CE9E34]/30 shadow-md">
-              <Image
-                src="/images/logo.png"
-                alt="KVN Interior — uPVC Windows, Doors & Home Interior"
-                width={72}
-                height={72}
-                className="w-full h-full object-contain"
-              />
+            <div className="relative inline-flex items-center justify-center rounded-xl bg-white p-2.5 sm:p-3 border border-[#CE9E34]/40 shadow-lg">
+              <div className="relative h-16 sm:h-20 w-auto aspect-[857/775] shrink-0">
+                <Image
+                  src="/images/logo.png"
+                  alt="KVN Interior — uPVC Windows, Doors & Home Interior"
+                  width={160}
+                  height={145}
+                  className="h-full w-auto object-contain"
+                />
+              </div>
             </div>
 
             <p className="text-xs text-gray-300 font-normal leading-relaxed max-w-sm pt-1">

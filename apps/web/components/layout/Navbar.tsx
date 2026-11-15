@@ -65,14 +65,14 @@ export default function Navbar() {
           aria-label={`${displayName} — return to top`}
           onClick={closeMobileMenu}
         >
-          <div className="relative h-11 w-11 sm:h-13 sm:w-13 md:h-14 md:w-14 shrink-0 flex items-center justify-center">
+          <div className="relative h-12 sm:h-14 md:h-16 w-auto aspect-[857/775] shrink-0 flex items-center justify-center">
             <Image
               src="/images/logo.png"
               alt="KVN Interior — uPVC Windows, Doors & Home Interior"
-              width={56}
-              height={56}
+              width={160}
+              height={145}
               priority
-              className="w-full h-full object-contain"
+              className="h-full w-auto object-contain"
             />
           </div>
         </a>

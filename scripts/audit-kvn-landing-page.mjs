@@ -318,6 +318,55 @@ async function runAudit() {
     results.formCheck = formCheck;
     console.log('[Check: Contact Enquiry Form]', formCheck);
 
+    // 4b. Window & Door Installation Carousel Navigation Check
+    const carouselCheck = await client.evaluate(`(async () => {
+      const track = document.getElementById('installation-carousel-track');
+      if (!track) return { found: false };
+
+      const prevBtns = Array.from(document.querySelectorAll('button[aria-label="Previous installations"]'));
+      const nextBtns = Array.from(document.querySelectorAll('button[aria-label="Next installations"]'));
+      const items = Array.from(track.querySelectorAll('[data-carousel-item]'));
+
+      const initialScrollLeft = track.scrollLeft;
+      const initialCanPrev = !prevBtns[0]?.disabled;
+
+      // Click next button
+      const nextBtn = nextBtns[0];
+      if (nextBtn) {
+        nextBtn.click();
+      }
+      await new Promise(r => setTimeout(r, 600));
+
+      const afterNextScrollLeft = track.scrollLeft;
+      const advanced = afterNextScrollLeft > initialScrollLeft;
+
+      // Click prev button
+      const prevBtn = prevBtns[0];
+      if (prevBtn) {
+        prevBtn.click();
+      }
+      await new Promise(r => setTimeout(r, 600));
+
+      const afterPrevScrollLeft = track.scrollLeft;
+
+      const btnStyles = nextBtn ? window.getComputedStyle(nextBtn) : null;
+
+      return {
+        found: true,
+        itemsCount: items.length,
+        prevButtonsCount: prevBtns.length,
+        nextButtonsCount: nextBtns.length,
+        buttonBgColor: btnStyles ? btnStyles.backgroundColor : null,
+        initialScrollLeft,
+        afterNextScrollLeft,
+        afterPrevScrollLeft,
+        navigationWorks: advanced,
+        initialCanPrev
+      };
+    })()`);
+    results.carouselCheck = carouselCheck;
+    console.log('[Check: Window & Door Installation Carousel]', carouselCheck);
+
     // 5. Core Web Vitals & Performance Timings
     const cwv = await client.evaluate(`(() => {
       const navEntry = performance.getEntriesByType('navigation')[0];
