@@ -1506,14 +1506,19 @@ export default function ImagesPage() {
         replacingImage={replacingImage}
         categories={categories}
         onCategoryCreated={(newCat) => setCategories((prev) => [...prev, newCat])}
-        onOpenStudio={(pending) => {
+        onOpenStudio={(target) => {
           setUploadModalOpen(false);
-          setPendingStudioUpload(pending);
-          setStudioImage(null);
+          setUploadSlot(null);
+          setReplacingImage(null);
+          if ('id' in target && target.id) {
+            handleOpenStudio(target as ImageDto);
+          } else {
+            setPendingStudioUpload(target as PendingUploadData);
+            setStudioImage(null);
+          }
         }}
-        onSuccess={(newImg) => {
+        onSuccess={(_newImg) => {
           fetchImages();
-          handleOpenStudio(newImg);
         }}
       />
 

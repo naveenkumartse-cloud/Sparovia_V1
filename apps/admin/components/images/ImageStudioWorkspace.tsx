@@ -1003,13 +1003,14 @@ export function ImageStudioWorkspace({
           </div>
         </header>
 
-        {/* Main Body: Left Inspection Canvas & Right Control Rail */}
-        <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden bg-slate-50 dark:bg-[#0B1220]">
+        {/* Main Body: Left Inspection Canvas & Right Control Rail (Vertical scroll on mobile, independent rails on desktop) */}
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden bg-slate-50 dark:bg-[#0B1220]">
           {/* Comparison Inspection Area */}
-          <div className="flex-1 min-h-[300px] flex flex-col p-3 sm:p-5 overflow-auto relative">
+          <div className="w-full lg:flex-1 h-[280px] sm:h-[360px] lg:h-auto min-h-[220px] shrink-0 lg:shrink flex flex-col p-2.5 sm:p-4 lg:p-5 overflow-visible lg:overflow-auto relative">
             <div
               ref={containerRef}
-              className="flex-1 w-full min-h-[320px] bg-slate-100 dark:bg-slate-900/60 rounded-[8px] border border-slate-200/80 dark:border-slate-800 relative overflow-hidden flex items-center justify-center select-none shadow-sm"
+              style={{ touchAction: 'pan-y' }}
+              className="flex-1 w-full min-h-[200px] bg-slate-100 dark:bg-slate-900/60 rounded-[8px] border border-slate-200/80 dark:border-slate-800 relative overflow-hidden flex items-center justify-center select-none shadow-sm"
               onMouseDown={viewMode === 'split' && displayedVariant ? handleMouseDown : undefined}
               onTouchStart={viewMode === 'split' && displayedVariant ? handleTouchStart : undefined}
               onTouchMove={viewMode === 'split' && displayedVariant ? handleTouchMove : undefined}
@@ -1430,8 +1431,8 @@ export function ImageStudioWorkspace({
             )}
           </div>
 
-          {/* Right Control Rail: Clean white/neutral panel */}
-          <aside className="w-full lg:w-96 bg-white dark:bg-[#0F172A] border-t lg:border-t-0 lg:border-l border-slate-200/90 dark:border-slate-800 flex flex-col shrink-0 overflow-y-auto [scrollbar-gutter:stable]">
+          {/* Right Control Rail: Clean white/neutral panel (natural scroll on mobile, dedicated rail on desktop) */}
+          <aside className="w-full lg:w-96 bg-white dark:bg-[#0F172A] border-t lg:border-t-0 lg:border-l border-slate-200/90 dark:border-slate-800 flex flex-col shrink-0 lg:overflow-y-auto pb-[max(2rem,env(safe-area-inset-bottom))] [scrollbar-gutter:stable]">
             <div className="p-5 flex flex-col gap-5">
 
               {/* Status Feedback in Sidebar (Canvas layout remains rock-solid) */}
