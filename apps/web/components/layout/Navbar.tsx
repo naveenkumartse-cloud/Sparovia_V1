@@ -50,10 +50,10 @@ export default function Navbar() {
   return (
     <header
       role="banner"
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ease-out ${
+      className={`fixed top-0 left-0 right-0 z-[100] bg-white transition-all duration-300 ease-out ${
         scrolled
-          ? 'py-2 bg-white/98 backdrop-blur-md shadow-[0_1px_3px_rgba(1,30,117,0.08)] border-b border-gray-100'
-          : 'py-3 sm:py-3.5 bg-white/95 backdrop-blur-sm border-b border-gray-100/70'
+          ? 'py-2 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border-b border-gray-200/80'
+          : 'py-3 sm:py-3.5 border-b border-gray-100'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between relative z-20">
@@ -118,7 +118,7 @@ export default function Navbar() {
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
-          className="lg:hidden fixed top-0 left-0 right-0 h-[100dvh] z-10 bg-white/98 backdrop-blur-md flex flex-col pt-[72px] overscroll-contain"
+          className="lg:hidden fixed top-0 left-0 right-0 h-[100dvh] z-10 bg-white flex flex-col pt-[72px] overscroll-contain"
         >
           <nav className="flex flex-col px-6 pt-6 pb-6 gap-1 flex-1 overflow-y-auto" aria-label="Mobile Navigation">
             {templateConfig.navLinks.map((link) => (
