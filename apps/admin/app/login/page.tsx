@@ -41,6 +41,7 @@ export default function LoginPage() {
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const isContinuingRef = useRef(false);
   const isSubmittingRef = useRef(false);
+  const isNavigatingToAdminRef = useRef(false);
 
   const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading, setAuthUser } = useAuth();
@@ -52,9 +53,9 @@ export default function LoginPage() {
   // Real-time validation status
   const isIdentifierValid = identifier.trim() !== '' && validateIdentifier(identifier) === null;
 
-  // If already authenticated, redirect immediately
+  // If already authenticated on initial page visit, redirect cleanly
   useEffect(() => {
-    if (!authLoading && isAuthenticated && user) {
+    if (!authLoading && isAuthenticated && user && !isNavigatingToAdminRef.current) {
       if (user.isOnboardingConfirmed === false) {
         router.replace('/admin/onboarding/business-basics');
       } else {
@@ -194,6 +195,7 @@ export default function LoginPage() {
         : '/admin';
 
       // Navigate via Next.js client router without triggering a second full-page browser reload
+      isNavigatingToAdminRef.current = true;
       router.replace(dest);
     } catch (err: any) {
       const genericMsg = 'Invalid email/phone number or password.';

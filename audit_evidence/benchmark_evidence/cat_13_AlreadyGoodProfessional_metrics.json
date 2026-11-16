@@ -10,7 +10,7 @@
   "InputSizeBytes": 203455,
   "OutputSizeBytes": 146074,
   "CompressionRatio": 0.7179671180359293,
-  "ElapsedMilliseconds": 717.8647,
+  "ElapsedMilliseconds": 687.7928,
   "MemoryAllocatedMb": 75.67964172363281,
   "PsnrDb": 32.86682548866763,
   "Ssim": 0.9982601759082409,

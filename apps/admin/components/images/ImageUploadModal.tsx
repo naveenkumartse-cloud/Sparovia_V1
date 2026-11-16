@@ -698,7 +698,7 @@ export function ImageUploadModal({
                     Tap to choose photo or drag &amp; drop
                   </p>
                   <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-0.5">
-                    JPG, PNG, or WebP up to 10 MB (Max 25 megapixels)
+                    JPG, PNG, or WebP up to 10 MB {slot ? `• Recommended: ${slot.toLowerCase().includes('hero') ? '16:9 for Hero' : slot.toLowerCase().includes('about') ? '4:3 for About' : '1:1 for Story/Profile'}` : '(Max 25 megapixels)'}
                   </p>
                 </div>
               </div>
@@ -720,7 +720,7 @@ export function ImageUploadModal({
             </div>
 
             {slot ? (
-              <div>
+              <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-[#172033] dark:text-slate-200 mb-1">
                   Target Website Slot
                 </label>
@@ -730,6 +730,13 @@ export function ImageUploadModal({
                   value={slot}
                   className="font-mono bg-[#F3F6FA] dark:bg-[#1E293B] text-[#475569] dark:text-slate-300"
                 />
+                <p className="text-[11px] text-[#475569] dark:text-[#94A3B8]">
+                  {slot.toLowerCase().includes('hero')
+                    ? 'Recommended aspect ratio: 16:9 (Hero banner presentation across desktop & mobile).'
+                    : slot.toLowerCase().includes('about')
+                    ? 'Recommended aspect ratio: 4:3 (Editorial portrait / medium landscape presentation for About section).'
+                    : 'Recommended aspect ratio: 1:1 (Square framing for Story / Profile section).'}
+                </p>
               </div>
             ) : (
               <div>

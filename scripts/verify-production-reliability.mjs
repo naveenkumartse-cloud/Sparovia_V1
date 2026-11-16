@@ -223,20 +223,20 @@ test('AdminDashboard protects against duplicate summary data fetching on mount',
 // --------------------------------------------------------------------------------
 console.log('\n--- GROUP 4: Unified Loading Timing & Exit Transitions ---');
 
-test('AdminShell enforces minimum display duration (600ms) to ensure 7-stage logo sequence does not cut off abruptly', () => {
+test('AdminShell enforces minimum display duration (3000ms / full 7-stage cycle) to ensure logo sequence does not cut off abruptly', () => {
   const shellSrc = fs.readFileSync(
     path.resolve('apps/admin/components/admin/AdminShell.tsx'),
     'utf8'
   );
   assert.strictEqual(
-    shellSrc.includes('const [initialLoadingActive, setInitialLoadingActive] = useState<boolean>(isLoading);'),
+    shellSrc.includes('initialLoadingActive'),
     true,
     'Must track initialLoadingActive'
   );
   assert.strictEqual(
-    shellSrc.includes('const minDisplayMs = 600;'),
+    shellSrc.includes('const minDisplayMs = 3000;'),
     true,
-    'Must enforce minDisplayMs of 600ms'
+    'Must enforce minDisplayMs of 3000ms'
   );
   assert.strictEqual(
     shellSrc.includes('setIsLoaderFadingOut(true);'),

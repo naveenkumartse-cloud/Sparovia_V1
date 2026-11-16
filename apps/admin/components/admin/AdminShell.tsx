@@ -289,14 +289,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
 
   // Initial application loader timing & smooth completion management
-  const [initialLoadingActive, setInitialLoadingActive] = useState<boolean>(isLoading);
+  const [initialLoadingActive, setInitialLoadingActive] = useState<boolean>(true);
   const [isLoaderFadingOut, setIsLoaderFadingOut] = useState<boolean>(false);
   const initialLoadStartRef = useRef<number>(Date.now());
+  const navStartTimeRef = useRef<number>(0);
 
   useEffect(() => {
     if (!isLoading && initialLoadingActive && !isLoaderFadingOut) {
       const elapsed = Date.now() - initialLoadStartRef.current;
-      const minDisplayMs = 600; // ensures the 7-stage animated sequence completes gracefully
+      const minDisplayMs = 3000; // ensures the full 7-stage animated sequence (2.8s loop + glow) completes gracefully
       const remaining = Math.max(0, minDisplayMs - elapsed);
 
       const timer = setTimeout(() => {
@@ -310,13 +311,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       return () => clearTimeout(timer);
     }
   }, [isLoading, initialLoadingActive, isLoaderFadingOut]);
-
-  // Close mobile drawer and clear navigation loading immediately on route changes
-  useEffect(() => {
-    setMobileMenuOpen(false);
-    setNavigatingRoute(null);
-    setShowNavLoader(false);
-  }, [pathname]);
 
   // Debounce menu navigation loader (120ms): avoids visual flashing on instantaneous transitions
   useEffect(() => {
@@ -332,6 +326,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     const safetyTimeout = setTimeout(() => {
       setNavigatingRoute(null);
       setShowNavLoader(false);
+      navStartTimeRef.current = 0;
     }, 8000);
 
     return () => {
@@ -340,8 +335,31 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     };
   }, [navigatingRoute]);
 
+  // Manage menu navigation loader timing (enforce minimum ~1.5s for complete animation cycle)
+  useEffect(() => {
+    setMobileMenuOpen(false);
+
+    if (navStartTimeRef.current > 0) {
+      const elapsed = Date.now() - navStartTimeRef.current;
+      const minNavMs = 1500;
+      const remaining = Math.max(0, minNavMs - elapsed);
+
+      const navTimer = setTimeout(() => {
+        setNavigatingRoute(null);
+        setShowNavLoader(false);
+        navStartTimeRef.current = 0;
+      }, remaining);
+
+      return () => clearTimeout(navTimer);
+    } else {
+      setNavigatingRoute(null);
+      setShowNavLoader(false);
+    }
+  }, [pathname]);
+
   const handleNavigate = (href?: string) => {
     if (!href || href === pathname) return;
+    navStartTimeRef.current = Date.now();
     setNavigatingRoute(href);
   };
 
@@ -458,7 +476,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           aria-live="polite"
           aria-label="Loading Sparovia secure workspace"
         >
-          <SparoviaLogoLoader mode="initial" size="initial" />
+          <SparoviaLogo size="loader" priority={true} />
         </div>
       )}
       {/* Fixed Ambient Light Meshes for Genuine Glass Refraction */}
@@ -626,7 +644,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto pb-20 lg:pb-8">
+        <main
+          className={cn(
+            'flex-1 overflow-y-auto pb-20 lg:pb-8 transition-opacity duration-300',
+            showNavLoader && 'opacity-60 pointer-events-none'
+          )}
+        >
           <div className="mx-auto max-w-7xl p-3.5 sm:p-6 lg:p-8 space-y-6">
             {children}
           </div>
@@ -639,6 +662,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         >
           <Link
             href="/admin"
+            onClick={() => handleNavigate('/admin')}
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
               pathname === '/admin'
                 ? 'text-[#315FEA] dark:text-blue-400 font-bold'
@@ -651,6 +675,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <Link
             href="/admin/leads"
+            onClick={() => handleNavigate('/admin/leads')}
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
               pathname?.startsWith('/admin/leads')
                 ? 'text-[#315FEA] dark:text-blue-400 font-bold'
@@ -663,6 +688,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <Link
             href="/admin/images"
+            onClick={() => handleNavigate('/admin/images')}
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
               pathname?.startsWith('/admin/images')
                 ? 'text-[#7950B8] dark:text-purple-400 font-bold'
@@ -675,6 +701,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <Link
             href="/admin/business-presence"
+            onClick={() => handleNavigate('/admin/business-presence')}
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
               pathname?.startsWith('/admin/business-presence')
                 ? 'text-[#315FEA] dark:text-blue-400 font-bold'
@@ -687,6 +714,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <Link
             href="/admin/account"
+            onClick={() => handleNavigate('/admin/account')}
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
               pathname?.startsWith('/admin/account')
                 ? 'text-[#315FEA] dark:text-blue-400 font-bold'
