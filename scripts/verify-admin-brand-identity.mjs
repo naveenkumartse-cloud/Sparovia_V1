@@ -119,8 +119,13 @@ assert(bizContextPage.includes('text-[#C206C9]'), 'Business context AI improve b
 const onboardDescPage = fs.readFileSync(path.join(rootDir, 'apps/admin/app/admin/onboarding/business-description/page.tsx'), 'utf8');
 assert(onboardDescPage.includes('text-[#C206C9]'), 'Onboarding description AI improve buttons use #C206C9');
 
-// 8. Scope Protection: Public Website Decoupled
-console.log('\n8. Checking Scope Isolation (apps/web decouple)...');
+// 8. Menu Navigation Loader Complete Removal
+console.log('\n8. Checking Menu Navigation Loader Complete Removal...');
+const loadingPath = path.join(rootDir, 'apps/admin/app/admin/loading.tsx');
+assert(!fs.existsSync(loadingPath), 'apps/admin/app/admin/loading.tsx is completely removed');
+
+// 9. Scope Protection: Public Website Decoupled
+console.log('\n9. Checking Scope Isolation (apps/web decouple)...');
 const webFilesChanged = fs.existsSync(path.join(rootDir, 'apps/web'));
 assert(webFilesChanged, 'apps/web exists and remains intact');
 

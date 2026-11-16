@@ -239,9 +239,9 @@ it('AdminShell renders SparoviaLogo in expanded sidebar, mobile drawer, collapse
   assert.strictEqual(shellSrc.includes('text-brand-gradient'), false);
 });
 
-it('Menu navigation loader (apps/admin/app/admin/loading.tsx) exists and renders SparoviaLogo', () => {
-  const loadingSrc = fs.readFileSync(path.resolve('apps/admin/app/admin/loading.tsx'), 'utf8');
-  assert.strictEqual(loadingSrc.includes('<SparoviaLogo size="auth" priority={true} />'), true);
+it('Menu navigation loader (apps/admin/app/admin/loading.tsx) is completely removed per locked requirement', () => {
+  const loadingExists = fs.existsSync(path.resolve('apps/admin/app/admin/loading.tsx'));
+  assert.strictEqual(loadingExists, false, 'Menu navigation loader loading.tsx must be completely removed');
 });
 
 it('All other auth pages (forgot-password, reset-password, verify-email, verify-phone) use SparoviaLogo', () => {

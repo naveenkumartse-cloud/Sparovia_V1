@@ -157,10 +157,9 @@ it('AdminShell preserves initial application loading animation and smooth fade-o
   assert.strictEqual(shellSrc.includes('setIsLoaderFadingOut(true);'), true);
 });
 
-it('Next.js route suspense boundary (apps/admin/app/admin/loading.tsx) uses SparoviaLogoLoader mode="navigation"', () => {
-  const loadingSrc = fs.readFileSync(path.resolve('apps/admin/app/admin/loading.tsx'), 'utf8');
-  assert.strictEqual(loadingSrc.includes('<SparoviaLogoLoader mode="navigation" size="lg" />'), true);
-  assert.strictEqual(loadingSrc.includes('animate-spin'), false, 'Traditional spinner must not be present in loading.tsx');
+it('Menu navigation loader (apps/admin/app/admin/loading.tsx) is completely removed to prevent menu-click loaders', () => {
+  const loadingExists = fs.existsSync(path.resolve('apps/admin/app/admin/loading.tsx'));
+  assert.strictEqual(loadingExists, false, 'Menu navigation loader loading.tsx must be completely removed');
 });
 
 // ---------------------------------------------------------------------
