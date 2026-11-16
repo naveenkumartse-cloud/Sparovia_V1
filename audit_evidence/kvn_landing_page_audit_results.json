@@ -85,6 +85,18 @@
       "screenshot": "kvn_landing_1280px_laptop.png"
     },
     {
+      "viewport": "1366px_laptop",
+      "width": 1366,
+      "height": 768,
+      "overflow": {
+        "hasOverflow": false,
+        "scrollWidth": 1358,
+        "clientWidth": 1358,
+        "diff": 0
+      },
+      "screenshot": "kvn_landing_1366px_laptop.png"
+    },
+    {
       "viewport": "1440px_desktop",
       "width": 1440,
       "height": 900,
@@ -98,20 +110,20 @@
     }
   ],
   "cwv": {
-    "ttfb": 1,
-    "domInteractive": 31,
-    "domContentLoaded": 31,
-    "loadComplete": 68,
-    "firstPaint": 64,
-    "firstContentfulPaint": 64,
-    "largestContentfulPaint": 64,
+    "ttfb": 25,
+    "domInteractive": 405,
+    "domContentLoaded": 405,
+    "loadComplete": 900,
+    "firstPaint": 464,
+    "firstContentfulPaint": 464,
+    "largestContentfulPaint": 464,
     "cumulativeLayoutShift": 0
   },
   "skeletonCheck": {
     "hasSkeletonMarkup": true,
-    "skeletonElementsCount": 2,
+    "skeletonElementsCount": 4,
     "heroPresent": true,
-    "heroHeadline": "Bespoke Luxury Interiors & Precision uPVC Architecture",
+    "heroHeadline": "BESPOKE LUXURY INTERIORS & PRECISION UPVC ARCHITECTURE",
     "navbarPresent": true
   },
   "brandCheck": {
@@ -121,7 +133,7 @@
     "footerLogoFound": true,
     "hasDuplicateHeaderText": false,
     "primaryBtnBg": "rgba(0, 0, 0, 0)",
-    "primaryBtnColor": "rgb(51, 65, 85)"
+    "primaryBtnColor": "rgb(209, 213, 219)"
   },
   "navCheck": {
     "linksCount": 5,
@@ -167,9 +179,9 @@
     "itemsCount": 4,
     "prevButtonsCount": 1,
     "nextButtonsCount": 1,
-    "buttonBgColor": "rgb(0, 68, 167)",
+    "buttonBgColor": "rgba(255, 255, 255, 0.1)",
     "initialScrollLeft": 4,
-    "afterNextScrollLeft": 392,
+    "afterNextScrollLeft": 411,
     "afterPrevScrollLeft": 4,
     "navigationWorks": true,
     "initialCanPrev": false

@@ -23,13 +23,13 @@ export default function Footer() {
   const address = contact?.address;
 
   return (
-    <footer className="bg-[#001D47] text-white pt-10 sm:pt-12 pb-8 relative border-t border-[#00388A]" role="contentinfo">
+    <footer className="bg-[#080C14] text-white pt-14 sm:pt-16 pb-10 relative border-t border-[#CE9E34]/25" role="contentinfo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-10">
           
           {/* Brand Info & Complete Official Logo */}
           <div className="md:col-span-5 space-y-4">
-            <div className="relative inline-flex items-center justify-center rounded-xl bg-white p-3 sm:p-4 border border-[#CE9E34]/40 shadow-lg">
+            <div className="relative inline-flex items-center justify-center rounded-xl bg-white p-3 sm:p-4 border border-[#CE9E34]/40 shadow-xl">
               <div className="relative h-16 sm:h-20 w-auto aspect-[719/584] shrink-0">
                 <Image
                   src="/images/logo.png"
@@ -41,8 +41,8 @@ export default function Footer() {
               </div>
             </div>
 
-            <p className="text-xs text-gray-300 font-normal leading-relaxed max-w-sm pt-1">
-              {footer.shortDescription || (website?.name ? `Official website for ${website.name}.` : '')}
+            <p className="text-xs text-gray-400 font-normal leading-relaxed max-w-sm pt-1">
+              {footer.shortDescription || (website?.name ? `Official architectural website for ${website.name}. Bespoke Home Interiors & Precision German uPVC Fenestration.` : '')}
             </p>
 
             {/* Quick Contact Line */}
@@ -97,10 +97,10 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="md:col-span-3 space-y-3">
-            <h4 className="font-sans text-xs font-bold uppercase tracking-widest text-[#CE9E34]">
-              Services &amp; Solutions
+            <h4 className="font-mono text-xs font-bold uppercase tracking-widest text-[#CE9E34]">
+              Capabilities
             </h4>
-            <ul className="space-y-2 text-xs text-gray-300 font-medium">
+            <ul className="space-y-2.5 text-xs text-gray-300 font-medium">
               <li>
                 <a href="#interiors" className="hover:text-[#CE9E34] transition-colors">
                   Modular Kitchens
@@ -131,11 +131,11 @@ export default function Footer() {
 
           {/* Navigation Links */}
           <div className="md:col-span-4 space-y-3 md:text-right">
-            <h4 className="font-sans text-xs font-bold uppercase tracking-widest text-[#CE9E34]">
+            <h4 className="font-mono text-xs font-bold uppercase tracking-widest text-[#CE9E34]">
               Navigation
             </h4>
             <nav aria-label="Footer Navigation">
-              <ul className="space-y-2 text-xs text-gray-300 font-medium">
+              <ul className="space-y-2.5 text-xs text-gray-300 font-medium">
                 {templateConfig.navLinks.map((link) => (
                   <li key={link.name}>
                     <a href={link.href} className="hover:text-[#CE9E34] transition-colors focus-ring rounded">
@@ -150,7 +150,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-6 border-t border-[#002D6E] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-300 font-normal">
+        <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-400 font-mono">
           <p>{copyrightText}</p>
           
           <button

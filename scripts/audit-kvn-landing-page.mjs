@@ -171,6 +171,7 @@ async function runAudit() {
       { name: '768px_tablet_portrait', width: 768, height: 1024 },
       { name: '1024px_laptop_small', width: 1024, height: 768 },
       { name: '1280px_laptop', width: 1280, height: 800 },
+      { name: '1366px_laptop', width: 1366, height: 768 },
       { name: '1440px_desktop', width: 1440, height: 900 },
     ];
 

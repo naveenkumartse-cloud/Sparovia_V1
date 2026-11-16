@@ -21,19 +21,22 @@ export default function FaqSection() {
   const faqs = faq.list || [];
 
   return (
-    <Section id="faq" background="white" padding="default">
+    <Section id="faq" background="white" padding="default" className="relative bg-[#FAF8F2] overflow-hidden">
       <Container size="narrow">
 
         {/* Section Intro */}
-        <div className="max-w-2xl mb-8 sm:mb-10 text-center sm:text-left">
+        <div className="max-w-2xl mb-10 sm:mb-14 text-center sm:text-left">
           <FadeIn direction="up">
-            <Eyebrow icon={false}>
-              {faq.eyebrow}
-            </Eyebrow>
+            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#9E741B] font-bold block mb-2">
+              [CHAPTER 06 // TECHNICAL INQUIRIES]
+            </span>
           </FadeIn>
           <FadeIn direction="up" delay={0.1}>
-            <SectionHeading className="tracking-tight text-3xl sm:text-4xl">
-              {faq.heading}
+            <Eyebrow icon={false}>{faq.eyebrow || 'FREQUENTLY ASKED QUESTIONS'}</Eyebrow>
+          </FadeIn>
+          <FadeIn direction="up" delay={0.15}>
+            <SectionHeading className="tracking-tight text-3xl sm:text-4xl lg:text-5xl">
+              {faq.heading || 'Frequently Asked Questions'}
             </SectionHeading>
           </FadeIn>
         </div>
@@ -47,7 +50,7 @@ export default function FaqSection() {
               const answerId = `faq-answer-${index}`;
 
               return (
-                <div key={index} className="p-4 sm:p-6 transition-colors hover:bg-[#FAF8F2]/40">
+                <div key={index} className="p-5 sm:p-7 transition-colors hover:bg-[#FAF8F2]/50">
                   <button
                     id={buttonId}
                     aria-expanded={isOpen}
@@ -59,7 +62,7 @@ export default function FaqSection() {
                         toggleFaq(index);
                       }
                     }}
-                    className="w-full text-left flex items-center justify-between gap-4 group focus-ring rounded-[6px] cursor-pointer"
+                    className="w-full text-left flex items-center justify-between gap-4 group focus-ring rounded-lg cursor-pointer"
                   >
                     <span
                       className={`font-sans font-bold text-base sm:text-lg transition-colors duration-200 tracking-tight ${
@@ -86,10 +89,10 @@ export default function FaqSection() {
                         initial={shouldReduceMotion ? { opacity: 1, height: 'auto' } : { opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={shouldReduceMotion ? { opacity: 0, height: 0 } : { opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1.0] }}
+                        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                         className="overflow-hidden"
                       >
-                        <p className="pt-3 pb-1 text-sm sm:text-base text-charcoal-600 font-normal leading-relaxed max-w-2xl">
+                        <p className="pt-4 pb-1 text-sm sm:text-base text-charcoal-700 font-normal leading-relaxed max-w-2xl">
                           {item.answer}
                         </p>
                       </motion.div>

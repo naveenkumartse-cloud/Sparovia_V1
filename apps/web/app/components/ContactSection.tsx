@@ -7,7 +7,7 @@ import { Container } from '@/components/ui/Container';
 import { Eyebrow } from '@/components/ui/Typography';
 import { Button } from '@/components/ui/Button';
 import { FadeIn } from '@/components/ui/Motion';
-import { CheckCircle2, AlertCircle, Clock, MapPin, Phone, Mail, Info } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Clock, MapPin, Phone, Mail, Info, Send } from 'lucide-react';
 
 export default function ContactSection() {
   const { contact, ourWork, tenantCategories, website } = useTemplateContent();
@@ -39,7 +39,6 @@ export default function ContactSection() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Prevent duplicate submissions from rapid double-clicks or event propagation
     if (isSubmittingRef.current || loading) {
       return;
     }
@@ -52,7 +51,6 @@ export default function ContactSection() {
     const trimmedProjectDetails = formData.projectDetails.trim();
     const trimmedArea = formData.areaOfInterest ? formData.areaOfInterest.trim() : null;
 
-    // 1. Frontend validation with clear user-facing messages
     if (!trimmedName) {
       setError('Please enter your full name.');
       return;
@@ -115,8 +113,8 @@ export default function ContactSection() {
           phone: fullPhone,
           email: trimmedEmail || null,
           areaOfInterest: trimmedArea,
-          service: trimmedArea, // backward compatibility
-          message: trimmedProjectDetails, // Maps UI "projectDetails" to API property "message"
+          service: trimmedArea,
+          message: trimmedProjectDetails,
           domain: domain || undefined,
         }),
       });
@@ -174,14 +172,14 @@ export default function ContactSection() {
     if (submitted) {
       return (
         <div className="text-center py-12">
-          <div className="w-16 h-16 rounded-[8px] bg-[#FAF8F2] border border-[#EBDEBA] flex items-center justify-center mx-auto mb-6 text-[#CE9E34]">
+          <div className="w-16 h-16 rounded-full bg-[#CE9E34]/15 border border-[#CE9E34] flex items-center justify-center mx-auto mb-6 text-[#CE9E34]">
             <CheckCircle2 className="w-8 h-8" />
           </div>
-          <h3 className="font-sans text-2xl font-bold text-charcoal-900 mb-2">
+          <h3 className="font-sans text-2xl font-bold text-white mb-2">
             Inquiry Received
           </h3>
-          <p className="text-sm text-charcoal-600 font-normal mb-8 max-w-sm mx-auto">
-            Thank you for contacting {brandName}. Your enquiry has been submitted successfully.
+          <p className="text-sm text-gray-300 font-normal mb-8 max-w-sm mx-auto">
+            Thank you for contacting {brandName}. Your enquiry has been submitted successfully to our architectural design studio.
           </p>
           <Button onClick={() => setSubmitted(false)} variant="primary" size="md">
             Send Another Request
@@ -194,14 +192,17 @@ export default function ContactSection() {
       <form onSubmit={handleSubmit} className="space-y-5">
         {includeHeader && (
           <div>
-            <Eyebrow icon={false}>{contact.eyebrow || 'CONTACT'}</Eyebrow>
+            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#CE9E34] font-bold block mb-1">
+              [CONSULTATION INTAKE]
+            </span>
+            <Eyebrow icon={false} className="text-[#DFB95C]">{contact.eyebrow || 'CONTACT'}</Eyebrow>
 
-            <h3 className="font-sans text-2xl sm:text-3xl font-bold text-charcoal-900 mb-2">
+            <h3 className="font-sans text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
               {contact.heading || 'Request a Quote'}
             </h3>
 
             {contact.description && (
-              <p className="text-sm text-charcoal-600 mb-6 font-normal">
+              <p className="text-sm text-gray-300 mb-6 font-normal">
                 {contact.description}
               </p>
             )}
@@ -210,17 +211,17 @@ export default function ContactSection() {
 
         {!includeHeader && (
           <div className="mb-2">
-            <h3 className="font-sans text-xl sm:text-2xl font-bold text-charcoal-900">
+            <h3 className="font-sans text-xl sm:text-2xl font-bold text-white tracking-tight">
               {contact.ctaLabel ? 'Request a Quote' : 'Send an Enquiry'}
             </h3>
-            <p className="text-xs text-charcoal-500 mt-1">
-              Share your requirements and our interior specialists will connect with you promptly.
+            <p className="text-xs text-gray-400 mt-1">
+              Share your project details. Our senior interior and glazing team will connect promptly.
             </p>
           </div>
         )}
 
         <div>
-          <label htmlFor="user-name" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
+          <label htmlFor="user-name" className="block text-xs font-mono uppercase tracking-wider text-gray-300 font-bold mb-2">
             Your Name *
           </label>
           <input
@@ -234,20 +235,20 @@ export default function ContactSection() {
               setFormData({ ...formData, name: e.target.value });
               if (error) setError(null);
             }}
-            className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs"
+            className="w-full px-4 py-3.5 rounded-lg bg-white/5 border border-white/15 text-white placeholder-gray-500 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs focus:border-[#CE9E34]"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="user-phone" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold">
+              <label htmlFor="user-phone" className="block text-xs font-mono uppercase tracking-wider text-gray-300 font-bold">
                 Phone Number *
               </label>
-              <span className="text-[11px] text-gray-500 font-medium">10-digit mobile</span>
+              <span className="text-[10px] font-mono text-gray-400">10-digit mobile</span>
             </div>
-            <div className="relative flex items-center rounded-[6px] border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-[#0044A7] focus-within:border-[#0044A7] shadow-xs">
-              <span className="inline-flex items-center px-3.5 py-3.5 bg-gray-100 text-charcoal-800 font-semibold text-xs sm:text-sm select-none border-r border-gray-300">
+            <div className="relative flex items-center rounded-lg border border-white/15 bg-white/5 overflow-hidden focus-within:ring-2 focus-within:ring-[#CE9E34] focus-within:border-[#CE9E34] shadow-xs">
+              <span className="inline-flex items-center px-3.5 py-3.5 bg-white/10 text-gray-200 font-mono font-bold text-xs sm:text-sm select-none border-r border-white/15">
                 +91
               </span>
               <input
@@ -277,13 +278,13 @@ export default function ContactSection() {
                   setFormData({ ...formData, phone: cleaned });
                   if (error) setError(null);
                 }}
-                className="w-full px-4 py-3.5 bg-white text-charcoal-900 text-xs sm:text-sm outline-none border-0 focus:ring-0 disabled:opacity-60"
+                className="w-full px-4 py-3.5 bg-transparent text-white placeholder-gray-500 text-xs sm:text-sm outline-none border-0 focus:ring-0 disabled:opacity-60"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="user-email" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
+            <label htmlFor="user-email" className="block text-xs font-mono uppercase tracking-wider text-gray-300 font-bold mb-2">
               Email Address
             </label>
             <input
@@ -296,13 +297,13 @@ export default function ContactSection() {
                 setFormData({ ...formData, email: e.target.value });
                 if (error) setError(null);
               }}
-              className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs"
+              className="w-full px-4 py-3.5 rounded-lg bg-white/5 border border-white/15 text-white placeholder-gray-500 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs focus:border-[#CE9E34]"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="user-service" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
+          <label htmlFor="user-service" className="block text-xs font-mono uppercase tracking-wider text-gray-300 font-bold mb-2">
             Area of Interest
           </label>
           <select
@@ -313,11 +314,11 @@ export default function ContactSection() {
               setFormData({ ...formData, areaOfInterest: e.target.value });
               if (error) setError(null);
             }}
-            className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs"
+            className="w-full px-4 py-3.5 rounded-lg bg-[#0E1422] border border-white/15 text-white text-xs sm:text-sm focus-ring disabled:opacity-60 shadow-xs focus:border-[#CE9E34]"
           >
-            <option value="">Select an area of interest</option>
+            <option value="" className="bg-[#0E1422] text-gray-400">Select an area of interest</option>
             {areaOptions.map((opt) => (
-              <option key={opt} value={opt}>
+              <option key={opt} value={opt} className="bg-[#0E1422] text-white">
                 {opt}
               </option>
             ))}
@@ -325,7 +326,7 @@ export default function ContactSection() {
         </div>
 
         <div>
-          <label htmlFor="user-message" className="block text-xs uppercase tracking-wider text-charcoal-800 font-semibold mb-2">
+          <label htmlFor="user-message" className="block text-xs font-mono uppercase tracking-wider text-gray-300 font-bold mb-2">
             Project Details *
           </label>
           <textarea
@@ -339,13 +340,13 @@ export default function ContactSection() {
               setFormData({ ...formData, projectDetails: e.target.value });
               if (error) setError(null);
             }}
-            className="w-full px-4 py-3.5 rounded-[6px] bg-white border border-gray-300 text-charcoal-900 text-xs sm:text-sm focus-ring resize-none disabled:opacity-60 shadow-xs"
+            className="w-full px-4 py-3.5 rounded-lg bg-white/5 border border-white/15 text-white placeholder-gray-500 text-xs sm:text-sm focus-ring resize-none disabled:opacity-60 shadow-xs focus:border-[#CE9E34]"
           />
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-[6px] bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-lg bg-red-950/60 border border-red-500/50 text-red-200 text-xs flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
             <span>{error}</span>
           </div>
         )}
@@ -356,7 +357,7 @@ export default function ContactSection() {
           size="lg"
           icon
           disabled={loading}
-          className="w-full justify-center"
+          className="w-full justify-center bg-[#0044A7] hover:bg-[#00388A] text-white font-bold border border-[#CE9E34] shadow-[0_0_20px_rgba(206,158,52,0.3)]"
         >
           {loading ? 'Submitting...' : (contact.ctaLabel || 'Request Consultation')}
         </Button>
@@ -365,21 +366,27 @@ export default function ContactSection() {
   };
 
   return (
-    <Section id="contact" background="white" padding="default">
+    <Section id="contact" background="white" padding="default" className="relative bg-[#080C14] text-white overflow-hidden py-20 sm:py-28">
+      {/* Background architectural gridlines */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
+
       <Container>
         {hasPresenceInfo ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start max-w-6xl mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start max-w-6xl mx-auto w-full">
             {/* Left Column: Presence Information & Business Details */}
-            <FadeIn direction="up" className="lg:col-span-5 space-y-5">
+            <FadeIn direction="up" className="lg:col-span-5 space-y-6">
               <div>
-                <Eyebrow icon={false}>{contact.eyebrow || 'CONTACT'}</Eyebrow>
+                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#CE9E34] font-bold block mb-2">
+                  [ATELIER LOCATION // BENGALURU]
+                </span>
+                <Eyebrow icon={false} className="text-[#DFB95C]">{contact.eyebrow || 'CONTACT'}</Eyebrow>
 
-                <h2 className="font-sans text-2xl sm:text-3xl font-bold text-charcoal-900 mt-2 mb-2.5">
+                <h2 className="font-sans text-3xl sm:text-4xl font-bold text-white mt-2 mb-3 tracking-tight">
                   {contact.heading || "Let's Discuss Your Project."}
                 </h2>
 
                 {contact.description && (
-                  <p className="text-sm text-charcoal-600 font-normal leading-relaxed">
+                  <p className="text-sm text-gray-300 font-normal leading-relaxed">
                     {contact.description}
                   </p>
                 )}
@@ -387,14 +394,14 @@ export default function ContactSection() {
 
               {/* Optional Public Notice / Advisory */}
               {hasNotice && (
-                <div className="p-4 rounded-[8px] bg-[#FAF8F2] border border-[#EBDEBA] text-[#0044A7] text-xs sm:text-sm">
+                <div className="p-4 rounded-xl bg-[#0E1422] border border-[#CE9E34]/40 text-gray-300 text-xs sm:text-sm">
                   <div className="flex items-start gap-2.5">
                     <Info className="w-4 h-4 text-[#CE9E34] shrink-0 mt-0.5" />
                     <div className="space-y-1">
-                      <span className="font-semibold text-xs uppercase tracking-wider text-[#CE9E34] block">
+                      <span className="font-mono text-xs uppercase tracking-wider text-[#CE9E34] font-bold block">
                         Notice
                       </span>
-                      <p className="text-charcoal-800 leading-relaxed whitespace-pre-line">
+                      <p className="text-gray-300 leading-relaxed whitespace-pre-line">
                         {contact.publicNotice}
                       </p>
                     </div>
@@ -404,12 +411,12 @@ export default function ContactSection() {
 
               {/* Operating Hours Card */}
               {hasHours && (
-                <div className="p-4 sm:p-5 rounded-[8px] bg-[#FAF8F2]/60 border border-[#EBDEBA] shadow-2xs space-y-2">
-                  <div className="flex items-center gap-2 text-charcoal-900 font-bold text-sm">
+                <div className="p-5 rounded-xl bg-[#0E1422] border border-white/15 shadow-xl space-y-2">
+                  <div className="flex items-center gap-2 text-white font-bold text-sm">
                     <Clock className="w-4 h-4 text-[#CE9E34] shrink-0" />
                     <span>Operating Hours</span>
                   </div>
-                  <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed whitespace-pre-line font-normal pl-6">
+                  <p className="text-xs sm:text-sm text-gray-300 leading-relaxed whitespace-pre-line font-normal pl-6">
                     {contact.operatingHours}
                   </p>
                 </div>
@@ -417,15 +424,15 @@ export default function ContactSection() {
 
               {/* Canonical Contact Details (Address, Phone, Email) */}
               {(hasPhone || hasEmail || hasAddress) && (
-                <div className="p-4 sm:p-5 rounded-[8px] bg-[#FAF8F2]/60 border border-[#EBDEBA] shadow-2xs space-y-3">
+                <div className="p-5 rounded-xl bg-[#0E1422] border border-white/15 shadow-xl space-y-4">
                   {hasAddress && (
-                    <div className="flex items-start gap-2.5 text-xs sm:text-sm">
+                    <div className="flex items-start gap-3 text-xs sm:text-sm">
                       <MapPin className="w-4 h-4 text-[#CE9E34] shrink-0 mt-0.5" />
                       <div>
-                        <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500 block mb-0.5">
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-gray-400 block mb-0.5">
                           Operating Address
                         </span>
-                        <span className="text-charcoal-800 leading-relaxed">
+                        <span className="text-white leading-relaxed font-medium">
                           {contact.address}
                         </span>
                       </div>
@@ -433,15 +440,15 @@ export default function ContactSection() {
                   )}
 
                   {hasPhone && (
-                    <div className="flex items-start gap-2.5 text-xs sm:text-sm">
+                    <div className="flex items-start gap-3 text-xs sm:text-sm">
                       <Phone className="w-4 h-4 text-[#CE9E34] shrink-0 mt-0.5" />
                       <div>
-                        <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500 block mb-0.5">
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-gray-400 block mb-0.5">
                           Phone
                         </span>
                         <a
                           href={`tel:${contact.phone!.replace(/[^\d+]/g, '')}`}
-                          className="text-charcoal-800 hover:text-brand-600 font-medium transition-colors"
+                          className="text-white hover:text-[#CE9E34] font-medium transition-colors"
                         >
                           {contact.phone}
                         </a>
@@ -450,15 +457,15 @@ export default function ContactSection() {
                   )}
 
                   {hasEmail && (
-                    <div className="flex items-start gap-2.5 text-xs sm:text-sm">
+                    <div className="flex items-start gap-3 text-xs sm:text-sm">
                       <Mail className="w-4 h-4 text-[#CE9E34] shrink-0 mt-0.5" />
                       <div>
-                        <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500 block mb-0.5">
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-gray-400 block mb-0.5">
                           Email
                         </span>
                         <a
                           href={`mailto:${contact.email}`}
-                          className="text-charcoal-800 hover:text-brand-600 font-medium transition-colors break-all"
+                          className="text-white hover:text-[#CE9E34] font-medium transition-colors break-all"
                         >
                           {contact.email}
                         </a>
@@ -469,23 +476,18 @@ export default function ContactSection() {
               )}
             </FadeIn>
 
-            {/* Right Column: Quote Inquiry Form */}
+            {/* Right Column: Quote Inquiry Form in Dark Glassmorphism */}
             <FadeIn direction="up" className="lg:col-span-7 w-full">
-              <div className="double-bezel">
-                <div className="double-bezel-inner bg-white p-6 sm:p-8 md:p-9">
-                  {renderFormContent(false)}
-                </div>
+              <div className="p-6 sm:p-8 md:p-10 rounded-2xl bg-[#0E1422] border border-[#CE9E34]/35 shadow-2xl">
+                {renderFormContent(false)}
               </div>
             </FadeIn>
           </div>
         ) : (
-          /* Standalone Centered Form when no presence info is configured */
           <div className="max-w-2xl mx-auto w-full">
             <FadeIn direction="up">
-              <div className="double-bezel">
-                <div className="double-bezel-inner bg-white p-6 sm:p-8 md:p-9">
-                  {renderFormContent(true)}
-                </div>
+              <div className="p-6 sm:p-8 md:p-10 rounded-2xl bg-[#0E1422] border border-[#CE9E34]/35 shadow-2xl">
+                {renderFormContent(true)}
               </div>
             </FadeIn>
           </div>

@@ -5,9 +5,8 @@ import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion
 import { useTemplateContent } from '@/components/providers/WebsiteContentProvider';
 import { mediaConfig } from '@/config/mediaConfig';
 import { Container } from '@/components/ui/Container';
-import { Eyebrow, HeroHeading, Subheading } from '@/components/ui/Typography';
 import { Button } from '@/components/ui/Button';
-import { ArrowDown } from 'lucide-react';
+import { ArrowDown, Compass, Shield } from 'lucide-react';
 import Image from 'next/image';
 
 export default function HeroSection() {
@@ -21,26 +20,23 @@ export default function HeroSection() {
     offset: ['start start', 'end start'],
   });
 
-  // Image: subtle scale-up and upward shift as user scrolls
-  const imageScale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
-  const imageY = useTransform(scrollYProgress, [0, 1], ['0%', '8%']);
-
-  // Content: fade out and shift up as user scrolls past hero
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
-  const contentY = useTransform(scrollYProgress, [0, 0.55], ['0px', '-36px']);
-
-  // Overlay: very slightly darken as user scrolls to aid next-section reveal
-  const overlayOpacity = useTransform(scrollYProgress, [0.4, 1], [0, 0.12]);
+  const imageScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
+  const imageY = useTransform(scrollYProgress, [0, 1], ['0%', '12%']);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  const contentY = useTransform(scrollYProgress, [0, 0.6], ['0px', '-45px']);
 
   return (
     <section
       ref={heroRef}
       id="hero"
-      className="relative min-h-[92vh] lg:min-h-[100dvh] flex items-center justify-center overflow-hidden bg-white"
+      className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-[#080C14]"
     >
-      {/* Full-bleed Background Image with Scroll-Driven Parallax */}
+      {/* Full-bleed Architectural Image with Masked Expansion & Parallax */}
       <motion.div
         className="absolute inset-0 z-0"
+        initial={shouldReduceMotion ? {} : { clipPath: 'inset(8% 6% 8% 6% round 16px)' }}
+        animate={shouldReduceMotion ? {} : { clipPath: 'inset(0% 0% 0% 0% round 0px)' }}
+        transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
         style={shouldReduceMotion ? {} : {
           scale: imageScale,
           y: imageY,
@@ -52,87 +48,138 @@ export default function HeroSection() {
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[center_35%] md:object-center"
+          className="object-cover object-[center_35%] md:object-center brightness-[0.82] contrast-[1.08]"
         />
+
+        {/* Cinematic Scrims: Multi-layer depth gradients */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#080C14] via-transparent to-black/60 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#080C14]/90 via-[#080C14]/60 to-transparent pointer-events-none" />
+        {/* Subtle architectural hairline grid overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
       </motion.div>
-
-      {/* Contrast Overlay — Adaptive for viewport size */}
-      {/* Desktop (lg+): left-to-right — editorial layout, text on white left, natural architectural image on right */}
-      <div className="hidden lg:block absolute inset-0 z-[1] bg-gradient-to-r from-white/95 via-white/85 to-transparent pointer-events-none" />
-      {/* Mobile/Tablet: White gradient from top down to ensure dark text at top is fully readable */}
-      <div className="lg:hidden absolute inset-0 z-[1] bg-gradient-to-b from-white/95 via-white/85 to-black/15 pointer-events-none" />
-      {/* Bottom fade (universal) — smooth visual transition into next section */}
-      <div className="absolute inset-0 z-[1] bg-gradient-to-t from-white via-transparent to-transparent pointer-events-none" />
-
-      {/* Scroll-Driven Darkening Overlay (cinematic exit) */}
-      <motion.div
-        className="absolute inset-0 z-[2] bg-white pointer-events-none"
-        style={shouldReduceMotion ? {} : { opacity: overlayOpacity }}
-      />
 
       {/* Hero Editorial Content */}
       <motion.div
-        className="relative z-10 w-full pt-[104px] sm:pt-28 lg:pt-36 pb-12 sm:pb-16"
+        className="relative z-10 w-full pt-[112px] sm:pt-32 lg:pt-40 pb-16 sm:pb-24"
         style={shouldReduceMotion ? {} : {
           opacity: contentOpacity,
           y: contentY,
         }}
       >
         <Container>
-          <div className="max-w-2xl">
+          <div className="max-w-3xl">
 
-            {/* Architectural Live Status Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md border border-[#EBDEBA] shadow-soft-sm mb-4">
+            {/* Architectural Live Status HUD */}
+            <motion.div
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
+              animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-[#CE9E34]/40 shadow-xl mb-6"
+            >
               <span className="w-2 h-2 rounded-full bg-[#CE9E34] animate-pulse" />
-              <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-bold text-charcoal-900">
-                Bespoke Interiors & Precision Glazing • Bengaluru
+              <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.2em] font-bold text-white">
+                [KVN // ARCHITECTURAL ATELIER • BENGALURU]
               </span>
-            </div>
+              <span className="hidden sm:inline text-[10px] font-mono text-[#CE9E34]">
+                12.9716° N, 77.5946° E
+              </span>
+            </motion.div>
 
             {/* Eyebrow */}
-            <div className="mb-2.5 sm:mb-3">
-              <Eyebrow icon={false}>
-                {hero.eyebrow}
-              </Eyebrow>
+            <motion.div
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
+              animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="mb-3"
+            >
+              <span className="text-xs uppercase tracking-[0.25em] text-[#DFB95C] font-black flex items-center gap-2">
+                <Compass className="w-3.5 h-3.5" />
+                <span>{hero.eyebrow}</span>
+              </span>
+            </motion.div>
+
+            {/* Staggered Overflow Headline Reveal */}
+            <div className="overflow-hidden mb-5">
+              <motion.h1
+                initial={shouldReduceMotion ? {} : { y: '100%', opacity: 0 }}
+                animate={shouldReduceMotion ? {} : { y: '0%', opacity: 1 }}
+                transition={{ duration: 1.1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="font-sans text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08] uppercase"
+              >
+                {hero.headline}
+              </motion.h1>
             </div>
 
-            {/* Headline */}
-            <HeroHeading className="text-charcoal-900 mb-3.5 sm:mb-4 tracking-tight">
-              {hero.headline}
-            </HeroHeading>
-
             {/* Short Supporting Copy */}
-            <Subheading className="mb-6 sm:mb-8 text-charcoal-600 max-w-xl text-base sm:text-lg leading-relaxed">
+            <motion.p
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
+              animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="mb-8 sm:mb-10 text-gray-300 max-w-xl text-base sm:text-lg leading-relaxed font-normal"
+            >
               {hero.subheadline}
-            </Subheading>
+            </motion.p>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-8">
-              <Button href="#contact" variant="primary" size="lg" icon className="w-full sm:w-auto justify-center shadow-md">
+            <motion.div
+              initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
+              animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-10"
+            >
+              <Button
+                href="#contact"
+                variant="primary"
+                size="lg"
+                icon
+                className="w-full sm:w-auto justify-center bg-[#0044A7] hover:bg-[#00388A] text-white border border-[#CE9E34] shadow-[0_0_20px_rgba(206,158,52,0.35)] transition-all hover:scale-[1.02]"
+              >
                 {hero.primaryCta}
               </Button>
 
-              <Button href="#gallery" variant="outline" size="lg" className="w-full sm:w-auto justify-center bg-white/90 backdrop-blur-xs">
-                <span>{hero.secondaryCta}</span>
-                <ArrowDown className="w-4 h-4 ml-2 text-gold-500" />
-              </Button>
-            </div>
-
-            {/* Scroll Cue Indicator */}
-            <div className="pt-2">
-              <a
-                href="#about"
-                className="hidden md:inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] font-bold text-charcoal-700 hover:text-[#0044A7] transition-colors focus-ring rounded"
-                aria-label="Scroll to discover KVN Interior story"
+              <Button
+                href="#gallery"
+                variant="outline"
+                size="lg"
+                className="w-full sm:w-auto justify-center bg-white/10 hover:bg-white/20 text-white border-white/25 hover:border-[#CE9E34] backdrop-blur-md"
               >
-                <span>Discover Craftsmanship</span>
-                <ArrowDown className="w-3.5 h-3.5 text-[#CE9E34] animate-bounce" />
-              </a>
-            </div>
+                <span>{hero.secondaryCta}</span>
+                <ArrowDown className="w-4 h-4 ml-2 text-[#CE9E34]" />
+              </Button>
+            </motion.div>
+
+            {/* Technical Specification Badges */}
+            <motion.div
+              initial={shouldReduceMotion ? {} : { opacity: 0 }}
+              animate={shouldReduceMotion ? {} : { opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.85 }}
+              className="flex flex-wrap items-center gap-3 pt-4 border-t border-white/10"
+            >
+              <div className="flex items-center gap-1.5 text-xs text-gray-400 font-mono">
+                <Shield className="w-3.5 h-3.5 text-[#CE9E34]" />
+                <span>10-Yr German Profile Warranty</span>
+              </div>
+              <span className="text-white/20">•</span>
+              <div className="text-xs text-gray-400 font-mono">
+                BWR Marine Plywood
+              </div>
+              <span className="text-white/20">•</span>
+              <div className="text-xs text-gray-400 font-mono">
+                40 dB Acoustic Insulation
+              </div>
+            </motion.div>
 
           </div>
         </Container>
       </motion.div>
+
+      {/* Atmospheric Scroll Cue */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 hidden md:flex flex-col items-center gap-2 pointer-events-none">
+        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-gray-400">
+          SCROLL TO EXPLORE
+        </span>
+        <div className="w-[1px] h-8 bg-gradient-to-b from-[#CE9E34] to-transparent animate-pulse" />
+      </div>
     </section>
   );
 }
