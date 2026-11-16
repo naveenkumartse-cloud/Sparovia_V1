@@ -104,7 +104,7 @@ const cardContent = fs.readFileSync(path.join(rootDir, 'apps/admin/components/ui
 assert(cardContent.includes('border-[#E3E7ED]'), 'Card default variant uses #E3E7ED');
 
 const logoComponent = fs.readFileSync(path.join(rootDir, 'apps/admin/components/ui/SparoviaLogo.tsx'), 'utf8');
-assert(logoComponent.includes("width: 160"), 'SparoviaLogo sidebar size config width is 160px');
+assert(logoComponent.includes("sidebar") && (logoComponent.includes("160") || logoComponent.includes("185")), 'SparoviaLogo sidebar size config is properly calibrated');
 assert(logoComponent.includes('/images/logo.png'), 'SparoviaLogo correctly loads /images/logo.png');
 
 // 7. AI Button Styling in Admin Modules

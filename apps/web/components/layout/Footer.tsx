@@ -32,11 +32,16 @@ export default function Footer() {
             <div className="relative inline-flex items-center justify-center rounded-xl bg-white p-3 sm:p-4 border border-[#CE9E34]/40 shadow-lg">
               <div className="relative h-16 sm:h-20 w-auto aspect-[719/584] shrink-0">
                 <Image
-                  src="/images/logo.png"
+                  src="/images/logo.png?v=20261116-master"
                   alt="KVN Interior — uPVC Windows, Doors & Home Interior"
-                  width={180}
-                  height={146}
-                  className="h-full w-auto object-contain"
+                  width={719}
+                  height={584}
+                  unoptimized
+                  className="h-full w-auto object-contain select-none"
+                  style={{
+                    aspectRatio: '719 / 584',
+                    imageRendering: '-webkit-optimize-contrast',
+                  }}
                 />
               </div>
             </div>

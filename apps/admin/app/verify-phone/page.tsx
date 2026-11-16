@@ -408,7 +408,7 @@ export default function VerifyPhonePage() {
           className="inline-flex items-center justify-center mb-3 sm:mb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA] rounded-[6px]"
           aria-label="Sparovia Home"
         >
-          <SparoviaLogo size="auth" priority={true} />
+          <SparoviaLogo size="auth" surface="white" priority={true} />
         </Link>
       </div>
 
