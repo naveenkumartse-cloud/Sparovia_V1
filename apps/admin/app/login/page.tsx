@@ -233,7 +233,7 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-white dark:bg-[#0F172A] py-6 sm:py-8 px-5 sm:px-8 shadow-xs rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B]">
+        <div className="bg-white dark:bg-[#0F172A] py-6 sm:py-8 px-5 sm:px-8 shadow-xs rounded-[8px] border border-[#E3E7ED] dark:border-[#1E293B]">
           <form className="space-y-4 sm:space-y-5" onSubmit={handleLogin} method="POST">
             {error && (
               <div

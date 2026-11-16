@@ -115,9 +115,9 @@ export default function BusinessDescriptionPage() {
               onClick={() => handleOpenAi('businessDescription', 'Business Description', formData.businessDescription || '')}
               disabled={!formData.businessDescription?.trim()}
               title={formData.businessDescription?.trim() ? 'Improve with AI' : 'Enter some text first to improve with AI'}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-xs font-semibold text-[#7950B8] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-xs font-semibold text-[#C206C9] dark:text-[#F5C9F7] bg-[#FDF2FD] dark:bg-[#C206C9]/15 hover:bg-[#FBE8FC] dark:hover:bg-[#C206C9]/25 border border-[#C206C9]/25 dark:border-[#C206C9]/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#7950B8] dark:text-purple-400 shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 text-[#C206C9] dark:text-[#F5C9F7] shrink-0" />
               <span>Improve with AI</span>
             </button>
           </div>
@@ -149,9 +149,9 @@ export default function BusinessDescriptionPage() {
               onClick={() => handleOpenAi('differentiators', 'Key Differentiators', formData.differentiators || '')}
               disabled={!formData.differentiators?.trim()}
               title={formData.differentiators?.trim() ? 'Improve with AI' : 'Enter some text first to improve with AI'}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-xs font-semibold text-[#7950B8] dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-xs font-semibold text-[#C206C9] dark:text-[#F5C9F7] bg-[#FDF2FD] dark:bg-[#C206C9]/15 hover:bg-[#FBE8FC] dark:hover:bg-[#C206C9]/25 border border-[#C206C9]/25 dark:border-[#C206C9]/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#7950B8] dark:text-purple-400 shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 text-[#C206C9] dark:text-[#F5C9F7] shrink-0" />
               <span>Improve with AI</span>
             </button>
           </div>

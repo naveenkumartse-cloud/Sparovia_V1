@@ -1412,10 +1412,10 @@ export default function AccountPage() {
                 })()}
 
                 {/* Visitor Choices Preview Card */}
-                <div className="p-4 rounded-[8px] bg-gradient-to-r from-purple-50/80 to-blue-50/60 dark:from-[#1E1B2E] dark:to-[#0B1220] border border-purple-200/60 dark:border-[#332A4A] shadow-xs">
+                <div className="p-4 rounded-[8px] bg-[#F3F6FA] dark:bg-[#0F172A] border border-[#E3E7ED] dark:border-[#1E293B] shadow-xs">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-bold text-[#7950B8] dark:text-[#A78BFA] flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5" />
+                    <p className="text-xs font-bold text-[#172033] dark:text-white flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#315FEA]" />
                       <span>Live Public Choices Preview</span>
                     </p>
                     <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
@@ -1491,7 +1491,7 @@ export default function AccountPage() {
               )}
 
               {/* Facebook Section */}
-              <div className="p-4 sm:p-5 rounded-[8px] bg-gradient-to-r from-blue-50/70 to-[#F3F6FA]/50 dark:from-blue-950/20 dark:to-[#0B1220] border border-blue-200/70 dark:border-[#334155] space-y-4 premium-card">
+              <div className="p-4 sm:p-5 rounded-[8px] bg-white dark:bg-[#0F172A] border border-[#E3E7ED] dark:border-[#1E293B] space-y-4 shadow-soft-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-[6px] bg-blue-600 text-white flex items-center justify-center shadow-xs">
@@ -1550,7 +1550,7 @@ export default function AccountPage() {
               </div>
 
               {/* Instagram Section */}
-              <div className="p-4 sm:p-5 rounded-[8px] bg-gradient-to-r from-pink-50/70 via-purple-50/50 to-[#F3F6FA]/50 dark:from-pink-950/20 dark:via-purple-950/20 dark:to-[#0B1220] border border-pink-200/70 dark:border-[#334155] space-y-4 premium-card">
+              <div className="p-4 sm:p-5 rounded-[8px] bg-white dark:bg-[#0F172A] border border-[#E3E7ED] dark:border-[#1E293B] space-y-4 shadow-soft-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-[6px] bg-gradient-to-tr from-amber-500 via-pink-600 to-purple-600 text-white flex items-center justify-center shadow-xs">

@@ -76,7 +76,7 @@ function ResetPasswordForm() {
 
   if (isMissingToken) {
     return (
-      <div className="bg-white dark:bg-[#0F172A] py-8 px-6 shadow-xs rounded-[8px] sm:px-10 border border-[#CBD5E1] dark:border-[#1E293B] text-center space-y-6">
+      <div className="bg-white dark:bg-[#0F172A] py-8 px-6 shadow-xs rounded-[8px] sm:px-10 border border-[#E3E7ED] dark:border-[#1E293B] text-center space-y-6">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Invalid Reset Link</h2>
         <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-[6px] text-red-600 dark:text-red-300 text-sm">
           {error}
@@ -94,7 +94,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] py-8 px-6 shadow-xs rounded-[8px] sm:px-10 border border-[#CBD5E1] dark:border-[#1E293B]">
+    <div className="bg-white dark:bg-[#0F172A] py-8 px-6 shadow-xs rounded-[8px] sm:px-10 border border-[#E3E7ED] dark:border-[#1E293B]">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
           Set New Password

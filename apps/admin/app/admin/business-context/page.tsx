@@ -164,7 +164,7 @@ export default function BusinessContextManagementPage() {
       />
 
       {/* Notion-Inspired Grounded AI Truth Guarantee Banner */}
-      <div className="double-bezel p-5 rounded-[8px] bg-gradient-to-r from-blue-50/80 via-white to-purple-50/60 dark:from-[#0F172A] dark:via-[#111827] dark:to-[#171329] border border-blue-200/70 dark:border-[#334155] shadow-xs">
+      <div className="p-5 rounded-[8px] bg-white dark:bg-[#0F172A] border border-[#E3E7ED] dark:border-[#1E293B] shadow-soft-xs">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] dark:bg-[#315FEA]/20 flex items-center justify-center shrink-0 border border-[#315FEA]/20 glow-cobalt">
@@ -303,7 +303,7 @@ export default function BusinessContextManagementPage() {
                     currentText: data.businessDescription || '',
                   })
                 }
-                className="inline-flex items-center gap-1 text-xs font-semibold text-[#7950B8] hover:text-[#53198A] transition-colors"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#C206C9] hover:text-[#A805AE] transition-colors"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Improve with AI</span>
@@ -328,7 +328,7 @@ export default function BusinessContextManagementPage() {
                     currentText: data.differentiators || '',
                   })
                 }
-                className="inline-flex items-center gap-1 text-xs font-semibold text-[#7950B8] hover:text-[#53198A] transition-colors"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#C206C9] hover:text-[#A805AE] transition-colors"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Improve with AI</span>

@@ -753,7 +753,7 @@ export default function BusinessPresencePage() {
       </Card>
 
       {/* 4. Presence Information & Schedule Form */}
-      <form onSubmit={handleSave} className="bg-white dark:bg-[#0F172A] rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-soft-sm p-6 sm:p-8 space-y-6">
+      <form onSubmit={handleSave} className="bg-white dark:bg-[#0F172A] rounded-[8px] border border-[#E3E7ED] dark:border-[#1E293B] shadow-soft-sm p-6 sm:p-8 space-y-6">
         <div className="border-b border-slate-100 dark:border-[#1E293B] pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <div className="flex items-center gap-2">

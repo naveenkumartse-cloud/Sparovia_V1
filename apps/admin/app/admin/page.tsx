@@ -188,7 +188,7 @@ export default function AdminDashboard() {
           <Card variant="premium" className="h-full flex flex-col justify-between p-5 border-white/60 dark:border-white/10">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <div className="w-11 h-11 rounded-[6px] bg-gradient-to-br from-[#315FEA]/20 to-[#315FEA]/5 text-[#315FEA] border border-[#315FEA]/20 flex items-center justify-center font-bold shadow-soft-xs group-hover:scale-105 transition-transform">
+                <div className="w-11 h-11 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20 flex items-center justify-center font-bold shadow-soft-xs group-hover:scale-105 transition-transform">
                   <Building2 className="w-5 h-5" />
                 </div>
                 {isConfirmed ? (
@@ -220,10 +220,10 @@ export default function AdminDashboard() {
           <Card variant="premium" className="h-full flex flex-col justify-between p-5 border-white/60 dark:border-white/10">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <div className="w-11 h-11 rounded-[6px] bg-gradient-to-br from-[#7950B8]/20 to-[#7950B8]/5 text-[#7950B8] border border-[#7950B8]/20 flex items-center justify-center font-bold shadow-soft-xs group-hover:scale-105 transition-transform">
+                <div className="w-11 h-11 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20 flex items-center justify-center font-bold shadow-soft-xs group-hover:scale-105 transition-transform">
                   <Laptop2 className="w-5 h-5" />
                 </div>
-                <Badge variant="purple" size="xs">
+                <Badge variant="cobalt" size="xs">
                   Published &amp; Active
                 </Badge>
               </div>
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
           <Card variant="premium" className="h-full flex flex-col justify-between p-5 border-white/60 dark:border-white/10">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <div className="w-11 h-11 rounded-[6px] bg-gradient-to-br from-[#7950B8]/25 via-[#7950B8]/10 to-transparent text-[#7950B8] border border-[#7950B8]/30 flex items-center justify-center font-bold shadow-soft-xs glow-purple group-hover:scale-105 transition-transform">
+                <div className="w-11 h-11 rounded-[6px] bg-[#7950B8]/10 text-[#7950B8] border border-[#7950B8]/20 flex items-center justify-center font-bold shadow-soft-xs group-hover:scale-105 transition-transform">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <Badge variant="purple" size="xs">
@@ -268,7 +268,7 @@ export default function AdminDashboard() {
           <Card variant="premium" className="h-full flex flex-col justify-between p-5 border-white/60 dark:border-white/10">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <div className="w-11 h-11 rounded-[6px] bg-gradient-to-br from-[#315FEA]/20 to-[#315FEA]/5 text-[#315FEA] border border-[#315FEA]/20 flex items-center justify-center font-bold shadow-soft-xs group-hover:scale-105 transition-transform">
+                <div className="w-11 h-11 rounded-[6px] bg-[#315FEA]/10 text-[#315FEA] border border-[#315FEA]/20 flex items-center justify-center font-bold shadow-soft-xs group-hover:scale-105 transition-transform">
                   <Users className="w-5 h-5" />
                 </div>
                 {newLeadsCount !== null && newLeadsCount > 0 ? (
@@ -317,7 +317,7 @@ export default function AdminDashboard() {
             {recentLeads.map((lead: any) => (
               <div
                 key={lead.id}
-                className="p-4 rounded-[8px] bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur-md border border-[#CBD5E1]/80 dark:border-[#1E293B] shadow-soft-xs hover:border-[#315FEA] transition-all flex flex-col justify-between"
+                className="p-4 rounded-[8px] bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur-md border border-[#E3E7ED] dark:border-[#1E293B] shadow-soft-xs hover:border-[#315FEA] transition-all flex flex-col justify-between"
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">

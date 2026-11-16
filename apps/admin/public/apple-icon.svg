@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180" fill="none">
   <defs>
     <linearGradient id="sparoviaAppleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B82F6"/>
-      <stop offset="100%" stop-color="#8B3FD1"/>
+      <stop offset="0%" stop-color="#315FEA"/>
+      <stop offset="100%" stop-color="#7950B8"/>
     </linearGradient>
   </defs>
   <rect width="180" height="180" rx="40" fill="url(#sparoviaAppleGrad)"/>

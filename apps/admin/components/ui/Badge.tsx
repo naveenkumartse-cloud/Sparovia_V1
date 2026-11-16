@@ -8,6 +8,7 @@ export type BadgeVariant =
   | 'brand'
   | 'cobalt'
   | 'purple'
+  | 'ai'
   | 'success'
   | 'warning'
   | 'destructive'
@@ -35,6 +36,8 @@ const variantStyles: Record<BadgeVariant, string> = {
     'bg-[#315FEA]/10 text-[#315FEA] dark:text-[#6085FF] border-[#315FEA]/20',
   purple:
     'bg-[#7950B8]/10 text-[#7950B8] dark:text-[#A78BFA] border-[#7950B8]/20',
+  ai:
+    'bg-[#C206C9]/10 text-[#C206C9] dark:text-[#F5C9F7] border-[#C206C9]/20',
   success:
     'bg-[#15803D]/10 text-[#15803D] dark:text-emerald-400 border-[#15803D]/20',
   warning:
@@ -44,7 +47,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   error:
     'bg-[#B91C1C]/10 text-[#B91C1C] dark:text-rose-400 border-[#B91C1C]/20',
   outline:
-    'bg-transparent text-[#475569] dark:text-[#94A3B8] border-[#CBD5E1] dark:border-[#334155]',
+    'bg-transparent text-[#475569] dark:text-[#94A3B8] border-[#E3E7ED] dark:border-[#334155]',
   whatsapp:
     'bg-[#25D366]/10 text-[#128C7E] dark:text-[#25D366] border-[#25D366]/20',
 };
@@ -54,6 +57,7 @@ const dotColors: Record<BadgeVariant, string> = {
   brand: 'bg-[#315FEA]',
   cobalt: 'bg-[#315FEA]',
   purple: 'bg-[#7950B8]',
+  ai: 'bg-[#C206C9]',
   success: 'bg-[#15803D]',
   warning: 'bg-[#B45309]',
   destructive: 'bg-[#B91C1C]',

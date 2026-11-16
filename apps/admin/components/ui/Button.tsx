@@ -8,6 +8,8 @@ export type ButtonVariant =
   | 'primary'
   | 'cobalt'
   | 'creative'
+  | 'ai'
+  | 'ai-outline'
   | 'purple'
   | 'soft-purple'
   | 'glass'
@@ -55,25 +57,29 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles: Record<ButtonVariant, string> = {
       primary:
-        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent',
+        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#315FEA] border border-transparent',
       cobalt:
-        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-transparent',
+        'bg-[#315FEA] hover:bg-[#254EDB] active:bg-[#1E40AF] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#315FEA] border border-transparent',
       creative:
-        'bg-gradient-to-r from-[#7950B8] to-[#9333EA] hover:from-[#6B3FA8] hover:to-[#7E22CE] active:from-[#581C87] active:to-[#6B21A8] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-[0_4px_16px_rgba(121,80,184,0.35)] focus:ring-[#7950B8] border border-purple-400/30',
+        'bg-[#7950B8] hover:bg-[#6820AB] active:bg-[#53198A] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-[0_4px_16px_rgba(121,80,184,0.25)] focus:ring-[#7950B8] border border-transparent',
+      ai:
+        'bg-[#C206C9] hover:bg-[#A805AE] active:bg-[#8C0491] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-[0_4px_16px_rgba(194,6,201,0.25)] focus:ring-[#C206C9] border border-transparent',
+      'ai-outline':
+        'bg-white dark:bg-[#0F172A] hover:bg-[#FDF2FD] dark:hover:bg-[#C206C9]/10 text-[#C206C9] dark:text-[#F5C9F7] border border-[#C206C9]/30 dark:border-[#C206C9]/40 focus:ring-[#C206C9] shadow-soft-xs',
       purple:
         'bg-[#7950B8] hover:bg-[#6820AB] active:bg-[#53198A] active:scale-[0.98] text-white shadow-soft-xs hover:shadow-[0_4px_16px_rgba(121,80,184,0.25)] focus:ring-[#7950B8] border border-transparent',
       'soft-purple':
         'bg-[#F0EAFE] hover:bg-[#E4D7FA] active:bg-[#D4BEF7] text-[#7950B8] dark:bg-[#7950B8]/20 dark:hover:bg-[#7950B8]/30 dark:text-[#C4B5FD] border border-[#7950B8]/20 focus:ring-[#7950B8] shadow-soft-xs',
       glass:
-        'glass-panel hover:bg-white/95 dark:hover:bg-[#1E293B]/95 active:scale-[0.98] text-[#172033] dark:text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#1D4ED8] border border-white/60 dark:border-white/10',
+        'glass-panel hover:bg-white/95 dark:hover:bg-[#1E293B]/95 active:scale-[0.98] text-[#172033] dark:text-white shadow-soft-xs hover:shadow-subtle focus:ring-[#315FEA] border border-white/60 dark:border-white/10',
       enhance:
         'image-studio-enhance-button focus:ring-[#7950B8]',
       studio:
         'image-studio-enhance-button focus:ring-[#7950B8]',
       secondary:
-        'bg-[#F3F6FA] hover:bg-[#E3E7ED] dark:bg-[#1E293B] dark:hover:bg-[#334155] text-[#172033] dark:text-slate-100 border border-[#CBD5E1] dark:border-[#334155] focus:ring-[#1D4ED8] shadow-soft-xs',
+        'bg-[#F3F6FA] hover:bg-[#E3E7ED] dark:bg-[#1E293B] dark:hover:bg-[#334155] text-[#172033] dark:text-slate-100 border border-[#E3E7ED] dark:border-[#334155] focus:ring-[#315FEA] shadow-soft-xs',
       outline:
-        'bg-white dark:bg-[#0F172A] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] text-[#172033] dark:text-slate-200 border border-[#CBD5E1] dark:border-[#334155] focus:ring-[#1D4ED8] shadow-soft-xs',
+        'bg-white dark:bg-[#0F172A] hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] text-[#172033] dark:text-slate-200 border border-[#E3E7ED] dark:border-[#334155] focus:ring-[#315FEA] shadow-soft-xs',
       ghost:
         'bg-transparent hover:bg-[#F3F6FA] dark:hover:bg-[#1E293B] text-[#475569] hover:text-[#172033] dark:text-slate-400 dark:hover:text-white focus:ring-[#1D4ED8]',
       danger:

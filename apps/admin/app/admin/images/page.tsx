@@ -1089,7 +1089,7 @@ export default function ImagesPage() {
       {!loading && !error && activeTab === 'explore' && (
         <div className="space-y-6">
           {exploreImages.length === 0 ? (
-            <div className="bg-white dark:bg-[#0F172A] border border-[#CBD5E1] dark:border-[#1E293B] rounded-[8px] p-8 sm:p-12 text-center shadow-xs">
+            <div className="bg-white dark:bg-[#0F172A] border border-[#E3E7ED] dark:border-[#1E293B] rounded-[8px] p-8 sm:p-12 text-center shadow-xs">
               <div className="w-12 h-12 rounded-[8px] bg-blue-50 dark:bg-blue-950/40 text-[#315FEA] dark:text-blue-400 flex items-center justify-center mx-auto mb-4 border border-blue-100 dark:border-blue-900/50">
                 <Sparkles className="w-6 h-6" />
               </div>
@@ -1114,7 +1114,7 @@ export default function ImagesPage() {
           ) : (
             <>
               {/* Category Filter Pills and Controls */}
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 bg-white dark:bg-[#0F172A] p-3 rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 bg-white dark:bg-[#0F172A] p-3 rounded-[8px] border border-[#E3E7ED] dark:border-[#1E293B] shadow-xs">
                 {/* Category Filter Buttons */}
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 max-w-full">
                   <button
@@ -1183,7 +1183,7 @@ export default function ImagesPage() {
               </div>
 
               {displayedExploreImages.length === 0 ? (
-                <div className="p-8 text-center bg-white dark:bg-[#0F172A] rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B] shadow-xs">
+                <div className="p-8 text-center bg-white dark:bg-[#0F172A] rounded-[8px] border border-[#E3E7ED] dark:border-[#1E293B] shadow-xs">
                   <p className="text-xs sm:text-sm text-[#475569] dark:text-[#94A3B8]">
                     No project images found in &quot;{categoryFilter}&quot;{searchQuery ? ` matching "${searchQuery}"` : ''}.
                   </p>
@@ -1220,7 +1220,7 @@ export default function ImagesPage() {
                         className={`bg-white dark:bg-[#0F172A] border rounded-[8px] overflow-hidden shadow-xs hover:shadow-subtle transition-all duration-200 flex flex-col justify-between group relative ${
                           isSelected
                             ? 'border-[#7950B8] ring-2 ring-[#7950B8]/40 shadow-soft-sm bg-[#F0EAFE]/15 dark:bg-[#7950B8]/10'
-                            : 'border-[#CBD5E1] dark:border-[#1E293B] hover:border-[#7950B8]/60'
+                            : 'border-[#E3E7ED] dark:border-[#1E293B] hover:border-[#7950B8]/60'
                         }`}
                       >
                         {/* Image Thumbnail with Overlay Badges */}

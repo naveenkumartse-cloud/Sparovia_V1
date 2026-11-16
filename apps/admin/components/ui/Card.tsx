@@ -15,11 +15,11 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         className={cn(
           'rounded-[8px] border transition-all duration-200 motion-reduce:transition-none',
           variant === 'default' &&
-            'bg-white/95 dark:bg-[#0F172A]/95 border-[#CBD5E1] dark:border-[#1E293B] shadow-soft-xs',
+            'bg-white/95 dark:bg-[#0F172A]/95 border-[#E3E7ED] dark:border-[#1E293B] shadow-soft-xs',
           variant === 'supporting' &&
             'bg-[#F3F6FA]/80 dark:bg-[#0B1220]/80 border-[#E3E7ED] dark:border-[#1E293B]',
           variant === 'interactive' &&
-            'premium-card bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur-md border-[#CBD5E1]/80 dark:border-[#1E293B] shadow-soft-sm hover:border-[#315FEA] dark:hover:border-[#315FEA] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8]',
+            'premium-card bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur-md border-[#E3E7ED] dark:border-[#1E293B] shadow-soft-sm hover:border-[#315FEA] dark:hover:border-[#315FEA] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA]',
           variant === 'accent' &&
             'bg-[#F5F0FB]/90 dark:bg-[#1A102A]/90 border-[#7950B8]/20 dark:border-[#7950B8]/30 shadow-soft-xs',
           variant === 'creative' &&

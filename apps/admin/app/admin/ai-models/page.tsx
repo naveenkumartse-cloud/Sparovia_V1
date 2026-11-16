@@ -519,7 +519,7 @@ export default function AiConnectionsPage() {
                     setRotateApiKeyInput('');
                     setIsRotateModalOpen(true);
                   }}
-                  leftIcon={<Key className="w-3.5 h-3.5 text-[#8B3FD1]" />}
+                  leftIcon={<Key className="w-3.5 h-3.5 text-[#315FEA]" />}
                   className="text-xs"
                 >
                   Rotate API Key

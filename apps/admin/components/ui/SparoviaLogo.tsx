@@ -29,9 +29,9 @@ const SIZE_CONFIGS = {
     imageClass: 'h-12 sm:h-14 w-auto max-w-[210px]',
   },
   sidebar: {
-    height: 36,
-    width: 108,
-    imageClass: 'h-8 sm:h-9 w-auto max-w-[130px]',
+    height: 53,
+    width: 160,
+    imageClass: 'h-8 sm:h-9 w-auto max-w-[160px]',
   },
   collapsed: {
     height: 18,

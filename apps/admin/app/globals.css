@@ -5,25 +5,27 @@
 :root {
   --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
 
-  /* Approved DESIGN.md Design System Tokens */
+  /* Authoritative Sparovia Admin Design Tokens (Locked Palette) */
   --color-brand-primary: #315FEA;
+  --color-brand-primary-hover: #254EDB;
+  --color-brand-primary-pressed: #1E40AF;
   --color-brand-secondary: #7950B8;
+  --color-ai-special: #C206C9;
   --color-text-primary: #172033;
   --color-text-secondary: #475569;
   --color-surface-main: #FFFFFF;
   --color-surface-supporting: #F3F6FA;
-  --color-surface-brand-tint: #F5F0FB;
+  --color-border-default: #E3E7ED;
   --color-border-subtle: #E3E7ED;
-  --color-border-default: #CBD5E1;
-  --color-border-strong: #64748B;
+  --color-border-strong: #CBD5E1;
   --color-action-primary: #315FEA;
   --color-action-hover: #254EDB;
   --color-action-pressed: #1E40AF;
-  --color-focus-selected: #1D4ED8;
+  --color-focus-selected: #315FEA;
   --color-status-success: #15803D;
   --color-status-warning: #B45309;
   --color-status-error: #B91C1C;
-  --color-status-info: #1D4ED8;
+  --color-status-info: #315FEA;
   --color-integration-whatsapp: #25D366;
 
   --radius-indicator: 4px;
@@ -54,6 +56,14 @@ html.dark {
   color-scheme: dark;
   background-color: #0B1220;
   color: #E2E8F0;
+
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #94A3B8;
+  --color-surface-main: #0F172A;
+  --color-surface-supporting: #0B1220;
+  --color-border-default: #1E293B;
+  --color-border-subtle: #1E293B;
+  --color-border-strong: #334155;
 }
 
 html.dark body {
@@ -199,60 +209,37 @@ html.dark body {
   }
 
   .glass-creative {
-    background: linear-gradient(
-      135deg,
-      rgba(121, 80, 184, 0.14),
-      rgba(255, 255, 255, 0.84)
-    );
-    backdrop-filter: blur(20px) saturate(150%);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
-    border: 1px solid rgba(121, 80, 184, 0.20);
-    box-shadow:
-      0 12px 36px rgba(79, 49, 130, 0.10),
-      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    background: #F3F6FA;
+    border: 1px solid #E3E7ED;
+    box-shadow: 0 1px 3px rgba(23, 32, 51, 0.05);
   }
 
   .dark .glass-creative {
-    background: linear-gradient(
-      135deg,
-      rgba(121, 80, 184, 0.22),
-      rgba(15, 23, 42, 0.85)
-    );
-    backdrop-filter: blur(20px) saturate(150%);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
-    border: 1px solid rgba(121, 80, 184, 0.35);
-    box-shadow:
-      0 12px 36px rgba(0, 0, 0, 0.40),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    background: #0F172A;
+    border: 1px solid #1E293B;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 
-  /* Image Studio Enhance for Website Button - Purple Glass Treatment */
+  /* Image Studio Enhance Action Button - Solid Secondary Violet */
   .image-studio-enhance-button {
-    background: linear-gradient(
-      135deg,
-      rgba(121, 80, 184, 0.92),
-      rgba(102, 65, 160, 0.96)
-    );
-    border: 1px solid rgba(121, 80, 184, 0.45);
-    box-shadow:
-      0 4px 14px rgba(121, 80, 184, 0.20),
-      inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    background-color: #7950B8;
+    border: 1px solid transparent;
+    box-shadow: 0 1px 2px rgba(121, 80, 184, 0.15);
     color: #FFFFFF;
     transition:
-      transform 180ms ease,
-      box-shadow 180ms ease,
-      background 180ms ease;
+      background-color 150ms ease,
+      box-shadow 150ms ease,
+      transform 150ms ease;
   }
 
   .image-studio-enhance-button:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 8px 22px rgba(121, 80, 184, 0.28),
-      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    background-color: #6820AB;
+    box-shadow: 0 3px 8px rgba(121, 80, 184, 0.25);
   }
 
   .image-studio-enhance-button:active {
-    transform: translateY(0) scale(0.98);
+    background-color: #53198A;
+    transform: scale(0.98);
   }
 
   /* 3D Depth & Interactive Layered Cards (Master Directive Section 8) */
@@ -295,10 +282,6 @@ html.dark body {
   /* Ambient Halos */
   .glow-cobalt {
     box-shadow: 0 0 24px -2px rgba(49, 95, 234, 0.25);
-  }
-
-  .glow-purple {
-    box-shadow: 0 0 24px -2px rgba(121, 80, 184, 0.28);
   }
 
   .glow-orange {

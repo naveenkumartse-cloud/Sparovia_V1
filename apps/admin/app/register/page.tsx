@@ -148,7 +148,7 @@ export default function RegisterPage() {
       </div>
 
       <div className="mt-5 sm:mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-white dark:bg-[#0F172A] py-5 px-5 sm:py-6 sm:px-8 shadow-xs rounded-[8px] border border-[#CBD5E1] dark:border-[#1E293B]">
+        <div className="bg-white dark:bg-[#0F172A] py-5 px-5 sm:py-6 sm:px-8 shadow-xs rounded-[8px] border border-[#E3E7ED] dark:border-[#1E293B]">
           <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit(onSubmit)} method="POST">
             {globalError && (
               <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-[6px] text-red-600 dark:text-red-300 text-xs flex items-start space-x-2" role="alert">

@@ -475,7 +475,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         id="admin-sidebar"
         aria-label="Admin Navigation"
         className={`
-          hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 bg-white dark:bg-[#0F172A] border-r border-[#CBD5E1] dark:border-[#1E293B] z-30 transition-[width] duration-200 ease-in-out
+          hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 bg-white dark:bg-[#0F172A] border-r border-[#E3E7ED] dark:border-[#1E293B] z-30 transition-[width] duration-200 ease-in-out
           ${desktopCollapsed ? 'lg:w-20' : 'lg:w-64'}
         `}
       >
