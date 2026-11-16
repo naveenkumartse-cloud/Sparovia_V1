@@ -61,23 +61,18 @@ export default function Navbar() {
         {/* Complete Original KVN Interior Client Logo — Single Asset, Zero Recreated/Duplicate Text */}
         <a
           href="#hero"
-          className="flex items-center group focus-ring rounded-lg py-0.5"
+          className="flex items-center group focus-ring rounded-lg py-0.5 transition-transform duration-200 hover:scale-[1.02]"
           aria-label={`${displayName} — return to top`}
           onClick={closeMobileMenu}
         >
           <div className="relative h-12 sm:h-14 md:h-16 w-auto aspect-[719/584] shrink-0 flex items-center justify-center">
             <Image
-              src="/images/logo.png?v=20261116-master"
+              src="/images/logo.png"
               alt="KVN Interior — uPVC Windows, Doors & Home Interior"
-              width={719}
-              height={584}
+              width={180}
+              height={146}
               priority
-              unoptimized
-              className="h-full w-auto object-contain select-none"
-              style={{
-                aspectRatio: '719 / 584',
-                imageRendering: '-webkit-optimize-contrast',
-              }}
+              className="h-full w-auto object-contain"
             />
           </div>
         </a>

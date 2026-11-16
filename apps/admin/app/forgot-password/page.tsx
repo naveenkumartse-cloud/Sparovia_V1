@@ -47,10 +47,10 @@ export default function ForgotPasswordPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center mb-6">
         <Link
           href="/"
-          className="inline-flex items-center justify-center mb-3 sm:mb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA] rounded-[8px]"
+          className="inline-flex items-center justify-center mb-3 sm:mb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA] rounded-[6px]"
           aria-label="Sparovia Home"
         >
-          <SparoviaLogo size="auth" surface="white" priority={true} />
+          <SparoviaLogo size="auth" priority={true} />
         </Link>
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
           Forgot your password?

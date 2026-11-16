@@ -66,7 +66,7 @@ function SidebarView({
     <>
       {/* Sidebar Header */}
       {isMobile ? (
-        <div className="flex h-20 shrink-0 items-center justify-between px-5 border-b border-[#E3E7ED] dark:border-[#1E293B]">
+        <div className="flex h-16 shrink-0 items-center justify-between px-5 border-b border-[#E3E7ED] dark:border-[#1E293B]">
           <Link 
             href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} 
             className="flex items-center select-none"
@@ -84,7 +84,7 @@ function SidebarView({
           </button>
         </div>
       ) : isCollapsed ? (
-        <div className="flex h-20 shrink-0 items-center justify-center border-b border-[#E3E7ED] dark:border-[#1E293B]">
+        <div className="flex h-16 shrink-0 items-center justify-center border-b border-[#E3E7ED] dark:border-[#1E293B]">
           <Link 
             href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} 
             className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1D4ED8] rounded-[6px]"
@@ -95,7 +95,7 @@ function SidebarView({
           </Link>
         </div>
       ) : (
-        <div className="flex h-20 shrink-0 items-center px-6 border-b border-[#E3E7ED] dark:border-[#1E293B]">
+        <div className="flex h-16 shrink-0 items-center px-6 border-b border-[#E3E7ED] dark:border-[#1E293B]">
           <Link
             href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"}
             className="flex items-center select-none"
@@ -512,7 +512,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             {/* Mobile Branding (< lg) */}
             <div className="lg:hidden flex items-center min-w-0">
               <Link href={isConfirmed ? "/admin" : "/admin/onboarding/business-basics"} className="flex items-center min-w-0 select-none">
-                <SparoviaLogo size="header" showAdminBadge={true} priority={true} />
+                <SparoviaLogo size="sidebar" showAdminBadge={true} priority={true} />
               </Link>
             </div>
 

@@ -134,10 +134,10 @@ export default function RegisterPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center">
         <Link
           href="/"
-          className="inline-flex items-center justify-center mb-1.5 sm:mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA] rounded-[8px]"
+          className="inline-flex items-center justify-center mb-1.5 sm:mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA] rounded-[6px]"
           aria-label="Sparovia Home"
         >
-          <SparoviaLogo size="auth" surface="white" priority={true} />
+          <SparoviaLogo size="auth" priority={true} />
         </Link>
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
           Create your account

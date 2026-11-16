@@ -5,67 +5,68 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { SparoviaLogoLoader } from './SparoviaLogoLoader';
 
-/**
- * Authoritative Master Asset Path with Version Query to Prevent Browser/CDN Caching
- * Master Asset Dimensions: 2172 x 724 px (Natural 3:1 aspect ratio, Truecolor RGBA transparent)
- */
-export const SPAROVIA_LOGO_URL = '/images/logo.png?v=20261116-master';
-
 export interface SparoviaLogoProps {
   /**
    * Sizing profile:
-   * - 'auth': Prominent horizontal logo for Login, Register, Forgot Password, Reset Password, and Verify pages (width ~260-300px)
-   * - 'sidebar': Proportional horizontal logo for expanded sidebar and mobile drawer (width ~180-200px)
-   * - 'header': Proportional horizontal logo for mobile/tablet top header (width ~150-170px)
-   * - 'collapsed': Scaled wordmark for collapsed sidebar rail (width ~48px)
-   * - 'loader': Prominent horizontal logo for workspace loading animations (width ~260-300px)
+   * - 'auth': Prominent horizontal logo for Login, Register, Forgot Password, Reset Password, and Verify pages (~48-56px height)
+   * - 'sidebar': Proportional horizontal logo for expanded sidebar and mobile drawer (~32-36px height)
+   * - 'collapsed': Preserves complete logo fitting cleanly in collapsed sidebar rail without any background container
+   * - 'loader': Prominent horizontal logo for workspace loading animations and route navigation loaders (~48-56px height)
    * - 'sm' | 'md' | 'lg': General utility sizes
    */
-  size?: 'auth' | 'sidebar' | 'header' | 'collapsed' | 'loader' | 'sm' | 'md' | 'lg';
+  size?: 'auth' | 'sidebar' | 'collapsed' | 'loader' | 'sm' | 'md' | 'lg';
   className?: string;
   showAdminBadge?: boolean;
   priority?: boolean;
   /** Whether to render the 7-stage animated logo loader */
   animated?: boolean;
-  /** Force a crisp light/white surface background around the logo (prevents dark tagline on dark backgrounds) */
-  surface?: 'auto' | 'white' | 'transparent';
 }
 
 const SIZE_CONFIGS = {
   auth: {
-    containerClass: 'w-[260px] sm:w-[300px]',
+    height: 56,
+    width: 168,
+    imageClass: 'h-12 sm:h-14 w-auto max-w-[210px]',
   },
   sidebar: {
-    containerClass: 'w-[185px] sm:w-[200px]',
-  },
-  header: {
-    containerClass: 'w-[150px] sm:w-[170px]',
+    height: 53,
+    width: 160,
+    imageClass: 'h-8 sm:h-9 w-auto max-w-[160px]',
   },
   collapsed: {
-    containerClass: 'w-12',
+    height: 18,
+    width: 54,
+    imageClass: 'w-full h-auto max-h-7',
   },
   loader: {
-    containerClass: 'w-[260px] sm:w-[300px]',
+    height: 56,
+    width: 168,
+    imageClass: 'h-12 sm:h-14 w-auto max-w-[220px]',
   },
   sm: {
-    containerClass: 'w-[130px]',
+    height: 24,
+    width: 72,
+    imageClass: 'h-6 w-auto',
   },
   md: {
-    containerClass: 'w-[185px]',
+    height: 36,
+    width: 108,
+    imageClass: 'h-9 w-auto',
   },
   lg: {
-    containerClass: 'w-[280px]',
+    height: 56,
+    width: 168,
+    imageClass: 'h-14 w-auto',
   },
 };
 
 /**
  * Shared Sparovia Platform Logo Component
  * - Single source of truth for Sparovia platform branding
- * - Renders the official approved transparent platform logo (/images/logo.png?v=20261116-master)
- * - Uses width: 100%, height: auto, object-fit: contain
- * - Preserves natural 3:1 aspect ratio with zero fractional distortion
- * - Eliminates CSS transform layers that cause subpixel blur
- * - Protects dark tagline contrast on dark surfaces via optional white surface containment
+ * - Renders the official approved transparent platform logo (/images/logo.png)
+ * - Preserves exact 3:1 aspect ratio with object-contain
+ * - Sits directly on the existing application background with zero background containers, cards, or borders
+ * - Retains full PNG alpha transparency and sharp rendering across high-DPI displays
  */
 export function SparoviaLogo({
   size = 'sidebar',
@@ -73,7 +74,6 @@ export function SparoviaLogo({
   showAdminBadge = false,
   priority = true,
   animated = false,
-  surface = 'auto',
 }: SparoviaLogoProps) {
   const config = SIZE_CONFIGS[size] || SIZE_CONFIGS.sidebar;
 
@@ -86,13 +86,12 @@ export function SparoviaLogo({
         />
         <span className="sr-only">
           <Image
-            src={SPAROVIA_LOGO_URL}
+            src="/images/logo.png"
             alt="Sparovia - Business Experience Platform"
-            width={2172}
-            height={724}
+            width={config.width}
+            height={config.height}
             priority={priority}
-            unoptimized={true}
-            className="w-full h-auto object-contain"
+            className="object-contain"
           />
         </span>
       </div>
@@ -109,51 +108,37 @@ export function SparoviaLogo({
         title="Sparovia Admin"
       >
         <Image
-          src={SPAROVIA_LOGO_URL}
+          src="/images/logo.png"
           alt="Sparovia - Business Experience Platform"
-          width={2172}
-          height={724}
+          width={config.width}
+          height={config.height}
           priority={priority}
-          unoptimized={true}
           className="w-full h-auto max-h-7 object-contain select-none"
           draggable={false}
-          style={{
-            aspectRatio: '2172 / 724',
-            imageRendering: '-webkit-optimize-contrast',
-          }}
         />
       </div>
     );
   }
 
-  const surfaceClasses =
-    surface === 'white'
-      ? 'bg-white p-2 sm:p-2.5 rounded-[8px] shadow-soft-xs border border-[#E3E7ED]'
-      : surface === 'auto'
-      ? 'bg-transparent dark:bg-white dark:px-2.5 dark:py-1.5 dark:rounded-[8px] dark:shadow-soft-xs'
-      : 'bg-transparent';
-
   return (
-    <div className={cn('inline-flex items-center gap-2.5 select-none', surfaceClasses, className)}>
-      <div className={cn('relative flex items-center shrink-0', config.containerClass)}>
+    <div className={cn('inline-flex items-center gap-2 select-none', className)}>
+      <div className="relative flex items-center">
         <Image
-          src={SPAROVIA_LOGO_URL}
+          src="/images/logo.png"
           alt="Sparovia - Business Experience Platform"
-          width={2172}
-          height={724}
+          width={config.width}
+          height={config.height}
           priority={priority}
-          unoptimized={true}
-          className="w-full h-auto object-contain block select-none"
+          className={cn(
+            'object-contain select-none transition-transform',
+            config.imageClass
+          )}
           draggable={false}
-          style={{
-            aspectRatio: '2172 / 724',
-            imageRendering: '-webkit-optimize-contrast',
-          }}
         />
       </div>
 
       {showAdminBadge && (
-        <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] dark:text-[#315FEA] border border-[#315FEA]/20 shrink-0">
+        <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#315FEA]/10 text-[#315FEA] dark:text-[#608FFE] border border-[#315FEA]/20 shrink-0">
           ADMIN
         </span>
       )}
