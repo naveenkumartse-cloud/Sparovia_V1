@@ -231,11 +231,13 @@ assert(
   'Initial Admin Panel Loader enforces minimum 3.0 seconds (full 2.8s loop + completion glow)'
 );
 
-// Scenario 22: Menu Navigation Loader Minimum ~1.5 Seconds Gate
+// Scenario 22: Menu Click Loader Completely Removed (Normal Natural Route Navigation)
 assert(
-  adminShellCode.includes('minNavMs = 1500') && adminShellCode.includes('navStartTimeRef'),
+  !adminShellCode.includes('showNavLoader') &&
+  !adminShellCode.includes('navStartTimeRef') &&
+  !adminShellCode.includes('minNavMs'),
   22,
-  'Menu Navigation Loader enforces minimum ~1.5 seconds full animation cycle before destination reveal'
+  'Menu click loader and artificial navigation delays are completely removed from AdminShell'
 );
 
 // Scenario 23: Completely Unboxed Transparent Logo Loader (Zero Cards, Borders or Auras)

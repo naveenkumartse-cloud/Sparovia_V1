@@ -24,7 +24,7 @@ const maxWidthMap: Record<string, string> = {
   sm: 'w-[calc(100vw-24px)] max-w-sm',
   md: 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] max-w-md',
   lg: 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] max-w-lg',
-  xl: 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] max-w-xl',
+  xl: 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] sm:max-w-[640px] md:max-w-[680px]',
   '2xl': 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] md:w-[calc(100vw-48px)] max-w-[768px]',
   '3xl': 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] md:w-[calc(100vw-48px)] max-w-[896px]',
   ai: 'w-[calc(100vw-24px)] sm:w-[calc(100vw-32px)] md:w-[calc(100vw-48px)] max-w-[960px]',
@@ -161,7 +161,7 @@ export function Modal({
       <div
         ref={modalRef}
         className={cn(
-          'relative flex flex-col w-full sm:w-auto h-full sm:h-auto max-h-[100dvh] sm:max-h-[88vh] my-auto bg-white dark:bg-[#0F172A] border-0 sm:border border-[#E3E7ED] dark:border-[#1E293B] rounded-none sm:rounded-[10px] shadow-[0_12px_32px_rgb(23_32_51_/_16%)] z-10 overflow-hidden',
+          'relative flex flex-col w-full sm:w-full h-full sm:h-auto max-h-[100dvh] sm:max-h-[88vh] my-auto bg-white dark:bg-[#0F172A] border-0 sm:border border-[#E3E7ED] dark:border-[#1E293B] rounded-none sm:rounded-[10px] shadow-[0_12px_32px_rgb(23_32_51_/_16%)] z-10 overflow-hidden',
           maxWidthMap[maxWidth] || maxWidthMap.md,
           className
         )}

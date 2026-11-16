@@ -68,7 +68,7 @@ assert(
 // 3. Redesigned Success Dialog (No Button Overlap & Clean Stacking)
 console.log('\n--- GROUP 3: Success Dialog Layout & Responsive Stacking ---');
 assert(
-  uploadModalCode.includes('flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto'),
+  uploadModalCode.includes('flex flex-col-reverse sm:flex-row items-stretch sm:items-center'),
   'Success footer actions stack vertically on mobile and horizontally on desktop without overlapping'
 );
 

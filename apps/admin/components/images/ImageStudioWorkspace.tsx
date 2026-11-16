@@ -310,7 +310,7 @@ export function ImageStudioWorkspace({
   // Action states
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [selectedPreset, setSelectedPreset] = useState<'Light' | 'Balanced' | 'High'>('Balanced');
-  const [specializedPanelOpen, setSpecializedPanelOpen] = useState<boolean>(false);
+  const [specializedPanelOpen, setSpecializedPanelOpen] = useState<boolean>(true);
   const [isApproving, setIsApproving] = useState<boolean>(false);
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
@@ -990,11 +990,11 @@ export function ImageStudioWorkspace({
               <span className="sm:hidden">Framing</span>
             </button>
 
-            {/* Close Button */}
+            {/* Close Button with guaranteed 44px touch target */}
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-[6px] text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA]"
+              className="w-9 h-9 min-h-[36px] min-w-[36px] sm:w-8 sm:h-8 flex items-center justify-center rounded-[6px] text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#315FEA] shrink-0"
               aria-label="Close workspace"
               title="Close workspace"
             >
@@ -1006,7 +1006,7 @@ export function ImageStudioWorkspace({
         {/* Main Body: Left Inspection Canvas & Right Control Rail (Vertical scroll on mobile, independent rails on desktop) */}
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden bg-slate-50 dark:bg-[#0B1220]">
           {/* Comparison Inspection Area */}
-          <div className="w-full lg:flex-1 h-[280px] sm:h-[360px] lg:h-auto min-h-[220px] shrink-0 lg:shrink flex flex-col p-2.5 sm:p-4 lg:p-5 overflow-visible lg:overflow-auto relative">
+          <div className="w-full lg:flex-1 h-[38vh] sm:h-[46vh] lg:h-auto min-h-[250px] max-h-[520px] lg:max-h-none shrink-0 lg:shrink flex flex-col p-2.5 sm:p-4 lg:p-5 overflow-visible lg:overflow-auto relative">
             <div
               ref={containerRef}
               style={{ touchAction: 'pan-y' }}

@@ -48,7 +48,6 @@ interface SidebarViewProps {
   onClose?: () => void;
   resolvedTheme?: 'light' | 'dark';
   onToggleTheme?: () => void;
-  navigatingRoute?: string | null;
 }
 
 function SidebarView({ 
@@ -62,7 +61,6 @@ function SidebarView({
   onClose,
   resolvedTheme,
   onToggleTheme,
-  navigatingRoute
 }: SidebarViewProps) {
   return (
     <>
@@ -126,7 +124,6 @@ function SidebarView({
             const isExact = pathname === item.href;
             const isSubPath = item.href !== '/admin' && (pathname?.startsWith(item.href) || (item.href === '/admin/business-context' && pathname?.startsWith('/admin/onboarding')));
             const isActive = isExact || isSubPath;
-            const isNavigatingThis = navigatingRoute === item.href;
 
             if (isLocked) {
               if (isCollapsed) {
@@ -169,15 +166,11 @@ function SidebarView({
                   `}
                   onClick={() => onNavigate(item.href)}
                 >
-                  {isNavigatingThis ? (
-                    <SparoviaLogoLoader mode="navigation" size="sm" />
-                  ) : (
-                    <item.icon
-                      className={`h-5 w-5 shrink-0 transition-colors motion-reduce:transition-none ${isActive ? 'text-[#315FEA]' : 'text-[#64748B] group-hover:text-[#315FEA]'}`}
-                      aria-hidden="true"
-                    />
-                  )}
-                  {isActive && !isNavigatingThis && (
+                  <item.icon
+                    className={`h-5 w-5 shrink-0 transition-colors motion-reduce:transition-none ${isActive ? 'text-[#315FEA]' : 'text-[#64748B] group-hover:text-[#315FEA]'}`}
+                    aria-hidden="true"
+                  />
+                  {isActive && (
                     <span className="absolute right-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#315FEA]" />
                   )}
                 </Link>
@@ -204,14 +197,8 @@ function SidebarView({
                   aria-hidden="true"
                 />
                 <span className="truncate">{item.name}</span>
-                {isNavigatingThis ? (
-                  <span className="ml-auto flex items-center">
-                    <SparoviaLogoLoader mode="navigation" size="sm" />
-                  </span>
-                ) : (
-                  isActive && (
-                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#315FEA]" />
-                  )
+                {isActive && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#315FEA]" />
                 )}
               </Link>
             );
@@ -283,16 +270,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
-  const [navigatingRoute, setNavigatingRoute] = useState<string | null>(null);
-  const [showNavLoader, setShowNavLoader] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // Initial application loader timing & smooth completion management
+  // Initial application loader timing & smooth completion management (startup only)
   const [initialLoadingActive, setInitialLoadingActive] = useState<boolean>(true);
   const [isLoaderFadingOut, setIsLoaderFadingOut] = useState<boolean>(false);
   const initialLoadStartRef = useRef<number>(Date.now());
-  const navStartTimeRef = useRef<number>(0);
 
   useEffect(() => {
     if (!isLoading && initialLoadingActive && !isLoaderFadingOut) {
@@ -312,55 +296,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, initialLoadingActive, isLoaderFadingOut]);
 
-  // Debounce menu navigation loader (120ms): avoids visual flashing on instantaneous transitions
-  useEffect(() => {
-    if (!navigatingRoute) {
-      setShowNavLoader(false);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setShowNavLoader(true);
-    }, 120);
-
-    const safetyTimeout = setTimeout(() => {
-      setNavigatingRoute(null);
-      setShowNavLoader(false);
-      navStartTimeRef.current = 0;
-    }, 8000);
-
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(safetyTimeout);
-    };
-  }, [navigatingRoute]);
-
-  // Manage menu navigation loader timing (enforce minimum ~1.5s for complete animation cycle)
+  // Close mobile drawer on route changes
   useEffect(() => {
     setMobileMenuOpen(false);
-
-    if (navStartTimeRef.current > 0) {
-      const elapsed = Date.now() - navStartTimeRef.current;
-      const minNavMs = 1500;
-      const remaining = Math.max(0, minNavMs - elapsed);
-
-      const navTimer = setTimeout(() => {
-        setNavigatingRoute(null);
-        setShowNavLoader(false);
-        navStartTimeRef.current = 0;
-      }, remaining);
-
-      return () => clearTimeout(navTimer);
-    } else {
-      setNavigatingRoute(null);
-      setShowNavLoader(false);
-    }
   }, [pathname]);
 
-  const handleNavigate = (href?: string) => {
-    if (!href || href === pathname) return;
-    navStartTimeRef.current = Date.now();
-    setNavigatingRoute(href);
+  const handleNavigate = (_href?: string) => {
+    setMobileMenuOpen(false);
   };
 
   // Focus trap, Escape key handling, and focus restoration for mobile drawer
@@ -523,7 +465,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               onClose={() => setMobileMenuOpen(false)}
               resolvedTheme={resolvedTheme}
               onToggleTheme={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-              navigatingRoute={navigatingRoute}
             />
           </div>
         </div>
@@ -541,13 +482,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <SidebarView
           isConfirmed={isConfirmed}
           pathname={pathname}
-          onNavigate={(href) => handleNavigate(href)}
+          onNavigate={() => handleNavigate()}
           userEmail={user?.email}
           userFullName={user?.fullName}
           isCollapsed={desktopCollapsed}
           resolvedTheme={resolvedTheme}
           onToggleTheme={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-          navigatingRoute={navigatingRoute}
         />
       </aside>
 
@@ -597,21 +537,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          {/* Menu Navigation Loader (compact animated logo indicator) */}
-          {showNavLoader && (
-            <div
-              role="status"
-              aria-live="polite"
-              aria-label="Loading destination route"
-              className="flex items-center gap-2 px-2.5 py-1 rounded-[6px] bg-[#315FEA]/10 dark:bg-[#1E293B] border border-[#315FEA]/20 text-[#315FEA] dark:text-[#608FFE] text-xs font-medium animate-fadeIn select-none"
-            >
-              <SparoviaLogoLoader mode="navigation" size="navigation" />
-              <span className="hidden md:inline text-[11px] font-semibold tracking-tight">
-                Loading...
-              </span>
-            </div>
-          )}
-
           <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
             {/* Quick Theme Toggle */}
             <button
@@ -644,12 +569,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page Content */}
-        <main
-          className={cn(
-            'flex-1 overflow-y-auto pb-20 lg:pb-8 transition-opacity duration-300',
-            showNavLoader && 'opacity-60 pointer-events-none'
-          )}
-        >
+        <main className="flex-1 overflow-y-auto pb-20 lg:pb-8">
           <div className="mx-auto max-w-7xl p-3.5 sm:p-6 lg:p-8 space-y-6">
             {children}
           </div>
@@ -662,7 +582,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         >
           <Link
             href="/admin"
-            onClick={() => handleNavigate('/admin')}
+            onClick={() => setMobileMenuOpen(false)}
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
               pathname === '/admin'
                 ? 'text-[#315FEA] dark:text-blue-400 font-bold'
@@ -675,7 +595,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <Link
             href="/admin/leads"
-            onClick={() => handleNavigate('/admin/leads')}
+            onClick={() => setMobileMenuOpen(false)}
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
               pathname?.startsWith('/admin/leads')
                 ? 'text-[#315FEA] dark:text-blue-400 font-bold'
@@ -688,7 +608,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <Link
             href="/admin/images"
-            onClick={() => handleNavigate('/admin/images')}
+            onClick={() => setMobileMenuOpen(false)}
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
               pathname?.startsWith('/admin/images')
                 ? 'text-[#7950B8] dark:text-purple-400 font-bold'
@@ -701,7 +621,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <Link
             href="/admin/business-presence"
-            onClick={() => handleNavigate('/admin/business-presence')}
+            onClick={() => setMobileMenuOpen(false)}
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
               pathname?.startsWith('/admin/business-presence')
                 ? 'text-[#315FEA] dark:text-blue-400 font-bold'
@@ -714,7 +634,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <Link
             href="/admin/account"
-            onClick={() => handleNavigate('/admin/account')}
+            onClick={() => setMobileMenuOpen(false)}
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition-colors ${
               pathname?.startsWith('/admin/account')
                 ? 'text-[#315FEA] dark:text-blue-400 font-bold'

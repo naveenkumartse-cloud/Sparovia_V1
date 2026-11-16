@@ -134,28 +134,27 @@ it('SparoviaLogo component delegates size="loader" to SparoviaLogoLoader mode="i
 });
 
 // ---------------------------------------------------------------------
-// TEST GROUP 4: MENU NAVIGATION LOADER CONTEXT
+// TEST GROUP 4: MENU NAVIGATION & REMOVAL OF UNNECESSARY CLICK LOADERS
 // ---------------------------------------------------------------------
-console.log('\n--- TEST GROUP 4: Menu Navigation Loader Implementation ---');
+console.log('\n--- TEST GROUP 4: Menu Navigation & Clean Transition Verification ---');
 
-it('AdminShell tracks route navigation and provides 120ms debounce to avoid flashing on instant clicks', () => {
+it('AdminShell completely removed menu click loader and artificial navigation delays', () => {
   const shellSrc = fs.readFileSync(path.resolve('apps/admin/components/admin/AdminShell.tsx'), 'utf8');
-  assert.strictEqual(shellSrc.includes('const [navigatingRoute, setNavigatingRoute] = useState'), true);
-  assert.strictEqual(shellSrc.includes('const [showNavLoader, setShowNavLoader] = useState(false);'), true);
-  assert.strictEqual(shellSrc.includes('setTimeout(() => {\n      setShowNavLoader(true);\n    }, 120);'), true);
-  assert.strictEqual(shellSrc.includes('if (!href || href === pathname) return;'), true);
+  assert.strictEqual(!shellSrc.includes('showNavLoader'), true, 'showNavLoader must be removed completely');
+  assert.strictEqual(!shellSrc.includes('navigatingRoute'), true, 'navigatingRoute must be removed completely');
+  assert.strictEqual(!shellSrc.includes('minNavMs'), true, 'Artificial navigation delay must not exist');
 });
 
-it('AdminShell displays compact SparoviaLogoLoader in top header during pending navigation without blocking UI', () => {
+it('SidebarView navigates cleanly without displaying spinner or loader on menu items', () => {
   const shellSrc = fs.readFileSync(path.resolve('apps/admin/components/admin/AdminShell.tsx'), 'utf8');
-  assert.strictEqual(shellSrc.includes('<SparoviaLogoLoader mode="navigation" size="navigation" />'), true);
-  assert.strictEqual(shellSrc.includes('showNavLoader &&'), true);
+  assert.strictEqual(!shellSrc.includes('isNavigatingThis'), true, 'isNavigatingThis must not be present');
 });
 
-it('SidebarView displays compact SparoviaLogoLoader on active navigating menu item', () => {
+it('AdminShell preserves initial application loading animation and smooth fade-out', () => {
   const shellSrc = fs.readFileSync(path.resolve('apps/admin/components/admin/AdminShell.tsx'), 'utf8');
-  assert.strictEqual(shellSrc.includes('const isNavigatingThis = navigatingRoute === item.href;'), true);
-  assert.strictEqual(shellSrc.includes('<SparoviaLogoLoader mode="navigation" size="sm" />'), true);
+  assert.strictEqual(shellSrc.includes('initialLoadingActive'), true);
+  assert.strictEqual(shellSrc.includes('minDisplayMs = 3000;'), true);
+  assert.strictEqual(shellSrc.includes('setIsLoaderFadingOut(true);'), true);
 });
 
 it('Next.js route suspense boundary (apps/admin/app/admin/loading.tsx) uses SparoviaLogoLoader mode="navigation"', () => {

@@ -54,7 +54,7 @@ export const EnhanceButton = React.forwardRef<HTMLButtonElement, EnhanceButtonPr
         type={type}
         disabled={disabled || isLoading}
         className={cn(
-          'image-studio-enhance-button font-semibold rounded-[6px] inline-flex items-center justify-center select-none transition-all duration-150',
+          'image-studio-enhance-button font-semibold rounded-[6px] inline-flex items-center justify-center select-none transition-all duration-150 whitespace-nowrap',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7950B8] focus-visible:ring-offset-2',
           sizeClasses[size],
           fullWidth ? 'w-full' : '',

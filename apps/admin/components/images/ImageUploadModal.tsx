@@ -415,40 +415,34 @@ export function ImageUploadModal({
               ? `Select a photograph for the ${slot} slot on your website.`
               : 'Add photographs to your portfolio library. Original photographs are never overwritten.')
       }
-      maxWidth="lg"
+      maxWidth="xl"
       preventOutsideClose={Boolean(isUploading)}
       footer={
         uploadStep === 'success' ? (
           /* STEP 2 FOOTER: Clean, un-overlapping, fully responsive layout */
-          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
-            <div className="text-xs text-[#475569] dark:text-[#94A3B8] flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
-              <CheckCircle2 className="w-4 h-4 text-[#15803D] shrink-0" />
-              <span>Saved to media library</span>
-            </div>
-            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
-              {onOpenStudio && savedImage && (
-                <EnhanceButton
-                  size="md"
-                  type="button"
-                  onClick={handleOpenStudioFromSuccess}
-                  className="w-full sm:w-auto justify-center"
-                  title="Open Image Studio to optionally enhance clarity, tone, and lighting"
-                >
-                  Enhance Image (Optional)
-                </EnhanceButton>
-              )}
-              <Button
-                variant="primary"
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-3 w-full">
+            {onOpenStudio && savedImage && (
+              <EnhanceButton
                 size="md"
                 type="button"
-                onClick={handleDoneKeepOriginal}
-                leftIcon={<Check className="w-4 h-4" />}
-                className="w-full sm:w-auto justify-center font-semibold"
-                title="Keep original photograph and close"
+                onClick={handleOpenStudioFromSuccess}
+                className="w-full sm:w-auto justify-center whitespace-nowrap px-4 sm:px-5 shrink-0"
+                title="Open Image Studio to optionally enhance clarity, tone, and lighting"
               >
-                Done — Keep Original
-              </Button>
-            </div>
+                Enhance Image (Optional)
+              </EnhanceButton>
+            )}
+            <Button
+              variant="primary"
+              size="md"
+              type="button"
+              onClick={handleDoneKeepOriginal}
+              leftIcon={<Check className="w-4 h-4 shrink-0" />}
+              className="w-full sm:w-auto justify-center font-semibold whitespace-nowrap px-4 sm:px-5 shrink-0"
+              title="Keep original photograph and close"
+            >
+              Done — Keep Original
+            </Button>
           </div>
         ) : (
           /* STEP 1 FOOTER: Standard Save & Cancel */
