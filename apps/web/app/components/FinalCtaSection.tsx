@@ -12,7 +12,7 @@ export default function FinalCtaSection() {
   const { contact, hero, website } = useTemplateContent();
 
   const brandEyebrow = website?.name ? website.name.toUpperCase() : (contact.eyebrow || 'KVN INTERIOR');
-  const bgImage = hero.heroImage || mediaConfig.hero.primaryImage;
+  const bgImage = (mediaConfig as any).finalCta?.bgImage || hero.heroImage || mediaConfig.hero.primaryImage;
   const ctaLabel = contact.ctaLabel || 'Request Consultation';
 
   return (
