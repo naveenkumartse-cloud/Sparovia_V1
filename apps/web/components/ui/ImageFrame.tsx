@@ -6,6 +6,7 @@ interface ImageFrameProps extends Omit<ImageProps, 'alt'> {
   aspectRatio?: 'square' | 'video' | 'portrait' | 'wide' | 'tall' | 'auto';
   overlay?: boolean;
   hoverEffect?: boolean;
+  doubleBezel?: boolean;
   className?: string;
   imageClassName?: string;
 }
@@ -16,6 +17,7 @@ export function ImageFrame({
   aspectRatio = 'auto',
   overlay = false,
   hoverEffect = true,
+  doubleBezel = false,
   className,
   imageClassName,
   priority = false,
@@ -30,12 +32,13 @@ export function ImageFrame({
     auto: 'min-h-[300px]',
   };
 
-  return (
+  const imageElement = (
     <div
       className={cn(
-        'relative overflow-hidden rounded-panel bg-surface border border-gray-100 shadow-soft-sm group',
+        'relative overflow-hidden bg-surface group w-full h-full',
+        doubleBezel ? 'rounded-[7px]' : 'rounded-panel border border-gray-100 shadow-soft-sm',
         aspectClasses[aspectRatio],
-        className
+        !doubleBezel && className
       )}
     >
       <Image
@@ -58,4 +61,14 @@ export function ImageFrame({
       )}
     </div>
   );
+
+  if (doubleBezel) {
+    return (
+      <div className={cn('double-bezel', className)}>
+        {imageElement}
+      </div>
+    );
+  }
+
+  return imageElement;
 }

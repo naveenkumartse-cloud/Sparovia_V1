@@ -99,17 +99,17 @@
   ],
   "cwv": {
     "ttfb": 1,
-    "domInteractive": 67,
-    "domContentLoaded": 67,
-    "loadComplete": 77,
-    "firstPaint": 92,
-    "firstContentfulPaint": 92,
-    "largestContentfulPaint": 92,
+    "domInteractive": 31,
+    "domContentLoaded": 31,
+    "loadComplete": 68,
+    "firstPaint": 64,
+    "firstContentfulPaint": 64,
+    "largestContentfulPaint": 64,
     "cumulativeLayoutShift": 0
   },
   "skeletonCheck": {
-    "hasSkeletonMarkup": false,
-    "skeletonElementsCount": 0,
+    "hasSkeletonMarkup": true,
+    "skeletonElementsCount": 2,
     "heroPresent": true,
     "heroHeadline": "Bespoke Luxury Interiors & Precision uPVC Architecture",
     "navbarPresent": true

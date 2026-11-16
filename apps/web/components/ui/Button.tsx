@@ -23,7 +23,7 @@ export function Button({
   className,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'inline-flex items-center justify-center font-sans font-semibold text-xs uppercase tracking-wider transition-colors duration-200 rounded-[6px] focus-ring disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-xs';
+  const baseStyles = 'group inline-flex items-center justify-center font-sans font-semibold text-xs uppercase tracking-wider transition-all duration-200 rounded-[6px] focus-ring disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-xs active:scale-[0.98]';
 
   const variantStyles = {
     primary: 'bg-[#0044A7] hover:bg-[#00388A] active:bg-[#002D6E] text-white border border-[#0044A7] hover:border-[#CE9E34] shadow-xs hover:shadow-subtle',
@@ -44,7 +44,7 @@ export function Button({
     return (
       <a className={combinedClasses} {...(props as AnchorHTMLAttributes<HTMLAnchorElement>)}>
         <span>{children}</span>
-        {icon && <ArrowUpRight className="w-4 h-4 ml-1.5 shrink-0" />}
+        {icon && <ArrowUpRight className="w-4 h-4 ml-1.5 shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />}
       </a>
     );
   }
@@ -52,7 +52,7 @@ export function Button({
   return (
     <button className={combinedClasses} {...(props as ButtonHTMLAttributes<HTMLButtonElement>)}>
       <span>{children}</span>
-      {icon && <ArrowUpRight className="w-4 h-4 ml-1.5 shrink-0" />}
+      {icon && <ArrowUpRight className="w-4 h-4 ml-1.5 shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />}
     </button>
   );
 }

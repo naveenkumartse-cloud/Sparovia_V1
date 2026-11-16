@@ -50,15 +50,15 @@ export default function Navbar() {
   return (
     <header
       role="banner"
-      className={`fixed top-0 left-0 right-0 z-[100] bg-white transition-all duration-300 ease-out ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ease-out ${
         scrolled
-          ? 'py-2 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border-b border-gray-200/80'
-          : 'py-3 sm:py-3.5 border-b border-gray-100'
+          ? 'py-2 bg-white/95 backdrop-blur-md shadow-soft-sm border-b border-[#EBDEBA]'
+          : 'py-3 sm:py-3.5 bg-white/90 backdrop-blur-xs border-b border-gray-100'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between relative z-20">
 
-        {/* Complete Original KVN Interior Client Logo — Single Asset, Zero Recreated/Duplicate Text */}
+        {/* Complete Original KVN Interior Client Logo */}
         <a
           href="#hero"
           className="flex items-center group focus-ring rounded-lg py-0.5 transition-transform duration-200 hover:scale-[1.02]"
@@ -84,8 +84,8 @@ export default function Navbar() {
               key={link.name}
               href={link.href}
               className="text-[11px] uppercase tracking-[0.15em] font-bold py-1 transition-colors duration-200 relative focus-ring rounded
-                after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-gold-400 hover:after:w-full after:transition-all after:duration-300
-                text-charcoal-700 hover:text-brand-600"
+                after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-[#CE9E34] hover:after:w-full after:transition-all after:duration-300
+                text-charcoal-700 hover:text-[#0044A7]"
             >
               {link.name}
             </a>
@@ -102,12 +102,12 @@ export default function Navbar() {
         {/* Mobile Menu Trigger */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden p-2.5 -mr-2 text-charcoal-900 hover:text-brand-600 focus-ring rounded-lg transition-colors relative z-20"
+          className="lg:hidden p-2.5 -mr-2 text-charcoal-900 hover:text-brand-600 focus-ring rounded-lg transition-colors relative z-20 cursor-pointer"
           aria-expanded={mobileMenuOpen}
           aria-controls="mobile-nav"
           aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
         >
-          {mobileMenuOpen ? <X className="w-6 h-6 text-brand-600" /> : <Menu className="w-6 h-6 text-brand-600" />}
+          {mobileMenuOpen ? <X className="w-6 h-6 text-[#0044A7]" /> : <Menu className="w-6 h-6 text-[#0044A7]" />}
         </button>
       </div>
 
@@ -118,7 +118,7 @@ export default function Navbar() {
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
-          className="lg:hidden fixed top-0 left-0 right-0 h-[100dvh] z-10 bg-white flex flex-col pt-[72px] overscroll-contain"
+          className="lg:hidden fixed top-0 left-0 right-0 h-[100dvh] z-10 bg-white/98 backdrop-blur-lg flex flex-col pt-[72px] overscroll-contain"
         >
           <nav className="flex flex-col px-6 pt-6 pb-6 gap-1 flex-1 overflow-y-auto" aria-label="Mobile Navigation">
             {templateConfig.navLinks.map((link) => (
@@ -126,7 +126,7 @@ export default function Navbar() {
                 key={link.name}
                 href={link.href}
                 onClick={closeMobileMenu}
-                className="text-sm font-bold uppercase tracking-[0.1em] text-charcoal-800 hover:text-brand-600 py-3.5 border-b border-gray-100 focus-ring rounded transition-colors"
+                className="text-sm font-bold uppercase tracking-[0.1em] text-charcoal-800 hover:text-[#0044A7] py-3.5 border-b border-gray-100 focus-ring rounded transition-colors"
               >
                 {link.name}
               </a>

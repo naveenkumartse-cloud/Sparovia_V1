@@ -10,11 +10,11 @@ import { Eyebrow, SectionHeading, Subheading } from '@/components/ui/Typography'
 import { Button } from '@/components/ui/Button';
 import { FadeIn } from '@/components/ui/Motion';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShieldCheck, VolumeX, SunMedium, CloudRain } from 'lucide-react';
 
 const upvcGallery = mediaConfig.upvc.gallery;
 
-/* ─── Large Architectural Hero Image with Scroll Parallax ─── */
+/* ─── Large Architectural Hero Image with Double-Bezel & Scroll Parallax ─── */
 
 function ArchitecturalHero() {
   const imageRef = useRef<HTMLDivElement>(null);
@@ -25,57 +25,80 @@ function ArchitecturalHero() {
     offset: ['start end', 'end start'],
   });
 
-  const imageScale = useTransform(scrollYProgress, [0, 1], [1.04, 1]);
+  const imageScale = useTransform(scrollYProgress, [0, 1], [1.05, 1]);
   const imageY = useTransform(scrollYProgress, [0, 1], ['-2%', '2%']);
 
   return (
     <FadeIn direction="up" delay={0.2} duration={0.8}>
-      <div
-        ref={imageRef}
-        className="relative w-full rounded-panel overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9]"
-      >
-        <motion.div
-          className="absolute inset-0"
-          style={shouldReduceMotion ? {} : {
-            scale: imageScale,
-            y: imageY,
-          }}
+      <div className="double-bezel">
+        <div
+          ref={imageRef}
+          className="double-bezel-inner relative w-full aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9]"
         >
-          <Image
-            src={mediaConfig.upvc.primaryImage}
-            alt={mediaConfig.upvc.primaryAlt}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center"
-          />
-        </motion.div>
+          <motion.div
+            className="absolute inset-0"
+            style={shouldReduceMotion ? {} : {
+              scale: imageScale,
+              y: imageY,
+            }}
+          >
+            <Image
+              src={mediaConfig.upvc.primaryImage}
+              alt={mediaConfig.upvc.primaryAlt}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+          </motion.div>
+
+          {/* Architectural Badge Overlay */}
+          <div className="absolute bottom-4 left-4 right-4 sm:right-auto z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-[#EBDEBA] shadow-soft-sm">
+              <span className="w-2 h-2 rounded-full bg-[#CE9E34]" />
+              <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.15em] font-bold text-charcoal-900">
+                Acoustic Attenuation (up to 40dB) • Multi-Point Security
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </FadeIn>
   );
 }
 
-/* ─── Design Theme Labels ─── */
+/* ─── Architectural Engineering Specification Cards ─── */
 
 interface ThemeItem {
   label: string;
   description: string;
 }
 
+const SPEC_ICONS = [VolumeX, SunMedium, ShieldCheck, CloudRain];
+
 function ThemeLabels({ themes }: { themes: ThemeItem[] }) {
   return (
     <FadeIn direction="up" delay={0.3}>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
-        {themes.map((theme, i) => (
-          <div key={i} className="text-center md:text-left">
-            <span className="block text-[11px] uppercase tracking-[0.15em] text-[#CE9E34] font-black mb-1">
-              {theme.label}
-            </span>
-            <p className="text-xs text-charcoal-600 leading-relaxed">
-              {theme.description}
-            </p>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {themes.map((theme, i) => {
+          const Icon = SPEC_ICONS[i % SPEC_ICONS.length];
+          return (
+            <div
+              key={i}
+              className="p-4 sm:p-5 rounded-[8px] bg-white border border-[#EBDEBA] shadow-soft-sm hover:border-[#CE9E34] transition-all duration-300 group"
+            >
+              <div className="w-8 h-8 rounded-full bg-[#FAF8F2] border border-[#EBDEBA] flex items-center justify-center mb-3 text-[#CE9E34] group-hover:scale-110 transition-transform">
+                <Icon className="w-4 h-4" />
+              </div>
+              <span className="block text-[11px] uppercase tracking-[0.15em] text-[#CE9E34] font-black mb-1.5">
+                {theme.label}
+              </span>
+              <p className="text-xs text-charcoal-700 leading-relaxed font-normal">
+                {theme.description}
+              </p>
+            </div>
+          );
+        })}
       </div>
     </FadeIn>
   );
@@ -122,13 +145,13 @@ function InstallationCarousel() {
   return (
     <div className="w-full">
       {/* Section Sub-header with Top-Right Circular Navigation Controls */}
-      <div className="flex items-center justify-between mb-4 sm:mb-5">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
-          <span className="text-[11px] uppercase tracking-[0.15em] text-[#CE9E34] font-black">
-            Window &amp; Door Installations
+          <span className="text-[11px] uppercase tracking-[0.2em] text-[#CE9E34] font-black">
+            Fenestration Systems
           </span>
-          <p className="text-xs text-charcoal-600 mt-0.5">
-            Precision engineered uPVC architectural systems
+          <p className="text-xs sm:text-sm text-charcoal-700 font-semibold mt-0.5">
+            Precision engineered uPVC sliding &amp; casement installations
           </p>
         </div>
 
@@ -157,7 +180,7 @@ function InstallationCarousel() {
         </div>
       </div>
 
-      {/* Horizontal Carousel Track (Clean, Unobstructed, No Side Arrows Overlap) */}
+      {/* Horizontal Carousel Track with Double-Bezel Frames */}
       <div
         ref={scrollRef}
         id="installation-carousel-track"
@@ -173,19 +196,26 @@ function InstallationCarousel() {
             data-carousel-item
             className="flex-shrink-0 snap-start group select-none w-[78vw] max-w-[320px] sm:w-[calc(50%-12px)] sm:max-w-[360px] lg:w-[calc(33.333%-16px)] lg:max-w-[420px]"
           >
-            <div className="relative rounded-panel overflow-hidden bg-surface border border-gray-100 shadow-soft-sm aspect-[4/3]">
-              <Image
-                src={item.src}
-                alt={item.alt}
-                fill
-                sizes="(max-width: 640px) 78vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-105"
-                loading="lazy"
-              />
+            <div className="double-bezel">
+              <div className="double-bezel-inner aspect-[4/3] relative">
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  fill
+                  sizes="(max-width: 640px) 78vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
             </div>
-            <span className="block mt-2.5 text-[11px] uppercase tracking-[0.12em] text-charcoal-700 font-semibold group-hover:text-[#CE9E34] transition-colors">
-              {item.label}
-            </span>
+            <div className="mt-2.5 px-1 flex items-center justify-between">
+              <span className="text-[11px] uppercase tracking-[0.12em] text-charcoal-800 font-bold group-hover:text-[#0044A7] transition-colors">
+                {item.label}
+              </span>
+              <span className="text-[10px] uppercase tracking-wider text-[#CE9E34] font-black">
+                uPVC
+              </span>
+            </div>
           </div>
         ))}
       </div>
@@ -204,29 +234,29 @@ export default function UpvcSection() {
       <Container>
 
         {/* Section Intro */}
-        <div className="max-w-2xl mb-8 sm:mb-10">
+        <div className="max-w-2xl mb-8 sm:mb-12">
           <FadeIn direction="up">
             <Eyebrow icon={false}>
               {upvc.eyebrow}
             </Eyebrow>
           </FadeIn>
           <FadeIn direction="up" delay={0.1}>
-            <SectionHeading>
+            <SectionHeading className="tracking-tight text-3xl sm:text-4xl">
               {upvc.heading}
             </SectionHeading>
           </FadeIn>
           <FadeIn direction="up" delay={0.15}>
-            <Subheading>
+            <Subheading className="text-charcoal-600 text-base sm:text-lg">
               {upvc.description}
             </Subheading>
           </FadeIn>
         </div>
 
-        {/* Large Architectural Image */}
+        {/* Large Architectural Hero Image */}
         <ArchitecturalHero />
 
-        {/* Theme Labels */}
-        <div className="mt-6 sm:mt-8 mb-8 sm:mb-10">
+        {/* Engineering Specification Cards */}
+        <div className="mt-8 sm:mt-10 mb-10 sm:mb-14">
           <ThemeLabels themes={themes} />
         </div>
 
@@ -238,11 +268,11 @@ export default function UpvcSection() {
           <InstallationCarousel />
         </FadeIn>
 
-        {/* Subtle CTA */}
+        {/* Glazing Consultation CTA */}
         <FadeIn direction="up" delay={0.2}>
-          <div className="mt-6 sm:mt-8 flex justify-center md:justify-start">
-            <Button href="#contact" variant="outline" size="md" icon>
-              Get a Quote
+          <div className="mt-8 sm:mt-10 flex justify-center md:justify-start">
+            <Button href="#contact" variant="primary" size="md" icon>
+              Request Glazing Estimate
             </Button>
           </div>
         </FadeIn>

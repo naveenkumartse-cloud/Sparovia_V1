@@ -404,8 +404,8 @@ export default function ContactSection() {
 
               {/* Operating Hours Card */}
               {hasHours && (
-                <div className="p-4 sm:p-5 rounded-[8px] bg-surface border border-gray-200 shadow-soft-sm space-y-2">
-                  <div className="flex items-center gap-2 text-charcoal-900 font-semibold text-sm">
+                <div className="p-4 sm:p-5 rounded-[8px] bg-[#FAF8F2]/60 border border-[#EBDEBA] shadow-2xs space-y-2">
+                  <div className="flex items-center gap-2 text-charcoal-900 font-bold text-sm">
                     <Clock className="w-4 h-4 text-[#CE9E34] shrink-0" />
                     <span>Operating Hours</span>
                   </div>
@@ -417,7 +417,7 @@ export default function ContactSection() {
 
               {/* Canonical Contact Details (Address, Phone, Email) */}
               {(hasPhone || hasEmail || hasAddress) && (
-                <div className="p-4 sm:p-5 rounded-[8px] bg-surface border border-gray-200 shadow-soft-sm space-y-3">
+                <div className="p-4 sm:p-5 rounded-[8px] bg-[#FAF8F2]/60 border border-[#EBDEBA] shadow-2xs space-y-3">
                   {hasAddress && (
                     <div className="flex items-start gap-2.5 text-xs sm:text-sm">
                       <MapPin className="w-4 h-4 text-[#CE9E34] shrink-0 mt-0.5" />
@@ -471,8 +471,10 @@ export default function ContactSection() {
 
             {/* Right Column: Quote Inquiry Form */}
             <FadeIn direction="up" className="lg:col-span-7 w-full">
-              <div className="bg-surface p-5 sm:p-7 md:p-8 rounded-[8px] border border-gray-200 shadow-soft-sm">
-                {renderFormContent(false)}
+              <div className="double-bezel">
+                <div className="double-bezel-inner bg-white p-6 sm:p-8 md:p-9">
+                  {renderFormContent(false)}
+                </div>
               </div>
             </FadeIn>
           </div>
@@ -480,8 +482,10 @@ export default function ContactSection() {
           /* Standalone Centered Form when no presence info is configured */
           <div className="max-w-2xl mx-auto w-full">
             <FadeIn direction="up">
-              <div className="bg-surface p-5 sm:p-7 md:p-8 rounded-[8px] border border-gray-200 shadow-soft-sm">
-                {renderFormContent(true)}
+              <div className="double-bezel">
+                <div className="double-bezel-inner bg-white p-6 sm:p-8 md:p-9">
+                  {renderFormContent(true)}
+                </div>
               </div>
             </FadeIn>
           </div>

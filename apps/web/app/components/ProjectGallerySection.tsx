@@ -149,7 +149,7 @@ export default function ProjectGallerySection() {
       <Container>
 
         {/* Section Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-6 sm:mb-8 gap-4 sm:gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-8 sm:mb-12 gap-5 sm:gap-6">
           <div className="max-w-2xl">
             <FadeIn direction="up">
               <Eyebrow icon={false}>
@@ -157,20 +157,20 @@ export default function ProjectGallerySection() {
               </Eyebrow>
             </FadeIn>
             <FadeIn direction="up" delay={0.1}>
-              <SectionHeading>
+              <SectionHeading className="tracking-tight text-3xl sm:text-4xl">
                 {ourWork.heading}
               </SectionHeading>
             </FadeIn>
             <FadeIn direction="up" delay={0.15}>
-              <Subheading>
+              <Subheading className="text-charcoal-600 text-base sm:text-lg">
                 {ourWork.description}
               </Subheading>
             </FadeIn>
           </div>
 
-          {/* Filter Bar */}
+          {/* Filter Bar with Double-Bezel Styling */}
           <FadeIn direction="up" delay={0.2}>
-            <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Project categories">
+            <div className="flex flex-wrap items-center gap-2 p-1 rounded-[8px] bg-white border border-[#EBDEBA] shadow-2xs" role="tablist" aria-label="Project categories">
               {categories.map((cat) => {
                 const isActive = activeFilter === cat;
                 return (
@@ -182,10 +182,10 @@ export default function ProjectGallerySection() {
                       setActiveFilter(cat);
                       setSelectedIndex(null);
                     }}
-                    className={`px-5 py-2.5 rounded-[6px] text-xs uppercase tracking-wider font-semibold transition-colors duration-200 focus-ring cursor-pointer shadow-xs ${
+                    className={`px-4 sm:px-5 py-2 rounded-[6px] text-xs uppercase tracking-wider font-bold transition-all duration-200 focus-ring cursor-pointer ${
                       isActive
-                        ? 'bg-[#0044A7] text-white border border-[#0044A7]'
-                        : 'bg-white text-charcoal-700 hover:text-[#0044A7] border border-gray-200/80 hover:border-[#CE9E34]'
+                        ? 'bg-[#0044A7] text-white shadow-xs'
+                        : 'bg-transparent text-charcoal-700 hover:text-[#0044A7] hover:bg-[#FAF8F2]'
                     }`}
                   >
                     {cat}
@@ -199,7 +199,7 @@ export default function ProjectGallerySection() {
         {/* Asymmetrical Editorial Gallery Grid */}
         <motion.div
           layout={!shouldReduceMotion}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 sm:gap-6"
         >
           <AnimatePresence mode="popLayout">
             {filteredItems.map((item, index) => (
@@ -209,7 +209,7 @@ export default function ProjectGallerySection() {
                 initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1.0] }}
+                transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1.0] }}
                 className={getGridSpanClass(item.span)}
               >
                 <div
@@ -217,7 +217,7 @@ export default function ProjectGallerySection() {
                     triggerRef.current = e.currentTarget as HTMLElement;
                     setSelectedIndex(index);
                   }}
-                  className="relative w-full h-full rounded-panel overflow-hidden bg-surface border border-gray-100 shadow-soft-sm group cursor-pointer"
+                  className="double-bezel h-full w-full cursor-pointer group focus-ring"
                   tabIndex={0}
                   role="button"
                   aria-label={`View details for ${item.label}`}
@@ -229,38 +229,40 @@ export default function ProjectGallerySection() {
                     }
                   }}
                 >
-                  <Image
-                    src={item.src}
-                    alt={item.alt}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-105"
-                    loading="lazy"
-                  />
+                  <div className="double-bezel-inner h-full w-full relative">
+                    <Image
+                      src={item.src}
+                      alt={item.alt}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-105"
+                      loading="lazy"
+                    />
 
-                  {/* Gradient Overlay for Legibility */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300" />
+                    {/* Gradient Overlay for Legibility */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent opacity-85 group-hover:opacity-95 transition-opacity duration-300" />
 
-                  {/* Category Pill Badge (Top Left) */}
-                  <div className="absolute top-4 left-4 z-10">
-                    <span className="px-2.5 py-1 rounded-[4px] badge-gold text-[10px] uppercase tracking-wider font-bold shadow-soft-sm">
-                      {item.category}
-                    </span>
-                  </div>
+                    {/* Category Pill Badge (Top Left) */}
+                    <div className="absolute top-3.5 left-3.5 z-10">
+                      <span className="px-2.5 py-1 rounded-[4px] bg-white/90 backdrop-blur-md border border-[#EBDEBA] text-[#9E741B] text-[10px] uppercase tracking-wider font-bold shadow-2xs">
+                        {item.category}
+                      </span>
+                    </div>
 
-                  {/* View Icon Button (Top Right) */}
-                  <div className="absolute top-4 right-4 z-10 w-8 h-8 rounded-[6px] bg-white/90 backdrop-blur-md flex items-center justify-center text-charcoal-900 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 shadow-xs">
-                    <Maximize2 className="w-4 h-4 text-[#0044A7]" />
-                  </div>
+                    {/* View Icon Button (Top Right) */}
+                    <div className="absolute top-3.5 right-3.5 z-10 w-8 h-8 rounded-[6px] bg-white/90 backdrop-blur-md flex items-center justify-center text-charcoal-900 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-200 shadow-xs">
+                      <Maximize2 className="w-4 h-4 text-[#0044A7]" />
+                    </div>
 
-                  {/* Content (Bottom Left) */}
-                  <div className="absolute bottom-5 left-5 right-5 z-10 text-white pointer-events-none">
-                    <span className="block text-[10px] uppercase tracking-[0.2em] text-[#CE9E34] font-black mb-1">
-                      Project Showcase
-                    </span>
-                    <h3 className="font-sans text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
-                      {item.label}
-                    </h3>
+                    {/* Content (Bottom Left) */}
+                    <div className="absolute bottom-4 left-4 right-4 z-10 text-white pointer-events-none">
+                      <span className="block text-[10px] uppercase tracking-[0.2em] text-[#CE9E34] font-black mb-1">
+                        Residential Portfolio
+                      </span>
+                      <h3 className="font-sans text-base sm:text-lg font-bold tracking-tight text-white leading-tight">
+                        {item.label}
+                      </h3>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -319,16 +321,16 @@ export default function ProjectGallerySection() {
               </button>
             )}
 
-            {/* Lightbox Content Card */}
+            {/* Lightbox Content Card with Double-Bezel Framing */}
             <motion.div
               initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
-              className="relative z-10 max-w-4xl w-full bg-white rounded-dialog overflow-hidden shadow-2xl border border-gray-100 flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]"
+              className="relative z-10 max-w-4xl w-full bg-white rounded-[10px] overflow-hidden shadow-2xl border border-[#EBDEBA] flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]"
             >
               {/* Image View */}
-              <div className="relative h-[220px] sm:h-[300px] md:h-auto md:flex-1 md:min-h-[500px] bg-charcoal-900 flex-shrink-0">
+              <div className="relative h-[240px] sm:h-[320px] md:h-auto md:flex-1 md:min-h-[500px] bg-charcoal-900 flex-shrink-0">
                 <Image
                   src={selectedItem.src}
                   alt={selectedItem.alt}
@@ -345,10 +347,10 @@ export default function ProjectGallerySection() {
                   <span className="text-[11px] uppercase tracking-[0.2em] text-[#CE9E34] font-black block mb-2">
                     {selectedItem.category}
                   </span>
-                  <h3 className="font-sans text-xl sm:text-2xl font-bold text-charcoal-900 mb-3">
+                  <h3 className="font-sans text-xl sm:text-2xl font-bold text-charcoal-900 mb-3 tracking-tight">
                     {selectedItem.label}
                   </h3>
-                  <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed mb-6">
+                  <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed mb-6 font-normal">
                     {selectedItem.alt}
                   </p>
                 </div>
@@ -362,7 +364,7 @@ export default function ProjectGallerySection() {
                     className="w-full text-center"
                     onClick={() => setSelectedIndex(null)}
                   >
-                    Get a Quote
+                    Enquire for this Style
                   </Button>
                 </div>
               </div>

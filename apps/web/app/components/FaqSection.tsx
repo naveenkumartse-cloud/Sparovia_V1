@@ -25,29 +25,29 @@ export default function FaqSection() {
       <Container size="narrow">
 
         {/* Section Intro */}
-        <div className="max-w-2xl mb-6 sm:mb-8">
+        <div className="max-w-2xl mb-8 sm:mb-10 text-center sm:text-left">
           <FadeIn direction="up">
             <Eyebrow icon={false}>
               {faq.eyebrow}
             </Eyebrow>
           </FadeIn>
           <FadeIn direction="up" delay={0.1}>
-            <SectionHeading>
+            <SectionHeading className="tracking-tight text-3xl sm:text-4xl">
               {faq.heading}
             </SectionHeading>
           </FadeIn>
         </div>
 
-        {/* Clean Accordion List with Thin Dividers */}
-        <div className="border-t border-gray-200">
-          {faqs.map((faq, index) => {
-            const isOpen = openIndex === index;
-            const buttonId = `faq-button-${index}`;
-            const answerId = `faq-answer-${index}`;
+        {/* Clean Accordion List with Double-Bezel Framing */}
+        <div className="double-bezel">
+          <div className="double-bezel-inner bg-white divide-y divide-[#EBDEBA]/60">
+            {faqs.map((item, index) => {
+              const isOpen = openIndex === index;
+              const buttonId = `faq-button-${index}`;
+              const answerId = `faq-answer-${index}`;
 
-            return (
-              <FadeIn key={index} direction="up" delay={0.05 * index}>
-                <div className="border-b border-gray-200">
+              return (
+                <div key={index} className="p-4 sm:p-6 transition-colors hover:bg-[#FAF8F2]/40">
                   <button
                     id={buttonId}
                     aria-expanded={isOpen}
@@ -59,16 +59,16 @@ export default function FaqSection() {
                         toggleFaq(index);
                       }
                     }}
-                    className="w-full py-4 sm:py-5 text-left flex items-center justify-between gap-6 group focus-ring rounded-lg cursor-pointer"
+                    className="w-full text-left flex items-center justify-between gap-4 group focus-ring rounded-[6px] cursor-pointer"
                   >
                     <span
-                      className={`font-sans font-semibold text-base sm:text-lg transition-colors duration-200 ${
+                      className={`font-sans font-bold text-base sm:text-lg transition-colors duration-200 tracking-tight ${
                         isOpen ? 'text-[#0044A7]' : 'text-charcoal-900 group-hover:text-[#0044A7]'
                       }`}
                     >
-                      {faq.question}
+                      {item.question}
                     </span>
-                    <div className="w-8 h-8 rounded-[6px] bg-surface group-hover:bg-[#FAF8F2] flex items-center justify-center text-charcoal-700 group-hover:text-[#CE9E34] shrink-0 transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-[#FAF8F2] border border-[#EBDEBA] flex items-center justify-center text-[#CE9E34] shrink-0 transition-transform duration-200 group-hover:scale-110">
                       {isOpen ? (
                         <Minus className="w-4 h-4 text-[#CE9E34]" />
                       ) : (
@@ -89,16 +89,16 @@ export default function FaqSection() {
                         transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1.0] }}
                         className="overflow-hidden"
                       >
-                        <p className="pb-4 sm:pb-5 pt-1 text-sm sm:text-base text-charcoal-600 font-normal leading-relaxed max-w-2xl">
-                          {faq.answer}
+                        <p className="pt-3 pb-1 text-sm sm:text-base text-charcoal-600 font-normal leading-relaxed max-w-2xl">
+                          {item.answer}
                         </p>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
-              </FadeIn>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
       </Container>
