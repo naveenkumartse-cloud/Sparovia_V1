@@ -421,66 +421,35 @@ html.dark body {
   0%, 12% {
     opacity: 0;
     clip-path: inset(0 0 100% 0);
-    filter: none;
   }
   22% {
     opacity: 0.3;
     clip-path: inset(0 0 80% 0);
-    filter: none;
   }
   40% {
     opacity: 0.6;
     clip-path: inset(0 0 55% 0);
-    filter: none;
   }
   58% {
     opacity: 0.85;
     clip-path: inset(0 0 35% 0);
-    filter: drop-shadow(0 0 6px rgba(121, 80, 184, 0.4));
   }
   72% {
     opacity: 0.95;
     clip-path: inset(0 0 10% 0);
-    filter: drop-shadow(0 0 10px rgba(49, 95, 234, 0.5)) drop-shadow(0 0 16px rgba(168, 85, 247, 0.5));
   }
   80%, 87% {
-    /* Stage 6: Full Glow Moments */
+    /* Stage 6: Full Glow Moment - Sharp, clean radiant gradient without fuzzy square bloom */
     opacity: 1;
     clip-path: inset(0 0 0% 0);
-    filter: drop-shadow(0 0 16px rgba(0, 229, 255, 0.75)) drop-shadow(0 0 28px rgba(168, 85, 247, 0.7));
   }
   93% {
     opacity: 0.35;
     clip-path: inset(0 0 0% 0);
-    filter: drop-shadow(0 0 8px rgba(49, 95, 234, 0.25));
   }
   98%, 100% {
     opacity: 0;
     clip-path: inset(0 0 100% 0);
-    filter: none;
-  }
-}
-
-@keyframes sparoviaAuraLoop {
-  0%, 15% {
-    opacity: 0;
-    transform: scale(0.7);
-  }
-  45% {
-    opacity: 0.4;
-    transform: scale(0.9);
-  }
-  70% {
-    opacity: 0.7;
-    transform: scale(1.05);
-  }
-  80%, 87% {
-    opacity: 1;
-    transform: scale(1.15);
-  }
-  95%, 100% {
-    opacity: 0;
-    transform: scale(0.8);
   }
 }
 
@@ -500,10 +469,6 @@ html.dark body {
   animation: sparoviaFillLoop 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.sparovia-loader-active .sparovia-loader-aura {
-  animation: sparoviaAuraLoop 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
 /* Reduced Motion Fallback */
 .sparovia-loader-reduced .sparovia-loader-outline {
   opacity: 0.25;
@@ -515,8 +480,7 @@ html.dark body {
   filter: none;
 }
 
-.sparovia-loader-reduced .sparovia-loader-trace,
-.sparovia-loader-reduced .sparovia-loader-aura {
+.sparovia-loader-reduced .sparovia-loader-trace {
   display: none;
 }
 
@@ -524,8 +488,7 @@ html.dark body {
   .sparovia-loader-active .sparovia-loader-outline,
   .sparovia-loader-active .sparovia-trace-d0,
   .sparovia-loader-active .sparovia-trace-d1,
-  .sparovia-loader-active .sparovia-loader-fill,
-  .sparovia-loader-active .sparovia-loader-aura {
+  .sparovia-loader-active .sparovia-loader-fill {
     animation: none !important;
   }
 
@@ -539,8 +502,7 @@ html.dark body {
     filter: none !important;
   }
 
-  .sparovia-loader-active .sparovia-loader-trace,
-  .sparovia-loader-active .sparovia-loader-aura {
+  .sparovia-loader-active .sparovia-loader-trace {
     display: none !important;
   }
 }

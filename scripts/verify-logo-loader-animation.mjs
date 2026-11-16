@@ -64,13 +64,14 @@ it('SparoviaLogoLoader.tsx defines official 2-component vector geometry matching
 // ---------------------------------------------------------------------
 console.log('\n--- TEST GROUP 2: Seven-Stage Animation System Specification ---');
 
-it('CSS keyframes sparoviaOutlineLoop, sparoviaTraceD0Loop, sparoviaTraceD1Loop, sparoviaFillLoop, and sparoviaAuraLoop exist', () => {
+it('CSS keyframes sparoviaOutlineLoop, sparoviaTraceD0Loop, sparoviaTraceD1Loop, and sparoviaFillLoop exist without square/aura artifacts', () => {
   const css = fs.readFileSync(path.resolve('apps/admin/app/globals.css'), 'utf8');
   assert.strictEqual(css.includes('@keyframes sparoviaOutlineLoop'), true);
   assert.strictEqual(css.includes('@keyframes sparoviaTraceD0Loop'), true);
   assert.strictEqual(css.includes('@keyframes sparoviaTraceD1Loop'), true);
   assert.strictEqual(css.includes('@keyframes sparoviaFillLoop'), true);
-  assert.strictEqual(css.includes('@keyframes sparoviaAuraLoop'), true);
+  // Ensure blurry background aura has been eliminated
+  assert.strictEqual(css.includes('@keyframes sparoviaAuraLoop'), false);
 });
 
 it('Stage 1 (Outline): Begins with clean, recognizable light-blue outline, zero fill, and zero bloom', () => {
@@ -89,19 +90,18 @@ it('Stage 2 & 3 (Light Start & Tracing Path): Cyan-to-violet directional tracing
   assert.strictEqual(src.includes('strokeDasharray="1300"'), true);
 });
 
-it('Stage 4 & 5 (Half Complete & Almost Complete): Gradual gradient illumination with ambient violet glow', () => {
+it('Stage 4 & 5 (Half Complete & Almost Complete): Gradual gradient illumination on transparent background', () => {
   const css = fs.readFileSync(path.resolve('apps/admin/app/globals.css'), 'utf8');
-  // At 40% - 58%, fill reaches half-mark (inset 35-55%) with violet drop-shadow
+  // At 40% - 58%, fill reaches half-mark (inset 35-55%) cleanly without blurry background shadows
   assert.strictEqual(css.includes('clip-path: inset(0 0 35% 0);'), true);
-  assert.strictEqual(css.includes('rgba(121, 80, 184, 0.4)'), true);
+  assert.strictEqual(css.includes('clip-path: inset(0 0 55% 0);'), true);
 });
 
-it('Stage 6 (Full Glow Moment): Complete 100% illuminated logo with radiant cyan-purple gradient and neon aura', () => {
+it('Stage 6 (Full Glow Moment): Complete 100% illuminated logo with radiant cyan-purple gradient without artificial square bloom', () => {
   const css = fs.readFileSync(path.resolve('apps/admin/app/globals.css'), 'utf8');
-  assert.strictEqual(css.includes('/* Stage 6: Full Glow Moments */'), true);
+  assert.strictEqual(css.includes('/* Stage 6: Full Glow Moment - Sharp, clean radiant gradient without fuzzy square bloom */'), true);
   assert.strictEqual(css.includes('clip-path: inset(0 0 0% 0);'), true);
-  assert.strictEqual(css.includes('rgba(0, 229, 255, 0.75)'), true);
-  assert.strictEqual(css.includes('rgba(168, 85, 247, 0.7)'), true);
+  assert.strictEqual(css.includes('opacity: 1;'), true);
 });
 
 it('Stage 7 (Loop): Smoothly dissolves back to Stage 1 outline with seamless repeat', () => {
@@ -172,7 +172,7 @@ console.log('\n--- TEST GROUP 5: Accessibility & Performance Guardrails ---');
 it('SparoviaLogoLoader supports prefers-reduced-motion media query and falls back to clean static gradient logo', () => {
   const css = fs.readFileSync(path.resolve('apps/admin/app/globals.css'), 'utf8');
   assert.strictEqual(css.includes('@media (prefers-reduced-motion: reduce)'), true);
-  assert.strictEqual(css.includes('.sparovia-loader-active .sparovia-loader-outline,\n  .sparovia-loader-active .sparovia-trace-d0,\n  .sparovia-loader-active .sparovia-trace-d1,\n  .sparovia-loader-active .sparovia-loader-fill,\n  .sparovia-loader-active .sparovia-loader-aura {\n    animation: none !important;\n  }'), true);
+  assert.strictEqual(css.includes('.sparovia-loader-active .sparovia-loader-outline,\n  .sparovia-loader-active .sparovia-trace-d0,\n  .sparovia-loader-active .sparovia-trace-d1,\n  .sparovia-loader-active .sparovia-loader-fill {\n    animation: none !important;\n  }'), true);
 });
 
 it('SparoviaLogoLoader exports clean typed props and exports from components/ui/index.ts', () => {

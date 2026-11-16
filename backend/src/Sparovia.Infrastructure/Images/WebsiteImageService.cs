@@ -206,10 +206,36 @@ public class WebsiteImageService : IWebsiteImageService
         // 2. Resolve connected website
         var website = await _contentService.GetOrCreateConnectedWebsiteAsync(tenantId, cancellationToken);
 
+        // Check for recent idempotent upload (same tenant, filename, filesize, and dimensions in the last 2 minutes)
+        // Prevents duplicate storage assets and DB records during network timeouts, client retries, or duplicate submissions.
+        var rawFileName = Path.GetFileName(fileName);
+        var safeFileName = string.IsNullOrWhiteSpace(rawFileName) ? $"image_{Guid.NewGuid()}{valResult.RecommendedExtension}" : rawFileName;
+
+        var recentDuplicate = await _dbContext.Images
+            .AsNoTracking()
+            .Include(i => i.Variants)
+            .Where(i => i.TenantId == tenantId &&
+                        i.OriginalFileName == safeFileName &&
+                        i.FileSize == valResult.FileSize &&
+                        i.Width == valResult.Width &&
+                        i.Height == valResult.Height &&
+                        i.CreatedAt >= DateTime.UtcNow.AddMinutes(-2) &&
+                        i.Status != "Deleted")
+            .OrderByDescending(i => i.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (recentDuplicate != null)
+        {
+            _logger.LogInformation("Idempotent duplicate upload detected for TenantId={TenantId}, returning existing image {ImageId}", tenantId, recentDuplicate.Id);
+            return new ImageOperationResult
+            {
+                Success = true,
+                Image = MapToDto(recentDuplicate)
+            };
+        }
+
         // 3. Generate server-controlled storage key (strictly tenant-scoped, safe from client path traversal)
         var imageId = Guid.NewGuid();
-        var rawFileName = Path.GetFileName(fileName);
-        var safeFileName = string.IsNullOrWhiteSpace(rawFileName) ? $"image_{imageId}{valResult.RecommendedExtension}" : rawFileName;
         var storageKey = $"tenants/{tenantId}/images/original/original_{imageId}_{DateTime.UtcNow.Ticks}{valResult.RecommendedExtension}";
 
         // 4. Store in storage provider (must physically succeed before DB record is committed)

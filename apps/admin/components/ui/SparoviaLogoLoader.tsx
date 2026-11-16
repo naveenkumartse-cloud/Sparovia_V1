@@ -87,16 +87,13 @@ export function SparoviaLogoLoader({
   const gradTraceD1 = `traceGradD1_${uniqueId}`;
   const gradFull = `sparoviaFullGrad_${uniqueId}`;
 
-  // Glow halo diameter proportional to icon size
-  const haloSize = Math.round(config.width * 1.35);
-
   return (
     <div
       role="status"
       aria-live="polite"
       aria-label={label}
       className={cn(
-        'select-none inline-flex flex-col items-center justify-center',
+        'select-none inline-flex flex-col items-center justify-center bg-transparent',
         mode === 'initial' && 'p-4',
         mode === 'navigation' && 'shrink-0',
         className
@@ -104,25 +101,11 @@ export function SparoviaLogoLoader({
     >
       <div
         className={cn(
-          'relative flex items-center justify-center shrink-0',
+          'relative flex items-center justify-center shrink-0 bg-transparent',
           reducedMotion ? 'sparovia-loader-reduced' : 'sparovia-loader-active'
         )}
         style={{ width: config.width, height: config.height }}
       >
-        {/* Stage 4-6 Ambient Violet / Cyan Glow Aura */}
-        {!reducedMotion && (
-          <div
-            className="sparovia-loader-aura absolute rounded-full pointer-events-none"
-            style={{
-              width: haloSize,
-              height: haloSize,
-              background: 'radial-gradient(circle, rgba(168, 85, 247, 0.45) 0%, rgba(0, 229, 255, 0.22) 48%, transparent 72%)',
-              filter: config.width >= 60 ? 'blur(20px)' : 'blur(10px)',
-            }}
-            aria-hidden="true"
-          />
-        )}
-
         <svg
           viewBox="-20 -20 570 595"
           width={config.width}

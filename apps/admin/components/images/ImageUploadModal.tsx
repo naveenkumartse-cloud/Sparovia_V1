@@ -6,14 +6,9 @@ import {
   X,
   AlertCircle,
   CheckCircle2,
-  Image as ImageIcon,
-  Plus,
-  Loader2,
   FileCheck,
-  Sparkles,
   Check,
   Save,
-  ArrowRight,
   Layers,
   Trash2
 } from 'lucide-react';
@@ -78,6 +73,28 @@ function formatBytes(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
+/**
+ * Resolves relative API paths against the backend origin so images load correctly
+ * regardless of whether the admin panel is served on Vercel or localhost.
+ */
+function resolveImageUrl(url: string | null | undefined): string {
+  if (!url || typeof url !== 'string') return '';
+  if (url.startsWith('blob:') || url.startsWith('data:')) {
+    return url;
+  }
+  const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  let apiBase: string;
+  if (envUrl && envUrl.trim()) {
+    apiBase = envUrl.trim();
+  } else if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    apiBase = 'https://sparovia-api.onrender.com/api/v1';
+  } else {
+    apiBase = 'http://localhost:5043/api/v1';
+  }
+  const origin = apiBase.replace(/\/api\/v1\/?$/, '');
+  return `${origin}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
 export function ImageUploadModal({
   isOpen,
   onClose,
@@ -109,6 +126,7 @@ export function ImageUploadModal({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewUrlsRef = useRef<string[]>([]);
+  const isSubmittingRef = useRef(false);
 
   // Clean up all generated object URLs
   const cleanupPreviews = () => {
@@ -137,6 +155,7 @@ export function ImageUploadModal({
       setCurrentUploadIdx(0);
       setSavedImage(null);
       setSavedCount(0);
+      isSubmittingRef.current = false;
     } else if (replacingImage) {
       setUploadStep('form');
       setProjectWorkName(replacingImage.projectWorkName || '');
@@ -255,11 +274,13 @@ export function ImageUploadModal({
   // Step 1: Submit and upload to server
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingRef.current || isUploading) return;
     if (selectedItems.length === 0) {
       setErrorMessage('Please select an image file to upload.');
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsUploading(true);
     setErrorMessage(null);
     setCurrentUploadIdx(0);
@@ -290,24 +311,43 @@ export function ImageUploadModal({
         }
 
         let res;
-        if (replacingImage) {
-          res = await apiClient.postFormData<{ data: ImageDto }>(
-            `/website/images/${replacingImage.id}/replace`,
-            formData
-          );
-        } else {
-          formData.append('usageType', slot ? 'WebsiteImage' : usageType);
-          if (slot) {
-            formData.append('slot', slot);
+        try {
+          if (replacingImage) {
+            res = await apiClient.postFormData<{ data: ImageDto }>(
+              `/website/images/${replacingImage.id}/replace`,
+              formData
+            );
+          } else {
+            formData.append('usageType', slot ? 'WebsiteImage' : usageType);
+            if (slot) {
+              formData.append('slot', slot);
+            }
+            res = await apiClient.postFormData<{ data: ImageDto }>('/website/images', formData);
           }
-          res = await apiClient.postFormData<{ data: ImageDto }>('/website/images', formData);
+        } catch (uploadErr: any) {
+          // If a transient network glitch occurred, reconcile before falsely reporting failure:
+          // Check if the image was already committed on the backend during the connection interruption
+          try {
+            const checkRes = await apiClient.get<{ data: ImageDto[] }>('/website/images');
+            const match = checkRes?.data?.find(
+              (img) =>
+                img.originalFileName === item.file.name &&
+                (slot ? img.slot === slot : true) &&
+                Math.abs(img.fileSize - item.file.size) < 1000
+            );
+            if (match) {
+              res = { data: match };
+            } else {
+              throw uploadErr;
+            }
+          } catch {
+            throw uploadErr;
+          }
         }
 
         if (res?.data) {
           lastSaved = res.data;
           successCount++;
-          // Inform parent list to refresh data immediately
-          onSuccess(res.data);
         }
       }
 
@@ -320,6 +360,14 @@ export function ImageUploadModal({
             ? `${successCount} photos saved to library.`
             : 'Photo saved to library.'
         );
+
+        // Safely notify parent to refresh library list.
+        // Isolated in a separate try/catch so a background refresh error NEVER invalidates a successful upload!
+        try {
+          onSuccess(lastSaved);
+        } catch (refreshErr) {
+          console.warn('Non-fatal parent library refresh notice:', refreshErr);
+        }
       }
     } catch (err: any) {
       setErrorMessage(
@@ -327,6 +375,7 @@ export function ImageUploadModal({
       );
     } finally {
       setIsUploading(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -352,7 +401,7 @@ export function ImageUploadModal({
       onClose={onClose}
       title={
         uploadStep === 'success'
-          ? (savedCount > 1 ? `${savedCount} Photos Saved Successfully` : 'Photo Saved to Library')
+          ? (savedCount > 1 ? `${savedCount} Photos Saved to Library` : 'Photo Saved to Library')
           : (replacingImage
               ? `Replace Image: ${replacingImage.slot || replacingImage.projectWorkName || 'Source'}`
               : slot
@@ -370,19 +419,19 @@ export function ImageUploadModal({
       preventOutsideClose={Boolean(isUploading)}
       footer={
         uploadStep === 'success' ? (
-          /* STEP 2 FOOTER: Clear two choices — Done vs Optional Enhance */
-          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2.5 w-full">
-            <div className="text-xs text-[#475569] dark:text-[#94A3B8] flex items-center gap-1.5">
+          /* STEP 2 FOOTER: Clean, un-overlapping, fully responsive layout */
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
+            <div className="text-xs text-[#475569] dark:text-[#94A3B8] flex items-center justify-center sm:justify-start gap-1.5 shrink-0">
               <CheckCircle2 className="w-4 h-4 text-[#15803D] shrink-0" />
               <span>Saved to media library</span>
             </div>
-            <div className="flex flex-col-reverse sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
               {onOpenStudio && savedImage && (
                 <EnhanceButton
                   size="md"
                   type="button"
                   onClick={handleOpenStudioFromSuccess}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto justify-center"
                   title="Open Image Studio to optionally enhance clarity, tone, and lighting"
                 >
                   Enhance Image (Optional)
@@ -394,7 +443,7 @@ export function ImageUploadModal({
                 type="button"
                 onClick={handleDoneKeepOriginal}
                 leftIcon={<Check className="w-4 h-4" />}
-                className="w-full sm:w-auto font-semibold"
+                className="w-full sm:w-auto justify-center font-semibold"
                 title="Keep original photograph and close"
               >
                 Done — Keep Original
@@ -445,10 +494,10 @@ export function ImageUploadModal({
       }
     >
       {uploadStep === 'success' && savedImage ? (
-        /* STEP 2 VIEW: Confirmation Screen */
+        /* STEP 2 VIEW: Redesigned Spacious Confirmation Screen */
         <div className="flex flex-col gap-4 py-1">
-          {/* Success Banner */}
-          <div className="p-4 bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-[8px] flex items-start gap-3">
+          {/* Clear Success Indicator */}
+          <div className="p-3.5 sm:p-4 bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-[8px] flex items-start gap-3">
             <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-[#15803D] dark:text-emerald-300 flex items-center justify-center shrink-0">
               <CheckCircle2 className="w-5 h-5" />
             </div>
@@ -464,40 +513,57 @@ export function ImageUploadModal({
             </div>
           </div>
 
-          {/* Saved Image Preview Card */}
-          <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-[8px] bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
-            <div className="relative w-32 h-28 sm:w-36 sm:h-28 rounded-[6px] overflow-hidden bg-slate-200 dark:bg-slate-800 shrink-0 border border-slate-300 dark:border-slate-700 flex items-center justify-center">
+          {/* Actual Saved Image Preview Card */}
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 rounded-[8px] bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+            {/* Thumbnail: Uses backend resolved URL with reliable local blob fallback */}
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-[6px] overflow-hidden bg-slate-200 dark:bg-slate-800 shrink-0 border border-slate-300 dark:border-slate-700 flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={savedImage.previewUrl || primaryItem?.previewUrl}
-                alt={savedImage.projectWorkName || 'Saved photograph'}
+                src={savedImage.previewUrl ? resolveImageUrl(savedImage.previewUrl) : (primaryItem?.previewUrl || '')}
+                alt={savedImage.originalFileName || savedImage.projectWorkName || 'Saved photograph'}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  if (primaryItem?.previewUrl && e.currentTarget.src !== primaryItem.previewUrl) {
+                    e.currentTarget.src = primaryItem.previewUrl;
+                  }
+                }}
               />
             </div>
-            <div className="flex-1 min-w-0 text-center sm:text-left">
-              <p className="text-sm font-semibold text-[#172033] dark:text-white truncate">
-                {savedImage.projectWorkName || savedImage.originalFileName || 'Website Photograph'}
+
+            {/* Image Details */}
+            <div className="flex-1 min-w-0 text-center sm:text-left space-y-1.5 w-full">
+              <p
+                className="text-sm font-semibold text-[#172033] dark:text-white truncate"
+                title={savedImage.originalFileName || savedImage.projectWorkName || ''}
+              >
+                {savedImage.originalFileName || savedImage.projectWorkName || 'Website Photograph'}
               </p>
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-[#475569] dark:text-[#94A3B8] mt-1.5">
+
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-[#475569] dark:text-[#94A3B8]">
                 <span className="font-mono bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                   {savedImage.width} × {savedImage.height} px
                 </span>
                 <span>•</span>
-                <span>{formatBytes(savedImage.fileSize)}</span>
-                {savedImage.slot && (
-                  <>
-                    <span>•</span>
-                    <span className="text-[#315FEA] font-medium">Slot: {savedImage.slot}</span>
-                  </>
-                )}
+                <span className="font-medium">{formatBytes(savedImage.fileSize)}</span>
                 {savedImage.category && (
                   <>
                     <span>•</span>
-                    <span>Category: {savedImage.category}</span>
+                    <span className="bg-slate-200/70 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[11px]">
+                      Category: {savedImage.category}
+                    </span>
+                  </>
+                )}
+                {savedImage.slot && (
+                  <>
+                    <span>•</span>
+                    <span className="text-[#315FEA] font-semibold text-[11px]">
+                      Slot: {savedImage.slot}
+                    </span>
                   </>
                 )}
               </div>
-              <p className="text-xs text-[#475569] dark:text-[#94A3B8] mt-2 leading-relaxed">
+
+              <p className="text-xs text-[#475569] dark:text-[#94A3B8] pt-1 leading-relaxed">
                 You can keep this original photograph as-is, or optionally open Image Studio to enhance lighting, contrast, and web delivery.
               </p>
             </div>
@@ -517,7 +583,7 @@ export function ImageUploadModal({
           {replacingImage && (
             <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-[6px] text-xs text-blue-900 dark:text-blue-300">
               <div className="flex items-center gap-1.5 font-semibold text-[#1D4ED8] dark:text-blue-300">
-                <Sparkles className="w-3.5 h-3.5" />
+                <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Replacing: {replacingImage.slot || replacingImage.projectWorkName || 'Live Website Image'}</span>
               </div>
               <p className="text-[11px] text-[#475569] dark:text-[#94A3B8] mt-1 leading-relaxed">
